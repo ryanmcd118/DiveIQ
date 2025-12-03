@@ -1,0 +1,22 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model DiveLog {
+  id          String   @id @default(cuid())
+  date        String
+  region      String
+  siteName    String
+  maxDepth    Int
+  bottomTime  Int
+  waterTemp   Int?
+  visibility  Int?
+  buddyName   String?
+  notes       String?
+  createdAt   DateTime @default(now())
+}

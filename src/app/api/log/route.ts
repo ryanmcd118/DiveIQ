@@ -1,30 +1,39 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { prisma } from '@/lib/prisma';
+import type { DiveLogInput } from '@/app/log/types';
 
-type DiveLogInput = {
-  date: string;
-  region: string;
-  siteName: string;
-  maxDepth: number;
-  bottomTime: number;
-  waterTemp?: number | null;
-  visibility?: number | null;
-  buddyName?: string | null;
-  notes?: string | null;
-};
+export async function GET() {
+  const entries = await prisma.diveLog.findMany({
+    orderBy: { date: 'desc' },
+  });
 
-type DiveLogEntry = DiveLogInput & {
-  id: string;
-};
+  return NextResponse.json({ entries });
+}
 
 export async function POST(req: NextRequest) {
   const body = (await req.json()) as DiveLogInput;
 
-  // DB PLACEHOLDER
-  // for now just generating ID on server and echoing back
-  const entry: DiveLogEntry = {
-    id: crypto.randomUUID(),
-    ...body,
-  };
+  // very basic validation; will harden later
+  if (!body.date || !body.region || !body.siteName) {
+    return NextResponse.json(
+      { error: 'Missing required fields' },
+      { status: 400 }
+    );
+  }
 
-  return NextResponse.json({ entry });
+  const entry = await prisma.diveLog.create({
+    data: {
+      date: body.date,
+      region: body.region,
+      siteName: body.siteName,
+      maxDepth: body.maxDepth,
+      bottomTime: body.bottomTime,
+      waterTemp: body.waterTemp ?? null,
+      visibility: body.visibility ?? null,
+      buddyName: body.buddyName ?? null,
+      notes: body.notes ?? null,
+    },
+  });
+
+  return NextResponse.json({ entry }, { status: 201 });
 }

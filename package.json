@@ -2,6 +2,8 @@
   "name": "diveiq",
   "version": "0.1.0",
   "private": true,
+  "author": "Ryan McDaniel",
+  "description": "AI-powered dive planning and logging",
   "scripts": {
     "dev": "next dev",
     "build": "next build",
@@ -9,8 +11,10 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@prisma/client": "^6.19.0",
     "next": "16.0.7",
     "openai": "^6.9.1",
+    "prisma": "^6.19.0",
     "react": "19.2.0",
     "react-dom": "19.2.0"
   },

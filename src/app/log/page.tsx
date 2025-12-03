@@ -1,12 +1,13 @@
 'use client';
 
-import { FormEvent, useState } from 'react';
+import { FormEvent, useEffect, useState } from 'react';
 import DiveLogList from './components/DiveLogList';
 import { DiveLogEntry, DiveLogInput } from './types';
 
 export default function LogPage() {
   const [entries, setEntries] = useState<DiveLogEntry[]>([]);
   const [saving, setSaving] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   const totalBottomTime = entries.reduce(
@@ -14,12 +15,30 @@ export default function LogPage() {
     0
   );
 
+  // Load existing entries from API on mount
+  useEffect(() => {
+    const loadEntries = async () => {
+      try {
+        const res = await fetch('/api/log');
+        if (!res.ok) throw new Error(`API returned ${res.status}`);
+        const data: { entries: DiveLogEntry[] } = await res.json();
+        setEntries(data.entries);
+      } catch (err) {
+        console.error(err);
+        setError('Failed to load existing dives.');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadEntries();
+  }, []);
+
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setSaving(true);
     setError(null);
 
-    // cache the form element before any await
     const form = e.currentTarget;
     const formData = new FormData(form);
 
@@ -221,7 +240,9 @@ export default function LogPage() {
         <section className="space-y-4">
           <div className="bg-slate-900/60 p-6 rounded-xl border border-slate-800 shadow-lg">
             <h2 className="text-lg font-semibold mb-2">Log overview</h2>
-            {entries.length === 0 ? (
+            {loading ? (
+              <p className="text-sm text-slate-400">Loading dives…</p>
+            ) : entries.length === 0 ? (
               <p className="text-sm text-slate-400">
                 No dives logged yet. Add your first dive on the left.
               </p>
@@ -241,7 +262,11 @@ export default function LogPage() {
 
           <div className="bg-slate-900/60 p-6 rounded-xl border border-slate-800 shadow-lg space-y-4 max-h-[60vh] overflow-y-auto">
             <h2 className="text-lg font-semibold">Recent dives</h2>
-            <DiveLogList entries={entries} />
+            {loading ? (
+              <p className="text-sm text-slate-400">Loading dives…</p>
+            ) : (
+              <DiveLogList entries={entries} />
+            )}
           </div>
         </section>
       </div>
