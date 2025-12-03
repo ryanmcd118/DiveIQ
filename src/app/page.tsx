@@ -1,11 +1,11 @@
-import Link from 'next/link';
-import { prisma } from '@/lib/prisma';
-import type { DiveLog, DivePlan } from '@prisma/client';
+import Link from "next/link";
+import { prisma } from "@/lib/prisma";
+import type { DiveLog, DivePlan } from "@prisma/client";
 
 export default async function DashboardPage() {
   const [recentDives, totalCount, aggregates, recentPlans] = await Promise.all([
     prisma.diveLog.findMany({
-      orderBy: { date: 'desc' },
+      orderBy: { date: "desc" },
       take: 3,
     }),
     prisma.diveLog.count(),
@@ -14,7 +14,7 @@ export default async function DashboardPage() {
       _max: { maxDepth: true },
     }),
     prisma.divePlan.findMany({
-      orderBy: { createdAt: 'desc' },
+      orderBy: { createdAt: "desc" },
       take: 3,
     }),
   ]);
@@ -24,15 +24,15 @@ export default async function DashboardPage() {
   const mostRecentDive: DiveLog | undefined = recentDives[0];
 
   return (
-    <main className="min-h-screen bg-slate-950 text-slate-100 flex justify-center p-6 md:p-10">
+    <main className="flex min-h-screen justify-center bg-slate-950 p-6 text-slate-100 md:p-10">
       <div className="w-full max-w-5xl space-y-8">
         {/* Header */}
-        <header className="flex flex-col md:flex-row md:items-end md:justify-between gap-4">
+        <header className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
           <div>
-            <h1 className="text-3xl md:text-4xl font-semibold tracking-tight">
+            <h1 className="text-3xl font-semibold tracking-tight md:text-4xl">
               DiveIQ Dashboard
             </h1>
-            <p className="mt-2 text-sm text-slate-400 max-w-xl">
+            <p className="mt-2 max-w-xl text-sm text-slate-400">
               Your personal hub for planning dives, logging experiences, and
               eventually tracking gear, certifications, and more.
             </p>
@@ -40,13 +40,13 @@ export default async function DashboardPage() {
           <div className="flex gap-3">
             <Link
               href="/plan"
-              className="inline-flex items-center justify-center rounded-md bg-cyan-500 px-4 py-2 text-sm font-medium text-slate-950 hover:bg-cyan-400 focus:outline-none focus:ring-2 focus:ring-cyan-400 focus:ring-offset-2 focus:ring-offset-slate-950"
+              className="inline-flex items-center justify-center rounded-md bg-cyan-500 px-4 py-2 text-sm font-medium text-slate-950 hover:bg-cyan-400 focus:ring-2 focus:ring-cyan-400 focus:ring-offset-2 focus:ring-offset-slate-950 focus:outline-none"
             >
               Plan a dive
             </Link>
             <Link
               href="/log"
-              className="inline-flex items-center justify-center rounded-md border border-slate-700 px-4 py-2 text-sm font-medium text-slate-100 hover:border-cyan-400 hover:text-cyan-100 focus:outline-none focus:ring-2 focus:ring-cyan-400 focus:ring-offset-2 focus:ring-offset-slate-950"
+              className="inline-flex items-center justify-center rounded-md border border-slate-700 px-4 py-2 text-sm font-medium text-slate-100 hover:border-cyan-400 hover:text-cyan-100 focus:ring-2 focus:ring-cyan-400 focus:ring-offset-2 focus:ring-offset-slate-950 focus:outline-none"
             >
               Log a dive
             </Link>
@@ -55,8 +55,8 @@ export default async function DashboardPage() {
 
         {/* Stats row */}
         <section className="grid gap-4 md:grid-cols-3">
-          <div className="bg-slate-900/70 border border-slate-800 rounded-xl p-4 shadow-lg">
-            <p className="text-xs uppercase tracking-wide text-slate-400">
+          <div className="rounded-xl border border-slate-800 bg-slate-900/70 p-4 shadow-lg">
+            <p className="text-xs tracking-wide text-slate-400 uppercase">
               Total dives
             </p>
             <p className="mt-2 text-3xl font-semibold">{totalCount}</p>
@@ -65,8 +65,8 @@ export default async function DashboardPage() {
             </p>
           </div>
 
-          <div className="bg-slate-900/70 border border-slate-800 rounded-xl p-4 shadow-lg">
-            <p className="text-xs uppercase tracking-wide text-slate-400">
+          <div className="rounded-xl border border-slate-800 bg-slate-900/70 p-4 shadow-lg">
+            <p className="text-xs tracking-wide text-slate-400 uppercase">
               Total bottom time
             </p>
             <p className="mt-2 text-3xl font-semibold">
@@ -80,8 +80,8 @@ export default async function DashboardPage() {
             </p>
           </div>
 
-          <div className="bg-slate-900/70 border border-slate-800 rounded-xl p-4 shadow-lg">
-            <p className="text-xs uppercase tracking-wide text-slate-400">
+          <div className="rounded-xl border border-slate-800 bg-slate-900/70 p-4 shadow-lg">
+            <p className="text-xs tracking-wide text-slate-400 uppercase">
               Deepest dive
             </p>
             <p className="mt-2 text-3xl font-semibold">
@@ -100,8 +100,8 @@ export default async function DashboardPage() {
         <section className="grid gap-6 md:grid-cols-[minmax(0,2fr)_minmax(0,1.5fr)]">
           {/* Left: most recent dive + recent dives */}
           <div className="space-y-4">
-            <div className="bg-slate-900/70 border border-slate-800 rounded-xl p-5 shadow-lg">
-              <div className="flex items-center justify-between gap-3 mb-2">
+            <div className="rounded-xl border border-slate-800 bg-slate-900/70 p-5 shadow-lg">
+              <div className="mb-2 flex items-center justify-between gap-3">
                 <h2 className="text-lg font-semibold">Most recent dive</h2>
                 <Link
                   href="/log"
@@ -114,12 +114,12 @@ export default async function DashboardPage() {
               {mostRecentDive ? (
                 <div className="space-y-1 text-sm">
                   <p className="font-medium">
-                    {mostRecentDive.siteName}{' '}
+                    {mostRecentDive.siteName}{" "}
                     <span className="text-slate-400">
                       ({mostRecentDive.region})
                     </span>
                   </p>
-                  <p className="text-slate-400 text-xs mb-1">
+                  <p className="mb-1 text-xs text-slate-400">
                     {mostRecentDive.date}
                   </p>
                   <p className="text-slate-200">
@@ -130,29 +130,32 @@ export default async function DashboardPage() {
                       ` · ${mostRecentDive.waterTemp}°C`}
                   </p>
                   {mostRecentDive.buddyName && (
-                    <p className="text-slate-400 text-xs">
+                    <p className="text-xs text-slate-400">
                       Buddy: {mostRecentDive.buddyName}
                     </p>
                   )}
                   {mostRecentDive.notes && (
-                    <p className="text-slate-300 text-xs mt-2 whitespace-pre-line">
+                    <p className="mt-2 text-xs whitespace-pre-line text-slate-300">
                       {mostRecentDive.notes}
                     </p>
                   )}
                 </div>
               ) : (
                 <p className="text-sm text-slate-400">
-                  No dives logged yet.{' '}
-                  <Link href="/log" className="text-cyan-300 hover:text-cyan-200">
+                  No dives logged yet.{" "}
+                  <Link
+                    href="/log"
+                    className="text-cyan-300 hover:text-cyan-200"
+                  >
                     Log your first dive
-                  </Link>{' '}
+                  </Link>{" "}
                   to see it here.
                 </p>
               )}
             </div>
 
-            <div className="bg-slate-900/70 border border-slate-800 rounded-xl p-5 shadow-lg">
-              <h2 className="text-lg font-semibold mb-2">Recent dives</h2>
+            <div className="rounded-xl border border-slate-800 bg-slate-900/70 p-5 shadow-lg">
+              <h2 className="mb-2 text-lg font-semibold">Recent dives</h2>
               {recentDives.length === 0 ? (
                 <p className="text-sm text-slate-400">
                   Once you start logging dives, the latest few will appear here
@@ -163,11 +166,11 @@ export default async function DashboardPage() {
                   {recentDives.map((dive) => (
                     <li
                       key={dive.id}
-                      className="border border-slate-800 rounded-lg p-3 bg-slate-950/40"
+                      className="rounded-lg border border-slate-800 bg-slate-950/40 p-3"
                     >
                       <div className="flex justify-between gap-2">
                         <span className="font-medium">
-                          {dive.siteName}{' '}
+                          {dive.siteName}{" "}
                           <span className="text-slate-400">
                             ({dive.region})
                           </span>
@@ -180,7 +183,7 @@ export default async function DashboardPage() {
                         {dive.maxDepth}m · {dive.bottomTime}min
                       </p>
                       {dive.buddyName && (
-                        <p className="text-slate-400 text-xs mt-1">
+                        <p className="mt-1 text-xs text-slate-400">
                           Buddy: {dive.buddyName}
                         </p>
                       )}
@@ -193,9 +196,9 @@ export default async function DashboardPage() {
 
           {/* Right: planning + gear */}
           <div className="space-y-4">
-            <div className="bg-slate-900/70 border border-slate-800 rounded-xl p-5 shadow-lg">
-              <h2 className="text-lg font-semibold mb-2">Planning shortcuts</h2>
-              <p className="text-sm text-slate-400 mb-3">
+            <div className="rounded-xl border border-slate-800 bg-slate-900/70 p-5 shadow-lg">
+              <h2 className="mb-2 text-lg font-semibold">Planning shortcuts</h2>
+              <p className="mb-3 text-sm text-slate-400">
                 Jump straight into planning your next dive.
               </p>
               <div className="flex flex-col gap-2">
@@ -207,7 +210,7 @@ export default async function DashboardPage() {
                 </Link>
                 <button
                   type="button"
-                  className="rounded-md border border-slate-800 px-3 py-2 text-sm text-slate-500 cursor-not-allowed"
+                  className="cursor-not-allowed rounded-md border border-slate-800 px-3 py-2 text-sm text-slate-500"
                   title="Coming soon"
                 >
                   🌊 Plan a weekend trip (coming soon)
@@ -215,11 +218,11 @@ export default async function DashboardPage() {
               </div>
             </div>
 
-            <div className="bg-slate-900/70 border border-slate-800 rounded-xl p-5 shadow-lg">
-              <h2 className="text-lg font-semibold mb-2">
+            <div className="rounded-xl border border-slate-800 bg-slate-900/70 p-5 shadow-lg">
+              <h2 className="mb-2 text-lg font-semibold">
                 Gear & certifications
               </h2>
-              <p className="text-sm text-slate-400 mb-3">
+              <p className="mb-3 text-sm text-slate-400">
                 This space will eventually track your gear service dates,
                 certification levels, and training goals.
               </p>
@@ -232,8 +235,8 @@ export default async function DashboardPage() {
         </section>
 
         {/* Recent planned dives */}
-        <section className="bg-slate-900/70 border border-slate-800 rounded-xl p-5 shadow-lg">
-          <div className="flex items-center justify-between mb-2">
+        <section className="rounded-xl border border-slate-800 bg-slate-900/70 p-5 shadow-lg">
+          <div className="mb-2 flex items-center justify-between">
             <h2 className="text-lg font-semibold">Recent planned dives</h2>
             <Link
               href="/plan"
@@ -253,27 +256,21 @@ export default async function DashboardPage() {
               {recentPlans.map((plan: DivePlan) => (
                 <li
                   key={plan.id}
-                  className="border border-slate-800 rounded-lg p-3 bg-slate-950/40"
+                  className="rounded-lg border border-slate-800 bg-slate-950/40 p-3"
                 >
                   <div className="flex justify-between gap-2">
                     <span className="font-medium">
-                      {plan.siteName}{' '}
-                      <span className="text-slate-400">
-                        ({plan.region})
-                      </span>
+                      {plan.siteName}{" "}
+                      <span className="text-slate-400">({plan.region})</span>
                     </span>
-                    <span className="text-xs text-slate-400">
-                      {plan.date}
-                    </span>
+                    <span className="text-xs text-slate-400">{plan.date}</span>
                   </div>
                   <p className="text-slate-300">
-                    {plan.maxDepth}m · {plan.bottomTime}min ·{' '}
-                    <span className="capitalize">
-                      {plan.experienceLevel}
-                    </span>
+                    {plan.maxDepth}m · {plan.bottomTime}min ·{" "}
+                    <span className="capitalize">{plan.experienceLevel}</span>
                   </p>
-                  <p className="text-xs text-slate-400 mt-1">
-                    Estimated risk:{' '}
+                  <p className="mt-1 text-xs text-slate-400">
+                    Estimated risk:{" "}
                     <span className="text-slate-200">{plan.riskLevel}</span>
                   </p>
                 </li>

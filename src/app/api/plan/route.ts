@@ -1,18 +1,18 @@
-import { NextRequest, NextResponse } from 'next/server';
-import OpenAI from 'openai';
-import { prisma } from '@/lib/prisma';
-import type { PlanInput } from '@/app/plan/types';
+import { NextRequest, NextResponse } from "next/server";
+import OpenAI from "openai";
+import { prisma } from "@/lib/prisma";
+import type { PlanInput } from "@/app/plan/types";
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
-type RiskLevel = 'Low' | 'Moderate' | 'High';
+type RiskLevel = "Low" | "Moderate" | "High";
 
 function calculateRisk(maxDepth: number, bottomTime: number): RiskLevel {
-  if (maxDepth > 40 || bottomTime > 50) return 'High';
-  if (maxDepth > 30 || bottomTime > 40) return 'Moderate';
-  return 'Low';
+  if (maxDepth > 40 || bottomTime > 50) return "High";
+  if (maxDepth > 30 || bottomTime > 40) return "Moderate";
+  return "Low";
 }
 
 export async function POST(req: NextRequest) {
@@ -23,7 +23,7 @@ export async function POST(req: NextRequest) {
       date: string;
       maxDepth: number;
       bottomTime: number;
-      experienceLevel: 'Beginner' | 'Intermediate' | 'Advanced';
+      experienceLevel: "Beginner" | "Intermediate" | "Advanced";
     };
 
     const riskLevel = calculateRisk(body.maxDepth, body.bottomTime);
@@ -52,17 +52,17 @@ communication, emergency planning). Be clear but non-alarmist.
     `.trim();
 
     const completion = await openai.chat.completions.create({
-      model: 'gpt-4.1-mini',
+      model: "gpt-4.1-mini",
       messages: [
-        { role: 'system', content: systemPrompt },
-        { role: 'user', content: userPrompt },
+        { role: "system", content: systemPrompt },
+        { role: "user", content: userPrompt },
       ],
       temperature: 0.5,
     });
 
     const aiAdvice =
       completion.choices[0]?.message?.content ??
-      'Unable to generate advice at this time. Dive conservatively and within your training.';
+      "Unable to generate advice at this time. Dive conservatively and within your training.";
 
     // Save to DB
     const planInput: PlanInput = {
@@ -86,13 +86,13 @@ communication, emergency planning). Be clear but non-alarmist.
         aiAdvice,
         plan: saved,
       },
-      { status: 200 },
+      { status: 200 }
     );
   } catch (err) {
-    console.error('Error in /api/plan:', err);
+    console.error("Error in /api/plan:", err);
     return NextResponse.json(
-      { error: 'Failed to generate plan advice.' },
-      { status: 500 },
+      { error: "Failed to generate plan advice." },
+      { status: 500 }
     );
   }
 }
@@ -100,7 +100,7 @@ communication, emergency planning). Be clear but non-alarmist.
 // Later we can list plans for dashboards, etc.
 export async function GET() {
   const plans = await prisma.divePlan.findMany({
-    orderBy: { createdAt: 'desc' },
+    orderBy: { createdAt: "desc" },
     take: 10,
   });
 

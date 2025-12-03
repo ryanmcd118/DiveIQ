@@ -1,4 +1,4 @@
-import type { DiveLog } from '@prisma/client';
+import type { DiveLog } from "@prisma/client";
 
 export type DiveLogEntry = DiveLog;
-export type DiveLogInput = Omit<DiveLogEntry, 'id' | 'createdAt'>;
+export type DiveLogInput = Omit<DiveLogEntry, "id" | "createdAt">;

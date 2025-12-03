@@ -1,14 +1,14 @@
-import type { Metadata } from 'next';
-import { Inter } from 'next/font/google';
-import Link from 'next/link';
-import './globals.css';
+import type { Metadata } from "next";
+import { Inter } from "next/font/google";
+import Link from "next/link";
+import "./globals.css";
 
-const inter = Inter({ subsets: ['latin'] });
+const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: 'DiveIQ',
+  title: "DiveIQ",
   description:
-    'Plan, log, and understand your dives with AI-assisted guidance.',
+    "Plan, log, and understand your dives with AI-assisted guidance.",
 };
 
 export default function RootLayout({
@@ -30,19 +30,19 @@ export default function RootLayout({
             <div className="flex items-center gap-4 text-sm">
               <Link
                 href="/"
-                className="text-slate-300 hover:text-cyan-300 transition-colors"
+                className="text-slate-300 transition-colors hover:text-cyan-300"
               >
                 Dashboard
               </Link>
               <Link
                 href="/plan"
-                className="text-slate-300 hover:text-cyan-300 transition-colors"
+                className="text-slate-300 transition-colors hover:text-cyan-300"
               >
                 Plan
               </Link>
               <Link
                 href="/log"
-                className="text-slate-300 hover:text-cyan-300 transition-colors"
+                className="text-slate-300 transition-colors hover:text-cyan-300"
               >
                 Log
               </Link>

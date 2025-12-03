@@ -1,6 +1,6 @@
-'use client';
+"use client";
 
-import { DiveLogEntry } from '../types';
+import { DiveLogEntry } from "../types";
 
 type Props = {
   entries: DiveLogEntry[];
@@ -21,11 +21,11 @@ function DiveLogList({ entries }: Props) {
       {entries.map((entry) => (
         <li
           key={entry.id}
-          className="border border-slate-800 rounded-lg p-3 bg-slate-950/40"
+          className="rounded-lg border border-slate-800 bg-slate-950/40 p-3"
         >
-          <div className="flex justify-between gap-2 mb-1">
+          <div className="mb-1 flex justify-between gap-2">
             <span className="font-semibold">
-              {entry.siteName}{' '}
+              {entry.siteName}{" "}
               <span className="text-slate-400">({entry.region})</span>
             </span>
             <span className="text-xs text-slate-400">{entry.date}</span>
@@ -36,12 +36,12 @@ function DiveLogList({ entries }: Props) {
             {entry.waterTemp != null && ` · ${entry.waterTemp}°C`}
           </p>
           {entry.buddyName && (
-            <p className="text-slate-400 text-xs mt-1">
+            <p className="mt-1 text-xs text-slate-400">
               Buddy: {entry.buddyName}
             </p>
           )}
           {entry.notes && (
-            <p className="text-slate-300 text-xs mt-2 whitespace-pre-line">
+            <p className="mt-2 text-xs whitespace-pre-line text-slate-300">
               {entry.notes}
             </p>
           )}

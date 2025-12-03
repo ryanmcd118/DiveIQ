@@ -1,4 +1,4 @@
-import type { DivePlan } from '@prisma/client';
+import type { DivePlan } from "@prisma/client";
 
 export type PlanRecord = DivePlan;
-export type PlanInput = Omit<PlanRecord, 'id' | 'createdAt'>;
+export type PlanInput = Omit<PlanRecord, "id" | "createdAt">;

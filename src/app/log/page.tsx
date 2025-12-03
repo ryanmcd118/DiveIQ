@@ -1,8 +1,8 @@
-'use client';
+"use client";
 
-import { FormEvent, useEffect, useState } from 'react';
-import DiveLogList from './components/DiveLogList';
-import { DiveLogEntry, DiveLogInput } from './types';
+import { FormEvent, useEffect, useState } from "react";
+import DiveLogList from "./components/DiveLogList";
+import { DiveLogEntry, DiveLogInput } from "./types";
 
 export default function LogPage() {
   const [entries, setEntries] = useState<DiveLogEntry[]>([]);
@@ -19,13 +19,13 @@ export default function LogPage() {
   useEffect(() => {
     const loadEntries = async () => {
       try {
-        const res = await fetch('/api/log');
+        const res = await fetch("/api/log");
         if (!res.ok) throw new Error(`API returned ${res.status}`);
         const data: { entries: DiveLogEntry[] } = await res.json();
         setEntries(data.entries);
       } catch (err) {
         console.error(err);
-        setError('Failed to load existing dives.');
+        setError("Failed to load existing dives.");
       } finally {
         setLoading(false);
       }
@@ -43,25 +43,25 @@ export default function LogPage() {
     const formData = new FormData(form);
 
     const payload: DiveLogInput = {
-      date: formData.get('date') as string,
-      region: (formData.get('region') as string) ?? '',
-      siteName: (formData.get('siteName') as string) ?? '',
-      maxDepth: Number(formData.get('maxDepth')),
-      bottomTime: Number(formData.get('bottomTime')),
-      waterTemp: formData.get('waterTemp')
-        ? Number(formData.get('waterTemp'))
+      date: formData.get("date") as string,
+      region: (formData.get("region") as string) ?? "",
+      siteName: (formData.get("siteName") as string) ?? "",
+      maxDepth: Number(formData.get("maxDepth")),
+      bottomTime: Number(formData.get("bottomTime")),
+      waterTemp: formData.get("waterTemp")
+        ? Number(formData.get("waterTemp"))
         : null,
-      visibility: formData.get('visibility')
-        ? Number(formData.get('visibility'))
+      visibility: formData.get("visibility")
+        ? Number(formData.get("visibility"))
         : null,
-      buddyName: (formData.get('buddyName') as string) || null,
-      notes: (formData.get('notes') as string) || null,
+      buddyName: (formData.get("buddyName") as string) || null,
+      notes: (formData.get("notes") as string) || null,
     };
 
     try {
-      const res = await fetch('/api/log', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const res = await fetch("/api/log", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
 
@@ -75,15 +75,15 @@ export default function LogPage() {
       form.reset();
     } catch (err) {
       console.error(err);
-      setError('Failed to save dive. Please try again.');
+      setError("Failed to save dive. Please try again.");
     } finally {
       setSaving(false);
     }
   };
 
   return (
-    <main className="min-h-screen bg-slate-950 text-slate-100 flex justify-center p-6 md:p-10">
-      <div className="w-full max-w-5xl grid gap-8 md:grid-cols-2">
+    <main className="flex min-h-screen justify-center bg-slate-950 p-6 text-slate-100 md:p-10">
+      <div className="grid w-full max-w-5xl gap-8 md:grid-cols-2">
         {/* Left: log form */}
         <section className="space-y-4">
           <h1 className="text-3xl font-semibold tracking-tight">Dive Log</h1>
@@ -95,7 +95,7 @@ export default function LogPage() {
 
           <form
             onSubmit={handleSubmit}
-            className="mt-4 space-y-4 bg-slate-900/60 p-6 rounded-xl border border-slate-800 shadow-lg"
+            className="mt-4 space-y-4 rounded-xl border border-slate-800 bg-slate-900/60 p-6 shadow-lg"
           >
             <div className="flex flex-col gap-1">
               <label htmlFor="date" className="text-sm text-slate-300">
@@ -106,7 +106,7 @@ export default function LogPage() {
                 id="date"
                 name="date"
                 required
-                className="bg-slate-950 border border-slate-700 rounded-md px-3 py-2 text-sm outline-none focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400"
+                className="rounded-md border border-slate-700 bg-slate-950 px-3 py-2 text-sm outline-none focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400"
               />
             </div>
 
@@ -120,7 +120,7 @@ export default function LogPage() {
                 name="region"
                 placeholder="Roatán, Red Sea, local quarry..."
                 required
-                className="bg-slate-950 border border-slate-700 rounded-md px-3 py-2 text-sm outline-none focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400"
+                className="rounded-md border border-slate-700 bg-slate-950 px-3 py-2 text-sm outline-none focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400"
               />
             </div>
 
@@ -134,7 +134,7 @@ export default function LogPage() {
                 name="siteName"
                 placeholder="Mary's Place"
                 required
-                className="bg-slate-950 border border-slate-700 rounded-md px-3 py-2 text-sm outline-none focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400"
+                className="rounded-md border border-slate-700 bg-slate-950 px-3 py-2 text-sm outline-none focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400"
               />
             </div>
 
@@ -148,14 +148,11 @@ export default function LogPage() {
                   id="maxDepth"
                   name="maxDepth"
                   required
-                  className="bg-slate-950 border border-slate-700 rounded-md px-3 py-2 text-sm outline-none focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400"
+                  className="rounded-md border border-slate-700 bg-slate-950 px-3 py-2 text-sm outline-none focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400"
                 />
               </div>
               <div className="flex flex-col gap-1">
-                <label
-                  htmlFor="bottomTime"
-                  className="text-sm text-slate-300"
-                >
+                <label htmlFor="bottomTime" className="text-sm text-slate-300">
                   Bottom time (min)
                 </label>
                 <input
@@ -163,7 +160,7 @@ export default function LogPage() {
                   id="bottomTime"
                   name="bottomTime"
                   required
-                  className="bg-slate-950 border border-slate-700 rounded-md px-3 py-2 text-sm outline-none focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400"
+                  className="rounded-md border border-slate-700 bg-slate-950 px-3 py-2 text-sm outline-none focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400"
                 />
               </div>
             </div>
@@ -177,21 +174,18 @@ export default function LogPage() {
                   type="number"
                   id="waterTemp"
                   name="waterTemp"
-                  className="bg-slate-950 border border-slate-700 rounded-md px-3 py-2 text-sm outline-none focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400"
+                  className="rounded-md border border-slate-700 bg-slate-950 px-3 py-2 text-sm outline-none focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400"
                 />
               </div>
               <div className="flex flex-col gap-1">
-                <label
-                  htmlFor="visibility"
-                  className="text-sm text-slate-300"
-                >
+                <label htmlFor="visibility" className="text-sm text-slate-300">
                   Visibility (m)
                 </label>
                 <input
                   type="number"
                   id="visibility"
                   name="visibility"
-                  className="bg-slate-950 border border-slate-700 rounded-md px-3 py-2 text-sm outline-none focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400"
+                  className="rounded-md border border-slate-700 bg-slate-950 px-3 py-2 text-sm outline-none focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400"
                 />
               </div>
             </div>
@@ -205,7 +199,7 @@ export default function LogPage() {
                 id="buddyName"
                 name="buddyName"
                 placeholder="Optional"
-                className="bg-slate-950 border border-slate-700 rounded-md px-3 py-2 text-sm outline-none focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400"
+                className="rounded-md border border-slate-700 bg-slate-950 px-3 py-2 text-sm outline-none focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400"
               />
             </div>
 
@@ -218,28 +212,26 @@ export default function LogPage() {
                 name="notes"
                 rows={3}
                 placeholder="Conditions, wildlife, gear notes…"
-                className="bg-slate-950 border border-slate-700 rounded-md px-3 py-2 text-sm outline-none focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 resize-none"
+                className="resize-none rounded-md border border-slate-700 bg-slate-950 px-3 py-2 text-sm outline-none focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400"
               />
             </div>
 
-            {error && (
-              <p className="text-xs text-red-400">{error}</p>
-            )}
+            {error && <p className="text-xs text-red-400">{error}</p>}
 
             <button
               type="submit"
               disabled={saving}
-              className="mt-2 inline-flex items-center justify-center rounded-md bg-cyan-500 px-4 py-2 text-sm font-medium text-slate-950 hover:bg-cyan-400 focus:outline-none focus:ring-2 focus:ring-cyan-400 focus:ring-offset-2 focus:ring-offset-slate-950 disabled:opacity-60"
+              className="mt-2 inline-flex items-center justify-center rounded-md bg-cyan-500 px-4 py-2 text-sm font-medium text-slate-950 hover:bg-cyan-400 focus:ring-2 focus:ring-cyan-400 focus:ring-offset-2 focus:ring-offset-slate-950 focus:outline-none disabled:opacity-60"
             >
-              {saving ? 'Saving…' : 'Add dive to log'}
+              {saving ? "Saving…" : "Add dive to log"}
             </button>
           </form>
         </section>
 
         {/* Right: log list / stats */}
         <section className="space-y-4">
-          <div className="bg-slate-900/60 p-6 rounded-xl border border-slate-800 shadow-lg">
-            <h2 className="text-lg font-semibold mb-2">Log overview</h2>
+          <div className="rounded-xl border border-slate-800 bg-slate-900/60 p-6 shadow-lg">
+            <h2 className="mb-2 text-lg font-semibold">Log overview</h2>
             {loading ? (
               <p className="text-sm text-slate-400">Loading dives…</p>
             ) : entries.length === 0 ? (
@@ -250,17 +242,17 @@ export default function LogPage() {
               <div className="space-y-1 text-sm text-slate-300">
                 <p>
                   <span className="font-semibold">{entries.length}</span> dive
-                  {entries.length === 1 ? '' : 's'} logged.
+                  {entries.length === 1 ? "" : "s"} logged.
                 </p>
                 <p>
-                  <span className="font-semibold">{totalBottomTime}</span>{' '}
+                  <span className="font-semibold">{totalBottomTime}</span>{" "}
                   minutes total bottom time.
                 </p>
               </div>
             )}
           </div>
 
-          <div className="bg-slate-900/60 p-6 rounded-xl border border-slate-800 shadow-lg space-y-4 max-h-[60vh] overflow-y-auto">
+          <div className="max-h-[60vh] space-y-4 overflow-y-auto rounded-xl border border-slate-800 bg-slate-900/60 p-6 shadow-lg">
             <h2 className="text-lg font-semibold">Recent dives</h2>
             {loading ? (
               <p className="text-sm text-slate-400">Loading dives…</p>

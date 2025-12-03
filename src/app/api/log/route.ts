@@ -1,10 +1,10 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { prisma } from '@/lib/prisma';
-import type { DiveLogInput } from '@/app/log/types';
+import { NextRequest, NextResponse } from "next/server";
+import { prisma } from "@/lib/prisma";
+import type { DiveLogInput } from "@/app/log/types";
 
 export async function GET() {
   const entries = await prisma.diveLog.findMany({
-    orderBy: { date: 'desc' },
+    orderBy: { date: "desc" },
   });
 
   return NextResponse.json({ entries });
@@ -16,7 +16,7 @@ export async function POST(req: NextRequest) {
   // very basic validation; will harden later
   if (!body.date || !body.region || !body.siteName) {
     return NextResponse.json(
-      { error: 'Missing required fields' },
+      { error: "Missing required fields" },
       { status: 400 }
     );
   }
