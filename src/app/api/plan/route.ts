@@ -97,6 +97,93 @@ communication, emergency planning). Be clear but non-alarmist.
   }
 }
 
+export async function PUT(req: NextRequest) {
+  try {
+    const body = (await req.json()) as {
+      id: string;
+      region: string;
+      siteName: string;
+      date: string;
+      maxDepth: number;
+      bottomTime: number;
+      experienceLevel: "Beginner" | "Intermediate" | "Advanced";
+    };
+
+    if (!body.id) {
+      return NextResponse.json(
+        { error: "Missing plan id for update." },
+        { status: 400 }
+      );
+    }
+
+    const riskLevel = calculateRisk(body.maxDepth, body.bottomTime);
+
+    const systemPrompt = `
+You are "DiveIQ", a conservative, safety-focused AI dive buddy.
+
+Given a recreational scuba dive plan (location, depth, time, and experience level), 
+give concise, practical feedback focused on safety, gas planning assumptions, 
+common risks for that region, and reminder-style advice. 
+Avoid giving medical advice. Assume no-decompression, single-tank recreational dives.
+    `.trim();
+
+    const userPrompt = `
+Region: ${body.region}
+Site: ${body.siteName}
+Date: ${body.date}
+Max depth: ${body.maxDepth}m
+Bottom time: ${body.bottomTime} minutes
+Experience level: ${body.experienceLevel}
+Estimated risk level: ${riskLevel}
+
+The diver has UPDATED this plan. Give a short assessment (1 paragraph max) 
+of whether the changes they have suggested make this a more, less, or equally sensible plan for this diver, and what they should pay 
+attention to. Be clear but non-alarmist.
+    `.trim();
+
+    const completion = await openai.chat.completions.create({
+      model: "gpt-4.1-mini",
+      messages: [
+        { role: "system", content: systemPrompt },
+        { role: "user", content: userPrompt },
+      ],
+      temperature: 0.5,
+    });
+
+    const aiAdvice =
+      completion.choices[0]?.message?.content ??
+      "Unable to generate updated advice at this time. Dive conservatively and within your training.";
+
+    const updated = await prisma.divePlan.update({
+      where: { id: body.id },
+      data: {
+        date: body.date,
+        region: body.region,
+        siteName: body.siteName,
+        maxDepth: body.maxDepth,
+        bottomTime: body.bottomTime,
+        experienceLevel: body.experienceLevel,
+        riskLevel,
+        aiAdvice,
+      },
+    });
+
+    return NextResponse.json(
+      {
+        aiAdvice,
+        plan: updated,
+      },
+      { status: 200 }
+    );
+  } catch (err) {
+    console.error("Error in PUT /api/plan:", err);
+    return NextResponse.json(
+      { error: "Failed to update plan." },
+      { status: 500 }
+    );
+  }
+}
+
 // Later we can list plans for dashboards, etc.
 export async function GET() {
   const plans = await prisma.divePlan.findMany({
@@ -105,4 +192,26 @@ export async function GET() {
   });
 
   return NextResponse.json({ plans });
+}
+
+export async function DELETE(req: NextRequest) {
+  try {
+    const id = req.nextUrl.searchParams.get("id");
+
+    if (!id) {
+      return NextResponse.json({ error: "Missing plan id" }, { status: 400 });
+    }
+
+    await prisma.divePlan.delete({
+      where: { id },
+    });
+
+    return NextResponse.json({ success: true });
+  } catch (err) {
+    console.error("Error deleting dive plan:", err);
+    return NextResponse.json(
+      { error: "Failed to delete plan" },
+      { status: 500 }
+    );
+  }
 }

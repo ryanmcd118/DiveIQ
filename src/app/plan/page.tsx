@@ -76,6 +76,7 @@ export default function PlanPage() {
   const [plansLoading, setPlansLoading] = useState(false);
   const [plansError, setPlansError] = useState<string | null>(null);
   const [editingPlanId, setEditingPlanId] = useState<string | null>(null);
+  const [statusMessage, setStatusMessage] = useState<string | null>(null);
 
   // Used to force the form to remount so defaultValue updates
   const [formKey, setFormKey] = useState<string>("new");
@@ -125,10 +126,14 @@ export default function PlanPage() {
     setSubmittedPlan(values);
 
     try {
+      const isEditing = !!editingPlanId;
+
       const res = await fetch("/api/plan", {
-        method: "POST",
+        method: isEditing ? "PUT" : "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(values),
+        body: JSON.stringify(
+          isEditing ? { id: editingPlanId, ...values } : values
+        ),
       });
 
       if (!res.ok) {
@@ -139,8 +144,32 @@ export default function PlanPage() {
       setAiAdvice(data.aiAdvice);
 
       if (data.plan) {
-        // Prepend the new plan to the past plans list
-        setPastPlans((prev) => [data.plan as PastPlan, ...prev]);
+        const updatedPlan = data.plan as PastPlan;
+
+        setPastPlans((prev) => {
+          // If editing, replace the existing entry
+          if (editingPlanId) {
+            return prev.map((p) => (p.id === editingPlanId ? updatedPlan : p));
+          }
+          // If creating, prepend
+          return [updatedPlan, ...prev];
+        });
+      }
+
+      // if editing a plan, show the updated plan + updated advice before resetting
+      if (editingPlanId) {
+        setSubmittedPlan(values);
+        setAiAdvice(data.aiAdvice);
+        setStatusMessage("Plan updated ✅");
+        setTimeout(() => setStatusMessage(null), 3000);
+      }
+
+      // if editing an existing plan, reset the form back to "new"
+      if (editingPlanId) {
+        setSubmittedPlan(null);
+        setAiAdvice(null);
+        setEditingPlanId(null);
+        setFormKey(`new-${Date.now()}`);
       }
     } catch (err: any) {
       console.error(err);
@@ -160,7 +189,7 @@ export default function PlanPage() {
 
   const handleSelectPastPlan = (plan: PastPlan) => {
     // Strip DB fields down to PlanData
-    const { id, riskLevel, aiAdvice: savedAdvice, ...rest } = plan;
+    const { id, aiAdvice: savedAdvice, ...rest } = plan;
 
     const planData: PlanData = {
       region: rest.region,
@@ -179,6 +208,60 @@ export default function PlanPage() {
 
     // Force the form to remount so defaultValue picks up this plan
     setFormKey(`plan-${id}-${Date.now()}`);
+  };
+
+  const deletePlan = async (id: string) => {
+    const confirmed = window.confirm(
+      "Delete this plan? This action cannot be undone."
+    );
+    if (!confirmed) return;
+
+    try {
+      setLoading(true);
+      setApiError(null);
+
+      const res = await fetch(`/api/plan?id=${id}`, {
+        method: "DELETE",
+      });
+
+      if (!res.ok) {
+        throw new Error(`API returned ${res.status}`);
+      }
+
+      // Remove from sidebar list
+      setPastPlans((prev) => prev.filter((p) => p.id !== id));
+
+      // If the deleted plan was being edited / shown, clear it
+      if (editingPlanId === id) {
+        setEditingPlanId(null);
+        setSubmittedPlan(null);
+        setAiAdvice(null);
+        setFormKey(`deleted-${Date.now()}`);
+      }
+
+      setStatusMessage("Plan deleted ✅");
+    } catch (err) {
+      console.error(err);
+      setApiError("Failed to delete plan.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDeletePlan = async () => {
+    if (!editingPlanId) return;
+    await deletePlan(editingPlanId);
+  };
+
+  const handleCancelEdit = () => {
+    setEditingPlanId(null);
+    setSubmittedPlan(null);
+    setAiAdvice(null);
+    setApiError(null);
+    setStatusMessage(null);
+
+    // Reset form fields
+    setFormKey(`cancel-${Date.now()}`);
   };
 
   return (
@@ -306,26 +389,40 @@ export default function PlanPage() {
               </div>
             </div>
 
-            <div className="flex gap-3">
-              <button
-                type="submit"
-                className="inline-flex items-center justify-center rounded-md bg-cyan-500 px-4 py-2 text-sm font-medium text-slate-950 hover:bg-cyan-400 focus:ring-2 focus:ring-cyan-400 focus:ring-offset-2 focus:ring-offset-slate-950 focus:outline-none disabled:opacity-60"
-                disabled={loading}
-              >
-                {loading
-                  ? "Generating advice…"
-                  : editingPlanId
-                    ? "Update plan"
-                    : "Submit plan"}
-              </button>
+            <div className="mt-4 flex flex-wrap items-center gap-3">
+              {/* Left group: primary + secondary */}
+              <div className="flex gap-3">
+                <button
+                  type="submit"
+                  className="inline-flex items-center justify-center rounded-md bg-cyan-500 px-4 py-2 text-sm font-medium text-slate-950 shadow-sm hover:bg-cyan-400 focus:ring-2 focus:ring-cyan-400 focus:ring-offset-2 focus:ring-offset-slate-950 focus:outline-none disabled:opacity-60"
+                  disabled={loading}
+                >
+                  {loading
+                    ? "Generating advice…"
+                    : editingPlanId
+                      ? "Update plan"
+                      : "Submit plan"}
+                </button>
 
-              {submittedPlan && (
+                {editingPlanId && (
+                  <button
+                    type="button"
+                    onClick={handleCancelEdit}
+                    className="inline-flex items-center justify-center rounded-md border border-slate-700 bg-slate-900 px-4 py-2 text-sm font-medium text-slate-100 hover:border-cyan-400 hover:text-cyan-100 focus:ring-2 focus:ring-cyan-400 focus:ring-offset-2 focus:ring-offset-slate-950 focus:outline-none"
+                  >
+                    Go back
+                  </button>
+                )}
+              </div>
+
+              {/* Right: destructive action */}
+              {editingPlanId && (
                 <button
                   type="button"
-                  onClick={handleNewPlan}
-                  className="inline-flex items-center justify-center rounded-md border border-slate-700 px-4 py-2 text-sm font-medium text-slate-100 hover:border-cyan-400 hover:text-cyan-100 focus:ring-2 focus:ring-cyan-400 focus:ring-offset-2 focus:ring-offset-slate-950 focus:outline-none"
+                  onClick={handleDeletePlan}
+                  className="ml-auto inline-flex items-center justify-center rounded-md border border-red-500/70 bg-red-500/10 px-4 py-2 text-sm font-medium text-red-200 hover:border-red-400 hover:bg-red-500/20 focus:ring-2 focus:ring-red-400 focus:ring-offset-2 focus:ring-offset-slate-950 focus:outline-none"
                 >
-                  New plan
+                  Delete plan
                 </button>
               )}
             </div>
@@ -396,15 +493,34 @@ export default function PlanPage() {
                     onClick={() => handleSelectPastPlan(plan)}
                     className="cursor-pointer rounded-lg border border-slate-800 bg-slate-950/40 p-3 transition-colors hover:border-cyan-400 hover:bg-slate-900/80"
                   >
-                    <div className="flex justify-between gap-2">
-                      <span className="font-medium">
-                        {plan.siteName}{" "}
-                        <span className="text-slate-400">({plan.region})</span>
-                      </span>
-                      <span className="text-xs text-slate-400">
-                        {plan.date}
-                      </span>
+                    <div className="flex items-start justify-between gap-2">
+                      <div>
+                        <span className="font-medium">
+                          {plan.siteName}{" "}
+                          <span className="text-slate-400">
+                            ({plan.region})
+                          </span>
+                        </span>
+                      </div>
+
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs text-slate-400">
+                          {plan.date}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation(); // don’t trigger edit
+                            void deletePlan(plan.id); // use shared helper
+                          }}
+                          className="inline-flex h-5 w-5 items-center justify-center rounded-full border border-slate-600 text-[10px] text-slate-300 hover:border-red-500 hover:bg-red-500/10 hover:text-red-400 focus:ring-1 focus:ring-red-500 focus:outline-none"
+                          aria-label="Delete plan"
+                        >
+                          ×
+                        </button>
+                      </div>
                     </div>
+
                     <p className="text-slate-300">
                       {plan.maxDepth}m · {plan.bottomTime}min ·{" "}
                       <span className="capitalize">{plan.experienceLevel}</span>
@@ -420,6 +536,14 @@ export default function PlanPage() {
           </div>
         </section>
       </div>
+      {statusMessage && (
+        <div className="pointer-events-none fixed bottom-4 left-4 z-50">
+          <div className="pointer-events-auto flex items-center gap-2 rounded-lg border border-emerald-500/40 bg-slate-900/95 px-3 py-2 text-sm text-emerald-100 shadow-lg">
+            <span className="text-lg">✅</span>
+            <span>{statusMessage}</span>
+          </div>
+        </div>
+      )}
     </main>
   );
 }
