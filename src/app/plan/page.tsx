@@ -1,6 +1,6 @@
 'use client';
 
-import { FormEvent, useState } from 'react';
+import { FormEvent, useRef, useState } from 'react';
 
 type PlanData = {
   region: string;
@@ -51,6 +51,18 @@ export default function PlanPage() {
   const [aiAdvice, setAiAdvice] = useState<string | null>(null);
   const [apiError, setApiError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+
+  const formRef = useRef<HTMLFormElement | null>(null);
+
+  const handleNewPlan = () => {
+    setSubmittedPlan(null);
+    setAiAdvice(null);
+    setApiError(null);
+    // reset form fields
+    if (formRef.current) {
+      formRef.current.reset();
+    }
+  };
   
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -105,6 +117,7 @@ export default function PlanPage() {
           </p>
 
           <form
+            ref={formRef}
             onSubmit={handleSubmit}
             className="mt-4 space-y-4 bg-slate-900/60 p-6 rounded-xl border border-slate-800 shadow-lg"
           >
@@ -223,6 +236,16 @@ export default function PlanPage() {
                 {apiError && (
                   <p className="text-sm text-red-400">{apiError}</p>
                 )}
+
+                <div className="flex justify-end">
+                <button
+                    type="button"
+                    onClick={handleNewPlan}
+                    className="text-xs px-3 py-1 rounded-md border border-slate-600 text-slate-300 hover:bg-slate-800"
+                >
+                    Start a new plan
+                </button>
+                </div>
               </div>
             </div>
           ) : (
