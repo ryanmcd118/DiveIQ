@@ -15,18 +15,71 @@ type DiveLogEntry = {
   notes?: string | null;
 };
 
+type DiveLogInput = Omit<DiveLogEntry, 'id'>;
+
+function DiveLogList({ entries }: { entries: DiveLogEntry[] }) {
+  if (entries.length === 0) {
+    return (
+      <p className="text-sm text-slate-400">
+        New entries will appear here with key details so you can quickly scan
+        your recent dives.
+      </p>
+    );
+  }
+
+  return (
+    <ul className="space-y-4 text-sm">
+      {entries.map((entry) => (
+        <li
+          key={entry.id}
+          className="border border-slate-800 rounded-lg p-3 bg-slate-950/40"
+        >
+          <div className="flex justify-between gap-2 mb-1">
+            <span className="font-semibold">
+              {entry.siteName}{' '}
+              <span className="text-slate-400">({entry.region})</span>
+            </span>
+            <span className="text-xs text-slate-400">{entry.date}</span>
+          </div>
+          <p className="text-slate-300">
+            {entry.maxDepth}m · {entry.bottomTime} min
+            {entry.visibility != null && ` · ${entry.visibility}m vis`}
+            {entry.waterTemp != null && ` · ${entry.waterTemp}°C`}
+          </p>
+          {entry.buddyName && (
+            <p className="text-slate-400 text-xs mt-1">
+              Buddy: {entry.buddyName}
+            </p>
+          )}
+          {entry.notes && (
+            <p className="text-slate-300 text-xs mt-2 whitespace-pre-line">
+              {entry.notes}
+            </p>
+          )}
+        </li>
+      ))}
+    </ul>
+  );
+}
+
 export default function LogPage() {
   const [entries, setEntries] = useState<DiveLogEntry[]>([]);
   const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
+  const totalBottomTime = entries.reduce(
+    (sum, entry) => sum + entry.bottomTime,
+    0
+  );
+
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setSaving(true);
+    setError(null);
 
     const formData = new FormData(e.currentTarget);
 
-    const newEntry: DiveLogEntry = {
-      id: crypto.randomUUID(),
+    const payload: DiveLogInput = {
       date: formData.get('date') as string,
       region: (formData.get('region') as string) ?? '',
       siteName: (formData.get('siteName') as string) ?? '',
@@ -42,15 +95,28 @@ export default function LogPage() {
       notes: (formData.get('notes') as string) || null,
     };
 
-    setEntries((prev) => [newEntry, ...prev]);
-    e.currentTarget.reset();
-    setSaving(false);
-  };
+    try {
+      const res = await fetch('/api/log', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
 
-  const totalBottomTime = entries.reduce(
-    (sum, entry) => sum + entry.bottomTime,
-    0
-  );
+      if (!res.ok) {
+        throw new Error(`API returned ${res.status}`);
+      }
+
+      const data: { entry: DiveLogEntry } = await res.json();
+
+      setEntries((prev) => [data.entry, ...prev]);
+      e.currentTarget.reset();
+    } catch (err) {
+      console.error(err);
+      setError('Failed to save dive. Please try again.');
+    } finally {
+      setSaving(false);
+    }
+  };
 
   return (
     <main className="min-h-screen bg-slate-950 text-slate-100 flex justify-center p-6 md:p-10">
@@ -123,7 +189,10 @@ export default function LogPage() {
                 />
               </div>
               <div className="flex flex-col gap-1">
-                <label htmlFor="bottomTime" className="text-sm text-slate-300">
+                <label
+                  htmlFor="bottomTime"
+                  className="text-sm text-slate-300"
+                >
                   Bottom time (min)
                 </label>
                 <input
@@ -190,6 +259,10 @@ export default function LogPage() {
               />
             </div>
 
+            {error && (
+              <p className="text-xs text-red-400">{error}</p>
+            )}
+
             <button
               type="submit"
               disabled={saving}
@@ -224,49 +297,7 @@ export default function LogPage() {
 
           <div className="bg-slate-900/60 p-6 rounded-xl border border-slate-800 shadow-lg space-y-4 max-h-[60vh] overflow-y-auto">
             <h2 className="text-lg font-semibold">Recent dives</h2>
-            {entries.length === 0 ? (
-              <p className="text-sm text-slate-400">
-                New entries will appear here with key details so you can quickly
-                scan your recent dives.
-              </p>
-            ) : (
-              <ul className="space-y-4 text-sm">
-                {entries.map((entry) => (
-                  <li
-                    key={entry.id}
-                    className="border border-slate-800 rounded-lg p-3 bg-slate-950/40"
-                  >
-                    <div className="flex justify-between gap-2 mb-1">
-                      <span className="font-semibold">
-                        {entry.siteName}{' '}
-                        <span className="text-slate-400">
-                          ({entry.region})
-                        </span>
-                      </span>
-                      <span className="text-xs text-slate-400">
-                        {entry.date}
-                      </span>
-                    </div>
-                    <p className="text-slate-300">
-                      {entry.maxDepth}m · {entry.bottomTime} min
-                      {entry.visibility != null &&
-                        ` · ${entry.visibility}m vis`}
-                      {entry.waterTemp != null && ` · ${entry.waterTemp}°C`}
-                    </p>
-                    {entry.buddyName && (
-                      <p className="text-slate-400 text-xs mt-1">
-                        Buddy: {entry.buddyName}
-                      </p>
-                    )}
-                    {entry.notes && (
-                      <p className="text-slate-300 text-xs mt-2 whitespace-pre-line">
-                        {entry.notes}
-                      </p>
-                    )}
-                  </li>
-                ))}
-              </ul>
-            )}
+            <DiveLogList entries={entries} />
           </div>
         </section>
       </div>
