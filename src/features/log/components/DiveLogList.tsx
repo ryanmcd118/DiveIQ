@@ -1,6 +1,6 @@
 "use client";
 
-import { DiveLogEntry } from "../types";
+import { DiveLogEntry } from "@/app/log/types";
 
 type Props = {
   entries: DiveLogEntry[];
