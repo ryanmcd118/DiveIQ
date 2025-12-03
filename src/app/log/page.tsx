@@ -10,6 +10,12 @@ export default function LogPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  const [editingEntryId, setEditingEntryId] = useState<string | null>(null);
+  const [editingEntry, setEditingEntry] = useState<DiveLogEntry | null>(null);
+  const [activeEntry, setActiveEntry] = useState<DiveLogEntry | null>(null);
+  const [formKey, setFormKey] = useState<string>("new"); // force remount on edit/new
+  const [statusMessage, setStatusMessage] = useState<string | null>(null);
+
   const totalBottomTime = entries.reduce(
     (sum, entry) => sum + entry.bottomTime,
     0
@@ -33,6 +39,20 @@ export default function LogPage() {
 
     loadEntries();
   }, []);
+
+  const resetFormState = () => {
+    setEditingEntryId(null);
+    setActiveEntry(null);
+    setError(null);
+    setFormKey(`new-${Date.now()}`);
+  };
+
+  const showStatus = (msg: string) => {
+    setStatusMessage(msg);
+    setTimeout(() => {
+      setStatusMessage((prev) => (prev === msg ? null : prev));
+    }, 2500);
+  };
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -58,11 +78,17 @@ export default function LogPage() {
       notes: (formData.get("notes") as string) || null,
     };
 
+    const isEditing = Boolean(editingEntryId);
+
     try {
       const res = await fetch("/api/log", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
+        body: JSON.stringify({
+          action: isEditing ? "update" : "create",
+          id: isEditing ? editingEntryId : undefined,
+          payload,
+        }),
       });
 
       if (!res.ok) {
@@ -71,14 +97,90 @@ export default function LogPage() {
 
       const data: { entry: DiveLogEntry } = await res.json();
 
-      setEntries((prev) => [data.entry, ...prev]);
+      setEntries((prev) =>
+        isEditing
+          ? prev.map((e) => (e.id === data.entry.id ? data.entry : e))
+          : [data.entry, ...prev]
+      );
+
+      // Reset form + edit mode
       form.reset();
+      setEditingEntryId(null);
+      setEditingEntry(null);
+      setActiveEntry(null);
+      setFormKey(`log-${Date.now()}`);
+
+      // Status message
+      const msg = isEditing ? "Log entry updated ✅" : "Dive added to log ✅";
+      showStatus(msg);
     } catch (err) {
       console.error(err);
-      setError("Failed to save dive. Please try again.");
+      setError(
+        isEditing
+          ? "Failed to update entry. Please try again."
+          : "Failed to save dive. Please try again."
+      );
     } finally {
       setSaving(false);
     }
+  };
+
+  const handleSelectEntry = (entry: DiveLogEntry) => {
+    setEditingEntry(entry);
+    setEditingEntryId(entry.id);
+    setActiveEntry(entry);
+    setError(null);
+    setStatusMessage(null);
+    setFormKey(`edit-${entry.id}-${Date.now()}`);
+  };
+
+  const handleCancelEdit = (form?: HTMLFormElement | null) => {
+    if (form) form.reset();
+    resetFormState();
+  };
+
+  const performDelete = async (id: string) => {
+    try {
+      const res = await fetch("/api/log", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "delete",
+          id,
+        }),
+      });
+
+      if (!res.ok) {
+        throw new Error(`API returned ${res.status}`);
+      }
+
+      setEntries((prev) => prev.filter((e) => e.id !== id));
+      resetFormState();
+      showStatus("Dive deleted ✅");
+    } catch (err) {
+      console.error(err);
+      setError("Failed to delete dive. Please try again.");
+    }
+  };
+
+  const handleDeleteFromForm = async (form: HTMLFormElement) => {
+    if (!editingEntryId) return;
+    const ok = window.confirm(
+      "Delete this dive from your log? This action cannot be undone."
+    );
+    if (!ok) return;
+
+    await performDelete(editingEntryId);
+    form.reset();
+  };
+
+  const handleDeleteFromList = async (id: string) => {
+    const ok = window.confirm(
+      "Delete this dive from your log? This action cannot be undone."
+    );
+    if (!ok) return;
+
+    await performDelete(id);
   };
 
   return (
@@ -94,6 +196,7 @@ export default function LogPage() {
           </p>
 
           <form
+            key={formKey}
             onSubmit={handleSubmit}
             className="mt-4 space-y-4 rounded-xl border border-slate-800 bg-slate-900/60 p-6 shadow-lg"
           >
@@ -106,6 +209,7 @@ export default function LogPage() {
                 id="date"
                 name="date"
                 required
+                defaultValue={activeEntry?.date ?? ""}
                 className="rounded-md border border-slate-700 bg-slate-950 px-3 py-2 text-sm outline-none focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400"
               />
             </div>
@@ -120,6 +224,7 @@ export default function LogPage() {
                 name="region"
                 placeholder="Roatán, Red Sea, local quarry..."
                 required
+                defaultValue={activeEntry?.region ?? ""}
                 className="rounded-md border border-slate-700 bg-slate-950 px-3 py-2 text-sm outline-none focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400"
               />
             </div>
@@ -134,6 +239,7 @@ export default function LogPage() {
                 name="siteName"
                 placeholder="Mary's Place"
                 required
+                defaultValue={activeEntry?.siteName ?? ""}
                 className="rounded-md border border-slate-700 bg-slate-950 px-3 py-2 text-sm outline-none focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400"
               />
             </div>
@@ -148,6 +254,11 @@ export default function LogPage() {
                   id="maxDepth"
                   name="maxDepth"
                   required
+                  defaultValue={
+                    activeEntry?.maxDepth != null
+                      ? String(activeEntry.maxDepth)
+                      : ""
+                  }
                   className="rounded-md border border-slate-700 bg-slate-950 px-3 py-2 text-sm outline-none focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400"
                 />
               </div>
@@ -160,6 +271,11 @@ export default function LogPage() {
                   id="bottomTime"
                   name="bottomTime"
                   required
+                  defaultValue={
+                    activeEntry?.bottomTime != null
+                      ? String(activeEntry.bottomTime)
+                      : ""
+                  }
                   className="rounded-md border border-slate-700 bg-slate-950 px-3 py-2 text-sm outline-none focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400"
                 />
               </div>
@@ -174,6 +290,11 @@ export default function LogPage() {
                   type="number"
                   id="waterTemp"
                   name="waterTemp"
+                  defaultValue={
+                    activeEntry?.waterTemp != null
+                      ? String(activeEntry.waterTemp)
+                      : ""
+                  }
                   className="rounded-md border border-slate-700 bg-slate-950 px-3 py-2 text-sm outline-none focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400"
                 />
               </div>
@@ -185,6 +306,11 @@ export default function LogPage() {
                   type="number"
                   id="visibility"
                   name="visibility"
+                  defaultValue={
+                    activeEntry?.visibility != null
+                      ? String(activeEntry.visibility)
+                      : ""
+                  }
                   className="rounded-md border border-slate-700 bg-slate-950 px-3 py-2 text-sm outline-none focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400"
                 />
               </div>
@@ -199,6 +325,7 @@ export default function LogPage() {
                 id="buddyName"
                 name="buddyName"
                 placeholder="Optional"
+                defaultValue={activeEntry?.buddyName ?? ""}
                 className="rounded-md border border-slate-700 bg-slate-950 px-3 py-2 text-sm outline-none focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400"
               />
             </div>
@@ -212,19 +339,54 @@ export default function LogPage() {
                 name="notes"
                 rows={3}
                 placeholder="Conditions, wildlife, gear notes…"
+                defaultValue={activeEntry?.notes ?? ""}
                 className="resize-none rounded-md border border-slate-700 bg-slate-950 px-3 py-2 text-sm outline-none focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400"
               />
             </div>
 
             {error && <p className="text-xs text-red-400">{error}</p>}
 
-            <button
-              type="submit"
-              disabled={saving}
-              className="mt-2 inline-flex items-center justify-center rounded-md bg-cyan-500 px-4 py-2 text-sm font-medium text-slate-950 hover:bg-cyan-400 focus:ring-2 focus:ring-cyan-400 focus:ring-offset-2 focus:ring-offset-slate-950 focus:outline-none disabled:opacity-60"
-            >
-              {saving ? "Saving…" : "Add dive to log"}
-            </button>
+            <div className="mt-2 flex flex-wrap gap-3">
+              <button
+                type="submit"
+                disabled={saving}
+                className="inline-flex items-center justify-center rounded-md bg-cyan-500 px-4 py-2 text-sm font-medium text-slate-950 hover:bg-cyan-400 focus:ring-2 focus:ring-cyan-400 focus:ring-offset-2 focus:ring-offset-slate-950 focus:outline-none disabled:opacity-60"
+              >
+                {saving
+                  ? "Saving…"
+                  : editingEntryId
+                    ? "Update dive"
+                    : "Add dive to log"}
+              </button>
+
+              {editingEntryId && (
+                <>
+                  <button
+                    type="button"
+                    onClick={(evt) =>
+                      handleCancelEdit(
+                        evt.currentTarget.form as HTMLFormElement | null
+                      )
+                    }
+                    className="inline-flex items-center justify-center rounded-md border border-slate-700 px-4 py-2 text-sm font-medium text-slate-100 hover:border-cyan-400 hover:text-cyan-100 focus:ring-2 focus:ring-cyan-400 focus:ring-offset-2 focus:ring-offset-slate-950 focus:outline-none"
+                  >
+                    Cancel
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={(evt) =>
+                      handleDeleteFromForm(
+                        evt.currentTarget.form as HTMLFormElement
+                      )
+                    }
+                    className="inline-flex items-center justify-center rounded-md border border-red-600/70 bg-red-600/10 px-4 py-2 text-sm font-medium text-red-200 hover:bg-red-600/20 focus:ring-2 focus:ring-red-500 focus:ring-offset-2 focus:ring-offset-slate-950 focus:outline-none"
+                  >
+                    Delete dive
+                  </button>
+                </>
+              )}
+            </div>
           </form>
         </section>
 
@@ -257,11 +419,21 @@ export default function LogPage() {
             {loading ? (
               <p className="text-sm text-slate-400">Loading dives…</p>
             ) : (
-              <DiveLogList entries={entries} />
+              <DiveLogList
+                entries={entries}
+                onSelect={handleSelectEntry}
+                onDelete={handleDeleteFromList}
+              />
             )}
           </div>
         </section>
       </div>
+
+      {statusMessage && (
+        <div className="fixed bottom-4 left-4 rounded-lg border border-emerald-500/60 bg-emerald-900/80 px-3 py-2 text-sm text-emerald-100 shadow-lg backdrop-blur">
+          {statusMessage}
+        </div>
+      )}
     </main>
   );
 }
