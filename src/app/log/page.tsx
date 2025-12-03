@@ -1,66 +1,8 @@
 'use client';
 
 import { FormEvent, useState } from 'react';
-
-type DiveLogEntry = {
-  id: string;
-  date: string;
-  region: string;
-  siteName: string;
-  maxDepth: number;
-  bottomTime: number;
-  waterTemp?: number | null;
-  visibility?: number | null;
-  buddyName?: string | null;
-  notes?: string | null;
-};
-
-type DiveLogInput = Omit<DiveLogEntry, 'id'>;
-
-function DiveLogList({ entries }: { entries: DiveLogEntry[] }) {
-  if (entries.length === 0) {
-    return (
-      <p className="text-sm text-slate-400">
-        New entries will appear here with key details so you can quickly scan
-        your recent dives.
-      </p>
-    );
-  }
-
-  return (
-    <ul className="space-y-4 text-sm">
-      {entries.map((entry) => (
-        <li
-          key={entry.id}
-          className="border border-slate-800 rounded-lg p-3 bg-slate-950/40"
-        >
-          <div className="flex justify-between gap-2 mb-1">
-            <span className="font-semibold">
-              {entry.siteName}{' '}
-              <span className="text-slate-400">({entry.region})</span>
-            </span>
-            <span className="text-xs text-slate-400">{entry.date}</span>
-          </div>
-          <p className="text-slate-300">
-            {entry.maxDepth}m · {entry.bottomTime} min
-            {entry.visibility != null && ` · ${entry.visibility}m vis`}
-            {entry.waterTemp != null && ` · ${entry.waterTemp}°C`}
-          </p>
-          {entry.buddyName && (
-            <p className="text-slate-400 text-xs mt-1">
-              Buddy: {entry.buddyName}
-            </p>
-          )}
-          {entry.notes && (
-            <p className="text-slate-300 text-xs mt-2 whitespace-pre-line">
-              {entry.notes}
-            </p>
-          )}
-        </li>
-      ))}
-    </ul>
-  );
-}
+import DiveLogList from './components/DiveLogList';
+import { DiveLogEntry, DiveLogInput } from './types';
 
 export default function LogPage() {
   const [entries, setEntries] = useState<DiveLogEntry[]>([]);
@@ -77,7 +19,9 @@ export default function LogPage() {
     setSaving(true);
     setError(null);
 
-    const formData = new FormData(e.currentTarget);
+    // cache the form element before any await
+    const form = e.currentTarget;
+    const formData = new FormData(form);
 
     const payload: DiveLogInput = {
       date: formData.get('date') as string,
@@ -109,7 +53,7 @@ export default function LogPage() {
       const data: { entry: DiveLogEntry } = await res.json();
 
       setEntries((prev) => [data.entry, ...prev]);
-      e.currentTarget.reset();
+      form.reset();
     } catch (err) {
       console.error(err);
       setError('Failed to save dive. Please try again.');
