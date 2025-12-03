@@ -20,3 +20,16 @@ model DiveLog {
   notes       String?
   createdAt   DateTime @default(now())
 }
+
+model DivePlan {
+  id              String   @id @default(cuid())
+  date            String
+  region          String
+  siteName        String
+  maxDepth        Int
+  bottomTime      Int
+  experienceLevel String   // 'Beginner' | 'Intermediate' | 'Advanced'
+  riskLevel       String   // 'Low' | 'Moderate' | 'High'
+  aiAdvice        String?
+  createdAt       DateTime @default(now())
+}
