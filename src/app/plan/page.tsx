@@ -16,6 +16,7 @@ type RiskLevel = 'Low' | 'Moderate' | 'High';
 type PastPlan = PlanData & {
   id: string;
   riskLevel: RiskLevel | string;
+  aiAdvice?: string | null;
 };
 
 function calculateRisk(plan: PlanData): RiskLevel {
@@ -74,6 +75,11 @@ export default function PlanPage() {
   const [pastPlans, setPastPlans] = useState<PastPlan[]>([]);
   const [plansLoading, setPlansLoading] = useState(false);
   const [plansError, setPlansError] = useState<string | null>(null);
+  const [editingPlanId, setEditingPlanId] = useState<string | null>(null);
+
+  // Used to force the form to remount so defaultValue updates
+  const [formKey, setFormKey] = useState<string>('new');
+
 
   // Load past plans on mount
   useEffect(() => {
@@ -86,7 +92,7 @@ export default function PlanPage() {
           throw new Error(`Failed to fetch plans: ${res.status}`);
         }
         const data = await res.json();
-        setPastPlans(data.plans ?? []);
+        setPastPlans((data.plans ?? []) as PastPlan[]);
       } catch (err) {
         console.error(err);
         setPlansError('Failed to load past plans.');
@@ -148,6 +154,31 @@ export default function PlanPage() {
     setSubmittedPlan(null);
     setAiAdvice(null);
     setApiError(null);
+    setEditingPlanId(null); // 👈 add this
+    setFormKey(`new-${Date.now()}`);
+  };
+
+  const handleSelectPastPlan = (plan: PastPlan) => {
+    // Strip DB fields down to PlanData
+    const { id, riskLevel, aiAdvice: savedAdvice, ...rest } = plan;
+
+    const planData: PlanData = {
+      region: rest.region,
+      siteName: rest.siteName,
+      date: rest.date,
+      maxDepth: rest.maxDepth,
+      bottomTime: rest.bottomTime,
+      experienceLevel: rest.experienceLevel,
+    };
+
+    setSubmittedPlan(planData);
+    setAiAdvice(savedAdvice ?? null);
+    setApiError(null);
+
+    setEditingPlanId(id);
+
+    // Force the form to remount so defaultValue picks up this plan
+    setFormKey(`plan-${id}-${Date.now()}`);
   };
 
   return (
@@ -164,6 +195,7 @@ export default function PlanPage() {
           </div>
 
           <form
+            key={formKey}
             onSubmit={handleSubmit}
             className="bg-slate-900/70 border border-slate-800 rounded-xl p-5 shadow-lg space-y-4"
           >
@@ -177,6 +209,7 @@ export default function PlanPage() {
                 name="region"
                 required
                 placeholder="Roatán, Red Sea, local quarry..."
+                defaultValue={submittedPlan?.region ?? ''}
                 className="w-full rounded-md bg-slate-950 border border-slate-800 px-3 py-2 text-sm text-slate-100 placeholder:text-slate-500 focus:outline-none focus:ring-1 focus:ring-cyan-400 focus:border-cyan-400"
               />
             </div>
@@ -191,6 +224,7 @@ export default function PlanPage() {
                 name="siteName"
                 required
                 placeholder="Mary's Place"
+                defaultValue={submittedPlan?.siteName ?? ''}
                 className="w-full rounded-md bg-slate-950 border border-slate-800 px-3 py-2 text-sm text-slate-100 placeholder:text-slate-500 focus:outline-none focus:ring-1 focus:ring-cyan-400 focus:border-cyan-400"
               />
             </div>
@@ -205,6 +239,7 @@ export default function PlanPage() {
                   id="date"
                   name="date"
                   required
+                  defaultValue={submittedPlan?.date ?? ''}
                   className="w-full rounded-md bg-slate-950 border border-slate-800 px-3 py-2 text-sm text-slate-100 focus:outline-none focus:ring-1 focus:ring-cyan-400 focus:border-cyan-400"
                 />
               </div>
@@ -220,6 +255,7 @@ export default function PlanPage() {
                   id="experienceLevel"
                   name="experienceLevel"
                   required
+                  defaultValue={submittedPlan?.experienceLevel ?? ''}
                   className="w-full rounded-md bg-slate-950 border border-slate-800 px-3 py-2 text-sm text-slate-100 focus:outline-none focus:ring-1 focus:ring-cyan-400 focus:border-cyan-400"
                 >
                   <option value="">Select...</option>
@@ -241,12 +277,20 @@ export default function PlanPage() {
                   name="maxDepth"
                   min={0}
                   required
+                  defaultValue={
+                    submittedPlan?.maxDepth != null
+                      ? String(submittedPlan.maxDepth)
+                      : ''
+                  }
                   className="w-full rounded-md bg-slate-950 border border-slate-800 px-3 py-2 text-sm text-slate-100 focus:outline-none focus:ring-1 focus:ring-cyan-400 focus:border-cyan-400"
                 />
               </div>
 
               <div className="space-y-1">
-                <label htmlFor="bottomTime" className="text-sm text-slate-200">
+                <label
+                  htmlFor="bottomTime"
+                  className="text-sm text-slate-200"
+                >
                   Bottom time in minutes
                 </label>
                 <input
@@ -255,6 +299,11 @@ export default function PlanPage() {
                   name="bottomTime"
                   min={0}
                   required
+                  defaultValue={
+                    submittedPlan?.bottomTime != null
+                      ? String(submittedPlan.bottomTime)
+                      : ''
+                  }
                   className="w-full rounded-md bg-slate-950 border border-slate-800 px-3 py-2 text-sm text-slate-100 focus:outline-none focus:ring-1 focus:ring-cyan-400 focus:border-cyan-400"
                 />
               </div>
@@ -266,7 +315,11 @@ export default function PlanPage() {
                 className="inline-flex items-center justify-center rounded-md bg-cyan-500 px-4 py-2 text-sm font-medium text-slate-950 hover:bg-cyan-400 focus:outline-none focus:ring-2 focus:ring-cyan-400 focus:ring-offset-2 focus:ring-offset-slate-950 disabled:opacity-60"
                 disabled={loading}
               >
-                {loading ? 'Generating advice…' : 'Submit plan'}
+                {loading
+                  ? 'Generating advice…'
+                  : editingPlanId
+                    ? 'Update plan'
+                    : 'Submit plan'}
               </button>
 
               {submittedPlan && (
@@ -344,7 +397,9 @@ export default function PlanPage() {
                 {pastPlans.map((plan) => (
                   <li
                     key={plan.id}
-                    className="border border-slate-800 rounded-lg p-3 bg-slate-950/40"
+                    role="button"
+                    onClick={() => handleSelectPastPlan(plan)}
+                    className="border border-slate-800 rounded-lg p-3 bg-slate-950/40 cursor-pointer hover:border-cyan-400 hover:bg-slate-900/80 transition-colors"
                   >
                     <div className="flex justify-between gap-2">
                       <span className="font-medium">
