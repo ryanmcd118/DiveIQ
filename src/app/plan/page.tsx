@@ -48,12 +48,19 @@ function PlanSummary({ plan }: { plan: PlanData }) {
 
 export default function PlanPage() {
   const [submittedPlan, setSubmittedPlan] = useState<PlanData | null>(null);
-
-  const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
+  const [aiAdvice, setAiAdvice] = useState<string | null>(null);
+  const [apiError, setApiError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+  
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    
+  
+    setAiAdvice(null);
+    setApiError(null);
+    setLoading(true);
+  
     const formData = new FormData(e.currentTarget);
-    const values = {
+    const values: PlanData = {
       region: formData.get('region') as string,
       siteName: formData.get('siteName') as string,
       date: formData.get('date') as string,
@@ -61,10 +68,31 @@ export default function PlanPage() {
       bottomTime: Number(formData.get('bottomTime')),
       experienceLevel: formData.get('experienceLevel') as PlanData['experienceLevel'],
     };
-    
-    console.log('Form values:', values);
+  
     setSubmittedPlan(values);
+  
+    try {
+      const res = await fetch('/api/plan', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(values),
+      });
+  
+      if (!res.ok) {
+        throw new Error(`API returned ${res.status}`);
+      }
+  
+      const data = await res.json();
+      setAiAdvice(data.aiAdvice);
+  
+    } catch (err: any) {
+      console.error(err);
+      setApiError('Failed to get advice from server.');
+    } finally {
+      setLoading(false);
+    }
   };
+  
 
   return (
     <div>
@@ -137,7 +165,23 @@ export default function PlanPage() {
         <button type="submit">Submit</button>
       </form>
 
-      {submittedPlan && <PlanSummary plan={submittedPlan} />}
+      {submittedPlan && (
+        <div>
+            <PlanSummary plan={submittedPlan} />
+
+            {loading && <p>Loading AI advice...</p>}
+
+            {aiAdvice && (
+            <div>
+                <h3>AI Dive Buddy Advice</h3>
+                <p>{aiAdvice}</p>
+            </div>
+            )}
+
+            {apiError && <p style={{ color: 'red' }}>{apiError}</p>}
+        </div>
+        )}
+
     </div>
   );
 }
