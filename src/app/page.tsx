@@ -1,10 +1,9 @@
 import Link from 'next/link';
 import { prisma } from '@/lib/prisma';
-import type { DiveLog } from '@prisma/client';
+import type { DiveLog, DivePlan } from '@prisma/client';
 
 export default async function DashboardPage() {
-  // Fetch a few things in parallel for the dashboard
-  const [recentDives, totalCount, aggregates] = await Promise.all([
+  const [recentDives, totalCount, aggregates, recentPlans] = await Promise.all([
     prisma.diveLog.findMany({
       orderBy: { date: 'desc' },
       take: 3,
@@ -13,6 +12,10 @@ export default async function DashboardPage() {
     prisma.diveLog.aggregate({
       _sum: { bottomTime: true },
       _max: { maxDepth: true },
+    }),
+    prisma.divePlan.findMany({
+      orderBy: { createdAt: 'desc' },
+      take: 3,
     }),
   ]);
 
@@ -56,9 +59,7 @@ export default async function DashboardPage() {
             <p className="text-xs uppercase tracking-wide text-slate-400">
               Total dives
             </p>
-            <p className="mt-2 text-3xl font-semibold">
-              {totalCount}
-            </p>
+            <p className="mt-2 text-3xl font-semibold">{totalCount}</p>
             <p className="mt-1 text-xs text-slate-500">
               Logged in your DiveIQ logbook.
             </p>
@@ -95,9 +96,9 @@ export default async function DashboardPage() {
           </div>
         </section>
 
-        {/* Main grid: recent dive + lists / future sections */}
+        {/* Main grid: recent dives + planning / gear */}
         <section className="grid gap-6 md:grid-cols-[minmax(0,2fr)_minmax(0,1.5fr)]">
-          {/* Left: most recent dive / overview */}
+          {/* Left: most recent dive + recent dives */}
           <div className="space-y-4">
             <div className="bg-slate-900/70 border border-slate-800 rounded-xl p-5 shadow-lg">
               <div className="flex items-center justify-between gap-3 mb-2">
@@ -190,7 +191,7 @@ export default async function DashboardPage() {
             </div>
           </div>
 
-          {/* Right: future modules / shortcuts */}
+          {/* Right: planning + gear */}
           <div className="space-y-4">
             <div className="bg-slate-900/70 border border-slate-800 rounded-xl p-5 shadow-lg">
               <h2 className="text-lg font-semibold mb-2">Planning shortcuts</h2>
@@ -228,6 +229,57 @@ export default async function DashboardPage() {
               </p>
             </div>
           </div>
+        </section>
+
+        {/* Recent planned dives */}
+        <section className="bg-slate-900/70 border border-slate-800 rounded-xl p-5 shadow-lg">
+          <div className="flex items-center justify-between mb-2">
+            <h2 className="text-lg font-semibold">Recent planned dives</h2>
+            <Link
+              href="/plan"
+              className="text-xs text-cyan-300 hover:text-cyan-200"
+            >
+              Open planner
+            </Link>
+          </div>
+
+          {recentPlans.length === 0 ? (
+            <p className="text-sm text-slate-400">
+              Once you start generating AI-assisted dive plans, the latest few
+              will appear here with their estimated risk levels.
+            </p>
+          ) : (
+            <ul className="space-y-3 text-sm">
+              {recentPlans.map((plan: DivePlan) => (
+                <li
+                  key={plan.id}
+                  className="border border-slate-800 rounded-lg p-3 bg-slate-950/40"
+                >
+                  <div className="flex justify-between gap-2">
+                    <span className="font-medium">
+                      {plan.siteName}{' '}
+                      <span className="text-slate-400">
+                        ({plan.region})
+                      </span>
+                    </span>
+                    <span className="text-xs text-slate-400">
+                      {plan.date}
+                    </span>
+                  </div>
+                  <p className="text-slate-300">
+                    {plan.maxDepth}m · {plan.bottomTime}min ·{' '}
+                    <span className="capitalize">
+                      {plan.experienceLevel}
+                    </span>
+                  </p>
+                  <p className="text-xs text-slate-400 mt-1">
+                    Estimated risk:{' '}
+                    <span className="text-slate-200">{plan.riskLevel}</span>
+                  </p>
+                </li>
+              ))}
+            </ul>
+          )}
         </section>
       </div>
     </main>
