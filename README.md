@@ -41,7 +41,7 @@ Automatic risk level calculation for planned dives based on multiple safety fact
 
 - **Full-stack Next.js 16** application with React 19 Server Components
 - **TypeScript** for type safety and enhanced developer experience
-- **Prisma ORM** with relational database for efficient data management
+- **Prisma ORM** with SQLite database for efficient data management
 - **OpenAI API** integration for intelligent dive analysis
 
 ### UI/UX Design

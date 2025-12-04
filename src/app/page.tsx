@@ -1,33 +1,28 @@
-import { prisma } from "@/lib/prisma";
 import type { DiveLog, DivePlan } from "@prisma/client";
 import { DashboardPageContent } from "@/features/dashboard/components/DashboardPageContent";
+import { diveLogRepository } from "@/services/database/repositories/diveLogRepository";
+import { divePlanRepository } from "@/services/database/repositories/divePlanRepository";
 
 export default async function DashboardPage() {
-  const [recentDives, totalCount, aggregates, recentPlans] = await Promise.all([
-    prisma.diveLog.findMany({
-      orderBy: { date: "desc" },
+  // Fetch data using repository pattern
+  const [recentDives, statistics, recentPlans] = await Promise.all([
+    diveLogRepository.findMany({
+      orderBy: "date",
       take: 3,
     }),
-    prisma.diveLog.count(),
-    prisma.diveLog.aggregate({
-      _sum: { bottomTime: true },
-      _max: { maxDepth: true },
-    }),
-    prisma.divePlan.findMany({
-      orderBy: { createdAt: "desc" },
+    diveLogRepository.getStatistics(),
+    divePlanRepository.findMany({
+      orderBy: "createdAt",
       take: 3,
     }),
   ]);
 
-  const totalBottomTime = aggregates._sum.bottomTime ?? 0;
-  const deepestDive = aggregates._max.maxDepth ?? 0;
-
   return (
     <DashboardPageContent
       recentDives={recentDives as DiveLog[]}
-      totalCount={totalCount}
-      totalBottomTime={totalBottomTime}
-      deepestDive={deepestDive}
+      totalCount={statistics.totalDives}
+      totalBottomTime={statistics.totalBottomTime}
+      deepestDive={statistics.deepestDive}
       recentPlans={recentPlans as DivePlan[]}
     />
   );
