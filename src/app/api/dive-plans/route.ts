@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/features/auth/lib/auth";
 import { generateDivePlanAdvice, generateUpdatedDivePlanAdvice } from "@/services/ai/openaiService";
 import { calculateRiskLevel } from "@/features/dive-plan/services/riskCalculator";
 import { divePlanRepository } from "@/services/database/repositories/divePlanRepository";
@@ -7,8 +9,18 @@ import type { PlanInput } from "@/features/dive-plan/types";
 /**
  * POST /api/dive-plans
  * Create a new dive plan with AI-generated safety advice
+ * Requires authentication to save the plan
  */
 export async function POST(req: NextRequest) {
+  const session = await getServerSession(authOptions);
+  
+  if (!session?.user) {
+    return NextResponse.json(
+      { error: "Unauthorized - please sign in to save dive plans" },
+      { status: 401 }
+    );
+  }
+
   try {
     const body = (await req.json()) as {
       region: string;
@@ -28,7 +40,7 @@ export async function POST(req: NextRequest) {
       riskLevel,
     });
 
-    // Save to database
+    // Save to database with user ID
     const planInput: PlanInput = {
       date: body.date,
       region: body.region,
@@ -40,7 +52,7 @@ export async function POST(req: NextRequest) {
       aiAdvice,
     };
 
-    const savedPlan = await divePlanRepository.create(planInput);
+    const savedPlan = await divePlanRepository.create(planInput, session.user.id);
 
     return NextResponse.json(
       {
@@ -61,8 +73,18 @@ export async function POST(req: NextRequest) {
 /**
  * PUT /api/dive-plans
  * Update an existing dive plan and regenerate AI advice
+ * Requires authentication
  */
 export async function PUT(req: NextRequest) {
+  const session = await getServerSession(authOptions);
+  
+  if (!session?.user) {
+    return NextResponse.json(
+      { error: "Unauthorized" },
+      { status: 401 }
+    );
+  }
+
   try {
     const body = (await req.json()) as {
       id: string;
@@ -107,7 +129,7 @@ export async function PUT(req: NextRequest) {
       aiAdvice,
     };
 
-    const updatedPlan = await divePlanRepository.update(body.id, planInput);
+    const updatedPlan = await divePlanRepository.update(body.id, planInput, session.user.id);
 
     return NextResponse.json(
       {
@@ -127,13 +149,23 @@ export async function PUT(req: NextRequest) {
 
 /**
  * GET /api/dive-plans
- * Retrieve all dive plans (most recent first)
+ * Retrieve dive plans for the authenticated user (most recent first)
  */
 export async function GET() {
+  const session = await getServerSession(authOptions);
+  
+  if (!session?.user) {
+    return NextResponse.json(
+      { error: "Unauthorized" },
+      { status: 401 }
+    );
+  }
+
   try {
     const plans = await divePlanRepository.findMany({
       orderBy: "createdAt",
       take: 10,
+      userId: session.user.id,
     });
 
     return NextResponse.json({ plans });
@@ -149,8 +181,18 @@ export async function GET() {
 /**
  * DELETE /api/dive-plans?id={id}
  * Delete a dive plan by ID
+ * Requires authentication
  */
 export async function DELETE(req: NextRequest) {
+  const session = await getServerSession(authOptions);
+  
+  if (!session?.user) {
+    return NextResponse.json(
+      { error: "Unauthorized" },
+      { status: 401 }
+    );
+  }
+
   try {
     const id = req.nextUrl.searchParams.get("id");
 
@@ -161,7 +203,7 @@ export async function DELETE(req: NextRequest) {
       );
     }
 
-    await divePlanRepository.delete(id);
+    await divePlanRepository.delete(id, session.user.id);
 
     return NextResponse.json({ success: true });
   } catch (err) {

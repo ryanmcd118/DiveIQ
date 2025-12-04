@@ -1,25 +1,37 @@
 import { NextRequest, NextResponse } from "next/server";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/features/auth/lib/auth";
 import { diveLogRepository } from "@/services/database/repositories/diveLogRepository";
 import type { DiveLogInput } from "@/features/dive-log/types";
 
 /**
  * GET /api/dive-logs
- * Retrieve dive logs
+ * Retrieve dive logs for the authenticated user
  * - With ?id={id}: get a single log entry
  * - Without id: get all log entries (newest first)
  */
 export async function GET(req: NextRequest) {
+  const session = await getServerSession(authOptions);
+  
+  if (!session?.user) {
+    return NextResponse.json(
+      { error: "Unauthorized" },
+      { status: 401 }
+    );
+  }
+
   const { searchParams } = new URL(req.url);
   const id = searchParams.get("id");
 
   try {
     if (id) {
-      const entry = await diveLogRepository.findById(id);
+      const entry = await diveLogRepository.findById(id, session.user.id);
       return NextResponse.json({ entry });
     }
 
     const entries = await diveLogRepository.findMany({
       orderBy: "date",
+      userId: session.user.id,
     });
 
     return NextResponse.json({ entries });
@@ -35,6 +47,7 @@ export async function GET(req: NextRequest) {
 /**
  * POST /api/dive-logs
  * Handle dive log operations (create, update, delete)
+ * Requires authentication
  * 
  * Body format:
  * {
@@ -44,6 +57,15 @@ export async function GET(req: NextRequest) {
  * }
  */
 export async function POST(req: NextRequest) {
+  const session = await getServerSession(authOptions);
+  
+  if (!session?.user) {
+    return NextResponse.json(
+      { error: "Unauthorized" },
+      { status: 401 }
+    );
+  }
+
   try {
     const body = await req.json();
     const { action, id, payload } = body as {
@@ -61,7 +83,7 @@ export async function POST(req: NextRequest) {
         );
       }
 
-      const created = await diveLogRepository.create(payload);
+      const created = await diveLogRepository.create(payload, session.user.id);
       return NextResponse.json({ entry: created });
     }
 
@@ -74,7 +96,7 @@ export async function POST(req: NextRequest) {
         );
       }
 
-      const updated = await diveLogRepository.update(id, payload);
+      const updated = await diveLogRepository.update(id, payload, session.user.id);
       return NextResponse.json({ entry: updated });
     }
 
@@ -87,7 +109,7 @@ export async function POST(req: NextRequest) {
         );
       }
 
-      await diveLogRepository.delete(id);
+      await diveLogRepository.delete(id, session.user.id);
       return NextResponse.json({ ok: true });
     }
 

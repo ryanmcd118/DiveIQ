@@ -9,7 +9,10 @@ export const diveLogRepository = {
   /**
    * Create a new dive log entry
    */
-  async create(data: DiveLogInput): Promise<DiveLogEntry> {
+  async create(
+    data: DiveLogInput,
+    userId?: string
+  ): Promise<DiveLogEntry> {
     return prisma.diveLog.create({
       data: {
         date: data.date,
@@ -21,6 +24,7 @@ export const diveLogRepository = {
         visibility: data.visibility ?? null,
         buddyName: data.buddyName ?? null,
         notes: data.notes ?? null,
+        userId: userId ?? null,
       },
     });
   },
@@ -28,9 +32,13 @@ export const diveLogRepository = {
   /**
    * Find a single dive log entry by ID
    */
-  async findById(id: string): Promise<DiveLogEntry | null> {
+  async findById(id: string, userId?: string): Promise<DiveLogEntry | null> {
+    const where: any = { id };
+    if (userId) {
+      where.userId = userId;
+    }
     return prisma.diveLog.findUnique({
-      where: { id },
+      where,
     });
   },
 
@@ -40,8 +48,14 @@ export const diveLogRepository = {
   async findMany(options?: {
     orderBy?: "date" | "createdAt";
     take?: number;
+    userId?: string;
   }): Promise<DiveLogEntry[]> {
+    const where: any = {};
+    if (options?.userId) {
+      where.userId = options.userId;
+    }
     return prisma.diveLog.findMany({
+      where,
       orderBy: { [options?.orderBy ?? "date"]: "desc" },
       take: options?.take,
     });
@@ -50,9 +64,17 @@ export const diveLogRepository = {
   /**
    * Update an existing dive log entry
    */
-  async update(id: string, data: DiveLogInput): Promise<DiveLogEntry> {
+  async update(
+    id: string,
+    data: DiveLogInput,
+    userId?: string
+  ): Promise<DiveLogEntry> {
+    const where: any = { id };
+    if (userId) {
+      where.userId = userId;
+    }
     return prisma.diveLog.update({
-      where: { id },
+      where,
       data: {
         date: data.date,
         region: data.region,
@@ -70,30 +92,43 @@ export const diveLogRepository = {
   /**
    * Delete a dive log entry
    */
-  async delete(id: string): Promise<void> {
+  async delete(id: string, userId?: string): Promise<void> {
+    const where: any = { id };
+    if (userId) {
+      where.userId = userId;
+    }
     await prisma.diveLog.delete({
-      where: { id },
+      where,
     });
   },
 
   /**
    * Get count of all dive log entries
    */
-  async count(): Promise<number> {
-    return prisma.diveLog.count();
+  async count(userId?: string): Promise<number> {
+    const where: any = {};
+    if (userId) {
+      where.userId = userId;
+    }
+    return prisma.diveLog.count({ where });
   },
 
   /**
    * Get aggregate statistics for dive logs
    */
-  async getStatistics(): Promise<{
+  async getStatistics(userId?: string): Promise<{
     totalDives: number;
     totalBottomTime: number;
     deepestDive: number;
   }> {
+    const where: any = {};
+    if (userId) {
+      where.userId = userId;
+    }
     const [count, aggregates] = await Promise.all([
-      prisma.diveLog.count(),
+      prisma.diveLog.count({ where }),
       prisma.diveLog.aggregate({
+        where,
         _sum: { bottomTime: true },
         _max: { maxDepth: true },
       }),

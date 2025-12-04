@@ -111,4 +111,3 @@ attention to. Be clear but non-alarmist.
     throw new Error("Failed to generate updated AI dive advice");
   }
 }
-
