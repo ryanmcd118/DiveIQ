@@ -1,5 +1,5 @@
 import { FormEvent, useEffect, useState } from "react";
-import { PastPlan, PlanData } from "@/app/plan/types";
+import { PastPlan, PlanData } from "@/features/plan/types";
 
 export function usePlanPageState() {
   const [submittedPlan, setSubmittedPlan] = useState<PlanData | null>(null);

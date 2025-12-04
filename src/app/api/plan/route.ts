@@ -1,20 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
-import OpenAI from "openai";
-import { prisma } from "@/lib/prisma";
-import type { PlanInput } from "@/app/plan/types";
+import { generateDivePlanAdvice, generateUpdatedDivePlanAdvice } from "@/services/ai/openaiService";
+import { calculateRiskLevel } from "@/features/plan/services/riskCalculator";
+import { divePlanRepository } from "@/services/database/repositories/divePlanRepository";
+import type { PlanInput } from "@/features/plan/types";
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
-
-type RiskLevel = "Low" | "Moderate" | "High";
-
-function calculateRisk(maxDepth: number, bottomTime: number): RiskLevel {
-  if (maxDepth > 40 || bottomTime > 50) return "High";
-  if (maxDepth > 30 || bottomTime > 40) return "Moderate";
-  return "Low";
-}
-
+/**
+ * POST /api/plan
+ * Create a new dive plan with AI-generated safety advice
+ */
 export async function POST(req: NextRequest) {
   try {
     const body = (await req.json()) as {
@@ -26,45 +19,16 @@ export async function POST(req: NextRequest) {
       experienceLevel: "Beginner" | "Intermediate" | "Advanced";
     };
 
-    const riskLevel = calculateRisk(body.maxDepth, body.bottomTime);
+    // Calculate risk level
+    const riskLevel = calculateRiskLevel(body.maxDepth, body.bottomTime);
 
-    const systemPrompt = `
-You are "DiveIQ", a conservative, safety-focused AI dive buddy.
-
-Given a recreational scuba dive plan (location, depth, time, and experience level), 
-give concise, practical feedback focused on safety, gas planning assumptions, 
-common risks for that region, and reminder-style advice. 
-Avoid giving medical advice. Assume no-decompression, single-tank recreational dives.
-    `.trim();
-
-    const userPrompt = `
-Region: ${body.region}
-Site: ${body.siteName}
-Date: ${body.date}
-Max depth: ${body.maxDepth}m
-Bottom time: ${body.bottomTime} minutes
-Experience level: ${body.experienceLevel}
-Estimated risk level: ${riskLevel}
-
-Give a short assessment (2–3 paragraphs max) of whether this is a sensible plan 
-for this diver, and what they should pay attention to (conditions, gas, ascent, buddy 
-communication, emergency planning). Be clear but non-alarmist.
-    `.trim();
-
-    const completion = await openai.chat.completions.create({
-      model: "gpt-4.1-mini",
-      messages: [
-        { role: "system", content: systemPrompt },
-        { role: "user", content: userPrompt },
-      ],
-      temperature: 0.5,
+    // Generate AI advice
+    const aiAdvice = await generateDivePlanAdvice({
+      ...body,
+      riskLevel,
     });
 
-    const aiAdvice =
-      completion.choices[0]?.message?.content ??
-      "Unable to generate advice at this time. Dive conservatively and within your training.";
-
-    // Save to DB
+    // Save to database
     const planInput: PlanInput = {
       date: body.date,
       region: body.region,
@@ -76,20 +40,17 @@ communication, emergency planning). Be clear but non-alarmist.
       aiAdvice,
     };
 
-    const saved = await prisma.divePlan.create({
-      data: planInput,
-    });
+    const savedPlan = await divePlanRepository.create(planInput);
 
-    // For now, the page only needs aiAdvice – but we also return the saved record
     return NextResponse.json(
       {
         aiAdvice,
-        plan: saved,
+        plan: savedPlan,
       },
       { status: 200 }
     );
   } catch (err) {
-    console.error("Error in /api/plan:", err);
+    console.error("Error in POST /api/plan:", err);
     return NextResponse.json(
       { error: "Failed to generate plan advice." },
       { status: 500 }
@@ -97,6 +58,10 @@ communication, emergency planning). Be clear but non-alarmist.
   }
 }
 
+/**
+ * PUT /api/plan
+ * Update an existing dive plan and regenerate AI advice
+ */
 export async function PUT(req: NextRequest) {
   try {
     const body = (await req.json()) as {
@@ -116,62 +81,38 @@ export async function PUT(req: NextRequest) {
       );
     }
 
-    const riskLevel = calculateRisk(body.maxDepth, body.bottomTime);
+    // Calculate risk level
+    const riskLevel = calculateRiskLevel(body.maxDepth, body.bottomTime);
 
-    const systemPrompt = `
-You are "DiveIQ", a conservative, safety-focused AI dive buddy.
-
-Given a recreational scuba dive plan (location, depth, time, and experience level), 
-give concise, practical feedback focused on safety, gas planning assumptions, 
-common risks for that region, and reminder-style advice. 
-Avoid giving medical advice. Assume no-decompression, single-tank recreational dives.
-    `.trim();
-
-    const userPrompt = `
-Region: ${body.region}
-Site: ${body.siteName}
-Date: ${body.date}
-Max depth: ${body.maxDepth}m
-Bottom time: ${body.bottomTime} minutes
-Experience level: ${body.experienceLevel}
-Estimated risk level: ${riskLevel}
-
-The diver has UPDATED this plan. Give a short assessment (1 paragraph max) 
-of whether the changes they have suggested make this a more, less, or equally sensible plan for this diver, and what they should pay 
-attention to. Be clear but non-alarmist.
-    `.trim();
-
-    const completion = await openai.chat.completions.create({
-      model: "gpt-4.1-mini",
-      messages: [
-        { role: "system", content: systemPrompt },
-        { role: "user", content: userPrompt },
-      ],
-      temperature: 0.5,
+    // Generate updated AI advice
+    const aiAdvice = await generateUpdatedDivePlanAdvice({
+      region: body.region,
+      siteName: body.siteName,
+      date: body.date,
+      maxDepth: body.maxDepth,
+      bottomTime: body.bottomTime,
+      experienceLevel: body.experienceLevel,
+      riskLevel,
     });
 
-    const aiAdvice =
-      completion.choices[0]?.message?.content ??
-      "Unable to generate updated advice at this time. Dive conservatively and within your training.";
+    // Update in database
+    const planInput: PlanInput = {
+      date: body.date,
+      region: body.region,
+      siteName: body.siteName,
+      maxDepth: body.maxDepth,
+      bottomTime: body.bottomTime,
+      experienceLevel: body.experienceLevel,
+      riskLevel,
+      aiAdvice,
+    };
 
-    const updated = await prisma.divePlan.update({
-      where: { id: body.id },
-      data: {
-        date: body.date,
-        region: body.region,
-        siteName: body.siteName,
-        maxDepth: body.maxDepth,
-        bottomTime: body.bottomTime,
-        experienceLevel: body.experienceLevel,
-        riskLevel,
-        aiAdvice,
-      },
-    });
+    const updatedPlan = await divePlanRepository.update(body.id, planInput);
 
     return NextResponse.json(
       {
         aiAdvice,
-        plan: updated,
+        plan: updatedPlan,
       },
       { status: 200 }
     );
@@ -184,27 +125,43 @@ attention to. Be clear but non-alarmist.
   }
 }
 
-// Later we can list plans for dashboards, etc.
+/**
+ * GET /api/plan
+ * Retrieve all dive plans (most recent first)
+ */
 export async function GET() {
-  const plans = await prisma.divePlan.findMany({
-    orderBy: { createdAt: "desc" },
-    take: 10,
-  });
+  try {
+    const plans = await divePlanRepository.findMany({
+      orderBy: "createdAt",
+      take: 10,
+    });
 
-  return NextResponse.json({ plans });
+    return NextResponse.json({ plans });
+  } catch (err) {
+    console.error("Error in GET /api/plan:", err);
+    return NextResponse.json(
+      { error: "Failed to fetch plans." },
+      { status: 500 }
+    );
+  }
 }
 
+/**
+ * DELETE /api/plan?id={id}
+ * Delete a dive plan by ID
+ */
 export async function DELETE(req: NextRequest) {
   try {
     const id = req.nextUrl.searchParams.get("id");
 
     if (!id) {
-      return NextResponse.json({ error: "Missing plan id" }, { status: 400 });
+      return NextResponse.json(
+        { error: "Missing plan id" },
+        { status: 400 }
+      );
     }
 
-    await prisma.divePlan.delete({
-      where: { id },
-    });
+    await divePlanRepository.delete(id);
 
     return NextResponse.json({ success: true });
   } catch (err) {

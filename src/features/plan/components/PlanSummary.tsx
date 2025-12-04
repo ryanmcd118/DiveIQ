@@ -1,6 +1,6 @@
 "use client";
 
-import { PlanData, RiskLevel } from "@/app/plan/types";
+import { PlanData, RiskLevel } from "@/features/plan/types";
 import cardStyles from "@/styles/components/Card.module.css";
 
 /*

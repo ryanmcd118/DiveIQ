@@ -1,32 +1,25 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
+import { diveLogRepository } from "@/services/database/repositories/diveLogRepository";
+import type { DiveLogInput } from "@/features/log/types";
 
-function mapPayloadToData(payload: any) {
-  return {
-    date: payload.date,
-    region: payload.region,
-    siteName: payload.siteName,
-    maxDepth: payload.maxDepth,
-    bottomTime: payload.bottomTime,
-    waterTemp: payload.waterTemp ?? null,
-    visibility: payload.visibility ?? null,
-    buddyName: payload.buddyName ?? null,
-    notes: payload.notes ?? null,
-  };
-}
-
+/**
+ * GET /api/log
+ * Retrieve dive logs
+ * - With ?id={id}: get a single log entry
+ * - Without id: get all log entries (newest first)
+ */
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
   const id = searchParams.get("id");
 
   try {
     if (id) {
-      const entry = await prisma.diveLog.findUnique({ where: { id } });
+      const entry = await diveLogRepository.findById(id);
       return NextResponse.json({ entry });
     }
 
-    const entries = await prisma.diveLog.findMany({
-      orderBy: { date: "desc" },
+    const entries = await diveLogRepository.findMany({
+      orderBy: "date",
     });
 
     return NextResponse.json({ entries });
@@ -39,13 +32,24 @@ export async function GET(req: NextRequest) {
   }
 }
 
+/**
+ * POST /api/log
+ * Handle dive log operations (create, update, delete)
+ * 
+ * Body format:
+ * {
+ *   action: "create" | "update" | "delete",
+ *   id?: string,  // required for update/delete
+ *   payload?: DiveLogInput  // required for create/update
+ * }
+ */
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
     const { action, id, payload } = body as {
       action: "create" | "update" | "delete";
       id?: string;
-      payload?: any;
+      payload?: DiveLogInput;
     };
 
     // CREATE
@@ -57,10 +61,7 @@ export async function POST(req: NextRequest) {
         );
       }
 
-      const created = await prisma.diveLog.create({
-        data: mapPayloadToData(payload),
-      });
-
+      const created = await diveLogRepository.create(payload);
       return NextResponse.json({ entry: created });
     }
 
@@ -73,11 +74,7 @@ export async function POST(req: NextRequest) {
         );
       }
 
-      const updated = await prisma.diveLog.update({
-        where: { id },
-        data: mapPayloadToData(payload),
-      });
-
+      const updated = await diveLogRepository.update(id, payload);
       return NextResponse.json({ entry: updated });
     }
 
@@ -90,15 +87,15 @@ export async function POST(req: NextRequest) {
         );
       }
 
-      await prisma.diveLog.delete({
-        where: { id },
-      });
-
+      await diveLogRepository.delete(id);
       return NextResponse.json({ ok: true });
     }
 
     // Unknown action
-    return NextResponse.json({ error: "Invalid action" }, { status: 400 });
+    return NextResponse.json(
+      { error: "Invalid action" },
+      { status: 400 }
+    );
   } catch (err) {
     console.error("POST /api/log error", err);
     return NextResponse.json(

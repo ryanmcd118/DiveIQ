@@ -1,5 +1,5 @@
 import { FormEvent, useEffect, useState } from "react";
-import { DiveLogEntry, DiveLogInput } from "@/app/log/types";
+import { DiveLogEntry, DiveLogInput } from "@/features/log/types";
 
 export function useLogPageState() {
   const [entries, setEntries] = useState<DiveLogEntry[]>([]);

@@ -1,7 +1,7 @@
 "use client";
 
 import { FormEvent } from "react";
-import { PlanData } from "@/app/plan/types";
+import { PlanData } from "@/features/plan/types";
 import cardStyles from "@/styles/components/Card.module.css";
 import formStyles from "@/styles/components/Form.module.css";
 import buttonStyles from "@/styles/components/Button.module.css";

@@ -1,4 +1,7 @@
+// Dive Plan Types
+
 export type ExperienceLevel = "Beginner" | "Intermediate" | "Advanced";
+export type RiskLevel = "Low" | "Moderate" | "High";
 
 export type PlanData = {
   region: string;
@@ -9,10 +12,21 @@ export type PlanData = {
   experienceLevel: ExperienceLevel;
 };
 
-export type RiskLevel = "Low" | "Moderate" | "High";
+export type PlanInput = PlanData & {
+  riskLevel: RiskLevel;
+  aiAdvice?: string | null;
+};
 
 export type PastPlan = PlanData & {
   id: string;
   riskLevel: RiskLevel | string;
   aiAdvice?: string | null;
+  createdAt?: Date;
 };
+
+// API Response Types
+export type PlanApiResponse = {
+  aiAdvice: string;
+  plan: PastPlan;
+};
+
