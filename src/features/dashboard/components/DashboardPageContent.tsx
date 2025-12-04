@@ -1,5 +1,10 @@
 import Link from "next/link";
 import type { DiveLog, DivePlan } from "@prisma/client";
+import layoutStyles from "@/styles/components/Layout.module.css";
+import cardStyles from "@/styles/components/Card.module.css";
+import buttonStyles from "@/styles/components/Button.module.css";
+import navStyles from "@/styles/components/Navigation.module.css";
+import listStyles from "@/styles/components/List.module.css";
 
 type Props = {
   recentDives: DiveLog[];
@@ -19,105 +24,84 @@ export function DashboardPageContent({
   const mostRecentDive: DiveLog | undefined = recentDives[0];
 
   return (
-    <main className="flex min-h-screen justify-center bg-slate-950 p-6 text-slate-100 md:p-10">
-      <div className="w-full max-w-5xl space-y-8">
+    <main className={layoutStyles.page}>
+      <div className={layoutStyles.pageContent}>
         {/* Header */}
-        <header className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+        <header className={layoutStyles.pageHeader}>
           <div>
-            <h1 className="text-3xl font-semibold tracking-tight md:text-4xl">
-              DiveIQ Dashboard
-            </h1>
-            <p className="mt-2 max-w-xl text-sm text-slate-400">
+            <h1 className={layoutStyles.pageTitle}>DiveIQ Dashboard</h1>
+            <p className={layoutStyles.pageSubtitle}>
               Your personal hub for planning dives, logging experiences, and
               eventually tracking gear, certifications, and more.
             </p>
           </div>
-          <div className="flex gap-3">
-            <Link
-              href="/plan"
-              className="inline-flex items-center justify-center rounded-md bg-cyan-500 px-4 py-2 text-sm font-medium text-slate-950 hover:bg-cyan-400 focus:ring-2 focus:ring-cyan-400 focus:ring-offset-2 focus:ring-offset-slate-950 focus:outline-none"
-            >
+          <div className={layoutStyles.headerActions}>
+            <Link href="/plan" className={buttonStyles.primary}>
               Plan a dive
             </Link>
-            <Link
-              href="/log"
-              className="inline-flex items-center justify-center rounded-md border border-slate-700 px-4 py-2 text-sm font-medium text-slate-100 hover:border-cyan-400 hover:text-cyan-100 focus:ring-2 focus:ring-cyan-400 focus:ring-offset-2 focus:ring-offset-slate-950 focus:outline-none"
-            >
+            <Link href="/log" className={buttonStyles.secondary}>
               Log a dive
             </Link>
           </div>
         </header>
 
         {/* Stats row */}
-        <section className="grid gap-4 md:grid-cols-3">
-          <div className="rounded-xl border border-slate-800 bg-slate-900/70 p-4 shadow-lg">
-            <p className="text-xs tracking-wide text-slate-400 uppercase">
-              Total dives
-            </p>
-            <p className="mt-2 text-3xl font-semibold">{totalCount}</p>
-            <p className="mt-1 text-xs text-slate-500">
+        <section className={layoutStyles.statsGrid}>
+          <div className={cardStyles.stat}>
+            <p className={cardStyles.statLabel}>Total dives</p>
+            <p className={cardStyles.statValue}>{totalCount}</p>
+            <p className={cardStyles.statDescription}>
               Logged in your DiveIQ logbook.
             </p>
           </div>
 
-          <div className="rounded-xl border border-slate-800 bg-slate-900/70 p-4 shadow-lg">
-            <p className="text-xs tracking-wide text-slate-400 uppercase">
-              Total bottom time
-            </p>
-            <p className="mt-2 text-3xl font-semibold">
+          <div className={cardStyles.stat}>
+            <p className={cardStyles.statLabel}>Total bottom time</p>
+            <p className={cardStyles.statValue}>
               {totalBottomTime}
-              <span className="ml-1 text-base font-normal text-slate-300">
-                min
-              </span>
+              <span className={cardStyles.statUnit}>min</span>
             </p>
-            <p className="mt-1 text-xs text-slate-500">
+            <p className={cardStyles.statDescription}>
               Across all logged dives.
             </p>
           </div>
 
-          <div className="rounded-xl border border-slate-800 bg-slate-900/70 p-4 shadow-lg">
-            <p className="text-xs tracking-wide text-slate-400 uppercase">
-              Deepest dive
-            </p>
-            <p className="mt-2 text-3xl font-semibold">
+          <div className={cardStyles.stat}>
+            <p className={cardStyles.statLabel}>Deepest dive</p>
+            <p className={cardStyles.statValue}>
               {deepestDive}
-              <span className="ml-1 text-base font-normal text-slate-300">
-                m
-              </span>
+              <span className={cardStyles.statUnit}>m</span>
             </p>
-            <p className="mt-1 text-xs text-slate-500">
+            <p className={cardStyles.statDescription}>
               Based on your current logbook.
             </p>
           </div>
         </section>
 
         {/* Main grid: recent dives + planning / gear */}
-        <section className="grid gap-6 md:grid-cols-[minmax(0,2fr)_minmax(0,1.5fr)]">
+        <section className={layoutStyles.dashboardGrid}>
           {/* Left: most recent dive + recent dives */}
-          <div className="space-y-4">
-            <div className="rounded-xl border border-slate-800 bg-slate-900/70 p-5 shadow-lg">
-              <div className="mb-2 flex items-center justify-between gap-3">
-                <h2 className="text-lg font-semibold">Most recent dive</h2>
-                <Link
-                  href="/log"
-                  className="text-xs text-cyan-300 hover:text-cyan-200"
-                >
+          <div className={layoutStyles.section}>
+            <div className={cardStyles.card}>
+              <div className={cardStyles.header}>
+                <h2 className={cardStyles.title}>Most recent dive</h2>
+                <Link href="/log" className={navStyles.linkAccentSmall}>
                   View full log
                 </Link>
               </div>
 
               {mostRecentDive ? (
-                <div className="space-y-1 text-sm">
-                  <p className="font-medium">
+                <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-1)", fontSize: "var(--font-size-sm)" }}>
+                  <p style={{ fontWeight: "var(--font-weight-medium)" }}>
                     {mostRecentDive.siteName}{" "}
-                    <span className="text-slate-400">
+                    <span className="text-muted">
                       ({mostRecentDive.region})
                     </span>
                   </p>
-                  <p className="mb-1 text-xs text-slate-400">
+                  <p className="caption text-muted">
                     {mostRecentDive.date}
                   </p>
-                  <p className="text-slate-200">
+                  <p className={listStyles.diveStats}>
                     {mostRecentDive.maxDepth}m · {mostRecentDive.bottomTime}min
                     {mostRecentDive.visibility != null &&
                       ` · ${mostRecentDive.visibility}m vis`}
@@ -125,23 +109,20 @@ export function DashboardPageContent({
                       ` · ${mostRecentDive.waterTemp}°C`}
                   </p>
                   {mostRecentDive.buddyName && (
-                    <p className="text-xs text-slate-400">
+                    <p className={listStyles.diveMeta}>
                       Buddy: {mostRecentDive.buddyName}
                     </p>
                   )}
                   {mostRecentDive.notes && (
-                    <p className="mt-2 text-xs whitespace-pre-line text-slate-300">
+                    <p className={listStyles.diveNotes} style={{ marginTop: "var(--space-2)" }}>
                       {mostRecentDive.notes}
                     </p>
                   )}
                 </div>
               ) : (
-                <p className="text-sm text-slate-400">
+                <p className={listStyles.empty}>
                   No dives logged yet.{" "}
-                  <Link
-                    href="/log"
-                    className="text-cyan-300 hover:text-cyan-200"
-                  >
+                  <Link href="/log" className={navStyles.linkAccent}>
                     Log your first dive
                   </Link>{" "}
                   to see it here.
@@ -149,36 +130,31 @@ export function DashboardPageContent({
               )}
             </div>
 
-            <div className="rounded-xl border border-slate-800 bg-slate-900/70 p-5 shadow-lg">
-              <h2 className="mb-2 text-lg font-semibold">Recent dives</h2>
+            <div className={cardStyles.card}>
+              <h2 className={cardStyles.titleWithMargin}>Recent dives</h2>
               {recentDives.length === 0 ? (
-                <p className="text-sm text-slate-400">
+                <p className={listStyles.empty}>
                   Once you start logging dives, the latest few will appear here
                   for a quick snapshot.
                 </p>
               ) : (
-                <ul className="space-y-3 text-sm">
+                <ul className={listStyles.listCompact}>
                   {recentDives.map((dive) => (
-                    <li
-                      key={dive.id}
-                      className="rounded-lg border border-slate-800 bg-slate-950/40 p-3"
-                    >
-                      <div className="flex justify-between gap-2">
-                        <span className="font-medium">
+                    <li key={dive.id} className={cardStyles.listItem}>
+                      <div className="flex-between" style={{ gap: "var(--space-2)" }}>
+                        <span style={{ fontWeight: "var(--font-weight-medium)" }}>
                           {dive.siteName}{" "}
-                          <span className="text-slate-400">
-                            ({dive.region})
-                          </span>
+                          <span className="text-muted">({dive.region})</span>
                         </span>
-                        <span className="text-xs text-slate-400">
+                        <span className={listStyles.diveDate}>
                           {dive.date}
                         </span>
                       </div>
-                      <p className="text-slate-300">
+                      <p className="body-small text-muted">
                         {dive.maxDepth}m · {dive.bottomTime}min
                       </p>
                       {dive.buddyName && (
-                        <p className="mt-1 text-xs text-slate-400">
+                        <p className={listStyles.diveMeta} style={{ marginTop: "var(--space-1)" }}>
                           Buddy: {dive.buddyName}
                         </p>
                       )}
@@ -190,22 +166,19 @@ export function DashboardPageContent({
           </div>
 
           {/* Right: planning + gear */}
-          <div className="space-y-4">
-            <div className="rounded-xl border border-slate-800 bg-slate-900/70 p-5 shadow-lg">
-              <h2 className="mb-2 text-lg font-semibold">Planning shortcuts</h2>
-              <p className="mb-3 text-sm text-slate-400">
+          <div className={layoutStyles.section}>
+            <div className={cardStyles.card}>
+              <h2 className={cardStyles.titleWithMargin}>Planning shortcuts</h2>
+              <p className={listStyles.empty} style={{ marginBottom: "var(--space-3)" }}>
                 Jump straight into planning your next dive.
               </p>
-              <div className="flex flex-col gap-2">
-                <Link
-                  href="/plan"
-                  className="rounded-md border border-slate-700 px-3 py-2 text-sm hover:border-cyan-400 hover:text-cyan-100"
-                >
+              <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-2)" }}>
+                <Link href="/plan" className={buttonStyles.ghost}>
                   Plan a new dive
                 </Link>
                 <button
                   type="button"
-                  className="cursor-not-allowed rounded-md border border-slate-800 px-3 py-2 text-sm text-slate-500"
+                  className={buttonStyles.disabled}
                   title="Coming soon"
                 >
                   🌊 Plan a weekend trip (coming soon)
@@ -213,15 +186,15 @@ export function DashboardPageContent({
               </div>
             </div>
 
-            <div className="rounded-xl border border-slate-800 bg-slate-900/70 p-5 shadow-lg">
-              <h2 className="mb-2 text-lg font-semibold">
+            <div className={cardStyles.card}>
+              <h2 className={cardStyles.titleWithMargin}>
                 Gear & certifications
               </h2>
-              <p className="mb-3 text-sm text-slate-400">
+              <p className={listStyles.empty} style={{ marginBottom: "var(--space-3)" }}>
                 This space will eventually track your gear service dates,
                 certification levels, and training goals.
               </p>
-              <p className="text-xs text-slate-500">
+              <p className={cardStyles.statDescription}>
                 For now, it&apos;s a placeholder to show where those features
                 will live in your product story and interviews.
               </p>
@@ -230,43 +203,41 @@ export function DashboardPageContent({
         </section>
 
         {/* Recent planned dives */}
-        <section className="rounded-xl border border-slate-800 bg-slate-900/70 p-5 shadow-lg">
-          <div className="mb-2 flex items-center justify-between">
-            <h2 className="text-lg font-semibold">Recent planned dives</h2>
-            <Link
-              href="/plan"
-              className="text-xs text-cyan-300 hover:text-cyan-200"
-            >
+        <section className={cardStyles.card}>
+          <div className={cardStyles.header}>
+            <h2 className={cardStyles.title}>Recent planned dives</h2>
+            <Link href="/plan" className={navStyles.linkAccentSmall}>
               Open planner
             </Link>
           </div>
 
           {recentPlans.length === 0 ? (
-            <p className="text-sm text-slate-400">
+            <p className={listStyles.empty}>
               Once you start generating AI-assisted dive plans, the latest few
               will appear here with their estimated risk levels.
             </p>
           ) : (
-            <ul className="space-y-3 text-sm">
+            <ul className={listStyles.listCompact}>
               {recentPlans.map((plan) => (
-                <li
-                  key={plan.id}
-                  className="rounded-lg border border-slate-800 bg-slate-950/40 p-3"
-                >
-                  <div className="flex justify-between gap-2">
-                    <span className="font-medium">
+                <li key={plan.id} className={cardStyles.listItem}>
+                  <div className="flex-between" style={{ gap: "var(--space-2)" }}>
+                    <span style={{ fontWeight: "var(--font-weight-medium)" }}>
                       {plan.siteName}{" "}
-                      <span className="text-slate-400">({plan.region})</span>
+                      <span className="text-muted">({plan.region})</span>
                     </span>
-                    <span className="text-xs text-slate-400">{plan.date}</span>
+                    <span className={listStyles.diveDate}>{plan.date}</span>
                   </div>
-                  <p className="text-slate-300">
+                  <p className="body-small text-muted">
                     {plan.maxDepth}m · {plan.bottomTime}min ·{" "}
-                    <span className="capitalize">{plan.experienceLevel}</span>
+                    <span style={{ textTransform: "capitalize" }}>
+                      {plan.experienceLevel}
+                    </span>
                   </p>
-                  <p className="mt-1 text-xs text-slate-400">
+                  <p className={listStyles.planRisk}>
                     Estimated risk:{" "}
-                    <span className="text-slate-200">{plan.riskLevel}</span>
+                    <span style={{ color: "var(--color-text-secondary)" }}>
+                      {plan.riskLevel}
+                    </span>
                   </p>
                 </li>
               ))}

@@ -2,6 +2,9 @@
 
 import { FormEvent } from "react";
 import { DiveLogEntry } from "@/app/log/types";
+import cardStyles from "@/styles/components/Card.module.css";
+import formStyles from "@/styles/components/Form.module.css";
+import buttonStyles from "@/styles/components/Button.module.css";
 
 interface DiveLogFormProps {
   formKey: string;
@@ -28,10 +31,11 @@ export function DiveLogForm({
     <form
       key={formKey}
       onSubmit={onSubmit}
-      className="mt-4 space-y-4 rounded-xl border border-slate-800 bg-slate-900/60 p-6 shadow-lg"
+      className={cardStyles.cardForm}
+      style={{ marginTop: "var(--space-4)", padding: "var(--space-6)" }}
     >
-      <div className="flex flex-col gap-1">
-        <label htmlFor="date" className="text-sm text-slate-300">
+      <div className={formStyles.field}>
+        <label htmlFor="date" className={formStyles.label}>
           Date
         </label>
         <input
@@ -40,12 +44,12 @@ export function DiveLogForm({
           name="date"
           required
           defaultValue={activeEntry?.date ?? ""}
-          className="rounded-md border border-slate-700 bg-slate-950 px-3 py-2 text-sm outline-none focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400"
+          className={formStyles.input}
         />
       </div>
 
-      <div className="flex flex-col gap-1">
-        <label htmlFor="region" className="text-sm text-slate-300">
+      <div className={formStyles.field}>
+        <label htmlFor="region" className={formStyles.label}>
           Region
         </label>
         <input
@@ -55,12 +59,12 @@ export function DiveLogForm({
           placeholder="Roatán, Red Sea, local quarry..."
           required
           defaultValue={activeEntry?.region ?? ""}
-          className="rounded-md border border-slate-700 bg-slate-950 px-3 py-2 text-sm outline-none focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400"
+          className={formStyles.input}
         />
       </div>
 
-      <div className="flex flex-col gap-1">
-        <label htmlFor="siteName" className="text-sm text-slate-300">
+      <div className={formStyles.field}>
+        <label htmlFor="siteName" className={formStyles.label}>
           Site name
         </label>
         <input
@@ -70,13 +74,13 @@ export function DiveLogForm({
           placeholder="Mary's Place"
           required
           defaultValue={activeEntry?.siteName ?? ""}
-          className="rounded-md border border-slate-700 bg-slate-950 px-3 py-2 text-sm outline-none focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400"
+          className={formStyles.input}
         />
       </div>
 
-      <div className="grid grid-cols-2 gap-4">
-        <div className="flex flex-col gap-1">
-          <label htmlFor="maxDepth" className="text-sm text-slate-300">
+      <div className={formStyles.formGrid2}>
+        <div className={formStyles.field}>
+          <label htmlFor="maxDepth" className={formStyles.label}>
             Max depth (m)
           </label>
           <input
@@ -87,11 +91,11 @@ export function DiveLogForm({
             defaultValue={
               activeEntry?.maxDepth != null ? String(activeEntry.maxDepth) : ""
             }
-            className="rounded-md border border-slate-700 bg-slate-950 px-3 py-2 text-sm outline-none focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400"
+            className={formStyles.input}
           />
         </div>
-        <div className="flex flex-col gap-1">
-          <label htmlFor="bottomTime" className="text-sm text-slate-300">
+        <div className={formStyles.field}>
+          <label htmlFor="bottomTime" className={formStyles.label}>
             Bottom time (min)
           </label>
           <input
@@ -104,14 +108,14 @@ export function DiveLogForm({
                 ? String(activeEntry.bottomTime)
                 : ""
             }
-            className="rounded-md border border-slate-700 bg-slate-950 px-3 py-2 text-sm outline-none focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400"
+            className={formStyles.input}
           />
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-4">
-        <div className="flex flex-col gap-1">
-          <label htmlFor="waterTemp" className="text-sm text-slate-300">
+      <div className={formStyles.formGrid2}>
+        <div className={formStyles.field}>
+          <label htmlFor="waterTemp" className={formStyles.label}>
             Water temp (°C)
           </label>
           <input
@@ -123,11 +127,11 @@ export function DiveLogForm({
                 ? String(activeEntry.waterTemp)
                 : ""
             }
-            className="rounded-md border border-slate-700 bg-slate-950 px-3 py-2 text-sm outline-none focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400"
+            className={formStyles.input}
           />
         </div>
-        <div className="flex flex-col gap-1">
-          <label htmlFor="visibility" className="text-sm text-slate-300">
+        <div className={formStyles.field}>
+          <label htmlFor="visibility" className={formStyles.label}>
             Visibility (m)
           </label>
           <input
@@ -139,13 +143,13 @@ export function DiveLogForm({
                 ? String(activeEntry.visibility)
                 : ""
             }
-            className="rounded-md border border-slate-700 bg-slate-950 px-3 py-2 text-sm outline-none focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400"
+            className={formStyles.input}
           />
         </div>
       </div>
 
-      <div className="flex flex-col gap-1">
-        <label htmlFor="buddyName" className="text-sm text-slate-300">
+      <div className={formStyles.field}>
+        <label htmlFor="buddyName" className={formStyles.label}>
           Buddy
         </label>
         <input
@@ -154,12 +158,12 @@ export function DiveLogForm({
           name="buddyName"
           placeholder="Optional"
           defaultValue={activeEntry?.buddyName ?? ""}
-          className="rounded-md border border-slate-700 bg-slate-950 px-3 py-2 text-sm outline-none focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400"
+          className={formStyles.input}
         />
       </div>
 
-      <div className="flex flex-col gap-1">
-        <label htmlFor="notes" className="text-sm text-slate-300">
+      <div className={formStyles.field}>
+        <label htmlFor="notes" className={formStyles.label}>
           Notes
         </label>
         <textarea
@@ -168,17 +172,17 @@ export function DiveLogForm({
           rows={3}
           placeholder="Conditions, wildlife, gear notes…"
           defaultValue={activeEntry?.notes ?? ""}
-          className="resize-none rounded-md border border-slate-700 bg-slate-950 px-3 py-2 text-sm outline-none focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400"
+          className={formStyles.textarea}
         />
       </div>
 
-      {error && <p className="text-xs text-red-400">{error}</p>}
+      {error && <p className={formStyles.error}>{error}</p>}
 
-      <div className="mt-2 flex flex-wrap gap-3">
+      <div className={formStyles.buttonGroup}>
         <button
           type="submit"
           disabled={saving}
-          className="inline-flex items-center justify-center rounded-md bg-cyan-500 px-4 py-2 text-sm font-medium text-slate-950 hover:bg-cyan-400 focus:ring-2 focus:ring-cyan-400 focus:ring-offset-2 focus:ring-offset-slate-950 focus:outline-none disabled:opacity-60"
+          className={buttonStyles.primary}
         >
           {saving
             ? "Saving…"
@@ -197,7 +201,7 @@ export function DiveLogForm({
                     undefined
                 )
               }
-              className="inline-flex items-center justify-center rounded-md border border-slate-700 px-4 py-2 text-sm font-medium text-slate-100 hover:border-cyan-400 hover:text-cyan-100 focus:ring-2 focus:ring-cyan-400 focus:ring-offset-2 focus:ring-offset-slate-950 focus:outline-none"
+              className={buttonStyles.secondary}
             >
               Cancel
             </button>
@@ -207,7 +211,7 @@ export function DiveLogForm({
               onClick={(evt) =>
                 onDeleteFromForm(evt.currentTarget.form as HTMLFormElement)
               }
-              className="inline-flex items-center justify-center rounded-md border border-red-600/70 bg-red-600/10 px-4 py-2 text-sm font-medium text-red-200 hover:bg-red-600/20 focus:ring-2 focus:ring-red-500 focus:ring-offset-2 focus:ring-offset-slate-950 focus:outline-none"
+              className={buttonStyles.danger}
             >
               Delete dive
             </button>

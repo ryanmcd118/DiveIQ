@@ -1,0 +1,159 @@
+/* =========================================
+   PAGE GRID LAYOUTS
+   For /plan and /log pages with 2-column layouts
+   ========================================= */
+
+.planPageGrid {
+  display: grid;
+  width: 100%;
+  max-width: 80rem;
+  gap: var(--space-8);
+  grid-template-columns: 1fr;
+}
+
+@media (min-width: 768px) {
+  .planPageGrid {
+    grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr);
+  }
+}
+
+.logPageGrid {
+  display: grid;
+  width: 100%;
+  max-width: 80rem;
+  gap: var(--space-8);
+  grid-template-columns: 1fr;
+}
+
+@media (min-width: 768px) {
+  .logPageGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+/* AI Advice card specific to plan page */
+.aiAdviceCard {
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border-default);
+  border-radius: var(--radius-xl);
+  padding: var(--space-4);
+  box-shadow: var(--shadow-lg);
+}
+
+.aiAdviceTitle {
+  margin-bottom: var(--space-2);
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
+}
+
+.aiAdviceContent {
+  font-size: var(--font-size-sm);
+  white-space: pre-line;
+  color: var(--color-text-secondary);
+}
+
+.placeholderCard {
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border-default);
+  border-radius: var(--radius-xl);
+  padding: var(--space-4);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+  box-shadow: var(--shadow-lg);
+}
+
+/* Log overview card */
+.logOverview {
+  background-color: rgba(15, 23, 42, 0.6);
+  border: 1px solid var(--color-border-default);
+  border-radius: var(--radius-xl);
+  padding: var(--space-6);
+  box-shadow: var(--shadow-lg);
+}
+
+.logOverviewTitle {
+  margin-bottom: var(--space-2);
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
+}
+
+.logOverviewStats {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-tertiary);
+}
+
+/* Recent dives scrollable container */
+.recentDivesContainer {
+  max-height: 60vh;
+  overflow-y: auto;
+  background-color: rgba(15, 23, 42, 0.6);
+  border: 1px solid var(--color-border-default);
+  border-radius: var(--radius-xl);
+  padding: var(--space-6);
+  box-shadow: var(--shadow-lg);
+}
+
+.recentDivesContainer::-webkit-scrollbar {
+  width: 0.375rem;
+}
+
+.recentDivesContainer::-webkit-scrollbar-track {
+  background: var(--color-bg-secondary);
+  border-radius: var(--radius-full);
+}
+
+.recentDivesContainer::-webkit-scrollbar-thumb {
+  background: var(--color-bg-elevated);
+  border-radius: var(--radius-full);
+}
+
+.recentDivesContainer::-webkit-scrollbar-thumb:hover {
+  background: var(--color-border-focus);
+}
+
+/* Status message toast */
+.statusToast {
+  position: fixed;
+  bottom: var(--space-4);
+  left: var(--space-4);
+  z-index: 50;
+  pointer-events: none;
+}
+
+.statusToastContent {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  font-size: var(--font-size-sm);
+  color: #d1fae5;
+  background-color: rgba(6, 78, 59, 0.95);
+  border: 1px solid rgba(52, 211, 153, 0.4);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  pointer-events: auto;
+}
+
+.statusToastAlt {
+  position: fixed;
+  bottom: var(--space-4);
+  left: var(--space-4);
+  padding: var(--space-2) var(--space-3);
+  font-size: var(--font-size-sm);
+  color: #d1fae5;
+  background-color: rgba(6, 78, 59, 0.8);
+  border: 1px solid rgba(52, 211, 153, 0.6);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  backdrop-filter: blur(8px);
+}
+

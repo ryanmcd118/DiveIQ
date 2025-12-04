@@ -1,0 +1,100 @@
+/* =========================================
+   LAYOUT COMPONENTS
+   ========================================= */
+
+.page {
+  display: flex;
+  justify-content: center;
+  min-height: 100vh;
+  padding: var(--space-6);
+  background-color: var(--color-bg-primary);
+  color: var(--color-text-primary);
+}
+
+@media (min-width: 768px) {
+  .page {
+    padding: var(--space-10);
+  }
+}
+
+.pageContent {
+  width: 100%;
+  max-width: 80rem;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+}
+
+.main {
+  padding-top: var(--space-4);
+}
+
+/* Page header */
+.pageHeader {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+@media (min-width: 768px) {
+  .pageHeader {
+    flex-direction: row;
+    align-items: flex-end;
+    justify-content: space-between;
+  }
+}
+
+.pageTitle {
+  font-size: var(--font-size-3xl);
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: -0.025em;
+  line-height: var(--line-height-tight);
+}
+
+@media (min-width: 768px) {
+  .pageTitle {
+    font-size: var(--font-size-4xl);
+  }
+}
+
+.pageSubtitle {
+  margin-top: var(--space-2);
+  max-width: 40rem;
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+}
+
+.headerActions {
+  display: flex;
+  gap: var(--space-3);
+}
+
+/* Dashboard specific layouts */
+.statsGrid {
+  display: grid;
+  gap: var(--space-4);
+}
+
+@media (min-width: 768px) {
+  .statsGrid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.dashboardGrid {
+  display: grid;
+  gap: var(--space-6);
+}
+
+@media (min-width: 768px) {
+  .dashboardGrid {
+    grid-template-columns: minmax(0, 2fr) minmax(0, 1.5fr);
+  }
+}
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+

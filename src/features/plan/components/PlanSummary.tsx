@@ -1,6 +1,7 @@
 "use client";
 
 import { PlanData, RiskLevel } from "@/app/plan/types";
+import cardStyles from "@/styles/components/Card.module.css";
 
 /*
 Hardcoded risk calculation
@@ -25,9 +26,9 @@ export function PlanSummary({ plan }: { plan: PlanData }) {
   const riskLevel = calculateRisk(plan);
 
   return (
-    <div className="rounded-xl border border-slate-800 bg-slate-900/70 p-4 shadow-lg">
-      <h2 className="mb-3 text-lg font-semibold">Dive Plan Summary</h2>
-      <div className="space-y-1 text-sm">
+    <div className={cardStyles.cardCompact}>
+      <h2 className={cardStyles.titleWithMargin}>Dive Plan Summary</h2>
+      <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-1)", fontSize: "var(--font-size-sm)" }}>
         <p>
           <strong>Region:</strong> {plan.region}
         </p>
