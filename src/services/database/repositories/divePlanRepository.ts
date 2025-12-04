@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/prisma";
-import type { PlanInput, PastPlan } from "@/features/plan/types";
+import type { PlanInput, PastPlan } from "@/features/dive-plan/types";
 
 /**
  * Data access layer for DivePlan operations

@@ -1,6 +1,6 @@
 "use client";
 
-import { DiveLogEntry } from "@/features/log/types";
+import { DiveLogEntry } from "@/features/dive-log/types";
 import cardStyles from "@/styles/components/Card.module.css";
 import listStyles from "@/styles/components/List.module.css";
 import buttonStyles from "@/styles/components/Button.module.css";

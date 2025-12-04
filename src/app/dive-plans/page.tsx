@@ -3,7 +3,7 @@ server component
 */
 
 import { Metadata } from "next";
-import { PlanPageContent } from "@/features/plan/components/PlanPageContent";
+import { PlanPageContent } from "@/features/dive-plan/components/PlanPageContent";
 
 export const metadata: Metadata = {
   title: "Dive Plan | DiveIQ",

@@ -1,5 +1,5 @@
 import { FormEvent, useEffect, useState } from "react";
-import { PastPlan, PlanData } from "@/features/plan/types";
+import { PastPlan, PlanData } from "@/features/dive-plan/types";
 
 export function usePlanPageState() {
   const [submittedPlan, setSubmittedPlan] = useState<PlanData | null>(null);
@@ -22,7 +22,7 @@ export function usePlanPageState() {
       try {
         setPlansLoading(true);
         setPlansError(null);
-        const res = await fetch("/api/plan");
+        const res = await fetch("/api/dive-plans");
         if (!res.ok) {
           throw new Error(`Failed to fetch plans: ${res.status}`);
         }
@@ -63,7 +63,7 @@ export function usePlanPageState() {
     try {
       const isEditing = !!editingPlanId;
 
-      const res = await fetch("/api/plan", {
+      const res = await fetch("/api/dive-plans", {
         method: isEditing ? "PUT" : "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(
@@ -147,7 +147,7 @@ export function usePlanPageState() {
       setLoading(true);
       setApiError(null);
 
-      const res = await fetch(`/api/plan?id=${id}`, {
+      const res = await fetch(`/api/dive-plans?id=${id}`, {
         method: "DELETE",
       });
 

@@ -1,4 +1,4 @@
-import type { RiskLevel } from "@/features/plan/types";
+import type { RiskLevel } from "@/features/dive-plan/types";
 
 /**
  * Calculate risk level based on dive parameters

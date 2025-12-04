@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/prisma";
-import type { DiveLogInput, DiveLogEntry } from "@/features/log/types";
+import type { DiveLogInput, DiveLogEntry } from "@/features/dive-log/types";
 
 /**
  * Data access layer for DiveLog operations

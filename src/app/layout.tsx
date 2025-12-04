@@ -31,10 +31,10 @@ export default function RootLayout({
               <Link href="/" className={navStyles.link}>
                 Dashboard
               </Link>
-              <Link href="/plan" className={navStyles.link}>
+              <Link href="/dive-plans" className={navStyles.link}>
                 Plan
               </Link>
-              <Link href="/log" className={navStyles.link}>
+              <Link href="/dive-logs" className={navStyles.link}>
                 Log
               </Link>
             </div>

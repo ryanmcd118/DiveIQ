@@ -1,6 +1,6 @@
 "use client";
 
-import { PastPlan } from "@/features/plan/types";
+import { PastPlan } from "@/features/dive-plan/types";
 import cardStyles from "@/styles/components/Card.module.css";
 import listStyles from "@/styles/components/List.module.css";
 import buttonStyles from "@/styles/components/Button.module.css";

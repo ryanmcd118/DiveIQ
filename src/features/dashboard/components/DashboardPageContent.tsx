@@ -36,10 +36,10 @@ export function DashboardPageContent({
             </p>
           </div>
           <div className={layoutStyles.headerActions}>
-            <Link href="/plan" className={buttonStyles.primary}>
+            <Link href="/dive-plans" className={buttonStyles.primary}>
               Plan a dive
             </Link>
-            <Link href="/log" className={buttonStyles.secondary}>
+            <Link href="/dive-logs" className={buttonStyles.secondary}>
               Log a dive
             </Link>
           </div>
@@ -85,7 +85,7 @@ export function DashboardPageContent({
             <div className={cardStyles.card}>
               <div className={cardStyles.header}>
                 <h2 className={cardStyles.title}>Most recent dive</h2>
-                <Link href="/log" className={navStyles.linkAccentSmall}>
+                <Link href="/dive-logs" className={navStyles.linkAccentSmall}>
                   View full log
                 </Link>
               </div>
@@ -122,7 +122,7 @@ export function DashboardPageContent({
               ) : (
                 <p className={listStyles.empty}>
                   No dives logged yet.{" "}
-                  <Link href="/log" className={navStyles.linkAccent}>
+                  <Link href="/dive-logs" className={navStyles.linkAccent}>
                     Log your first dive
                   </Link>{" "}
                   to see it here.
@@ -173,7 +173,7 @@ export function DashboardPageContent({
                 Jump straight into planning your next dive.
               </p>
               <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-2)" }}>
-                <Link href="/plan" className={buttonStyles.ghost}>
+                <Link href="/dive-plans" className={buttonStyles.ghost}>
                   Plan a new dive
                 </Link>
                 <button
@@ -206,7 +206,7 @@ export function DashboardPageContent({
         <section className={cardStyles.card}>
           <div className={cardStyles.header}>
             <h2 className={cardStyles.title}>Recent planned dives</h2>
-            <Link href="/plan" className={navStyles.linkAccentSmall}>
+            <Link href="/dive-plans" className={navStyles.linkAccentSmall}>
               Open planner
             </Link>
           </div>

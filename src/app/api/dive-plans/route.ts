@@ -1,11 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { generateDivePlanAdvice, generateUpdatedDivePlanAdvice } from "@/services/ai/openaiService";
-import { calculateRiskLevel } from "@/features/plan/services/riskCalculator";
+import { calculateRiskLevel } from "@/features/dive-plan/services/riskCalculator";
 import { divePlanRepository } from "@/services/database/repositories/divePlanRepository";
-import type { PlanInput } from "@/features/plan/types";
+import type { PlanInput } from "@/features/dive-plan/types";
 
 /**
- * POST /api/plan
+ * POST /api/dive-plans
  * Create a new dive plan with AI-generated safety advice
  */
 export async function POST(req: NextRequest) {
@@ -50,7 +50,7 @@ export async function POST(req: NextRequest) {
       { status: 200 }
     );
   } catch (err) {
-    console.error("Error in POST /api/plan:", err);
+    console.error("Error in POST /api/dive-plans:", err);
     return NextResponse.json(
       { error: "Failed to generate plan advice." },
       { status: 500 }
@@ -59,7 +59,7 @@ export async function POST(req: NextRequest) {
 }
 
 /**
- * PUT /api/plan
+ * PUT /api/dive-plans
  * Update an existing dive plan and regenerate AI advice
  */
 export async function PUT(req: NextRequest) {
@@ -117,7 +117,7 @@ export async function PUT(req: NextRequest) {
       { status: 200 }
     );
   } catch (err) {
-    console.error("Error in PUT /api/plan:", err);
+    console.error("Error in PUT /api/dive-plans:", err);
     return NextResponse.json(
       { error: "Failed to update plan." },
       { status: 500 }
@@ -126,7 +126,7 @@ export async function PUT(req: NextRequest) {
 }
 
 /**
- * GET /api/plan
+ * GET /api/dive-plans
  * Retrieve all dive plans (most recent first)
  */
 export async function GET() {
@@ -138,7 +138,7 @@ export async function GET() {
 
     return NextResponse.json({ plans });
   } catch (err) {
-    console.error("Error in GET /api/plan:", err);
+    console.error("Error in GET /api/dive-plans:", err);
     return NextResponse.json(
       { error: "Failed to fetch plans." },
       { status: 500 }
@@ -147,7 +147,7 @@ export async function GET() {
 }
 
 /**
- * DELETE /api/plan?id={id}
+ * DELETE /api/dive-plans?id={id}
  * Delete a dive plan by ID
  */
 export async function DELETE(req: NextRequest) {

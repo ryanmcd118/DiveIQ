@@ -1,5 +1,5 @@
 import { FormEvent, useEffect, useState } from "react";
-import { DiveLogEntry, DiveLogInput } from "@/features/log/types";
+import { DiveLogEntry, DiveLogInput } from "@/features/dive-log/types";
 
 export function useLogPageState() {
   const [entries, setEntries] = useState<DiveLogEntry[]>([]);
@@ -22,7 +22,7 @@ export function useLogPageState() {
   useEffect(() => {
     const loadEntries = async () => {
       try {
-        const res = await fetch("/api/log");
+        const res = await fetch("/api/dive-logs");
         if (!res.ok) throw new Error(`API returned ${res.status}`);
         const data: { entries: DiveLogEntry[] } = await res.json();
         setEntries(data.entries);
@@ -78,7 +78,7 @@ export function useLogPageState() {
     const isEditing = Boolean(editingEntryId);
 
     try {
-      const res = await fetch("/api/log", {
+      const res = await fetch("/api/dive-logs", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -137,7 +137,7 @@ export function useLogPageState() {
 
   const performDelete = async (id: string) => {
     try {
-      const res = await fetch("/api/log", {
+      const res = await fetch("/api/dive-logs", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

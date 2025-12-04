@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { diveLogRepository } from "@/services/database/repositories/diveLogRepository";
-import type { DiveLogInput } from "@/features/log/types";
+import type { DiveLogInput } from "@/features/dive-log/types";
 
 /**
- * GET /api/log
+ * GET /api/dive-logs
  * Retrieve dive logs
  * - With ?id={id}: get a single log entry
  * - Without id: get all log entries (newest first)
@@ -24,7 +24,7 @@ export async function GET(req: NextRequest) {
 
     return NextResponse.json({ entries });
   } catch (err) {
-    console.error("GET /api/log error", err);
+    console.error("GET /api/dive-logs error", err);
     return NextResponse.json(
       { error: "Failed to fetch dive logs" },
       { status: 500 }
@@ -33,7 +33,7 @@ export async function GET(req: NextRequest) {
 }
 
 /**
- * POST /api/log
+ * POST /api/dive-logs
  * Handle dive log operations (create, update, delete)
  * 
  * Body format:
@@ -97,7 +97,7 @@ export async function POST(req: NextRequest) {
       { status: 400 }
     );
   } catch (err) {
-    console.error("POST /api/log error", err);
+    console.error("POST /api/dive-logs error", err);
     return NextResponse.json(
       { error: "Failed to process dive log request" },
       { status: 500 }
