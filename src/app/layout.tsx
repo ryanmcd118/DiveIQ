@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import Link from "next/link";
 import "./globals.css";
+import navStyles from "@/styles/components/Navigation.module.css";
+import layoutStyles from "@/styles/components/Layout.module.css";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -17,33 +19,22 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className="bg-slate-950">
-      <body className={`${inter.className} bg-slate-950 text-slate-100`}>
+    <html lang="en">
+      <body className={inter.className}>
         {/* Top nav */}
-        <header className="sticky top-0 z-20 border-b border-slate-800 bg-slate-950">
-          <nav className="mx-auto flex h-14 max-w-5xl items-center justify-between px-4 md:px-6">
-            <Link href="/" className="flex items-center gap-2">
-              <span className="text-base font-semibold tracking-tight text-slate-100">
-                DiveIQ
-              </span>
+        <header className={navStyles.header}>
+          <nav className={navStyles.nav}>
+            <Link href="/" className={navStyles.brand}>
+              <span className={navStyles.logo}>DiveIQ</span>
             </Link>
-            <div className="flex items-center gap-4 text-sm">
-              <Link
-                href="/"
-                className="text-slate-300 transition-colors hover:text-cyan-300"
-              >
+            <div className={navStyles.links}>
+              <Link href="/" className={navStyles.link}>
                 Dashboard
               </Link>
-              <Link
-                href="/plan"
-                className="text-slate-300 transition-colors hover:text-cyan-300"
-              >
+              <Link href="/plan" className={navStyles.link}>
                 Plan
               </Link>
-              <Link
-                href="/log"
-                className="text-slate-300 transition-colors hover:text-cyan-300"
-              >
+              <Link href="/log" className={navStyles.link}>
                 Log
               </Link>
             </div>
@@ -51,7 +42,7 @@ export default function RootLayout({
         </header>
 
         {/* Page content */}
-        <main className="pt-4">{children}</main>
+        <main className={layoutStyles.main}>{children}</main>
       </body>
     </html>
   );

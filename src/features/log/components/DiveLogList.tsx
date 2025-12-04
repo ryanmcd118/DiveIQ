@@ -1,6 +1,9 @@
 "use client";
 
 import { DiveLogEntry } from "@/app/log/types";
+import cardStyles from "@/styles/components/Card.module.css";
+import listStyles from "@/styles/components/List.module.css";
+import buttonStyles from "@/styles/components/Button.module.css";
 
 type Props = {
   entries: DiveLogEntry[];
@@ -11,7 +14,7 @@ type Props = {
 function DiveLogList({ entries, onSelect, onDelete }: Props) {
   if (entries.length === 0) {
     return (
-      <p className="text-sm text-slate-400">
+      <p className={listStyles.empty}>
         New entries will appear here with key details so you can quickly scan
         your recent dives.
       </p>
@@ -19,30 +22,28 @@ function DiveLogList({ entries, onSelect, onDelete }: Props) {
   }
 
   return (
-    <ul className="space-y-4 text-sm">
+    <ul className={listStyles.list}>
       {entries.map((entry) => (
         <li
           key={entry.id}
-          className="cursor-pointer rounded-lg border border-slate-800 bg-slate-950/40 p-3 transition-colors hover:border-cyan-400 hover:bg-slate-900/80"
+          className={cardStyles.listItemInteractive}
           onClick={() => onSelect?.(entry)}
         >
-          <div className="mb-1 flex items-start justify-between gap-2">
+          <div className={listStyles.diveHeader}>
             <div>
-              <span className="font-semibold">
+              <span className={listStyles.diveTitle}>
                 {entry.siteName}{" "}
-                <span className="text-slate-400">({entry.region})</span>
+                <span className={listStyles.diveRegion}>({entry.region})</span>
               </span>
-              <p className="text-slate-300">
+              <p className={listStyles.diveStats}>
                 {entry.maxDepth}m · {entry.bottomTime} min
                 {entry.visibility != null && ` · ${entry.visibility}m vis`}
                 {entry.waterTemp != null && ` · ${entry.waterTemp}°C`}
               </p>
             </div>
 
-            <div className="flex items-start gap-2">
-              <span className="text-xs whitespace-nowrap text-slate-400">
-                {entry.date}
-              </span>
+            <div className={listStyles.actions}>
+              <span className={listStyles.diveDate}>{entry.date}</span>
               {onDelete && (
                 <button
                   type="button"
@@ -51,7 +52,13 @@ function DiveLogList({ entries, onSelect, onDelete }: Props) {
                     e.stopPropagation();
                     onDelete(entry.id);
                   }}
-                  className="rounded-full border border-slate-700 px-2 text-xs text-slate-400 hover:border-red-500 hover:bg-red-500/10 hover:text-red-300"
+                  className={buttonStyles.iconDelete}
+                  style={{
+                    borderRadius: "var(--radius-full)",
+                    borderColor: "var(--color-bg-elevated)",
+                    padding: "var(--space-1)",
+                    fontSize: "var(--font-size-xs)",
+                  }}
                 >
                   ×
                 </button>
@@ -60,15 +67,9 @@ function DiveLogList({ entries, onSelect, onDelete }: Props) {
           </div>
 
           {entry.buddyName && (
-            <p className="mt-1 text-xs text-slate-400">
-              Buddy: {entry.buddyName}
-            </p>
+            <p className={listStyles.diveMeta}>Buddy: {entry.buddyName}</p>
           )}
-          {entry.notes && (
-            <p className="mt-2 text-xs whitespace-pre-line text-slate-300">
-              {entry.notes}
-            </p>
-          )}
+          {entry.notes && <p className={listStyles.diveNotes}>{entry.notes}</p>}
         </li>
       ))}
     </ul>

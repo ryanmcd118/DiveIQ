@@ -3,6 +3,9 @@
 import { useLogPageState } from "../hooks/useLogPageState";
 import { DiveLogForm } from "./DiveLogForm";
 import DiveLogList from "./DiveLogList";
+import layoutStyles from "@/styles/components/Layout.module.css";
+import gridStyles from "@/styles/components/PageGrid.module.css";
+import listStyles from "@/styles/components/List.module.css";
 
 export function LogPageContent() {
   const {
@@ -23,12 +26,12 @@ export function LogPageContent() {
   } = useLogPageState();
 
   return (
-    <main className="flex min-h-screen justify-center bg-slate-950 p-6 text-slate-100 md:p-10">
-      <div className="grid w-full max-w-5xl gap-8 md:grid-cols-2">
+    <main className={layoutStyles.page}>
+      <div className={gridStyles.logPageGrid}>
         {/* Left: log form */}
-        <section className="space-y-4">
-          <h1 className="text-3xl font-semibold tracking-tight">Dive Log</h1>
-          <p className="text-sm text-slate-400">
+        <section className={gridStyles.section}>
+          <h1 className={layoutStyles.pageTitle}>Dive Log</h1>
+          <p className="body-small text-muted">
             Capture the essentials from each dive: conditions, depth, time, and
             notes. This will eventually feed stats and visualizations in your
             DiveIQ logbook.
@@ -47,46 +50,52 @@ export function LogPageContent() {
         </section>
 
         {/* Right: log list / stats */}
-        <section className="space-y-4">
-          <div className="rounded-xl border border-slate-800 bg-slate-900/60 p-6 shadow-lg">
-            <h2 className="mb-2 text-lg font-semibold">Log overview</h2>
+        <section className={gridStyles.section}>
+          <div className={gridStyles.logOverview}>
+            <h2 className={gridStyles.logOverviewTitle}>Log overview</h2>
             {loading ? (
-              <p className="text-sm text-slate-400">Loading dives…</p>
+              <p className={listStyles.empty}>Loading dives…</p>
             ) : entries.length === 0 ? (
-              <p className="text-sm text-slate-400">
+              <p className={listStyles.empty}>
                 No dives logged yet. Add your first dive on the left.
               </p>
             ) : (
-              <div className="space-y-1 text-sm text-slate-300">
+              <div className={gridStyles.logOverviewStats}>
                 <p>
-                  <span className="font-semibold">{entries.length}</span> dive
-                  {entries.length === 1 ? "" : "s"} logged.
+                  <span style={{ fontWeight: "var(--font-weight-semibold)" }}>
+                    {entries.length}
+                  </span>{" "}
+                  dive{entries.length === 1 ? "" : "s"} logged.
                 </p>
                 <p>
-                  <span className="font-semibold">{totalBottomTime}</span>{" "}
+                  <span style={{ fontWeight: "var(--font-weight-semibold)" }}>
+                    {totalBottomTime}
+                  </span>{" "}
                   minutes total bottom time.
                 </p>
               </div>
             )}
           </div>
 
-          <div className="max-h-[60vh] space-y-4 overflow-y-auto rounded-xl border border-slate-800 bg-slate-900/60 p-6 shadow-lg">
-            <h2 className="text-lg font-semibold">Recent dives</h2>
+          <div className={gridStyles.recentDivesContainer}>
+            <h2 className={gridStyles.logOverviewTitle}>Recent dives</h2>
             {loading ? (
-              <p className="text-sm text-slate-400">Loading dives…</p>
+              <p className={listStyles.empty}>Loading dives…</p>
             ) : (
-              <DiveLogList
-                entries={entries}
-                onSelect={handleSelectEntry}
-                onDelete={handleDeleteFromList}
-              />
+              <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-4)" }}>
+                <DiveLogList
+                  entries={entries}
+                  onSelect={handleSelectEntry}
+                  onDelete={handleDeleteFromList}
+                />
+              </div>
             )}
           </div>
         </section>
       </div>
 
       {statusMessage && (
-        <div className="fixed bottom-4 left-4 rounded-lg border border-emerald-500/60 bg-emerald-900/80 px-3 py-2 text-sm text-emerald-100 shadow-lg backdrop-blur">
+        <div className={gridStyles.statusToastAlt}>
           {statusMessage}
         </div>
       )}

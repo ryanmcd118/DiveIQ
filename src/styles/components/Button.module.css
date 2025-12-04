@@ -1,0 +1,113 @@
+/* =========================================
+   BUTTON COMPONENTS
+   ========================================= */
+
+.base {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-2) var(--space-4);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  border-radius: var(--radius-md);
+  transition: all var(--transition-base);
+  cursor: pointer;
+  border: none;
+  text-decoration: none;
+}
+
+.base:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--color-bg-primary), 0 0 0 4px var(--color-accent-primary);
+}
+
+.base:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Primary variant - Cyan accent */
+.primary {
+  composes: base;
+  background-color: var(--color-accent-primary);
+  color: var(--color-bg-primary);
+  box-shadow: var(--shadow-sm);
+}
+
+.primary:hover:not(:disabled) {
+  background-color: var(--color-accent-hover);
+}
+
+/* Secondary variant - Outlined */
+.secondary {
+  composes: base;
+  background-color: var(--color-bg-secondary);
+  color: var(--color-text-primary);
+  border: 1px solid var(--color-bg-elevated);
+}
+
+.secondary:hover:not(:disabled) {
+  border-color: var(--color-accent-primary);
+  color: var(--color-accent-light);
+}
+
+/* Danger variant - Destructive actions */
+.danger {
+  composes: base;
+  background-color: var(--color-danger-bg);
+  color: var(--color-danger-text);
+  border: 1px solid var(--color-danger-border);
+}
+
+.danger:hover:not(:disabled) {
+  background-color: var(--color-danger-bg-hover);
+  border-color: var(--color-danger-hover);
+}
+
+/* Ghost variant - Minimal style */
+.ghost {
+  composes: base;
+  background-color: transparent;
+  color: var(--color-text-primary);
+  border: 1px solid var(--color-bg-elevated);
+  padding: var(--space-2) var(--space-3);
+}
+
+.ghost:hover:not(:disabled) {
+  border-color: var(--color-accent-primary);
+  color: var(--color-accent-light);
+}
+
+/* Icon button - Small circular */
+.iconDelete {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.25rem;
+  height: 1.25rem;
+  padding: 0;
+  font-size: 0.625rem;
+  color: var(--color-text-tertiary);
+  background-color: transparent;
+  border: 1px solid var(--color-border-focus);
+  border-radius: var(--radius-full);
+  cursor: pointer;
+  transition: all var(--transition-base);
+}
+
+.iconDelete:hover {
+  border-color: var(--color-danger);
+  background-color: var(--color-danger-bg);
+  color: var(--color-danger-hover);
+}
+
+/* Disabled state */
+.disabled {
+  composes: base;
+  background-color: transparent;
+  color: var(--color-text-disabled);
+  border: 1px solid var(--color-border-default);
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
