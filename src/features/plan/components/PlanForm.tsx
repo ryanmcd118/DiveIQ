@@ -2,6 +2,9 @@
 
 import { FormEvent } from "react";
 import { PlanData } from "@/app/plan/types";
+import cardStyles from "@/styles/components/Card.module.css";
+import formStyles from "@/styles/components/Form.module.css";
+import buttonStyles from "@/styles/components/Button.module.css";
 
 interface PlanFormProps {
   formKey: string;
@@ -25,13 +28,9 @@ export function PlanForm({
   onDeletePlan,
 }: PlanFormProps) {
   return (
-    <form
-      key={formKey}
-      onSubmit={onSubmit}
-      className="space-y-4 rounded-xl border border-slate-800 bg-slate-900/70 p-5 shadow-lg"
-    >
-      <div className="space-y-1">
-        <label htmlFor="region" className="text-sm text-slate-200">
+    <form key={formKey} onSubmit={onSubmit} className={cardStyles.cardForm}>
+      <div className={formStyles.field}>
+        <label htmlFor="region" className={formStyles.label}>
           Region
         </label>
         <input
@@ -41,12 +40,12 @@ export function PlanForm({
           required
           placeholder="Roatán, Red Sea, local quarry..."
           defaultValue={submittedPlan?.region ?? ""}
-          className="w-full rounded-md border border-slate-800 bg-slate-950 px-3 py-2 text-sm text-slate-100 placeholder:text-slate-500 focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 focus:outline-none"
+          className={formStyles.input}
         />
       </div>
 
-      <div className="space-y-1">
-        <label htmlFor="siteName" className="text-sm text-slate-200">
+      <div className={formStyles.field}>
+        <label htmlFor="siteName" className={formStyles.label}>
           Site name
         </label>
         <input
@@ -56,13 +55,13 @@ export function PlanForm({
           required
           placeholder="Mary's Place"
           defaultValue={submittedPlan?.siteName ?? ""}
-          className="w-full rounded-md border border-slate-800 bg-slate-950 px-3 py-2 text-sm text-slate-100 placeholder:text-slate-500 focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 focus:outline-none"
+          className={formStyles.input}
         />
       </div>
 
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-        <div className="space-y-1">
-          <label htmlFor="date" className="text-sm text-slate-200">
+      <div className={formStyles.formGrid}>
+        <div className={formStyles.field}>
+          <label htmlFor="date" className={formStyles.label}>
             Date
           </label>
           <input
@@ -71,12 +70,12 @@ export function PlanForm({
             name="date"
             required
             defaultValue={submittedPlan?.date ?? ""}
-            className="w-full rounded-md border border-slate-800 bg-slate-950 px-3 py-2 text-sm text-slate-100 focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 focus:outline-none"
+            className={formStyles.input}
           />
         </div>
 
-        <div className="space-y-1">
-          <label htmlFor="experienceLevel" className="text-sm text-slate-200">
+        <div className={formStyles.field}>
+          <label htmlFor="experienceLevel" className={formStyles.label}>
             Experience level
           </label>
           <select
@@ -84,7 +83,7 @@ export function PlanForm({
             name="experienceLevel"
             required
             defaultValue={submittedPlan?.experienceLevel ?? ""}
-            className="w-full rounded-md border border-slate-800 bg-slate-950 px-3 py-2 text-sm text-slate-100 focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 focus:outline-none"
+            className={formStyles.select}
           >
             <option value="">Select...</option>
             <option value="Beginner">Beginner</option>
@@ -94,9 +93,9 @@ export function PlanForm({
         </div>
       </div>
 
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-        <div className="space-y-1">
-          <label htmlFor="maxDepth" className="text-sm text-slate-200">
+      <div className={formStyles.formGrid}>
+        <div className={formStyles.field}>
+          <label htmlFor="maxDepth" className={formStyles.label}>
             Max depth in meters
           </label>
           <input
@@ -110,12 +109,12 @@ export function PlanForm({
                 ? String(submittedPlan.maxDepth)
                 : ""
             }
-            className="w-full rounded-md border border-slate-800 bg-slate-950 px-3 py-2 text-sm text-slate-100 focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 focus:outline-none"
+            className={formStyles.input}
           />
         </div>
 
-        <div className="space-y-1">
-          <label htmlFor="bottomTime" className="text-sm text-slate-200">
+        <div className={formStyles.field}>
+          <label htmlFor="bottomTime" className={formStyles.label}>
             Bottom time in minutes
           </label>
           <input
@@ -129,16 +128,16 @@ export function PlanForm({
                 ? String(submittedPlan.bottomTime)
                 : ""
             }
-            className="w-full rounded-md border border-slate-800 bg-slate-950 px-3 py-2 text-sm text-slate-100 focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 focus:outline-none"
+            className={formStyles.input}
           />
         </div>
       </div>
 
-      <div className="mt-4 flex flex-wrap items-center gap-3">
-        <div className="flex gap-3">
+      <div className={formStyles.buttonGroupWithDelete}>
+        <div style={{ display: "flex", gap: "var(--space-3)" }}>
           <button
             type="submit"
-            className="inline-flex items-center justify-center rounded-md bg-cyan-500 px-4 py-2 text-sm font-medium text-slate-950 shadow-sm hover:bg-cyan-400 focus:ring-2 focus:ring-cyan-400 focus:ring-offset-2 focus:ring-offset-slate-950 focus:outline-none disabled:opacity-60"
+            className={buttonStyles.primary}
             disabled={loading}
           >
             {loading
@@ -152,7 +151,7 @@ export function PlanForm({
             <button
               type="button"
               onClick={onCancelEdit}
-              className="inline-flex items-center justify-center rounded-md border border-slate-700 bg-slate-900 px-4 py-2 text-sm font-medium text-slate-100 hover:border-cyan-400 hover:text-cyan-100 focus:ring-2 focus:ring-cyan-400 focus:ring-offset-2 focus:ring-offset-slate-950 focus:outline-none"
+              className={buttonStyles.secondary}
             >
               Go back
             </button>
@@ -163,14 +162,15 @@ export function PlanForm({
           <button
             type="button"
             onClick={onDeletePlan}
-            className="ml-auto inline-flex items-center justify-center rounded-md border border-red-500/70 bg-red-500/10 px-4 py-2 text-sm font-medium text-red-200 hover:border-red-400 hover:bg-red-500/20 focus:ring-2 focus:ring-red-400 focus:ring-offset-2 focus:ring-offset-slate-950 focus:outline-none"
+            className={buttonStyles.danger}
+            style={{ marginLeft: "auto" }}
           >
             Delete plan
           </button>
         )}
       </div>
 
-      {apiError && <p className="mt-1 text-sm text-red-400">{apiError}</p>}
+      {apiError && <p className={formStyles.error}>{apiError}</p>}
     </form>
   );
 }

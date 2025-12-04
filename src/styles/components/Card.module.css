@@ -1,0 +1,96 @@
+/* =========================================
+   CARD COMPONENTS
+   ========================================= */
+
+.card {
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border-default);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-lg);
+  padding: var(--space-5);
+}
+
+.cardCompact {
+  composes: card;
+  padding: var(--space-4);
+}
+
+.cardForm {
+  composes: card;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+/* Stat card for dashboard */
+.stat {
+  composes: card;
+}
+
+.statLabel {
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.statValue {
+  margin-top: var(--space-2);
+  font-size: var(--font-size-3xl);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-primary);
+}
+
+.statUnit {
+  margin-left: var(--space-1);
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-normal);
+  color: var(--color-text-tertiary);
+}
+
+.statDescription {
+  margin-top: var(--space-1);
+  font-size: var(--font-size-xs);
+  color: var(--color-text-disabled);
+}
+
+/* List item cards */
+.listItem {
+  background-color: var(--color-surface-alt);
+  border: 1px solid var(--color-border-default);
+  border-radius: var(--radius-lg);
+  padding: var(--space-3);
+  transition: all var(--transition-base);
+}
+
+.listItemInteractive {
+  composes: listItem;
+  cursor: pointer;
+}
+
+.listItemInteractive:hover {
+  border-color: var(--color-accent-primary);
+  background-color: var(--color-surface-hover);
+}
+
+/* Card header */
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  margin-bottom: var(--space-2);
+}
+
+.title {
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-primary);
+}
+
+.titleWithMargin {
+  composes: title;
+  margin-bottom: var(--space-2);
+}
+
