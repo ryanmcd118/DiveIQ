@@ -1,36 +1,93 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# DiveIQ
 
-## Getting Started
+AI-powered dive planning and logging application for scuba divers.
 
-First, run the development server:
+## Overview
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+DiveIQ is a full-stack web application that helps divers plan safe dives and maintain comprehensive dive logs with intelligent, AI-assisted guidance. It provides real-time safety recommendations, tracks dive history with detailed statistics, and offers personalized insights for every dive.
+
+## Key Features
+
+### Dive Planning with AI Safety Analysis
+
+Generate detailed dive plans and receive intelligent safety feedback powered by OpenAI. The AI analyzes depth, bottom time, experience level, and environmental factors to provide personalized recommendations.
+
+### Comprehensive Dive Logging
+
+Track every dive with detailed information including:
+
+- Dive site and location
+- Depth and bottom time
+- Water conditions (temperature, visibility)
+- Dive buddy information
+- Personal notes and observations
+
+### Real-Time Statistics Dashboard
+
+View your diving activity at a glance with live statistics:
+
+- Total dives logged
+- Cumulative bottom time
+- Deepest dive recorded
+- Recent dive history and patterns
+
+### Intelligent Risk Assessment
+
+Automatic risk level calculation for planned dives based on multiple safety factors, helping divers make informed decisions.
+
+## Technical Implementation
+
+### Architecture
+
+- **Full-stack Next.js 16** application with React 19 Server Components
+- **TypeScript** for type safety and enhanced developer experience
+- **Prisma ORM** with relational database for efficient data management
+- **OpenAI API** integration for intelligent dive analysis
+
+### UI/UX Design
+
+- Custom **CSS Modules architecture** with comprehensive design system
+- Centralized design tokens for consistent styling
+- Responsive layouts optimized for desktop and mobile
+- Dark theme optimized for diving environments
+- Accessible, semantic HTML structure
+
+### Performance Optimization
+
+- Server-side rendering for fast initial page loads
+- Optimistic UI updates for responsive user interactions
+- Efficient database queries with Prisma
+- Component-level CSS loading for minimal bundle size
+
+### Code Quality
+
+- Modular component architecture for maintainability
+- Custom hooks for state management and business logic
+- Form validation and error handling
+- Type-safe API routes
+
+## Project Structure
+
+The application follows a feature-based architecture with clear separation of concerns:
+
+```
+src/
+├── app/                    # Next.js app router & pages
+├── features/              # Feature modules (dashboard, logging, planning)
+├── components/            # Reusable UI components
+├── lib/                   # Utilities and business logic
+└── styles/               # CSS Modules & design system
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Technical Highlights
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+- **Modern React Patterns**: Server Components, client components, and custom hooks
+- **Database Design**: Normalized schema with efficient relationships
+- **API Integration**: RESTful endpoints with proper error handling
+- **State Management**: React hooks with optimistic updates
+- **Form Handling**: Controlled inputs with validation
+- **Design System**: Token-based styling with CSS Modules for scalability
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+---
 
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Built by [Ryan McDaniel](https://www.ryanmcdaniel.io/)
