@@ -8,10 +8,11 @@ export function usePlanPageState() {
   const [loading, setLoading] = useState(false);
 
   const [pastPlans, setPastPlans] = useState<PastPlan[]>([]);
-  const [plansLoading, setPlansLoading] = useState(false);
+  const [plansLoading, setPlansLoading] = useState(true);
   const [plansError, setPlansError] = useState<string | null>(null);
   const [editingPlanId, setEditingPlanId] = useState<string | null>(null);
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
+  const [isAuthenticated, setIsAuthenticated] = useState(true);
 
   // Used to force the form to remount so defaultValue updates
   const [formKey, setFormKey] = useState<string>("new");
@@ -23,11 +24,18 @@ export function usePlanPageState() {
         setPlansLoading(true);
         setPlansError(null);
         const res = await fetch("/api/dive-plans");
+        if (res.status === 401) {
+          // User is not authenticated - this is not an error, just show empty state
+          setIsAuthenticated(false);
+          setPastPlans([]);
+          return;
+        }
         if (!res.ok) {
           throw new Error(`Failed to fetch plans: ${res.status}`);
         }
         const data = await res.json();
         setPastPlans((data.plans ?? []) as PastPlan[]);
+        setIsAuthenticated(true);
       } catch (err) {
         console.error(err);
         setPlansError("Failed to load past plans.");
@@ -198,6 +206,7 @@ export function usePlanPageState() {
     editingPlanId,
     statusMessage,
     formKey,
+    isAuthenticated,
 
     handleSubmit,
     handleNewPlan,

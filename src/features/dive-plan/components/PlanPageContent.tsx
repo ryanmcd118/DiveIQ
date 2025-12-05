@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { usePlanPageState } from "../hooks/usePlanPageState";
 import { PlanSummary } from "./PlanSummary";
 import { PlanForm } from "./PlanForm";
@@ -7,6 +8,8 @@ import { PastPlansList } from "./PastPlansList";
 import layoutStyles from "@/styles/components/Layout.module.css";
 import gridStyles from "@/styles/components/PageGrid.module.css";
 import listStyles from "@/styles/components/List.module.css";
+import cardStyles from "@/styles/components/Card.module.css";
+import buttonStyles from "@/styles/components/Button.module.css";
 
 export function PlanPageContent() {
   const {
@@ -20,12 +23,44 @@ export function PlanPageContent() {
     editingPlanId,
     statusMessage,
     formKey,
+    isAuthenticated,
     handleSubmit,
     handleSelectPastPlan,
     handleDeletePlan,
     handleCancelEdit,
     deletePlan,
   } = usePlanPageState();
+
+  // Show sign-in prompt for unauthenticated users
+  if (!plansLoading && !isAuthenticated) {
+    return (
+      <main className={layoutStyles.page}>
+        <div className={layoutStyles.pageContent}>
+          <header className={layoutStyles.pageHeader}>
+            <div>
+              <h1 className={layoutStyles.pageTitle}>Dive Plan</h1>
+              <p className={layoutStyles.pageSubtitle}>
+                Sign in to create AI-powered dive plans with personalized safety recommendations.
+              </p>
+            </div>
+          </header>
+          <div className={cardStyles.card} style={{ textAlign: "center", padding: "var(--space-8)" }}>
+            <p style={{ marginBottom: "var(--space-4)" }}>
+              Create an account or sign in to start planning your dives with AI-assisted safety feedback.
+            </p>
+            <div style={{ display: "flex", gap: "var(--space-3)", justifyContent: "center" }}>
+              <Link href="/signup" className={buttonStyles.primary}>
+                Create account
+              </Link>
+              <Link href="/signin" className={buttonStyles.secondary}>
+                Sign in
+              </Link>
+            </div>
+          </div>
+        </div>
+      </main>
+    );
+  }
 
   return (
     <main className={layoutStyles.page}>

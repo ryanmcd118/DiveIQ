@@ -7,8 +7,63 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+// Authentication models (NextAuth.js)
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  emailVerified DateTime?
+  password      String?   // hashed password for credentials provider
+  name          String?   // User's first name or full name
+  image         String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  
+  // Relations
+  diveLogs      DiveLog[]
+  divePlans     DivePlan[]
+  accounts      Account[]
+  sessions      Session[]
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+  
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+  
+  @@unique([identifier, token])
+}
+
+// Application models
 model DiveLog {
   id          String   @id @default(cuid())
+  userId      String?  // Optional to allow future guest data migration
   date        String
   region      String
   siteName    String
@@ -19,10 +74,15 @@ model DiveLog {
   buddyName   String?
   notes       String?
   createdAt   DateTime @default(now())
+  
+  user        User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@index([userId])
 }
 
 model DivePlan {
   id              String   @id @default(cuid())
+  userId          String?  // Optional to allow future guest data migration
   date            String
   region          String
   siteName        String
@@ -32,4 +92,8 @@ model DivePlan {
   riskLevel       String   // 'Low' | 'Moderate' | 'High'
   aiAdvice        String?
   createdAt       DateTime @default(now())
+  
+  user            User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@index([userId])
 }
