@@ -1,11 +1,14 @@
 "use client";
 
+import Link from "next/link";
 import { useLogPageState } from "../hooks/useLogPageState";
 import { DiveLogForm } from "./DiveLogForm";
 import DiveLogList from "./DiveLogList";
 import layoutStyles from "@/styles/components/Layout.module.css";
 import gridStyles from "@/styles/components/PageGrid.module.css";
 import listStyles from "@/styles/components/List.module.css";
+import cardStyles from "@/styles/components/Card.module.css";
+import buttonStyles from "@/styles/components/Button.module.css";
 
 export function LogPageContent() {
   const {
@@ -13,6 +16,7 @@ export function LogPageContent() {
     saving,
     loading,
     error,
+    isAuthenticated,
     editingEntryId,
     activeEntry,
     formKey,
@@ -24,6 +28,37 @@ export function LogPageContent() {
     handleDeleteFromForm,
     handleDeleteFromList,
   } = useLogPageState();
+
+  // Show sign-in prompt for unauthenticated users
+  if (!loading && !isAuthenticated) {
+    return (
+      <main className={layoutStyles.page}>
+        <div className={layoutStyles.pageContent}>
+          <header className={layoutStyles.pageHeader}>
+            <div>
+              <h1 className={layoutStyles.pageTitle}>Dive Log</h1>
+              <p className={layoutStyles.pageSubtitle}>
+                Sign in to start logging your dives and tracking your underwater adventures.
+              </p>
+            </div>
+          </header>
+          <div className={cardStyles.card} style={{ textAlign: "center", padding: "var(--space-8)" }}>
+            <p style={{ marginBottom: "var(--space-4)" }}>
+              Create an account or sign in to access your personal dive log.
+            </p>
+            <div style={{ display: "flex", gap: "var(--space-3)", justifyContent: "center" }}>
+              <Link href="/signup" className={buttonStyles.primary}>
+                Create account
+              </Link>
+              <Link href="/signin" className={buttonStyles.secondary}>
+                Sign in
+              </Link>
+            </div>
+          </div>
+        </div>
+      </main>
+    );
+  }
 
   return (
     <main className={layoutStyles.page}>

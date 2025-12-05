@@ -12,6 +12,7 @@ type Props = {
   totalBottomTime: number;
   deepestDive: number;
   recentPlans: DivePlan[];
+  isAuthenticated?: boolean;
 };
 
 export function DashboardPageContent({
@@ -20,6 +21,7 @@ export function DashboardPageContent({
   totalBottomTime,
   deepestDive,
   recentPlans,
+  isAuthenticated = false,
 }: Props) {
   const mostRecentDive: DiveLog | undefined = recentDives[0];
 
@@ -121,11 +123,22 @@ export function DashboardPageContent({
                 </div>
               ) : (
                 <p className={listStyles.empty}>
-                  No dives logged yet.{" "}
-                  <Link href="/dive-logs" className={navStyles.linkAccent}>
-                    Log your first dive
-                  </Link>{" "}
-                  to see it here.
+                  {isAuthenticated ? (
+                    <>
+                      No dives logged yet.{" "}
+                      <Link href="/dive-logs" className={navStyles.linkAccent}>
+                        Log your first dive
+                      </Link>{" "}
+                      to see it here.
+                    </>
+                  ) : (
+                    <>
+                      <Link href="/signin" className={navStyles.linkAccent}>
+                        Sign in
+                      </Link>{" "}
+                      to view your dive log history.
+                    </>
+                  )}
                 </p>
               )}
             </div>
@@ -134,8 +147,9 @@ export function DashboardPageContent({
               <h2 className={cardStyles.titleWithMargin}>Recent dives</h2>
               {recentDives.length === 0 ? (
                 <p className={listStyles.empty}>
-                  Once you start logging dives, the latest few will appear here
-                  for a quick snapshot.
+                  {isAuthenticated
+                    ? "Once you start logging dives, the latest few will appear here for a quick snapshot."
+                    : "Sign in to see your recent dives here."}
                 </p>
               ) : (
                 <ul className={listStyles.listCompact}>
@@ -213,8 +227,9 @@ export function DashboardPageContent({
 
           {recentPlans.length === 0 ? (
             <p className={listStyles.empty}>
-              Once you start generating AI-assisted dive plans, the latest few
-              will appear here with their estimated risk levels.
+              {isAuthenticated
+                ? "Once you start generating AI-assisted dive plans, the latest few will appear here with their estimated risk levels."
+                : "Sign in to see your saved dive plans here."}
             </p>
           ) : (
             <ul className={listStyles.listCompact}>

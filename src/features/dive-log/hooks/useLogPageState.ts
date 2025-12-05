@@ -6,6 +6,7 @@ export function useLogPageState() {
   const [saving, setSaving] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isAuthenticated, setIsAuthenticated] = useState(true);
 
   const [editingEntryId, setEditingEntryId] = useState<string | null>(null);
   const [editingEntry, setEditingEntry] = useState<DiveLogEntry | null>(null);
@@ -23,9 +24,16 @@ export function useLogPageState() {
     const loadEntries = async () => {
       try {
         const res = await fetch("/api/dive-logs");
+        if (res.status === 401) {
+          // User is not authenticated - this is not an error, just show empty state
+          setIsAuthenticated(false);
+          setEntries([]);
+          return;
+        }
         if (!res.ok) throw new Error(`API returned ${res.status}`);
         const data: { entries: DiveLogEntry[] } = await res.json();
         setEntries(data.entries);
+        setIsAuthenticated(true);
       } catch (err) {
         console.error(err);
         setError("Failed to load existing dives.");
@@ -185,6 +193,7 @@ export function useLogPageState() {
     saving,
     loading,
     error,
+    isAuthenticated,
     editingEntryId,
     editingEntry,
     activeEntry,
