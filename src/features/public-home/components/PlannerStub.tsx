@@ -60,14 +60,15 @@ export function PlannerStub() {
 
   return (
     <section className={`${styles.section} ${styles.plannerSection}`}>
-      <div className={styles.plannerContainer}>
-        <div className={styles.plannerHeader}>
-          <h2 className={styles.plannerTitle}>Try the planner</h2>
-          <p className={styles.plannerSubtitle}>
-            Get AI-assisted dive guidance in seconds.
-          </p>
-        </div>
+      <div className={styles.plannerHeader}>
+        <h2 className={styles.plannerTitle}>Try the planner</h2>
+        <p className={styles.plannerSubtitle}>
+          Get AI-assisted dive guidance in seconds.
+        </p>
+      </div>
 
+      <div className={styles.plannerLayout}>
+        {/* Left side: Form */}
         <div className={styles.plannerCard}>
           <form onSubmit={handleSubmit} className={styles.plannerForm}>
             <div className={styles.plannerRow}>
@@ -144,15 +145,33 @@ export function PlannerStub() {
               <span className={styles.plannerHint}>No account needed.</span>
             </div>
           </form>
+        </div>
 
-          {error && (
-            <div className={styles.plannerResult}>
-              <p style={{ color: "var(--color-danger-text)" }}>{error}</p>
+        {/* Right side: CTA Placeholder or Result */}
+        <div className={styles.plannerResultPanel}>
+          {loading && (
+            <div className={styles.plannerResultLoading}>
+              <div className={styles.loadingSpinner} />
+              <p className={styles.loadingText}>Generating your dive plan...</p>
             </div>
           )}
 
-          {result && (
-            <div className={styles.plannerResult}>
+          {error && !loading && (
+            <div className={styles.plannerResultError}>
+              <div className={styles.errorIcon}>!</div>
+              <p className={styles.errorText}>{error}</p>
+              <button 
+                type="button" 
+                onClick={() => setError(null)}
+                className={styles.errorDismiss}
+              >
+                Try again
+              </button>
+            </div>
+          )}
+
+          {result && !loading && (
+            <div className={styles.plannerResultContent}>
               <div className={styles.resultHeader}>
                 <h4 className={styles.resultTitle}>Your dive plan preview</h4>
                 <span className={getRiskClass(result.riskLevel)}>
@@ -160,6 +179,28 @@ export function PlannerStub() {
                 </span>
               </div>
               <p className={styles.resultAdvice}>{result.aiAdvice}</p>
+            </div>
+          )}
+
+          {!result && !loading && !error && (
+            <div className={styles.plannerCtaPlaceholder}>
+              <div className={styles.ctaPlaceholderIcon}>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                  <path d="M12 2L12 22M2 12L22 12" strokeLinecap="round" />
+                  <circle cx="12" cy="12" r="9" strokeDasharray="4 2" />
+                </svg>
+              </div>
+              <h4 className={styles.ctaPlaceholderTitle}>
+                Your AI dive plan will appear here
+              </h4>
+              <p className={styles.ctaPlaceholderText}>
+                Fill in your dive parameters and click <strong>&quot;Start Planning&quot;</strong> to get personalized guidance for your next dive.
+              </p>
+              <ul className={styles.ctaPlaceholderList}>
+                <li>Personalized safety recommendations</li>
+                <li>Gas planning guidance</li>
+                <li>Site-specific tips</li>
+              </ul>
             </div>
           )}
         </div>
