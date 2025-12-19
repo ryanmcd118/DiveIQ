@@ -1,20 +1,25 @@
 "use client";
 
-import Link from "next/link";
+import { useState, useCallback } from "react";
+import { useRouter } from "next/navigation";
 import { usePlanPageState } from "../hooks/usePlanPageState";
 import { AIDiveBriefing } from "./AIDiveBriefing";
 import { PlanForm } from "./PlanForm";
 import { PastPlansList } from "./PastPlansList";
+import { SaveDivePlanButton } from "./SaveDivePlanButton";
+import { AuthModal } from "@/features/auth/components/AuthModal";
 import layoutStyles from "@/styles/components/Layout.module.css";
 import gridStyles from "@/styles/components/PageGrid.module.css";
-import buttonStyles from "@/styles/components/Button.module.css";
 
 export function PlanPageContent() {
+  const router = useRouter();
   const {
     submittedPlan,
+    hasDraftPlan,
     aiBriefing,
     apiError,
     loading,
+    saving,
     pastPlans,
     plansLoading,
     plansError,
@@ -22,45 +27,56 @@ export function PlanPageContent() {
     statusMessage,
     formKey,
     isAuthenticated,
+    isSessionLoading,
     handleSubmit,
+    saveDraftPlan,
     handleSelectPastPlan,
     handleDeletePlan,
     handleCancelEdit,
     deletePlan,
+    refreshAfterAuth,
   } = usePlanPageState();
 
-  // Show sign-in prompt for unauthenticated users
-  if (!plansLoading && !isAuthenticated) {
+  const [showAuthModal, setShowAuthModal] = useState(false);
+
+  // Handle save button click for unauthenticated users
+  const handleRequireAuth = useCallback(() => {
+    setShowAuthModal(true);
+  }, []);
+
+  // Handle successful authentication from modal
+  const handleAuthSuccess = useCallback(async () => {
+    setShowAuthModal(false);
+    
+    // Refresh the router to update session state
+    router.refresh();
+    
+    // Wait a moment for session to update, then try to save
+    await new Promise(resolve => setTimeout(resolve, 500));
+    
+    // Refresh past plans
+    await refreshAfterAuth();
+    
+    // Attempt to save the draft plan automatically
+    try {
+      await saveDraftPlan();
+    } catch (err) {
+      console.error("Auto-save after auth failed:", err);
+      // Even if auto-save fails, user is now authenticated and can retry
+    }
+  }, [router, refreshAfterAuth, saveDraftPlan]);
+
+  // Show a loading skeleton while session is being determined
+  if (isSessionLoading) {
     return (
       <main className={layoutStyles.page}>
-        <div className={layoutStyles.pageContent}>
-          <header className={layoutStyles.pageHeader}>
-            <div>
-              <h1 className={layoutStyles.pageTitle}>Dive Plan</h1>
-              <p className={layoutStyles.pageSubtitle}>
-                Sign in to create AI-powered dive plans with personalized safety recommendations.
-              </p>
-            </div>
-          </header>
-          <div style={{ 
-            backgroundColor: "var(--color-surface)",
-            border: "1px solid var(--color-border-default)",
-            borderRadius: "var(--radius-xl)",
-            textAlign: "center", 
-            padding: "var(--space-8)" 
-          }}>
-            <p style={{ marginBottom: "var(--space-4)" }}>
-              Create an account or sign in to start planning your dives with AI-assisted safety feedback.
+        <div className={gridStyles.planPageContainer}>
+          <header className={gridStyles.planPageHeader}>
+            <h1 className={layoutStyles.pageTitle}>Dive Plan</h1>
+            <p className={layoutStyles.pageSubtitle}>
+              Loading...
             </p>
-            <div style={{ display: "flex", gap: "var(--space-3)", justifyContent: "center" }}>
-              <Link href="/signup" className={buttonStyles.primary}>
-                Create account
-              </Link>
-              <Link href="/signin" className={buttonStyles.secondary}>
-                Sign in
-              </Link>
-            </div>
-          </div>
+          </header>
         </div>
       </main>
     );
@@ -71,11 +87,27 @@ export function PlanPageContent() {
       <div className={gridStyles.planPageContainer}>
         {/* Top zone: Page header */}
         <header className={gridStyles.planPageHeader}>
-          <h1 className={layoutStyles.pageTitle}>Dive Plan</h1>
-          <p className={layoutStyles.pageSubtitle}>
-            Fill out the form to generate a dive plan and get safety-focused
-            feedback from DiveIQ.
-          </p>
+          <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: "var(--space-4)", flexWrap: "wrap" }}>
+            <div>
+              <h1 className={layoutStyles.pageTitle}>Dive Plan</h1>
+              <p className={layoutStyles.pageSubtitle}>
+                Fill out the form to generate a dive plan and get safety-focused
+                feedback from DiveIQ.
+              </p>
+            </div>
+            
+            {/* Save button in header - shown when plan is generated */}
+            {!editingPlanId && (
+              <SaveDivePlanButton
+                isAuthenticated={isAuthenticated}
+                hasPlanDraft={hasDraftPlan}
+                onSaveAuthed={saveDraftPlan}
+                onRequireAuth={handleRequireAuth}
+                isSaving={saving}
+                variant="header"
+              />
+            )}
+          </div>
         </header>
 
         {/* Middle zone: Two-column layout */}
@@ -116,16 +148,18 @@ export function PlanPageContent() {
           </section>
         </div>
 
-        {/* Bottom zone: Full-width past plans */}
-        <section className={gridStyles.planPageBottom}>
-          <PastPlansList
-            pastPlans={pastPlans}
-            plansLoading={plansLoading}
-            plansError={plansError}
-            onSelectPlan={handleSelectPastPlan}
-            onDeletePlan={deletePlan}
-          />
-        </section>
+        {/* Bottom zone: Full-width past plans - only visible for authenticated users */}
+        {isAuthenticated && (
+          <section className={gridStyles.planPageBottom}>
+            <PastPlansList
+              pastPlans={pastPlans}
+              plansLoading={plansLoading}
+              plansError={plansError}
+              onSelectPlan={handleSelectPastPlan}
+              onDeletePlan={deletePlan}
+            />
+          </section>
+        )}
       </div>
 
       {statusMessage && (
@@ -136,6 +170,14 @@ export function PlanPageContent() {
           </div>
         </div>
       )}
+
+      {/* Auth Modal for unauthenticated save attempts */}
+      <AuthModal
+        isOpen={showAuthModal}
+        onClose={() => setShowAuthModal(false)}
+        onAuthSuccess={handleAuthSuccess}
+        initialMode="signup"
+      />
     </main>
   );
 }

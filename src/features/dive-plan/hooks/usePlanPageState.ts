@@ -1,33 +1,56 @@
-import { FormEvent, useEffect, useState } from "react";
-import { PastPlan, PlanData, AIBriefing } from "@/features/dive-plan/types";
+import { FormEvent, useEffect, useState, useCallback } from "react";
+import { useSession } from "next-auth/react";
+import { PastPlan, PlanData, AIBriefing, RiskLevel } from "@/features/dive-plan/types";
 
 export function usePlanPageState() {
-  const [submittedPlan, setSubmittedPlan] = useState<PlanData | null>(null);
-  const [aiAdvice, setAiAdvice] = useState<string | null>(null);
+  // Draft state - the current plan being worked on (not yet saved)
+  const [draftPlan, setDraftPlan] = useState<PlanData | null>(null);
+  const [draftRiskLevel, setDraftRiskLevel] = useState<RiskLevel | null>(null);
   const [aiBriefing, setAiBriefing] = useState<AIBriefing | null>(null);
+  const [aiAdvice, setAiAdvice] = useState<string | null>(null);
+  
+  // Legacy submittedPlan - kept for form default values
+  const [submittedPlan, setSubmittedPlan] = useState<PlanData | null>(null);
+  
+  // UI states
   const [apiError, setApiError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [saving, setSaving] = useState(false);
 
+  // Past plans state (for authenticated users)
   const [pastPlans, setPastPlans] = useState<PastPlan[]>([]);
   const [plansLoading, setPlansLoading] = useState(true);
   const [plansError, setPlansError] = useState<string | null>(null);
   const [editingPlanId, setEditingPlanId] = useState<string | null>(null);
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
-  const [isAuthenticated, setIsAuthenticated] = useState(true);
 
   // Used to force the form to remount so defaultValue updates
   const [formKey, setFormKey] = useState<string>("new");
 
-  // Load past plans on mount
+  // Use next-auth session for auth status
+  const { data: session, status: sessionStatus } = useSession();
+  const isAuthenticated = sessionStatus === "authenticated";
+  const isSessionLoading = sessionStatus === "loading";
+
+  // Load past plans on mount (only for authenticated users)
   useEffect(() => {
     const fetchPlans = async () => {
+      // Don't fetch if session is still loading
+      if (isSessionLoading) return;
+      
+      // Don't fetch if not authenticated
+      if (!isAuthenticated) {
+        setPlansLoading(false);
+        setPastPlans([]);
+        return;
+      }
+
       try {
         setPlansLoading(true);
         setPlansError(null);
         const res = await fetch("/api/dive-plans");
         if (res.status === 401) {
-          // User is not authenticated - this is not an error, just show empty state
-          setIsAuthenticated(false);
+          // User is not authenticated - this is not an error
           setPastPlans([]);
           return;
         }
@@ -36,7 +59,6 @@ export function usePlanPageState() {
         }
         const data = await res.json();
         setPastPlans((data.plans ?? []) as PastPlan[]);
-        setIsAuthenticated(true);
       } catch (err) {
         console.error(err);
         setPlansError("Failed to load past plans.");
@@ -46,8 +68,12 @@ export function usePlanPageState() {
     };
 
     void fetchPlans();
-  }, []);
+  }, [isAuthenticated, isSessionLoading]);
 
+  /**
+   * Submit plan form - generates AI briefing WITHOUT saving
+   * Uses the preview endpoint which doesn't require authentication
+   */
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
@@ -69,50 +95,60 @@ export function usePlanPageState() {
     };
 
     setSubmittedPlan(values);
+    setDraftPlan(values);
 
     try {
-      const isEditing = !!editingPlanId;
-
-      const res = await fetch("/api/dive-plans", {
-        method: isEditing ? "PUT" : "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(
-          isEditing ? { id: editingPlanId, ...values } : values
-        ),
-      });
-
-      if (!res.ok) {
-        throw new Error(`API returned ${res.status}`);
-      }
-
-      const data = await res.json();
-      setAiAdvice(data.aiAdvice);
-      setAiBriefing(data.aiBriefing ?? null);
-
-      if (data.plan) {
-        const updatedPlan = data.plan as PastPlan;
-
-        setPastPlans((prev) => {
-          if (editingPlanId) {
-            return prev.map((p) => (p.id === editingPlanId ? updatedPlan : p));
-          }
-          return [updatedPlan, ...prev];
+      // If editing an existing plan, use the update endpoint
+      if (editingPlanId && isAuthenticated) {
+        const res = await fetch("/api/dive-plans", {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ id: editingPlanId, ...values }),
         });
-      }
 
-      if (editingPlanId) {
-        setSubmittedPlan(values);
+        if (!res.ok) {
+          throw new Error(`API returned ${res.status}`);
+        }
+
+        const data = await res.json();
         setAiAdvice(data.aiAdvice);
         setAiBriefing(data.aiBriefing ?? null);
+        setDraftRiskLevel(data.riskLevel ?? null);
+
+        // Update past plans list
+        if (data.plan) {
+          const updatedPlan = data.plan as PastPlan;
+          setPastPlans((prev) =>
+            prev.map((p) => (p.id === editingPlanId ? updatedPlan : p))
+          );
+        }
+
         setStatusMessage("Plan updated ✅");
         setTimeout(() => setStatusMessage(null), 3000);
 
-        // reset form back to "new"
+        // Reset editing state
+        setEditingPlanId(null);
+        setDraftPlan(null);
         setSubmittedPlan(null);
         setAiAdvice(null);
         setAiBriefing(null);
-        setEditingPlanId(null);
-        setFormKey(`new-${Date.now()}`);
+        setFormKey(`updated-${Date.now()}`);
+      } else {
+        // Use preview endpoint - no auth required, no saving
+        const res = await fetch("/api/dive-plans/preview", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(values),
+        });
+
+        if (!res.ok) {
+          throw new Error(`API returned ${res.status}`);
+        }
+
+        const data = await res.json();
+        setAiAdvice(data.aiAdvice);
+        setAiBriefing(data.aiBriefing ?? null);
+        setDraftRiskLevel(data.riskLevel ?? null);
       }
     } catch (err) {
       console.error(err);
@@ -122,8 +158,65 @@ export function usePlanPageState() {
     }
   };
 
+  /**
+   * Save the current draft plan (explicit save action)
+   * Requires authentication
+   */
+  const saveDraftPlan = useCallback(async (): Promise<void> => {
+    if (!draftPlan || !isAuthenticated) {
+      throw new Error("Cannot save: no draft plan or not authenticated");
+    }
+
+    setSaving(true);
+    setApiError(null);
+
+    try {
+      const res = await fetch("/api/dive-plans", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(draftPlan),
+      });
+
+      if (!res.ok) {
+        throw new Error(`API returned ${res.status}`);
+      }
+
+      const data = await res.json();
+
+      // Add the saved plan to past plans list
+      if (data.plan) {
+        const savedPlan = data.plan as PastPlan;
+        setPastPlans((prev) => [savedPlan, ...prev]);
+      }
+
+      // Update briefing with saved data
+      setAiAdvice(data.aiAdvice);
+      setAiBriefing(data.aiBriefing ?? null);
+
+      // Clear draft state after successful save
+      setDraftPlan(null);
+      setDraftRiskLevel(null);
+
+      setStatusMessage("Plan saved ✅");
+      setTimeout(() => setStatusMessage(null), 3000);
+    } catch (err) {
+      console.error(err);
+      setApiError("Failed to save plan.");
+      throw err;
+    } finally {
+      setSaving(false);
+    }
+  }, [draftPlan, isAuthenticated]);
+
+  /**
+   * Check if there's a draft plan that can be saved
+   */
+  const hasDraftPlan = Boolean(draftPlan && aiBriefing);
+
   const handleNewPlan = () => {
     setSubmittedPlan(null);
+    setDraftPlan(null);
+    setDraftRiskLevel(null);
     setAiAdvice(null);
     setAiBriefing(null);
     setApiError(null);
@@ -144,6 +237,7 @@ export function usePlanPageState() {
     };
 
     setSubmittedPlan(planData);
+    setDraftPlan(null); // Not a draft - it's already saved
     setAiAdvice(savedAdvice ?? null);
     setAiBriefing(savedBriefing ?? null);
     setApiError(null);
@@ -175,6 +269,7 @@ export function usePlanPageState() {
       if (editingPlanId === id) {
         setEditingPlanId(null);
         setSubmittedPlan(null);
+        setDraftPlan(null);
         setAiAdvice(null);
         setAiBriefing(null);
         setFormKey(`deleted-${Date.now()}`);
@@ -197,6 +292,8 @@ export function usePlanPageState() {
   const handleCancelEdit = () => {
     setEditingPlanId(null);
     setSubmittedPlan(null);
+    setDraftPlan(null);
+    setDraftRiskLevel(null);
     setAiAdvice(null);
     setAiBriefing(null);
     setApiError(null);
@@ -204,25 +301,54 @@ export function usePlanPageState() {
     setFormKey(`cancel-${Date.now()}`);
   };
 
+  /**
+   * Refresh auth state and past plans (called after auth modal success)
+   */
+  const refreshAfterAuth = useCallback(async () => {
+    // Refetch past plans
+    try {
+      const res = await fetch("/api/dive-plans");
+      if (res.ok) {
+        const data = await res.json();
+        setPastPlans((data.plans ?? []) as PastPlan[]);
+      }
+    } catch (err) {
+      console.error("Failed to refresh plans after auth:", err);
+    }
+  }, []);
+
   return {
+    // Plan state
     submittedPlan,
+    draftPlan,
+    draftRiskLevel,
+    hasDraftPlan,
     aiAdvice,
     aiBriefing,
     apiError,
     loading,
+    saving,
+    
+    // Past plans
     pastPlans,
-    plansLoading,
+    plansLoading: plansLoading || isSessionLoading,
     plansError,
     editingPlanId,
     statusMessage,
     formKey,
+    
+    // Auth
     isAuthenticated,
+    isSessionLoading,
 
+    // Actions
     handleSubmit,
+    saveDraftPlan,
     handleNewPlan,
     handleSelectPastPlan,
     deletePlan,
     handleDeletePlan,
     handleCancelEdit,
+    refreshAfterAuth,
   };
 }
