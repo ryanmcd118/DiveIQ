@@ -161,59 +161,66 @@ export function PlannerStub() {
           </form>
         </div>
 
-        {/* Right side: Result Panel */}
+        {/* Right side: Result Panel (scrollable) */}
         <div className={styles.plannerResultPanel}>
-          {/* Loading state with skeleton */}
-          {loading && (
-            <AIDiveBriefing briefing={null} loading={true} compact={true} />
-          )}
+          <div className={styles.plannerResultScroll}>
+            {/* Loading state with skeleton */}
+            {loading && (
+              <AIDiveBriefing briefing={null} loading={true} compact={true} scrollable={true} />
+            )}
 
-          {/* Error state */}
-          {error && !loading && (
-            <div className={styles.plannerResultError}>
-              <div className={styles.errorIcon}>!</div>
-              <p className={styles.errorText}>{error}</p>
-              <button 
-                type="button" 
-                onClick={() => setError(null)}
-                className={styles.errorDismiss}
-              >
-                Try again
-              </button>
-            </div>
-          )}
-
-          {/* Result with AI Briefing */}
-          {result && !loading && (
-            <AIDiveBriefing 
-              briefing={result.aiBriefing} 
-              compact={true}
-              showExpander={true}
-            />
-          )}
-
-          {/* Empty state / CTA */}
-          {!result && !loading && !error && (
-            <div className={styles.plannerCtaPlaceholder}>
-              <div className={styles.ctaPlaceholderIcon}>
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-                  <path d="M12 2L12 22M2 12L22 12" strokeLinecap="round" />
-                  <circle cx="12" cy="12" r="9" strokeDasharray="4 2" />
-                </svg>
+            {/* Error state */}
+            {error && !loading && (
+              <div className={styles.plannerResultInner}>
+                <div className={styles.plannerResultError}>
+                  <div className={styles.errorIcon}>!</div>
+                  <p className={styles.errorText}>{error}</p>
+                  <button 
+                    type="button" 
+                    onClick={() => setError(null)}
+                    className={styles.errorDismiss}
+                  >
+                    Try again
+                  </button>
+                </div>
               </div>
-              <h4 className={styles.ctaPlaceholderTitle}>
-                Your AI dive briefing will appear here
-              </h4>
-              <p className={styles.ctaPlaceholderText}>
-                Fill in your dive parameters and click <strong>&quot;Start Planning&quot;</strong> to get a personalized dive briefing.
-              </p>
-              <ul className={styles.ctaPlaceholderList}>
-                <li>Location-specific conditions</li>
-                <li>Seasonal insights</li>
-                <li>Site hazards & tips</li>
-              </ul>
-            </div>
-          )}
+            )}
+
+            {/* Result with AI Briefing */}
+            {result && !loading && (
+              <AIDiveBriefing 
+                briefing={result.aiBriefing} 
+                compact={true}
+                showExpander={true}
+                scrollable={true}
+              />
+            )}
+
+            {/* Empty state / CTA */}
+            {!result && !loading && !error && (
+              <div className={styles.plannerResultInner}>
+                <div className={styles.plannerCtaPlaceholder}>
+                  <div className={styles.ctaPlaceholderIcon}>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                      <path d="M12 2L12 22M2 12L22 12" strokeLinecap="round" />
+                      <circle cx="12" cy="12" r="9" strokeDasharray="4 2" />
+                    </svg>
+                  </div>
+                  <h4 className={styles.ctaPlaceholderTitle}>
+                    Your AI dive briefing will appear here
+                  </h4>
+                  <p className={styles.ctaPlaceholderText}>
+                    Fill in your dive parameters and click <strong>&quot;Start Planning&quot;</strong> to get a personalized dive briefing.
+                  </p>
+                  <ul className={styles.ctaPlaceholderList}>
+                    <li>Location-specific conditions</li>
+                    <li>Seasonal insights</li>
+                    <li>Site hazards & tips</li>
+                  </ul>
+                </div>
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </section>

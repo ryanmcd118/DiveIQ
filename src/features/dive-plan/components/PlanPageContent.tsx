@@ -68,48 +68,56 @@ export function PlanPageContent() {
 
   return (
     <main className={layoutStyles.page}>
-      <div className={gridStyles.planPageGrid}>
-        {/* Left column: form */}
-        <section className={gridStyles.section}>
-          <div>
-            <h1 className={layoutStyles.pageTitle}>Dive Plan</h1>
-            <p className={layoutStyles.pageSubtitle}>
-              Fill out the form to generate a dive plan and get safety-focused
-              feedback from DiveIQ.
-            </p>
-          </div>
+      <div className={gridStyles.planPageContainer}>
+        {/* Top zone: Page header */}
+        <header className={gridStyles.planPageHeader}>
+          <h1 className={layoutStyles.pageTitle}>Dive Plan</h1>
+          <p className={layoutStyles.pageSubtitle}>
+            Fill out the form to generate a dive plan and get safety-focused
+            feedback from DiveIQ.
+          </p>
+        </header>
 
-          <PlanForm
-            formKey={formKey}
-            submittedPlan={submittedPlan}
-            editingPlanId={editingPlanId}
-            loading={loading}
-            apiError={apiError}
-            onSubmit={handleSubmit}
-            onCancelEdit={handleCancelEdit}
-            onDeletePlan={handleDeletePlan}
-          />
-        </section>
-
-        {/* Right column: AI briefing and past plans */}
-        <section className={gridStyles.section}>
-          {/* AI Briefing Panel - shows skeleton when loading, briefing when ready */}
-          {(loading || aiBriefing || submittedPlan) && (
-            <AIDiveBriefing
-              briefing={aiBriefing}
+        {/* Middle zone: Two-column layout */}
+        <div className={gridStyles.planPageMiddle}>
+          {/* Left column: Form */}
+          <section className={gridStyles.planFormColumn}>
+            <PlanForm
+              formKey={formKey}
+              submittedPlan={submittedPlan}
+              editingPlanId={editingPlanId}
               loading={loading}
-              compact={false}
+              apiError={apiError}
+              onSubmit={handleSubmit}
+              onCancelEdit={handleCancelEdit}
+              onDeletePlan={handleDeletePlan}
             />
-          )}
+          </section>
 
-          {/* Placeholder when no plan submitted yet */}
-          {!submittedPlan && !loading && !aiBriefing && (
-            <div className={gridStyles.placeholderCard}>
-              Once you submit a plan, your AI dive briefing will appear here with 
-              location-specific conditions, site hazards, and personalized recommendations.
-            </div>
-          )}
+          {/* Right column: AI briefing panel (scrollable) */}
+          <section className={gridStyles.planAIColumn}>
+            {/* AI Briefing Panel - shows skeleton when loading, briefing when ready */}
+            {(loading || aiBriefing || submittedPlan) ? (
+              <div className={gridStyles.aiBriefingScrollWrapper}>
+                <AIDiveBriefing
+                  briefing={aiBriefing}
+                  loading={loading}
+                  compact={false}
+                  scrollable={true}
+                />
+              </div>
+            ) : (
+              /* Placeholder when no plan submitted yet */
+              <div className={gridStyles.aiBriefingPlaceholder}>
+                Once you submit a plan, your AI dive briefing will appear here with 
+                location-specific conditions, site hazards, and personalized recommendations.
+              </div>
+            )}
+          </section>
+        </div>
 
+        {/* Bottom zone: Full-width past plans */}
+        <section className={gridStyles.planPageBottom}>
           <PastPlansList
             pastPlans={pastPlans}
             plansLoading={plansLoading}

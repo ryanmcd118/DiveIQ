@@ -11,6 +11,8 @@ type AIDiveBriefingProps = {
   compact?: boolean;
   /** Show expandable sections even in compact mode */
   showExpander?: boolean;
+  /** Scrollable mode - removes outer border/radius for use inside scroll containers */
+  scrollable?: boolean;
 };
 
 // Chevron icon component
@@ -60,9 +62,13 @@ function getConfidenceClass(level: string): string {
 }
 
 // Skeleton Loading State
-function BriefingSkeleton({ compact }: { compact?: boolean }) {
+function BriefingSkeleton({ compact, scrollable }: { compact?: boolean; scrollable?: boolean }) {
+  const containerClass = scrollable
+    ? (compact ? styles.briefingContainerScrollableCompact : styles.briefingContainerScrollable)
+    : (compact ? styles.briefingContainerCompact : styles.briefingContainer);
+  
   return (
-    <div className={compact ? styles.briefingContainerCompact : styles.briefingContainer}>
+    <div className={containerClass}>
       {/* Skeleton snapshot */}
       <div className={styles.skeletonSnapshot} />
 
@@ -251,19 +257,24 @@ export function AIDiveBriefing({
   loading = false,
   compact = false,
   showExpander = false,
+  scrollable = false,
 }: AIDiveBriefingProps) {
   const [expanded, setExpanded] = useState(false);
 
   if (loading) {
-    return <BriefingSkeleton compact={compact} />;
+    return <BriefingSkeleton compact={compact} scrollable={scrollable} />;
   }
 
   if (!briefing) {
     return null;
   }
 
+  const containerClass = scrollable
+    ? (compact ? styles.briefingContainerScrollableCompact : styles.briefingContainerScrollable)
+    : (compact ? styles.briefingContainerCompact : styles.briefingContainer);
+
   return (
-    <div className={compact ? styles.briefingContainerCompact : styles.briefingContainer}>
+    <div className={containerClass}>
       {/* Briefing Header */}
       <div className={styles.briefingHeader}>
         {/* Conditions Snapshot */}

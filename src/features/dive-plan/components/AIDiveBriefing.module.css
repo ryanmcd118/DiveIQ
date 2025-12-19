@@ -29,6 +29,27 @@
   gap: var(--space-4);
 }
 
+/* Scrollable variant - for use inside scroll containers (no outer border/radius) */
+.briefingContainerScrollable {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+  background: linear-gradient(
+    180deg,
+    rgba(6, 24, 40, 0.98) 0%,
+    rgba(8, 28, 48, 0.95) 50%,
+    rgba(4, 20, 36, 0.98) 100%
+  );
+  padding: var(--space-6);
+  min-height: 100%;
+}
+
+.briefingContainerScrollableCompact {
+  composes: briefingContainerScrollable;
+  padding: var(--space-5);
+  gap: var(--space-4);
+}
+
 /* === HEADER SECTION === */
 .briefingHeader {
   display: flex;
