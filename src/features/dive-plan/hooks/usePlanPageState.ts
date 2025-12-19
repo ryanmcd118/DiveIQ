@@ -1,9 +1,10 @@
 import { FormEvent, useEffect, useState } from "react";
-import { PastPlan, PlanData } from "@/features/dive-plan/types";
+import { PastPlan, PlanData, AIBriefing } from "@/features/dive-plan/types";
 
 export function usePlanPageState() {
   const [submittedPlan, setSubmittedPlan] = useState<PlanData | null>(null);
   const [aiAdvice, setAiAdvice] = useState<string | null>(null);
+  const [aiBriefing, setAiBriefing] = useState<AIBriefing | null>(null);
   const [apiError, setApiError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -51,6 +52,7 @@ export function usePlanPageState() {
     e.preventDefault();
 
     setAiAdvice(null);
+    setAiBriefing(null);
     setApiError(null);
     setLoading(true);
 
@@ -85,6 +87,7 @@ export function usePlanPageState() {
 
       const data = await res.json();
       setAiAdvice(data.aiAdvice);
+      setAiBriefing(data.aiBriefing ?? null);
 
       if (data.plan) {
         const updatedPlan = data.plan as PastPlan;
@@ -100,12 +103,14 @@ export function usePlanPageState() {
       if (editingPlanId) {
         setSubmittedPlan(values);
         setAiAdvice(data.aiAdvice);
+        setAiBriefing(data.aiBriefing ?? null);
         setStatusMessage("Plan updated ✅");
         setTimeout(() => setStatusMessage(null), 3000);
 
         // reset form back to "new"
         setSubmittedPlan(null);
         setAiAdvice(null);
+        setAiBriefing(null);
         setEditingPlanId(null);
         setFormKey(`new-${Date.now()}`);
       }
@@ -120,13 +125,14 @@ export function usePlanPageState() {
   const handleNewPlan = () => {
     setSubmittedPlan(null);
     setAiAdvice(null);
+    setAiBriefing(null);
     setApiError(null);
     setEditingPlanId(null);
     setFormKey(`new-${Date.now()}`);
   };
 
   const handleSelectPastPlan = (plan: PastPlan) => {
-    const { id, aiAdvice: savedAdvice, ...rest } = plan;
+    const { id, aiAdvice: savedAdvice, aiBriefing: savedBriefing, ...rest } = plan;
 
     const planData: PlanData = {
       region: rest.region,
@@ -139,6 +145,7 @@ export function usePlanPageState() {
 
     setSubmittedPlan(planData);
     setAiAdvice(savedAdvice ?? null);
+    setAiBriefing(savedBriefing ?? null);
     setApiError(null);
 
     setEditingPlanId(id);
@@ -169,6 +176,7 @@ export function usePlanPageState() {
         setEditingPlanId(null);
         setSubmittedPlan(null);
         setAiAdvice(null);
+        setAiBriefing(null);
         setFormKey(`deleted-${Date.now()}`);
       }
 
@@ -190,6 +198,7 @@ export function usePlanPageState() {
     setEditingPlanId(null);
     setSubmittedPlan(null);
     setAiAdvice(null);
+    setAiBriefing(null);
     setApiError(null);
     setStatusMessage(null);
     setFormKey(`cancel-${Date.now()}`);
@@ -198,6 +207,7 @@ export function usePlanPageState() {
   return {
     submittedPlan,
     aiAdvice,
+    aiBriefing,
     apiError,
     loading,
     pastPlans,

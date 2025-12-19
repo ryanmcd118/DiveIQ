@@ -2,19 +2,17 @@
 
 import Link from "next/link";
 import { usePlanPageState } from "../hooks/usePlanPageState";
-import { PlanSummary } from "./PlanSummary";
+import { AIDiveBriefing } from "./AIDiveBriefing";
 import { PlanForm } from "./PlanForm";
 import { PastPlansList } from "./PastPlansList";
 import layoutStyles from "@/styles/components/Layout.module.css";
 import gridStyles from "@/styles/components/PageGrid.module.css";
-import listStyles from "@/styles/components/List.module.css";
-import cardStyles from "@/styles/components/Card.module.css";
 import buttonStyles from "@/styles/components/Button.module.css";
 
 export function PlanPageContent() {
   const {
     submittedPlan,
-    aiAdvice,
+    aiBriefing,
     apiError,
     loading,
     pastPlans,
@@ -44,7 +42,13 @@ export function PlanPageContent() {
               </p>
             </div>
           </header>
-          <div className={cardStyles.card} style={{ textAlign: "center", padding: "var(--space-8)" }}>
+          <div style={{ 
+            backgroundColor: "var(--color-surface)",
+            border: "1px solid var(--color-border-default)",
+            borderRadius: "var(--radius-xl)",
+            textAlign: "center", 
+            padding: "var(--space-8)" 
+          }}>
             <p style={{ marginBottom: "var(--space-4)" }}>
               Create an account or sign in to start planning your dives with AI-assisted safety feedback.
             </p>
@@ -87,35 +91,22 @@ export function PlanPageContent() {
           />
         </section>
 
-        {/* Right column: summary, AI advice, past plans */}
+        {/* Right column: AI briefing and past plans */}
         <section className={gridStyles.section}>
-          {submittedPlan ? (
-            <>
-              <PlanSummary plan={submittedPlan} />
+          {/* AI Briefing Panel - shows skeleton when loading, briefing when ready */}
+          {(loading || aiBriefing || submittedPlan) && (
+            <AIDiveBriefing
+              briefing={aiBriefing}
+              loading={loading}
+              compact={false}
+            />
+          )}
 
-              <div className={gridStyles.aiAdviceCard}>
-                <h3 className={gridStyles.aiAdviceTitle}>
-                  AI Dive Buddy Advice
-                </h3>
-                {loading && (
-                  <p className={listStyles.empty}>Loading advice…</p>
-                )}
-                {aiAdvice && !loading && (
-                  <p className={gridStyles.aiAdviceContent}>
-                    {aiAdvice}
-                  </p>
-                )}
-                {!loading && !aiAdvice && !apiError && (
-                  <p className="body-small text-disabled">
-                    Submit a plan to see AI-backed safety feedback here.
-                  </p>
-                )}
-              </div>
-            </>
-          ) : (
+          {/* Placeholder when no plan submitted yet */}
+          {!submittedPlan && !loading && !aiBriefing && (
             <div className={gridStyles.placeholderCard}>
-              Once you submit a plan, a summary and AI dive buddy advice will
-              show up here.
+              Once you submit a plan, your AI dive briefing will appear here with 
+              location-specific conditions, site hazards, and personalized recommendations.
             </div>
           )}
 

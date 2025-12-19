@@ -1,11 +1,13 @@
 "use client";
 
 import { useState, FormEvent } from "react";
+import { AIDiveBriefing } from "@/features/dive-plan/components/AIDiveBriefing";
+import type { AIBriefing, RiskLevel } from "@/features/dive-plan/types";
 import styles from "./PublicHomePage.module.css";
 
 interface PlanResult {
-  aiAdvice: string;
-  riskLevel: string;
+  aiBriefing: AIBriefing;
+  riskLevel: RiskLevel;
 }
 
 export function PlannerStub() {
@@ -22,10 +24,14 @@ export function PlannerStub() {
     const form = e.currentTarget;
     const formData = new FormData(form);
 
+    // Get the date or use today
+    const dateValue = formData.get("diveDate") as string;
+    const date = dateValue || new Date().toISOString().split("T")[0];
+
     const payload = {
-      region: "Quick Plan",
+      region: (formData.get("location") as string) || "Quick Plan",
       siteName: formData.get("location") || "Unspecified",
-      date: new Date().toISOString().split("T")[0],
+      date,
       maxDepth: Number(formData.get("maxDepth")) || 18,
       bottomTime: Number(formData.get("bottomTime")) || 45,
       experienceLevel: formData.get("experienceLevel") || "Intermediate",
@@ -43,19 +49,15 @@ export function PlannerStub() {
       }
 
       const data = await response.json();
-      setResult(data);
+      setResult({
+        aiBriefing: data.aiBriefing,
+        riskLevel: data.riskLevel,
+      });
     } catch {
       setError("Something went wrong. Please try again.");
     } finally {
       setLoading(false);
     }
-  };
-
-  const getRiskClass = (riskLevel: string) => {
-    if (riskLevel.toLowerCase().includes("high")) return styles.resultRiskHigh;
-    if (riskLevel.toLowerCase().includes("moderate"))
-      return styles.resultRiskModerate;
-    return styles.resultRisk;
   };
 
   return (
@@ -123,13 +125,25 @@ export function PlannerStub() {
 
             <div className={styles.plannerField}>
               <label htmlFor="location" className={styles.plannerLabel}>
-                Location (optional)
+                Location
               </label>
               <input
                 type="text"
                 id="location"
                 name="location"
                 placeholder="e.g., Cozumel, Great Barrier Reef..."
+                className={styles.plannerInput}
+              />
+            </div>
+
+            <div className={styles.plannerField}>
+              <label htmlFor="diveDate" className={styles.plannerLabel}>
+                Dive Date (optional)
+              </label>
+              <input
+                type="date"
+                id="diveDate"
+                name="diveDate"
                 className={styles.plannerInput}
               />
             </div>
@@ -147,15 +161,14 @@ export function PlannerStub() {
           </form>
         </div>
 
-        {/* Right side: CTA Placeholder or Result */}
+        {/* Right side: Result Panel */}
         <div className={styles.plannerResultPanel}>
+          {/* Loading state with skeleton */}
           {loading && (
-            <div className={styles.plannerResultLoading}>
-              <div className={styles.loadingSpinner} />
-              <p className={styles.loadingText}>Generating your dive plan...</p>
-            </div>
+            <AIDiveBriefing briefing={null} loading={true} compact={true} />
           )}
 
+          {/* Error state */}
           {error && !loading && (
             <div className={styles.plannerResultError}>
               <div className={styles.errorIcon}>!</div>
@@ -170,18 +183,16 @@ export function PlannerStub() {
             </div>
           )}
 
+          {/* Result with AI Briefing */}
           {result && !loading && (
-            <div className={styles.plannerResultContent}>
-              <div className={styles.resultHeader}>
-                <h4 className={styles.resultTitle}>Your dive plan preview</h4>
-                <span className={getRiskClass(result.riskLevel)}>
-                  {result.riskLevel}
-                </span>
-              </div>
-              <p className={styles.resultAdvice}>{result.aiAdvice}</p>
-            </div>
+            <AIDiveBriefing 
+              briefing={result.aiBriefing} 
+              compact={true}
+              showExpander={true}
+            />
           )}
 
+          {/* Empty state / CTA */}
           {!result && !loading && !error && (
             <div className={styles.plannerCtaPlaceholder}>
               <div className={styles.ctaPlaceholderIcon}>
@@ -191,15 +202,15 @@ export function PlannerStub() {
                 </svg>
               </div>
               <h4 className={styles.ctaPlaceholderTitle}>
-                Your AI dive plan will appear here
+                Your AI dive briefing will appear here
               </h4>
               <p className={styles.ctaPlaceholderText}>
-                Fill in your dive parameters and click <strong>&quot;Start Planning&quot;</strong> to get personalized guidance for your next dive.
+                Fill in your dive parameters and click <strong>&quot;Start Planning&quot;</strong> to get a personalized dive briefing.
               </p>
               <ul className={styles.ctaPlaceholderList}>
-                <li>Personalized safety recommendations</li>
-                <li>Gas planning guidance</li>
-                <li>Site-specific tips</li>
+                <li>Location-specific conditions</li>
+                <li>Seasonal insights</li>
+                <li>Site hazards & tips</li>
               </ul>
             </div>
           )}
@@ -208,4 +219,3 @@ export function PlannerStub() {
     </section>
   );
 }
-
