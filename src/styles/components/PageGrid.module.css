@@ -3,6 +3,135 @@
    For /plan and /log pages with 2-column layouts
    ========================================= */
 
+/* === THREE-ZONE PLAN PAGE LAYOUT === */
+.planPageContainer {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: 80rem;
+  gap: var(--space-6);
+}
+
+/* Top zone: page header */
+.planPageHeader {
+  flex-shrink: 0;
+}
+
+/* Middle zone: two-column layout */
+.planPageMiddle {
+  display: grid;
+  width: 100%;
+  gap: var(--space-6);
+  grid-template-columns: 1fr;
+  /* Mobile: auto height, columns stack */
+}
+
+@media (min-width: 768px) {
+  .planPageMiddle {
+    grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+    gap: var(--space-8);
+    /* Desktop: near-viewport height minus header and padding */
+    min-height: calc(100vh - 14rem);
+  }
+}
+
+/* Left column: form area */
+.planFormColumn {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+/* Right column: AI panel area with scroll container */
+.planAIColumn {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  min-height: 0; /* Enable flex children to shrink */
+}
+
+@media (min-width: 768px) {
+  .planAIColumn {
+    /* Enable scrollable behavior on desktop */
+    max-height: calc(100vh - 14rem);
+  }
+}
+
+/* Scrollable AI briefing wrapper */
+.aiBriefingScrollWrapper {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  border-radius: var(--radius-xl);
+  /* Subtle panel styling */
+  background: rgba(6, 24, 40, 0.3);
+  border: 1px solid rgba(51, 65, 85, 0.3);
+}
+
+/* Mobile: set a max-height so it doesn't expand infinitely */
+@media (max-width: 767px) {
+  .aiBriefingScrollWrapper {
+    max-height: 70vh;
+  }
+}
+
+/* Custom scrollbar for AI panel */
+.aiBriefingScrollWrapper::-webkit-scrollbar {
+  width: 6px;
+}
+
+.aiBriefingScrollWrapper::-webkit-scrollbar-track {
+  background: rgba(15, 23, 42, 0.3);
+  border-radius: var(--radius-full);
+}
+
+.aiBriefingScrollWrapper::-webkit-scrollbar-thumb {
+  background: rgba(6, 182, 212, 0.3);
+  border-radius: var(--radius-full);
+}
+
+.aiBriefingScrollWrapper::-webkit-scrollbar-thumb:hover {
+  background: rgba(6, 182, 212, 0.5);
+}
+
+/* Placeholder card when no AI briefing */
+.aiBriefingPlaceholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: var(--space-8);
+  min-height: 16rem;
+  background: linear-gradient(
+    180deg,
+    rgba(6, 24, 40, 0.6) 0%,
+    rgba(8, 28, 48, 0.4) 100%
+  );
+  border: 1px dashed rgba(6, 182, 212, 0.2);
+  border-radius: var(--radius-xl);
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+  line-height: 1.6;
+}
+
+/* Bottom zone: full-width past plans */
+.planPageBottom {
+  width: 100%;
+  padding-top: var(--space-4);
+  border-top: 1px solid rgba(51, 65, 85, 0.3);
+}
+
+.pastPlansHeader {
+  margin-bottom: var(--space-4);
+}
+
+.pastPlansTitle {
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-primary);
+}
+
+/* Legacy grid - kept for backward compatibility */
 .planPageGrid {
   display: grid;
   width: 100%;

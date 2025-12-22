@@ -15,18 +15,66 @@ export type PlanData = {
 export type PlanInput = PlanData & {
   riskLevel: RiskLevel;
   aiAdvice?: string | null;
+  aiBriefing?: AIBriefing | null;
 };
 
 export type PastPlan = PlanData & {
   id: string;
   riskLevel: RiskLevel | string;
   aiAdvice?: string | null;
+  aiBriefing?: AIBriefing | null;
   createdAt?: Date;
 };
 
 // API Response Types
 export type PlanApiResponse = {
   aiAdvice: string;
+  aiBriefing: AIBriefing;
   plan: PastPlan;
 };
 
+// =========================================
+// AI BRIEFING STRUCTURED RESPONSE TYPES
+// =========================================
+
+export type SourceTag = "Forecast" | "Seasonal" | "Inferred";
+export type ConfidenceLevel = "High" | "Medium" | "Low";
+
+export type QuickLookItem = {
+  value: string;
+  reason?: string;
+  sourceTag?: SourceTag;
+};
+
+export type QuickLook = {
+  difficulty: QuickLookItem;
+  suggestedExperience: QuickLookItem;
+  waterTemp: QuickLookItem;
+  visibility: QuickLookItem;
+  seaStateWind: QuickLookItem;
+  confidence: {
+    level: ConfidenceLevel;
+    reason: string;
+  };
+};
+
+export type BriefingSection = {
+  title: string;
+  sourceTags?: SourceTag[];
+  bullets?: string[];
+  paragraphs?: string[];
+};
+
+export type AIBriefing = {
+  conditionsSnapshot: string;
+  quickLook: QuickLook;
+  whatMattersMost: string;
+  highlights: string[];
+  sections: BriefingSection[];
+};
+
+// Preview result type for logged-out users
+export type PreviewResult = {
+  aiBriefing: AIBriefing;
+  riskLevel: RiskLevel;
+};

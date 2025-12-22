@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
-import { generateDivePlanAdvice } from "@/services/ai/openaiService";
+import { generateDivePlanBriefing } from "@/services/ai/openaiService";
 import { calculateRiskLevel } from "@/features/dive-plan/services/riskCalculator";
 
 /**
  * POST /api/dive-plans/preview
- * Generate AI advice for a dive plan without saving it
+ * Generate AI structured briefing for a dive plan without saving it
  * Public endpoint - no authentication required (for guest users)
  */
 export async function POST(req: NextRequest) {
@@ -21,15 +21,19 @@ export async function POST(req: NextRequest) {
     // Calculate risk level
     const riskLevel = calculateRiskLevel(body.maxDepth, body.bottomTime);
 
-    // Generate AI advice
-    const aiAdvice = await generateDivePlanAdvice({
+    // Generate AI structured briefing
+    const aiBriefing = await generateDivePlanBriefing({
       ...body,
       riskLevel,
     });
 
+    // Also include legacy aiAdvice for backward compatibility
+    const aiAdvice = aiBriefing.whatMattersMost;
+
     return NextResponse.json(
       {
         aiAdvice,
+        aiBriefing,
         riskLevel,
       },
       { status: 200 }
@@ -42,5 +46,3 @@ export async function POST(req: NextRequest) {
     );
   }
 }
-
-
