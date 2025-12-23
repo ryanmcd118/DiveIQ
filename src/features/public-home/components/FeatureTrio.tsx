@@ -2,24 +2,6 @@
 
 import styles from "./PublicHomePage.module.css";
 
-// const features = [
-//   {
-//     icon: "/feature-icon_checklist.svg",
-//     title: "Plan dives the way divers actually do.",
-//     body: "A clean space to think through depth, time, gas, and conditions with an experienced AI dive buddy.",
-//   },
-//   {
-//     icon: "/feature-icon_logbook.svg",
-//     title: "A logbook you won't lose or forget.",
-//     body: "Record depth, time, gear, conditions, and notes, while watching your progress unfold over time.",
-//   },
-//   {
-//     icon: "/feature-icon_map.svg",
-//     title: "Know the site before you splash.",
-//     body: "Browse locations, compare notes, and build plans with more context.",
-//   },
-// ];
-
 const features = [
   {
     icon: "/feature-icon_checklist.svg",

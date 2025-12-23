@@ -9,16 +9,24 @@ export function HeroSection() {
       <div className={styles.heroGrid}>
         <div className={styles.heroContent}>
           <h1 className={styles.heroHeadline}>
-            Plan better dives.{" "}
+            Diving is complicated.{" "}
             <span className={styles.heroHeadlineAccent}>
-              Remember the ones that matter.
+              Your tools shouldn&apos;t be.
             </span>
           </h1>
 
           <p className={styles.heroSubheadline}>
-            Modern dive planning and logging — built by divers who wanted
-            something better.
+            DiveIQ simplifies how you plan dives, log details, manage your gear,
+            and revisit your favorites, all in one place. Built by divers, for
+            divers.
           </p>
+
+          <p className={styles.heroSubheadline}>
+            Think through a dive before you get wet, and remember it long after
+            you&apos;re dry.
+          </p>
+
+          {/* <p className={styles.heroSubheadline}>Built by divers, for divers.</p> */}
 
           <div className={styles.heroCtas}>
             <Link href="/dive-plans" className={styles.ctaPrimary}>
@@ -41,4 +49,3 @@ export function HeroSection() {
     </section>
   );
 }
-
