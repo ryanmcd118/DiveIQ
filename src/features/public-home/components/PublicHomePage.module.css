@@ -326,31 +326,19 @@
 }
 
 .featureIcon {
-  width: 3rem;
-  height: 3rem;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(
-    135deg,
-    rgba(6, 182, 212, 0.2) 0%,
-    rgba(6, 182, 212, 0.05) 100%
-  );
-  border: 1px solid rgba(6, 182, 212, 0.3);
-  border-radius: var(--radius-lg);
-  margin-bottom: var(--space-5);
-  color: var(--color-accent-light);
-  font-size: 1.25rem;
+  margin-bottom: var(--space-6);
 }
 
 .featureIcon img {
   display: block;
-  width: 2rem !important;
-  height: 2rem !important;
-  max-width: 2rem !important;
-  max-height: 2rem !important;
+  width: 4rem;
+  height: 4rem;
+  max-width: 4rem;
+  max-height: 4rem;
   object-fit: contain;
-  flex-shrink: 0;
 }
 
 .featureTitle {
