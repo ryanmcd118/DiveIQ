@@ -162,15 +162,7 @@
 }
 
 .heroHeadlineAccent {
-  background: linear-gradient(
-    135deg,
-    var(--color-accent-light) 0%,
-    #06b6d4 50%,
-    #0891b2 100%
-  );
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  color: var(--color-accent-light);
 }
 
 .heroSubheadline {
@@ -235,6 +227,13 @@
 
 .heroImageContainer {
   position: relative;
+}
+
+.heroImage {
+  width: 100%;
+  height: auto;
+  border-radius: var(--radius-xl);
+  object-fit: cover;
 }
 
 /* === PLACEHOLDER IMAGE === */

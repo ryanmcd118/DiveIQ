@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import styles from "./PublicHomePage.module.css";
 
 export function HeroSection() {
@@ -26,8 +27,6 @@ export function HeroSection() {
             you&apos;re dry.
           </p>
 
-          {/* <p className={styles.heroSubheadline}>Built by divers, for divers.</p> */}
-
           <div className={styles.heroCtas}>
             <Link href="/dive-plans" className={styles.ctaPrimary}>
               Start a Dive Plan →
@@ -39,11 +38,14 @@ export function HeroSection() {
         </div>
 
         <div className={styles.heroImageContainer}>
-          <div className={styles.placeholderHero}>
-            <span className={styles.placeholderLabel}>
-              Screenshot Placeholder: Planner UI
-            </span>
-          </div>
+          <Image
+            src="/hero_image.jpg"
+            alt="DiveIQ Planner UI"
+            width={800}
+            height={500}
+            className={styles.heroImage}
+            priority
+          />
         </div>
       </div>
     </section>
