@@ -130,7 +130,7 @@
 
 @media (min-width: 1024px) {
   .heroGrid {
-    grid-template-columns: 1fr 1.134fr;
+    grid-template-columns: 1fr 1.109fr;
     gap: 4rem;
   }
 }
@@ -169,7 +169,7 @@
   font-size: var(--font-size-lg);
   line-height: 1.6;
   color: var(--color-text-muted);
-  max-width: 32rem;
+  max-width: 33.6rem;
 }
 
 @media (min-width: 768px) {
