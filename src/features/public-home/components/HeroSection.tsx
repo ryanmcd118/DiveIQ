@@ -10,8 +10,12 @@ export function HeroSection() {
       <div className={styles.heroGrid}>
         <div className={styles.heroContent}>
           <h1 className={styles.heroHeadline}>
-            Diving is complicated.{" "}
-            <span className={styles.heroHeadlineAccent}>
+            <span className={styles.heroHeadlineLine}>
+              Diving is complicated.
+            </span>
+            <span
+              className={`${styles.heroHeadlineLine} ${styles.heroHeadlineAccent}`}
+            >
               Your tools shouldn&apos;t be.
             </span>
           </h1>
@@ -41,8 +45,8 @@ export function HeroSection() {
           <Image
             src="/hero_image.jpg"
             alt="DiveIQ Planner UI"
-            width={800}
-            height={500}
+            fill
+            sizes="(min-width: 1024px) 50vw, 100vw"
             className={styles.heroImage}
             priority
           />
