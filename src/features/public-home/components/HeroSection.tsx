@@ -46,6 +46,7 @@ export function HeroSection() {
             className={styles.heroImage}
             priority
           />
+          <div className={styles.heroImageOverlay} aria-hidden="true" />
         </div>
       </div>
     </section>

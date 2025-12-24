@@ -130,7 +130,7 @@
 
 @media (min-width: 1024px) {
   .heroGrid {
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: 1fr 1.134fr;
     gap: 4rem;
   }
 }
@@ -227,6 +227,9 @@
 
 .heroImageContainer {
   position: relative;
+  border-radius: var(--radius-xl);
+  overflow: hidden;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.25);
 }
 
 .heroImage {
@@ -234,6 +237,22 @@
   height: auto;
   border-radius: var(--radius-xl);
   object-fit: cover;
+  display: block;
+  filter: brightness(1.08);
+}
+
+.heroImageOverlay {
+  position: absolute;
+  inset: 0;
+  border-radius: var(--radius-xl);
+  pointer-events: none;
+  background: linear-gradient(
+    180deg,
+    transparent 0%,
+    transparent 40%,
+    rgba(5, 10, 20, 0.125) 60%,
+    rgba(5, 10, 20, 0.275) 100%
+  );
 }
 
 /* === PLACEHOLDER IMAGE === */
