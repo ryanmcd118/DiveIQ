@@ -1,14 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/features/auth/lib/auth";
-import { generateDivePlanAdvice, generateUpdatedDivePlanAdvice } from "@/services/ai/openaiService";
+import { generateDivePlanBriefing, generateUpdatedDivePlanBriefing } from "@/services/ai/openaiService";
 import { calculateRiskLevel } from "@/features/dive-plan/services/riskCalculator";
 import { divePlanRepository } from "@/services/database/repositories/divePlanRepository";
 import type { PlanInput } from "@/features/dive-plan/types";
 
 /**
  * POST /api/dive-plans
- * Create a new dive plan with AI-generated safety advice
+ * Create a new dive plan with AI-generated structured briefing
  * Requires authentication to save the plan
  */
 export async function POST(req: NextRequest) {
@@ -34,11 +34,14 @@ export async function POST(req: NextRequest) {
     // Calculate risk level
     const riskLevel = calculateRiskLevel(body.maxDepth, body.bottomTime);
 
-    // Generate AI advice
-    const aiAdvice = await generateDivePlanAdvice({
+    // Generate AI structured briefing
+    const aiBriefing = await generateDivePlanBriefing({
       ...body,
       riskLevel,
     });
+
+    // Extract a summary for legacy aiAdvice field
+    const aiAdvice = aiBriefing.whatMattersMost;
 
     // Save to database with user ID
     const planInput: PlanInput = {
@@ -57,6 +60,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json(
       {
         aiAdvice,
+        aiBriefing,
         plan: savedPlan,
       },
       { status: 200 }
@@ -72,7 +76,7 @@ export async function POST(req: NextRequest) {
 
 /**
  * PUT /api/dive-plans
- * Update an existing dive plan and regenerate AI advice
+ * Update an existing dive plan and regenerate AI briefing
  * Requires authentication
  */
 export async function PUT(req: NextRequest) {
@@ -106,8 +110,8 @@ export async function PUT(req: NextRequest) {
     // Calculate risk level
     const riskLevel = calculateRiskLevel(body.maxDepth, body.bottomTime);
 
-    // Generate updated AI advice
-    const aiAdvice = await generateUpdatedDivePlanAdvice({
+    // Generate updated AI structured briefing
+    const aiBriefing = await generateUpdatedDivePlanBriefing({
       region: body.region,
       siteName: body.siteName,
       date: body.date,
@@ -116,6 +120,9 @@ export async function PUT(req: NextRequest) {
       experienceLevel: body.experienceLevel,
       riskLevel,
     });
+
+    // Extract a summary for legacy aiAdvice field
+    const aiAdvice = aiBriefing.whatMattersMost;
 
     // Update in database
     const planInput: PlanInput = {
@@ -134,6 +141,7 @@ export async function PUT(req: NextRequest) {
     return NextResponse.json(
       {
         aiAdvice,
+        aiBriefing,
         plan: updatedPlan,
       },
       { status: 200 }

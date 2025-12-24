@@ -1,0 +1,29 @@
+"use client";
+
+import Link from "next/link";
+import styles from "./PublicHomePage.module.css";
+
+export function PublicNavbar() {
+  return (
+    <nav className={styles.navbar}>
+      <div className={styles.navContainer}>
+        <Link href="/" className={styles.navBrand}>
+          Dive<span className={styles.navBrandAccent}>IQ</span>
+        </Link>
+
+        <div className={styles.navLinks}>
+          <Link href="/signin" className={styles.navLink}>
+            Log in
+          </Link>
+          <Link href="/signup" className={styles.navLink}>
+            Create account
+          </Link>
+          <Link href="/dive-plans" className={styles.navCta}>
+            Start a Dive Plan →
+          </Link>
+        </div>
+      </div>
+    </nav>
+  );
+}
+
