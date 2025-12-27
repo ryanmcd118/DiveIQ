@@ -131,7 +131,7 @@
 
 .primaryGradient:hover:not(:disabled) {
   transform: translateY(-2px);
-  box-shadow: var(--glow-primary-hover);
+  box-shadow: var(--glow-primary-hover), 0 0 40px rgba(6, 182, 212, 0.2);
 }
 
 .primaryGradient:active:not(:disabled) {

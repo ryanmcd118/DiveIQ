@@ -66,12 +66,16 @@ export function LogPageContent() {
       <div className={gridStyles.logPageGrid}>
         {/* Left: log form */}
         <section className={gridStyles.section}>
-          <h1 className={layoutStyles.pageTitle}>Dive Log</h1>
-          <p className="body-small text-muted">
-            Capture the essentials from each dive: conditions, depth, time, and
-            notes. This will eventually feed stats and visualizations in your
-            DiveIQ logbook.
-          </p>
+          <header className={layoutStyles.pageHeader} style={{ paddingBottom: 'var(--space-6)', marginBottom: 'var(--space-6)' }}>
+            <div>
+              <h1 className={layoutStyles.pageTitle}>Dive Log</h1>
+              <p className={layoutStyles.pageSubtitle}>
+                Capture the essentials from each dive: conditions, depth, time, and
+                notes. This will eventually feed stats and visualizations in your
+                DiveIQ logbook.
+              </p>
+            </div>
+          </header>
 
           <DiveLogForm
             formKey={formKey}

@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import type { DiveLog, DivePlan } from "@prisma/client";
 import { useUnitSystem } from "@/contexts/UnitSystemContext";
@@ -29,9 +30,16 @@ export function DashboardPageContent({
   isAuthenticated = false,
 }: Props) {
   const { unitSystem } = useUnitSystem();
+  const [isMounted, setIsMounted] = useState(false);
   const mostRecentDive: DiveLog | undefined = recentDives[0];
   
-  const deepestDiveDisplay = displayDepth(deepestDive, unitSystem);
+  // Prevent hydration mismatch by using stable metric value until mounted
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+  
+  // Use metric (stable) for SSR, user preference after mount
+  const deepestDiveDisplay = displayDepth(deepestDive, isMounted ? unitSystem : 'metric');
 
   return (
     <main className={`${layoutStyles.page} ${backgroundStyles.pageGradientSubtle}`}>
@@ -41,11 +49,12 @@ export function DashboardPageContent({
           <div>
             <h1 className={layoutStyles.pageTitle}>DiveIQ Dashboard</h1>
             <p className={layoutStyles.pageSubtitle}>
-              Your personal hub for planning dives, logging experiences, and
-              eventually tracking gear, certifications, and more.
+              {totalCount > 0 
+                ? `${totalCount} dive${totalCount === 1 ? '' : 's'} logged • ${totalBottomTime} min bottom time`
+                : 'Your personal hub for planning dives, logging experiences, and eventually tracking gear, certifications, and more.'}
             </p>
           </div>
-          <div className={layoutStyles.headerActions}>
+          <div className={layoutStyles.headerActions} style={{ alignSelf: 'flex-start', paddingTop: 'var(--space-1)' }}>
             <Link href="/dive-plans" className={buttonStyles.primaryGradient}>
               Plan a dive
             </Link>
@@ -56,8 +65,8 @@ export function DashboardPageContent({
         </header>
 
         {/* Stats row */}
-        <section className={layoutStyles.statsGrid}>
-          <div className={`${cardStyles.stat} ${cardStyles.feature}`}>
+        <section className={layoutStyles.statsGrid} style={{ marginBottom: 'var(--space-10)' }}>
+          <div className={cardStyles.statEmphasis}>
             <p className={cardStyles.statLabel}>Total dives</p>
             <p className={cardStyles.statValue}>{totalCount}</p>
             <p className={cardStyles.statDescription}>
@@ -65,7 +74,7 @@ export function DashboardPageContent({
             </p>
           </div>
 
-          <div className={`${cardStyles.stat} ${cardStyles.feature}`}>
+          <div className={cardStyles.statEmphasis}>
             <p className={cardStyles.statLabel}>Total bottom time</p>
             <p className={cardStyles.statValue}>
               {totalBottomTime}
@@ -76,7 +85,7 @@ export function DashboardPageContent({
             </p>
           </div>
 
-          <div className={`${cardStyles.stat} ${cardStyles.feature}`}>
+          <div className={cardStyles.statEmphasis}>
             <p className={cardStyles.statLabel}>Deepest dive</p>
             <p className={cardStyles.statValue}>
               {deepestDiveDisplay.value}
@@ -89,7 +98,7 @@ export function DashboardPageContent({
         </section>
 
         {/* Main grid: recent dives + planning / gear */}
-        <section className={layoutStyles.dashboardGrid}>
+        <section className={layoutStyles.dashboardGrid} style={{ marginBottom: 'var(--space-10)' }}>
           {/* Left: most recent dive + recent dives */}
           <div className={layoutStyles.section}>
             <div className={`${cardStyles.card} ${cardStyles.feature}`}>
@@ -101,12 +110,12 @@ export function DashboardPageContent({
               </div>
 
               {mostRecentDive ? (() => {
-                const depth = displayDepth(mostRecentDive.maxDepth, unitSystem);
+                const depth = displayDepth(mostRecentDive.maxDepth, isMounted ? unitSystem : 'metric');
                 const visibility = mostRecentDive.visibility != null 
-                  ? displayDistance(mostRecentDive.visibility, unitSystem)
+                  ? displayDistance(mostRecentDive.visibility, isMounted ? unitSystem : 'metric')
                   : null;
                 const waterTemp = mostRecentDive.waterTemp != null
-                  ? displayTemperature(mostRecentDive.waterTemp, unitSystem)
+                  ? displayTemperature(mostRecentDive.waterTemp, isMounted ? unitSystem : 'metric')
                   : null;
                 
                 return (
@@ -170,7 +179,7 @@ export function DashboardPageContent({
               ) : (
                 <ul className={listStyles.listCompact}>
                   {recentDives.map((dive) => {
-                    const depth = displayDepth(dive.maxDepth, unitSystem);
+                    const depth = displayDepth(dive.maxDepth, isMounted ? unitSystem : 'metric');
                     return (
                     <li key={dive.id} className={cardStyles.listItem}>
                       <div className="flex-between" style={{ gap: "var(--space-2)" }}>
@@ -253,7 +262,7 @@ export function DashboardPageContent({
           ) : (
             <ul className={listStyles.listCompact}>
               {recentPlans.map((plan) => {
-                const depth = displayDepth(plan.maxDepth, unitSystem);
+                const depth = displayDepth(plan.maxDepth, isMounted ? unitSystem : 'metric');
                 return (
                 <li key={plan.id} className={cardStyles.listItem}>
                   <div className="flex-between" style={{ gap: "var(--space-2)" }}>

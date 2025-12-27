@@ -6,6 +6,7 @@ import { useAuth } from "../hooks/useAuth";
 import AuthNav from "./AuthNav";
 import navStyles from "@/styles/components/Navigation.module.css";
 import layoutStyles from "@/styles/components/Layout.module.css";
+import buttonStyles from "@/styles/components/Button.module.css";
 
 interface AppShellProps {
   children: React.ReactNode;
@@ -31,7 +32,9 @@ export function AppShell({ children }: AppShellProps) {
       <header className={navStyles.header}>
         <nav className={navStyles.nav}>
           <Link href="/" className={navStyles.brand}>
-            <span className={navStyles.logo}>DiveIQ</span>
+            <span className={navStyles.logo}>
+              Dive<span className={navStyles.logoAccent}>IQ</span>
+            </span>
           </Link>
           <div className={navStyles.links}>
             <Link href="/" className={navStyles.link}>
@@ -44,7 +47,12 @@ export function AppShell({ children }: AppShellProps) {
               Log
             </Link>
           </div>
-          <AuthNav />
+          <div className={navStyles.rightGroup}>
+            <AuthNav />
+            <Link href="/dive-plans" className={`${buttonStyles.primaryGradient} ${navStyles.cta}`}>
+              Plan a dive
+            </Link>
+          </div>
         </nav>
       </header>
 
