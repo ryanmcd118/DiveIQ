@@ -5,6 +5,7 @@ import { generateDivePlanBriefing, generateUpdatedDivePlanBriefing } from "@/ser
 import { calculateRiskLevel } from "@/features/dive-plan/services/riskCalculator";
 import { divePlanRepository } from "@/services/database/repositories/divePlanRepository";
 import type { PlanInput } from "@/features/dive-plan/types";
+import type { UnitSystem } from "@/lib/units";
 
 /**
  * POST /api/dive-plans
@@ -26,18 +27,20 @@ export async function POST(req: NextRequest) {
       region: string;
       siteName: string;
       date: string;
-      maxDepth: number;
+      maxDepth: number; // Always in meters (canonical)
       bottomTime: number;
       experienceLevel: "Beginner" | "Intermediate" | "Advanced";
+      unitSystem?: UnitSystem; // Optional, defaults to 'metric'
     };
 
     // Calculate risk level
     const riskLevel = calculateRiskLevel(body.maxDepth, body.bottomTime);
 
-    // Generate AI structured briefing
+    // Generate AI structured briefing with unit system
     const aiBriefing = await generateDivePlanBriefing({
       ...body,
       riskLevel,
+      unitSystem: body.unitSystem || 'metric',
     });
 
     // Extract a summary for legacy aiAdvice field
@@ -95,9 +98,10 @@ export async function PUT(req: NextRequest) {
       region: string;
       siteName: string;
       date: string;
-      maxDepth: number;
+      maxDepth: number; // Always in meters (canonical)
       bottomTime: number;
       experienceLevel: "Beginner" | "Intermediate" | "Advanced";
+      unitSystem?: UnitSystem; // Optional, defaults to 'metric'
     };
 
     if (!body.id) {
@@ -110,7 +114,7 @@ export async function PUT(req: NextRequest) {
     // Calculate risk level
     const riskLevel = calculateRiskLevel(body.maxDepth, body.bottomTime);
 
-    // Generate updated AI structured briefing
+    // Generate updated AI structured briefing with unit system
     const aiBriefing = await generateUpdatedDivePlanBriefing({
       region: body.region,
       siteName: body.siteName,
@@ -119,6 +123,7 @@ export async function PUT(req: NextRequest) {
       bottomTime: body.bottomTime,
       experienceLevel: body.experienceLevel,
       riskLevel,
+      unitSystem: body.unitSystem || 'metric',
     });
 
     // Extract a summary for legacy aiAdvice field

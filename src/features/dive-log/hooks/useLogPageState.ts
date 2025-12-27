@@ -1,7 +1,10 @@
 import { FormEvent, useEffect, useState } from "react";
 import { DiveLogEntry, DiveLogInput } from "@/features/dive-log/types";
+import { useUnitSystem } from "@/contexts/UnitSystemContext";
+import { uiToMetric } from "@/lib/units";
 
 export function useLogPageState() {
+  const { unitSystem } = useUnitSystem();
   const [entries, setEntries] = useState<DiveLogEntry[]>([]);
   const [saving, setSaving] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -67,18 +70,19 @@ export function useLogPageState() {
     const form = e.currentTarget;
     const formData = new FormData(form);
 
+    // Convert UI unit values to metric for database storage
+    const maxDepthUI = formData.get("maxDepth");
+    const waterTempUI = formData.get("waterTemp");
+    const visibilityUI = formData.get("visibility");
+
     const payload: DiveLogInput = {
       date: formData.get("date") as string,
       region: (formData.get("region") as string) ?? "",
       siteName: (formData.get("siteName") as string) ?? "",
-      maxDepth: Number(formData.get("maxDepth")),
+      maxDepth: uiToMetric(maxDepthUI, unitSystem, 'depth') ?? 0,
       bottomTime: Number(formData.get("bottomTime")),
-      waterTemp: formData.get("waterTemp")
-        ? Number(formData.get("waterTemp"))
-        : null,
-      visibility: formData.get("visibility")
-        ? Number(formData.get("visibility"))
-        : null,
+      waterTemp: uiToMetric(waterTempUI, unitSystem, 'temperature'),
+      visibility: uiToMetric(visibilityUI, unitSystem, 'distance'),
       buddyName: (formData.get("buddyName") as string) || null,
       notes: (formData.get("notes") as string) || null,
     };

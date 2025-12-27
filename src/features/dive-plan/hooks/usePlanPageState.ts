@@ -1,8 +1,12 @@
 import { FormEvent, useEffect, useState, useCallback } from "react";
 import { useSession } from "next-auth/react";
 import { PastPlan, PlanData, AIBriefing, RiskLevel } from "@/features/dive-plan/types";
+import { useUnitSystemOrLocal } from "@/hooks/useUnitSystemOrLocal";
+import { uiToMetric } from "@/lib/units";
 
 export function usePlanPageState() {
+  const { unitSystem } = useUnitSystemOrLocal();
+  
   // Draft state - the current plan being worked on (not yet saved)
   const [draftPlan, setDraftPlan] = useState<PlanData | null>(null);
   const [draftRiskLevel, setDraftRiskLevel] = useState<RiskLevel | null>(null);
@@ -83,11 +87,15 @@ export function usePlanPageState() {
     setLoading(true);
 
     const formData = new FormData(e.currentTarget);
+    
+    // Convert UI unit values to metric for database storage
+    const maxDepthUI = formData.get("maxDepth");
+    
     const values: PlanData = {
       region: formData.get("region") as string,
       siteName: formData.get("siteName") as string,
       date: formData.get("date") as string,
-      maxDepth: Number(formData.get("maxDepth")),
+      maxDepth: uiToMetric(maxDepthUI, unitSystem, 'depth') ?? 0,
       bottomTime: Number(formData.get("bottomTime")),
       experienceLevel: formData.get(
         "experienceLevel"
@@ -103,7 +111,11 @@ export function usePlanPageState() {
         const res = await fetch("/api/dive-plans", {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ id: editingPlanId, ...values }),
+          body: JSON.stringify({ 
+            id: editingPlanId, 
+            ...values,
+            unitSystem, // Pass unit system to AI
+          }),
         });
 
         if (!res.ok) {
@@ -138,7 +150,10 @@ export function usePlanPageState() {
         const res = await fetch("/api/dive-plans/preview", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(values),
+          body: JSON.stringify({
+            ...values,
+            unitSystem, // Pass unit system to AI
+          }),
         });
 
         if (!res.ok) {
@@ -174,7 +189,10 @@ export function usePlanPageState() {
       const res = await fetch("/api/dive-plans", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(draftPlan),
+        body: JSON.stringify({
+          ...draftPlan,
+          unitSystem, // Pass unit system to AI
+        }),
       });
 
       if (!res.ok) {

@@ -1,6 +1,8 @@
 "use client";
 
 import { DiveLogEntry } from "@/features/dive-log/types";
+import { useUnitSystem } from "@/contexts/UnitSystemContext";
+import { displayDepth, displayTemperature, displayDistance } from "@/lib/units";
 import cardStyles from "@/styles/components/Card.module.css";
 import listStyles from "@/styles/components/List.module.css";
 import buttonStyles from "@/styles/components/Button.module.css";
@@ -12,6 +14,8 @@ type Props = {
 };
 
 function DiveLogList({ entries, onSelect, onDelete }: Props) {
+  const { unitSystem } = useUnitSystem();
+
   if (entries.length === 0) {
     return (
       <p className={listStyles.empty}>
@@ -23,7 +27,16 @@ function DiveLogList({ entries, onSelect, onDelete }: Props) {
 
   return (
     <ul className={listStyles.list}>
-      {entries.map((entry) => (
+      {entries.map((entry) => {
+        const depth = displayDepth(entry.maxDepth, unitSystem);
+        const visibility = entry.visibility != null 
+          ? displayDistance(entry.visibility, unitSystem)
+          : null;
+        const waterTemp = entry.waterTemp != null
+          ? displayTemperature(entry.waterTemp, unitSystem)
+          : null;
+
+        return (
         <li
           key={entry.id}
           className={cardStyles.listItemInteractive}
@@ -36,9 +49,9 @@ function DiveLogList({ entries, onSelect, onDelete }: Props) {
                 <span className={listStyles.diveRegion}>({entry.region})</span>
               </span>
               <p className={listStyles.diveStats}>
-                {entry.maxDepth}m · {entry.bottomTime} min
-                {entry.visibility != null && ` · ${entry.visibility}m vis`}
-                {entry.waterTemp != null && ` · ${entry.waterTemp}°C`}
+                {depth.value}{depth.unit} · {entry.bottomTime} min
+                {visibility && ` · ${visibility.value}${visibility.unit} vis`}
+                {waterTemp && ` · ${waterTemp.value}${waterTemp.unit}`}
               </p>
             </div>
 
@@ -71,7 +84,8 @@ function DiveLogList({ entries, onSelect, onDelete }: Props) {
           )}
           {entry.notes && <p className={listStyles.diveNotes}>{entry.notes}</p>}
         </li>
-      ))}
+        );
+      })}
     </ul>
   );
 }

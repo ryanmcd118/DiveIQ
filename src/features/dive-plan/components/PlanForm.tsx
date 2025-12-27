@@ -1,7 +1,9 @@
 "use client";
 
-import { FormEvent } from "react";
+import { FormEvent, useState, useEffect } from "react";
 import { PlanData } from "@/features/dive-plan/types";
+import { useUnitSystemOrLocal } from "@/hooks/useUnitSystemOrLocal";
+import { metricToUI, getUnitLabel } from "@/lib/units";
 import cardStyles from "@/styles/components/Card.module.css";
 import formStyles from "@/styles/components/Form.module.css";
 import buttonStyles from "@/styles/components/Button.module.css";
@@ -27,6 +29,52 @@ export function PlanForm({
   onCancelEdit,
   onDeletePlan,
 }: PlanFormProps) {
+  const { unitSystem } = useUnitSystemOrLocal();
+  
+  // Helper to convert metric to UI units for display
+  const metricToUIString = (metricValue: number | null | undefined) => {
+    if (metricValue == null) return "";
+    const ui = metricToUI(metricValue, unitSystem, 'depth');
+    return ui != null ? String(Math.round(ui)) : "";
+  };
+  
+  // Controlled state for unit-bearing fields (in UI units)
+  // Initialize from submittedPlan if it exists
+  const [maxDepth, setMaxDepth] = useState<string>(() => {
+    if (!submittedPlan?.maxDepth) return "";
+    const ui = metricToUI(submittedPlan.maxDepth, unitSystem, 'depth');
+    return ui != null ? String(Math.round(ui)) : "";
+  });
+  const [prevUnitSystem, setPrevUnitSystem] = useState<typeof unitSystem>(unitSystem);
+  const [prevSubmittedPlan, setPrevSubmittedPlan] = useState<PlanData | null>(submittedPlan);
+
+  // Convert metric values to UI units when plan loads or changes
+  useEffect(() => {
+    if (submittedPlan !== prevSubmittedPlan) {
+      setPrevSubmittedPlan(submittedPlan);
+      if (submittedPlan) {
+        setMaxDepth(metricToUIString(submittedPlan.maxDepth));
+      } else {
+        setMaxDepth("");
+      }
+    }
+  }, [submittedPlan, prevSubmittedPlan, unitSystem]);
+
+  // Handle unit system change - convert current values
+  useEffect(() => {
+    if (prevUnitSystem !== unitSystem) {
+      if (maxDepth) {
+        const numValue = parseFloat(maxDepth);
+        if (!isNaN(numValue)) {
+          const metric = prevUnitSystem === 'metric' ? numValue : numValue / 3.28084;
+          const newUI = unitSystem === 'metric' ? metric : metric * 3.28084;
+          setMaxDepth(String(Math.round(newUI)));
+        }
+      }
+      setPrevUnitSystem(unitSystem);
+    }
+  }, [unitSystem, prevUnitSystem, maxDepth]);
+
   return (
     <form key={formKey} onSubmit={onSubmit} className={cardStyles.cardForm}>
       <div className={formStyles.field}>
@@ -96,7 +144,7 @@ export function PlanForm({
       <div className={formStyles.formGrid}>
         <div className={formStyles.field}>
           <label htmlFor="maxDepth" className={formStyles.label}>
-            Max depth in meters
+            Max depth ({getUnitLabel('depth', unitSystem)})
           </label>
           <input
             type="number"
@@ -104,11 +152,8 @@ export function PlanForm({
             name="maxDepth"
             min={0}
             required
-            defaultValue={
-              submittedPlan?.maxDepth != null
-                ? String(submittedPlan.maxDepth)
-                : ""
-            }
+            value={maxDepth}
+            onChange={(e) => setMaxDepth(e.target.value)}
             className={formStyles.input}
           />
         </div>
