@@ -21,22 +21,17 @@ export function AppShell({ children }: AppShellProps) {
   // render children directly (PublicHomePage has its own nav)
   const isHomePage = pathname === "/";
   const isAuthPage = pathname === "/signin" || pathname === "/signup";
-  const isSignInPage = pathname === "/signin";
   const showPublicHome = isHomePage && !isAuthenticated && !isLoading;
-  const showPublicNav = isAuthPage && !isAuthenticated && !isLoading;
+  const showAuthPages = isAuthPage && !isAuthenticated && !isLoading;
 
   if (showPublicHome) {
     return <>{children}</>;
   }
 
-  // For signin/signup pages when not authenticated, show public navbar
-  if (showPublicNav) {
-    return (
-      <>
-        <PublicNavbar variant={isSignInPage ? "minimal" : "default"} />
-        {children}
-      </>
-    );
+  // For signin/signup pages when not authenticated, 
+  // the auth layout handles the navbar, so just render children
+  if (showAuthPages) {
+    return <>{children}</>;
   }
 
   // For all other pages, or authenticated users, show the app shell

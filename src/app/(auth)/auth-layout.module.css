@@ -1,0 +1,98 @@
+/* Disable document scrolling for auth pages only */
+:global(html), :global(body) {
+  height: 100%;
+  overflow: hidden;
+}
+
+.container {
+  position: relative;
+  height: 100dvh;
+  width: 100%;
+  overflow: hidden;
+  background-image: url("/signin-background.jpg");
+  background-size: cover;
+  background-position: center right;
+  background-repeat: no-repeat;
+}
+
+/* Very light overlay with minimal vignette for crisp, colorful background */
+.container::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(1200px 700px at 50% 45%, rgba(0, 0, 0, 0.02) 0%, rgba(0, 0, 0, 0.12) 70%, rgba(0, 0, 0, 0.25) 100%),
+    linear-gradient(180deg, rgba(5, 15, 25, 0.15) 0%, rgba(5, 15, 25, 0.20) 100%);
+  z-index: 0;
+}
+
+.section {
+  position: fixed;
+  inset: var(--nav-height) 0 0 0;
+  display: grid;
+  place-items: center;
+  max-width: var(--max-width-page);
+  width: 100%;
+  margin: 0 auto;
+  padding: var(--space-6);
+  z-index: 1; /* Ensure content is above overlay */
+  /* Optical vertical centering - shift slightly upward */
+  transform: translateY(-1vh);
+}
+
+.section > div {
+  width: 100%;
+  max-width: 28rem; /* Constrain form card width */
+  position: relative;
+  z-index: 1; /* Ensure form card is above overlay */
+}
+
+/* Enhance form card visibility and premium feel */
+.section > div :global(.elevatedForm) {
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  /* Reduced opacity to let more background show through (from 0.95 to 0.70) */
+  background: rgba(15, 23, 42, 0.70);
+}
+
+@media (min-width: 768px) {
+  .section {
+    padding: var(--space-8);
+    transform: translateY(-2vh);
+  }
+}
+
+/* Improve input contrast and readability on auth pages */
+.section > div :global(.elevatedForm) :global(input[type="email"]),
+.section > div :global(.elevatedForm) :global(input[type="password"]),
+.section > div :global(.elevatedForm) :global(input[type="text"]) {
+  background: rgba(2, 6, 23, 0.75);
+  border-color: rgba(51, 65, 85, 0.75);
+}
+
+.section > div :global(.elevatedForm) :global(input[type="email"]:focus),
+.section > div :global(.elevatedForm) :global(input[type="password"]:focus),
+.section > div :global(.elevatedForm) :global(input[type="text"]:focus) {
+  border-color: var(--color-accent-primary);
+  box-shadow: 0 0 0 3px rgba(6, 182, 212, 0.2);
+}
+
+/* Shared header styling for auth pages */
+.header {
+  text-align: center;
+  margin-bottom: var(--space-8);
+}
+
+.title {
+  font-size: var(--font-size-2xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-primary);
+  margin-bottom: var(--space-2);
+}
+
+.subtitle {
+  font-size: var(--font-size-base);
+  color: var(--color-text-secondary);
+  margin: 0;
+}
+
