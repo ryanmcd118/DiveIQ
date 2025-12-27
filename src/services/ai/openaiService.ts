@@ -1,7 +1,12 @@
 import OpenAI from "openai";
 import type { AIBriefing, RiskLevel } from "@/features/dive-plan/types";
 import type { UnitSystem } from "@/lib/units";
-import { mToFt, cToF } from "@/lib/units";
+import {
+  mToFt,
+  cToF,
+  parseTemperatureString,
+  parseDistanceString,
+} from "@/lib/units";
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -209,10 +214,19 @@ function parseAIBriefing(content: string): AIBriefing {
       waterTemp: {
         value: parsed.quickLook?.waterTemp?.value || "Data unavailable",
         sourceTag: parsed.quickLook?.waterTemp?.sourceTag || "Inferred",
+        // Parse numeric values from the string (convert to canonical Celsius)
+        numericValue: parsed.quickLook?.waterTemp?.value
+          ? parseTemperatureString(parsed.quickLook.waterTemp.value) ||
+            undefined
+          : undefined,
       },
       visibility: {
         value: parsed.quickLook?.visibility?.value || "Data unavailable",
         sourceTag: parsed.quickLook?.visibility?.sourceTag || "Inferred",
+        // Parse numeric values from the string (convert to canonical meters)
+        numericValue: parsed.quickLook?.visibility?.value
+          ? parseDistanceString(parsed.quickLook.visibility.value) || undefined
+          : undefined,
       },
       seaStateWind: {
         value:
@@ -281,10 +295,12 @@ function getFallbackBriefing(plan: DivePlanAnalysisRequest): AIBriefing {
       waterTemp: {
         value: "Check local sources",
         sourceTag: "Inferred",
+        numericValue: undefined, // No numeric data available
       },
       visibility: {
         value: "Variable",
         sourceTag: "Inferred",
+        numericValue: undefined, // No numeric data available
       },
       seaStateWind: {
         value: "Check local forecast",

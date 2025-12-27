@@ -183,3 +183,161 @@ export function getUnitLabel(
   }
 }
 
+// === Parsing utilities for AI response strings ===
+
+/**
+ * Parse a temperature string (e.g., "24-26°C" or "78-82°F") and return canonical Celsius values
+ * Returns null if parsing fails
+ */
+export function parseTemperatureString(
+  tempString: string
+): { min: number; max: number } | null {
+  if (!tempString || typeof tempString !== 'string') return null;
+
+  // Remove whitespace
+  const cleaned = tempString.trim();
+
+  // Check if it's Fahrenheit (contains °F or F)
+  const isFahrenheit = /°?F\b/i.test(cleaned);
+  // Check if it's Celsius (contains °C or C, but not if it's part of a word)
+  const isCelsius = /°?C\b/i.test(cleaned) && !isFahrenheit;
+
+  // Extract numbers (supports ranges like "24-26" or single values like "25")
+  const numberMatch = cleaned.match(/(\d+(?:\.\d+)?)\s*[-–—]\s*(\d+(?:\.\d+)?)/);
+  if (numberMatch) {
+    const min = parseFloat(numberMatch[1]);
+    const max = parseFloat(numberMatch[2]);
+    if (!isNaN(min) && !isNaN(max)) {
+      // Convert to Celsius if needed
+      if (isFahrenheit) {
+        return { min: fToC(min), max: fToC(max) };
+      }
+      // Assume Celsius if no unit or explicit Celsius
+      return { min, max };
+    }
+  }
+
+  // Try single number
+  const singleMatch = cleaned.match(/(\d+(?:\.\d+)?)/);
+  if (singleMatch) {
+    const value = parseFloat(singleMatch[1]);
+    if (!isNaN(value)) {
+      if (isFahrenheit) {
+        const celsius = fToC(value);
+        return { min: celsius, max: celsius };
+      }
+      return { min: value, max: value };
+    }
+  }
+
+  return null;
+}
+
+/**
+ * Parse a distance/depth string (e.g., "15-25m" or "50-100ft") and return canonical meters
+ * Returns null if parsing fails
+ */
+export function parseDistanceString(
+  distanceString: string
+): { min: number; max: number } | null {
+  if (!distanceString || typeof distanceString !== 'string') return null;
+
+  // Remove whitespace
+  const cleaned = distanceString.trim();
+
+  // Check if it's feet (contains ft or feet)
+  const isFeet = /\b(ft|feet)\b/i.test(cleaned);
+  // Check if it's meters (contains m, but not if it's part of "ft" or other words)
+  const isMeters = /\bm\b/i.test(cleaned) && !isFeet;
+
+  // Extract numbers (supports ranges like "15-25" or single values like "20")
+  const numberMatch = cleaned.match(/(\d+(?:\.\d+)?)\s*[-–—]\s*(\d+(?:\.\d+)?)/);
+  if (numberMatch) {
+    const min = parseFloat(numberMatch[1]);
+    const max = parseFloat(numberMatch[2]);
+    if (!isNaN(min) && !isNaN(max)) {
+      // Convert to meters if needed
+      if (isFeet) {
+        return { min: ftToM(min), max: ftToM(max) };
+      }
+      // Assume meters if no unit or explicit meters
+      return { min, max };
+    }
+  }
+
+  // Try single number
+  const singleMatch = cleaned.match(/(\d+(?:\.\d+)?)/);
+  if (singleMatch) {
+    const value = parseFloat(singleMatch[1]);
+    if (!isNaN(value)) {
+      if (isFeet) {
+        const meters = ftToM(value);
+        return { min: meters, max: meters };
+      }
+      return { min: value, max: value };
+    }
+  }
+
+  return null;
+}
+
+/**
+ * Format a temperature range for display
+ * @param range - Temperature range in Celsius (canonical)
+ * @param unitSystem - Target unit system
+ * @returns Formatted string like "24-26°C" or "78-82°F"
+ */
+export function formatTemperatureRange(
+  range: { min: number; max: number } | null,
+  unitSystem: UnitSystem
+): string {
+  if (!range) return 'Data unavailable';
+
+  if (unitSystem === 'imperial') {
+    const minF = Math.round(cToF(range.min));
+    const maxF = Math.round(cToF(range.max));
+    if (minF === maxF) {
+      return `${minF}°F`;
+    }
+    return `${minF}-${maxF}°F`;
+  }
+
+  // Metric
+  const minC = Math.round(range.min);
+  const maxC = Math.round(range.max);
+  if (minC === maxC) {
+    return `${minC}°C`;
+  }
+  return `${minC}-${maxC}°C`;
+}
+
+/**
+ * Format a distance/visibility range for display
+ * @param range - Distance range in meters (canonical)
+ * @param unitSystem - Target unit system
+ * @returns Formatted string like "15-25m" or "50-100ft"
+ */
+export function formatDistanceRange(
+  range: { min: number; max: number } | null,
+  unitSystem: UnitSystem
+): string {
+  if (!range) return 'Data unavailable';
+
+  if (unitSystem === 'imperial') {
+    const minFt = Math.round(mToFt(range.min));
+    const maxFt = Math.round(mToFt(range.max));
+    if (minFt === maxFt) {
+      return `${minFt}ft`;
+    }
+    return `${minFt}-${maxFt}ft`;
+  }
+
+  // Metric
+  const minM = Math.round(range.min);
+  const maxM = Math.round(range.max);
+  if (minM === maxM) {
+    return `${minM}m`;
+  }
+  return `${minM}-${maxM}m`;
+}
+

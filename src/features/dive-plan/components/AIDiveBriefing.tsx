@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import type { AIBriefing, SourceTag } from "../types";
+import { useUnitSystemOrLocal } from "@/hooks/useUnitSystemOrLocal";
+import { formatTemperatureRange, formatDistanceRange } from "@/lib/units";
 import styles from "./AIDiveBriefing.module.css";
 
 type AIDiveBriefingProps = {
@@ -107,6 +109,17 @@ function BriefingSkeleton({ compact, scrollable }: { compact?: boolean; scrollab
 
 // Quick Look Chips
 function QuickLookChips({ quickLook }: { quickLook: AIBriefing["quickLook"] }) {
+  const { unitSystem } = useUnitSystemOrLocal();
+
+  // Format temperature and visibility using canonical numeric values if available
+  const waterTempDisplay = quickLook.waterTemp.numericValue
+    ? formatTemperatureRange(quickLook.waterTemp.numericValue, unitSystem)
+    : quickLook.waterTemp.value; // Fallback to original string if no numeric value
+
+  const visibilityDisplay = quickLook.visibility.numericValue
+    ? formatDistanceRange(quickLook.visibility.numericValue, unitSystem)
+    : quickLook.visibility.value; // Fallback to original string if no numeric value
+
   return (
     <div className={styles.quickLookContainer}>
       {/* Difficulty */}
@@ -128,7 +141,7 @@ function QuickLookChips({ quickLook }: { quickLook: AIBriefing["quickLook"] }) {
       <div className={styles.chip}>
         <span className={styles.chipLabel}>Water Temp</span>
         <span className={styles.chipValue}>
-          {quickLook.waterTemp.value}
+          {waterTempDisplay}
           {quickLook.waterTemp.sourceTag && (
             <SourceTagBadge tag={quickLook.waterTemp.sourceTag} />
           )}
@@ -139,7 +152,7 @@ function QuickLookChips({ quickLook }: { quickLook: AIBriefing["quickLook"] }) {
       <div className={styles.chip}>
         <span className={styles.chipLabel}>Visibility</span>
         <span className={styles.chipValue}>
-          {quickLook.visibility.value}
+          {visibilityDisplay}
           {quickLook.visibility.sourceTag && (
             <SourceTagBadge tag={quickLook.visibility.sourceTag} />
           )}

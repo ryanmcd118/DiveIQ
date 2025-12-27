@@ -41,9 +41,14 @@ export type SourceTag = "Forecast" | "Seasonal" | "Inferred";
 export type ConfidenceLevel = "High" | "Medium" | "Low";
 
 export type QuickLookItem = {
-  value: string;
+  value: string; // Original display string from AI (for fallback/narrative)
   reason?: string;
   sourceTag?: SourceTag;
+  // Canonical numeric values (in metric) for unit-aware formatting
+  numericValue?: {
+    min: number;
+    max: number;
+  };
 };
 
 export type QuickLook = {
