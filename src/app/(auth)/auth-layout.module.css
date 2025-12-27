@@ -1,29 +1,26 @@
-/* Disable document scrolling for auth pages only */
-:global(html), :global(body) {
-  height: 100%;
-  overflow: hidden;
-}
-
 .container {
   position: relative;
   height: 100dvh;
   width: 100%;
   overflow: hidden;
-  background-image: url("/signin-background.jpg");
-  background-size: cover;
-  background-position: center right;
-  background-repeat: no-repeat;
+}
+
+/* Background image - Next.js Image component with fill */
+.backgroundImage {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
 }
 
 /* Very light overlay with minimal vignette for crisp, colorful background */
-.container::before {
-  content: "";
+.overlay {
   position: absolute;
   inset: 0;
   background:
     radial-gradient(1200px 700px at 50% 45%, rgba(0, 0, 0, 0.02) 0%, rgba(0, 0, 0, 0.12) 70%, rgba(0, 0, 0, 0.25) 100%),
     linear-gradient(180deg, rgba(5, 15, 25, 0.15) 0%, rgba(5, 15, 25, 0.20) 100%);
-  z-index: 0;
+  z-index: 1;
+  pointer-events: none;
 }
 
 .section {
@@ -35,7 +32,7 @@
   width: 100%;
   margin: 0 auto;
   padding: var(--space-6);
-  z-index: 1; /* Ensure content is above overlay */
+  z-index: 2; /* Ensure content is above overlay and image */
   /* Optical vertical centering - shift slightly upward */
   transform: translateY(-1vh);
 }
