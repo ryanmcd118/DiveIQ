@@ -7,7 +7,8 @@
   justify-content: center;
   min-height: 100vh;
   padding: var(--space-6);
-  background-color: var(--color-bg-primary);
+  /* Background handled by Background.module.css gradient classes */
+  /* Fallback for pages without gradient: body background from globals.css */
   color: var(--color-text-primary);
 }
 

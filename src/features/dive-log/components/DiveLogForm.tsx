@@ -115,12 +115,12 @@ export function DiveLogForm({
   };
 
   return (
-    <form
-      key={formKey}
-      onSubmit={handleSubmit}
-      className={cardStyles.cardForm}
-      style={{ marginTop: "var(--space-4)", padding: "var(--space-6)" }}
-    >
+    <div className={cardStyles.elevatedForm} style={{ marginTop: "var(--space-4)" }}>
+      <form
+        key={formKey}
+        onSubmit={handleSubmit}
+        className={formStyles.form}
+      >
       <div className={formStyles.field}>
         <label htmlFor="date" className={formStyles.label}>
           Date
@@ -262,7 +262,7 @@ export function DiveLogForm({
         <button
           type="submit"
           disabled={saving}
-          className={buttonStyles.primary}
+          className={buttonStyles.primaryGradient}
         >
           {saving
             ? "Saving…"
@@ -298,6 +298,7 @@ export function DiveLogForm({
           </>
         )}
       </div>
-    </form>
+      </form>
+    </div>
   );
 }

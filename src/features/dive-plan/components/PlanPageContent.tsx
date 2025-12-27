@@ -10,6 +10,7 @@ import { SaveDivePlanButton } from "./SaveDivePlanButton";
 import { AuthModal } from "@/features/auth/components/AuthModal";
 import layoutStyles from "@/styles/components/Layout.module.css";
 import gridStyles from "@/styles/components/PageGrid.module.css";
+import backgroundStyles from "@/styles/components/Background.module.css";
 
 export function PlanPageContent() {
   const router = useRouter();
@@ -69,7 +70,7 @@ export function PlanPageContent() {
   // Show a loading skeleton while session is being determined
   if (isSessionLoading) {
     return (
-      <main className={layoutStyles.page}>
+      <main className={`${layoutStyles.page} ${backgroundStyles.pageGradientSubtle}`}>
         <div className={gridStyles.planPageContainer}>
           <header className={gridStyles.planPageHeader}>
             <h1 className={layoutStyles.pageTitle}>Dive Plan</h1>
@@ -83,7 +84,7 @@ export function PlanPageContent() {
   }
 
   return (
-    <main className={layoutStyles.page}>
+    <main className={`${layoutStyles.page} ${backgroundStyles.pageGradientSubtle}`}>
       <div className={gridStyles.planPageContainer}>
         {/* Top zone: Page header */}
         <header className={gridStyles.planPageHeader}>

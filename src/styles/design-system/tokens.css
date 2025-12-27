@@ -16,6 +16,10 @@
   --color-surface: rgba(15, 23, 42, 0.7);
   --color-surface-hover: rgba(15, 23, 42, 0.9);
   --color-surface-alt: rgba(2, 6, 23, 0.4);
+  --color-surface-feature: rgba(15, 23, 42, 0.6);  /* Feature cards */
+  --color-surface-form: rgba(15, 23, 42, 0.8);     /* Form/elevated cards */
+  --color-surface-input: rgba(2, 6, 23, 0.6);       /* Form inputs */
+  --color-surface-navbar: rgba(10, 22, 40, 0.85);   /* Navbar with backdrop */
   
   /* Text */
   --color-text-primary: #f1f5f9;      /* slate-100 */
@@ -28,6 +32,10 @@
   --color-border-default: #1e293b;    /* slate-800 */
   --color-border-hover: #334155;      /* slate-700 */
   --color-border-focus: #475569;      /* slate-600 */
+  --color-border-card: rgba(51, 65, 85, 0.5);        /* Card borders */
+  --color-border-card-hover: rgba(6, 182, 212, 0.3); /* Card hover accent */
+  --color-border-input: rgba(51, 65, 85, 0.6);      /* Input borders */
+  --color-border-navbar: rgba(6, 182, 212, 0.1);     /* Navbar bottom border */
   
   /* Brand/Accent (Cyan) */
   --color-accent-primary: #06b6d4;    /* cyan-500 */
@@ -58,6 +66,12 @@
   --space-10: 2.5rem;   /* 40px */
   --space-12: 3rem;     /* 48px */
   
+  /* Layout constraints */
+  --max-width-page: 80rem;        /* 1280px */
+  --max-width-narrow: 48rem;      /* 768px */
+  --section-padding-mobile: var(--space-12) var(--space-6);
+  --section-padding-desktop: 5rem var(--space-8);
+  
   /* === BORDER RADIUS === */
   --radius-sm: 0.375rem;    /* 6px */
   --radius-md: 0.5rem;      /* 8px */
@@ -70,6 +84,67 @@
   --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
   --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
   --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+  
+  /* Glow shadows (cyan accent) */
+  --glow-primary: 0 0 20px rgba(6, 182, 212, 0.3);
+  --glow-primary-hover: 0 4px 24px rgba(6, 182, 212, 0.4);
+  --glow-hero-cta: 0 0 30px rgba(6, 182, 212, 0.35);
+  --glow-hero-cta-hover: 0 8px 40px rgba(6, 182, 212, 0.5);
+  --glow-planner-button: 0 4px 24px rgba(6, 182, 212, 0.3);
+  --glow-planner-button-hover: 0 8px 32px rgba(6, 182, 212, 0.45);
+  
+  /* === GRADIENTS === */
+  /* Page background gradient */
+  --gradient-bg-page: linear-gradient(
+    180deg,
+    #0a1628 0%,
+    #061220 25%,
+    #040e18 50%,
+    #051118 75%,
+    #071a22 100%
+  );
+  
+  /* Button gradient (primary CTA) */
+  --gradient-button-primary: linear-gradient(
+    135deg,
+    var(--color-accent-light) 0%,
+    var(--color-accent-primary) 100%
+  );
+  
+  /* Button text color on gradient */
+  --color-button-gradient-text: #0a1628;
+  
+  /* Brand divider gradient */
+  --gradient-divider: linear-gradient(
+    90deg,
+    transparent,
+    var(--color-accent-primary),
+    transparent
+  );
+  
+  /* Placeholder shimmer gradient */
+  --gradient-shimmer: linear-gradient(
+    45deg,
+    transparent 45%,
+    rgba(6, 182, 212, 0.05) 50%,
+    transparent 55%
+  );
+  
+  /* Hero image overlay (vignette) */
+  --gradient-vignette: linear-gradient(
+    180deg,
+    transparent 0%,
+    transparent 40%,
+    rgba(5, 10, 20, 0.125) 60%,
+    rgba(5, 10, 20, 0.275) 100%
+  );
+  
+  /* Placeholder background gradient */
+  --gradient-placeholder: linear-gradient(
+    135deg,
+    rgba(6, 182, 212, 0.12) 0%,
+    rgba(6, 182, 212, 0.04) 100%
+  );
   
   /* === TYPOGRAPHY === */
   --font-sans: system-ui, -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", sans-serif;

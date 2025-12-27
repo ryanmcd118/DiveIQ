@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import styles from "./PublicHomePage.module.css";
+import buttonStyles from "@/styles/components/Button.module.css";
 
 export function PublicNavbar() {
   return (
@@ -18,7 +19,7 @@ export function PublicNavbar() {
           <Link href="/signup" className={styles.navLink}>
             Create account
           </Link>
-          <Link href="/dive-plans" className={styles.navCta}>
+          <Link href="/dive-plans" className={`${buttonStyles.primaryGradient} ${styles.navCta}`}>
             Start a Dive Plan →
           </Link>
         </div>

@@ -9,6 +9,7 @@ import cardStyles from "@/styles/components/Card.module.css";
 import buttonStyles from "@/styles/components/Button.module.css";
 import navStyles from "@/styles/components/Navigation.module.css";
 import listStyles from "@/styles/components/List.module.css";
+import backgroundStyles from "@/styles/components/Background.module.css";
 
 type Props = {
   recentDives: DiveLog[];
@@ -33,8 +34,8 @@ export function DashboardPageContent({
   const deepestDiveDisplay = displayDepth(deepestDive, unitSystem);
 
   return (
-    <main className={layoutStyles.page}>
-      <div className={layoutStyles.pageContent}>
+    <main className={`${layoutStyles.page} ${backgroundStyles.pageGradientSubtle}`}>
+        <div className={layoutStyles.pageContent}>
         {/* Header */}
         <header className={layoutStyles.pageHeader}>
           <div>
@@ -45,10 +46,10 @@ export function DashboardPageContent({
             </p>
           </div>
           <div className={layoutStyles.headerActions}>
-            <Link href="/dive-plans" className={buttonStyles.primary}>
+            <Link href="/dive-plans" className={buttonStyles.primaryGradient}>
               Plan a dive
             </Link>
-            <Link href="/dive-logs" className={buttonStyles.secondary}>
+            <Link href="/dive-logs" className={buttonStyles.secondaryText}>
               Log a dive
             </Link>
           </div>
@@ -56,7 +57,7 @@ export function DashboardPageContent({
 
         {/* Stats row */}
         <section className={layoutStyles.statsGrid}>
-          <div className={cardStyles.stat}>
+          <div className={`${cardStyles.stat} ${cardStyles.feature}`}>
             <p className={cardStyles.statLabel}>Total dives</p>
             <p className={cardStyles.statValue}>{totalCount}</p>
             <p className={cardStyles.statDescription}>
@@ -64,7 +65,7 @@ export function DashboardPageContent({
             </p>
           </div>
 
-          <div className={cardStyles.stat}>
+          <div className={`${cardStyles.stat} ${cardStyles.feature}`}>
             <p className={cardStyles.statLabel}>Total bottom time</p>
             <p className={cardStyles.statValue}>
               {totalBottomTime}
@@ -75,7 +76,7 @@ export function DashboardPageContent({
             </p>
           </div>
 
-          <div className={cardStyles.stat}>
+          <div className={`${cardStyles.stat} ${cardStyles.feature}`}>
             <p className={cardStyles.statLabel}>Deepest dive</p>
             <p className={cardStyles.statValue}>
               {deepestDiveDisplay.value}
@@ -91,7 +92,7 @@ export function DashboardPageContent({
         <section className={layoutStyles.dashboardGrid}>
           {/* Left: most recent dive + recent dives */}
           <div className={layoutStyles.section}>
-            <div className={cardStyles.card}>
+            <div className={`${cardStyles.card} ${cardStyles.feature}`}>
               <div className={cardStyles.header}>
                 <h2 className={cardStyles.title}>Most recent dive</h2>
                 <Link href="/dive-logs" className={navStyles.linkAccentSmall}>
@@ -158,7 +159,7 @@ export function DashboardPageContent({
               )}
             </div>
 
-            <div className={cardStyles.card}>
+            <div className={`${cardStyles.card} ${cardStyles.feature}`}>
               <h2 className={cardStyles.titleWithMargin}>Recent dives</h2>
               {recentDives.length === 0 ? (
                 <p className={listStyles.empty}>
@@ -199,7 +200,7 @@ export function DashboardPageContent({
 
           {/* Right: planning + gear */}
           <div className={layoutStyles.section}>
-            <div className={cardStyles.card}>
+            <div className={`${cardStyles.card} ${cardStyles.feature}`}>
               <h2 className={cardStyles.titleWithMargin}>Planning shortcuts</h2>
               <p className={listStyles.empty} style={{ marginBottom: "var(--space-3)" }}>
                 Jump straight into planning your next dive.
@@ -218,7 +219,7 @@ export function DashboardPageContent({
               </div>
             </div>
 
-            <div className={cardStyles.card}>
+            <div className={`${cardStyles.card} ${cardStyles.feature}`}>
               <h2 className={cardStyles.titleWithMargin}>
                 Gear & certifications
               </h2>
@@ -235,7 +236,7 @@ export function DashboardPageContent({
         </section>
 
         {/* Recent planned dives */}
-        <section className={cardStyles.card}>
+        <section className={`${cardStyles.card} ${cardStyles.feature}`}>
           <div className={cardStyles.header}>
             <h2 className={cardStyles.title}>Recent planned dives</h2>
             <Link href="/dive-plans" className={navStyles.linkAccentSmall}>
