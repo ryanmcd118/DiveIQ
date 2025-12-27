@@ -1,6 +1,7 @@
 # Phase 2 Implementation Summary: Visual Unification
 
 ## Overview
+
 Successfully applied the logged-out homepage design system to all logged-in pages (Dashboard, Plan, Log) while preserving all business logic. The app now has a unified visual identity across both public and authenticated experiences.
 
 ---
@@ -8,6 +9,7 @@ Successfully applied the logged-out homepage design system to all logged-in page
 ## 1. Files Changed
 
 ### Design System & Tokens
+
 - **`src/styles/design-system/tokens.css`**
   - Added gradient tokens: `--gradient-bg-page`, `--gradient-button-primary`, `--gradient-divider`, `--gradient-shimmer`, `--gradient-vignette`, `--gradient-placeholder`
   - Added glow shadow tokens: `--glow-primary`, `--glow-primary-hover`, `--glow-hero-cta`, `--glow-hero-cta-hover`, `--glow-planner-button`, `--glow-planner-button-hover`
@@ -17,6 +19,7 @@ Successfully applied the logged-out homepage design system to all logged-in page
   - Added layout constraints: `--max-width-page`, `--max-width-narrow`, `--section-padding-mobile`, `--section-padding-desktop`
 
 ### Shared Component Styles
+
 - **`src/styles/components/Button.module.css`**
   - Added `.primaryGradient` - Gradient cyan CTA button (homepage style)
   - Added `.secondaryText` - Text link secondary button (homepage style)
@@ -42,6 +45,7 @@ Successfully applied the logged-out homepage design system to all logged-in page
   - Added `.placeholderShimmer` - Animated shimmer effect
 
 ### Homepage Components (Refactored to use shared styles)
+
 - **`src/features/public-home/components/PublicHomePage.tsx`**
   - Updated to use `Background.module.css` for page gradient
 
@@ -67,6 +71,7 @@ Successfully applied the logged-out homepage design system to all logged-in page
   - Kept homepage-specific layout styles (hero grid, section spacing, etc.)
 
 ### Logged-In Pages
+
 - **`src/features/dashboard/components/DashboardPageContent.tsx`**
   - Added gradient background (`pageGradientSubtle`)
   - Updated header CTAs to use `Button.primaryGradient` and `Button.secondaryText`
@@ -92,6 +97,7 @@ Successfully applied the logged-out homepage design system to all logged-in page
 ## 2. New Shared Classes/Variants Added
 
 ### Button.module.css
+
 - **`.primaryGradient`**
   - Gradient cyan button with glow shadow
   - Used for primary CTAs (Plan a dive, Log a dive, Submit, etc.)
@@ -104,6 +110,7 @@ Successfully applied the logged-out homepage design system to all logged-in page
   - Hover: cyan accent color
 
 ### Card.module.css
+
 - **`.feature`**
   - Semi-transparent dark background
   - Subtle border with cyan accent on hover
@@ -115,6 +122,7 @@ Successfully applied the logged-out homepage design system to all logged-in page
   - Used for planner forms, log forms, elevated content panels
 
 ### Background.module.css
+
 - **`.pageGradient`**
   - Full homepage gradient (5-stop dark blue gradient)
 
@@ -132,27 +140,32 @@ Successfully applied the logged-out homepage design system to all logged-in page
 ## 3. Design System Unification
 
 ### Colors
+
 - ✅ All pages now use the same dark slate background palette
 - ✅ Cyan accent color (`#06b6d4`) used consistently for CTAs and highlights
 - ✅ Text hierarchy (primary/muted/tertiary) consistent across pages
 
 ### Typography
+
 - ✅ Same font scale and weights throughout
 - ✅ Headline sizes and letter spacing consistent
 - ✅ Body text line heights aligned
 
 ### Spacing & Layout
+
 - ✅ Same max-width constraints (1280px)
 - ✅ Consistent section padding patterns
 - ✅ Grid gaps and card spacing unified
 
 ### Interactive Elements
+
 - ✅ Buttons: Gradient primary CTAs match homepage
 - ✅ Cards: Hover lift and border accent effects consistent
 - ✅ Forms: Input styling matches homepage planner stub
 - ✅ Focus states: Cyan glow rings consistent
 
 ### Backgrounds
+
 - ✅ Logged-in pages use subtle gradient variant
 - ✅ Navbar uses backdrop blur matching public navbar
 - ✅ Cards use semi-transparent surfaces with consistent opacity
@@ -162,13 +175,16 @@ Successfully applied the logged-out homepage design system to all logged-in page
 ## 4. Before/After Descriptions
 
 ### Dashboard
+
 **Before:**
+
 - Flat dark background
 - Simple stat cards with basic borders
 - Standard primary/secondary buttons
 - No gradient or glow effects
 
 **After:**
+
 - Subtle gradient background (cohesive with homepage)
 - Feature-style cards with hover lift and cyan border accent
 - Gradient primary CTAs with glow shadows
@@ -176,13 +192,16 @@ Successfully applied the logged-out homepage design system to all logged-in page
 - Unified spacing and typography
 
 ### Plan Page
+
 **Before:**
+
 - Flat dark background
 - Standard form card styling
 - Basic input fields
 - Standard primary button
 
 **After:**
+
 - Subtle gradient background
 - Elevated form card with stronger shadow
 - Darker input backgrounds matching homepage planner
@@ -190,13 +209,16 @@ Successfully applied the logged-out homepage design system to all logged-in page
 - Gradient primary submit button
 
 ### Log Page
+
 **Before:**
+
 - Flat dark background
 - Standard form card styling
 - Basic input fields
 - Standard primary button
 
 **After:**
+
 - Subtle gradient background
 - Elevated form card with stronger shadow
 - Darker input backgrounds matching homepage planner
@@ -205,12 +227,15 @@ Successfully applied the logged-out homepage design system to all logged-in page
 - Updated sign-in prompt buttons
 
 ### Navigation
+
 **Before:**
+
 - Solid dark background
 - Simple border
 - Basic link hover states
 
 **After:**
+
 - Backdrop blur effect (matches public navbar)
 - Semi-transparent background
 - Subtle cyan border bottom
@@ -232,18 +257,21 @@ Successfully applied the logged-out homepage design system to all logged-in page
 ## 6. Technical Notes
 
 ### Styling Architecture
+
 - **CSS Modules** remain the primary styling method
 - **Design tokens** centralized in `tokens.css` for single source of truth
 - **Shared component styles** extracted for reusability
 - **Homepage-specific layouts** remain in `PublicHomePage.module.css`
 
 ### Backward Compatibility
+
 - All existing functionality preserved
 - Component APIs unchanged
 - No breaking changes to props or interfaces
 - TypeScript types remain the same
 
 ### Performance
+
 - No additional runtime overhead
 - CSS Modules provide scoped styling
 - Design tokens use CSS custom properties (efficient)
