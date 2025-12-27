@@ -3,6 +3,7 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import SessionProvider from "@/features/auth/components/SessionProvider";
 import { AppShell } from "@/features/auth/components/AppShell";
+import { UnitSystemProvider } from "@/contexts/UnitSystemContext";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -21,7 +22,9 @@ export default function RootLayout({
     <html lang="en">
       <body className={inter.className}>
         <SessionProvider>
-          <AppShell>{children}</AppShell>
+          <UnitSystemProvider>
+            <AppShell>{children}</AppShell>
+          </UnitSystemProvider>
         </SessionProvider>
       </body>
     </html>

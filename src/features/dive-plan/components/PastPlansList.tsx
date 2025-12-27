@@ -1,6 +1,8 @@
 "use client";
 
 import { PastPlan } from "@/features/dive-plan/types";
+import { useUnitSystem } from "@/contexts/UnitSystemContext";
+import { displayDepth } from "@/lib/units";
 import cardStyles from "@/styles/components/Card.module.css";
 import listStyles from "@/styles/components/List.module.css";
 import buttonStyles from "@/styles/components/Button.module.css";
@@ -20,6 +22,8 @@ export function PastPlansList({
   onSelectPlan,
   onDeletePlan,
 }: PastPlansListProps) {
+  const { unitSystem } = useUnitSystem();
+  
   return (
     <div className={cardStyles.cardCompact}>
       <div className={cardStyles.header}>
@@ -70,7 +74,10 @@ export function PastPlansList({
               </div>
 
               <p className={listStyles.planStats}>
-                {plan.maxDepth}m · {plan.bottomTime}min ·{" "}
+                {(() => {
+                  const depth = displayDepth(plan.maxDepth, unitSystem);
+                  return `${depth.value}${depth.unit} · ${plan.bottomTime}min · `;
+                })()}
                 <span style={{ textTransform: "capitalize" }}>
                   {plan.experienceLevel}
                 </span>

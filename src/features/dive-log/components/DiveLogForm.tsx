@@ -1,7 +1,10 @@
 "use client";
 
-import { FormEvent } from "react";
+import { FormEvent, useState, useEffect } from "react";
 import { DiveLogEntry } from "@/features/dive-log/types";
+import { useUnitSystem } from "@/contexts/UnitSystemContext";
+import { metricToUI, getUnitLabel } from "@/lib/units";
+import { UnitToggle } from "@/components/UnitToggle";
 import cardStyles from "@/styles/components/Card.module.css";
 import formStyles from "@/styles/components/Form.module.css";
 import buttonStyles from "@/styles/components/Button.module.css";
@@ -27,13 +30,102 @@ export function DiveLogForm({
   onCancelEdit,
   onDeleteFromForm,
 }: DiveLogFormProps) {
+  const { unitSystem } = useUnitSystem();
+  
+  // Helper to convert metric to UI units for display
+  const metricToUIString = (metricValue: number | null | undefined, type: 'depth' | 'temperature' | 'distance') => {
+    if (metricValue == null) return "";
+    const ui = metricToUI(metricValue, unitSystem, type);
+    return ui != null ? String(Math.round(ui)) : "";
+  };
+  
+  // Controlled state for unit-bearing fields (in UI units)
+  // Initialize from activeEntry if it exists
+  const [maxDepth, setMaxDepth] = useState<string>(() => {
+    if (!activeEntry?.maxDepth) return "";
+    const ui = metricToUI(activeEntry.maxDepth, unitSystem, 'depth');
+    return ui != null ? String(Math.round(ui)) : "";
+  });
+  const [waterTemp, setWaterTemp] = useState<string>(() => {
+    if (!activeEntry?.waterTemp) return "";
+    const ui = metricToUI(activeEntry.waterTemp, unitSystem, 'temperature');
+    return ui != null ? String(Math.round(ui)) : "";
+  });
+  const [visibility, setVisibility] = useState<string>(() => {
+    if (!activeEntry?.visibility) return "";
+    const ui = metricToUI(activeEntry.visibility, unitSystem, 'distance');
+    return ui != null ? String(Math.round(ui)) : "";
+  });
+  const [prevUnitSystem, setPrevUnitSystem] = useState<typeof unitSystem>(unitSystem);
+  const [prevActiveEntry, setPrevActiveEntry] = useState<DiveLogEntry | null>(activeEntry);
+
+  // Convert metric values to UI units when entry loads or changes
+  useEffect(() => {
+    if (activeEntry !== prevActiveEntry) {
+      setPrevActiveEntry(activeEntry);
+      if (activeEntry) {
+        setMaxDepth(metricToUIString(activeEntry.maxDepth, 'depth'));
+        setWaterTemp(metricToUIString(activeEntry.waterTemp, 'temperature'));
+        setVisibility(metricToUIString(activeEntry.visibility, 'distance'));
+      } else {
+        // Reset form
+        setMaxDepth("");
+        setWaterTemp("");
+        setVisibility("");
+      }
+    }
+  }, [activeEntry, prevActiveEntry, unitSystem]);
+
+  // Handle unit system change - convert current values
+  useEffect(() => {
+    if (prevUnitSystem !== unitSystem) {
+      // Convert current UI values to the other unit system
+      if (maxDepth) {
+        const numValue = parseFloat(maxDepth);
+        if (!isNaN(numValue)) {
+          // Convert: current UI unit -> metric -> new UI unit
+          const metric = prevUnitSystem === 'metric' ? numValue : numValue / 3.28084;
+          const newUI = unitSystem === 'metric' ? metric : metric * 3.28084;
+          setMaxDepth(String(Math.round(newUI)));
+        }
+      }
+      if (waterTemp) {
+        const numValue = parseFloat(waterTemp);
+        if (!isNaN(numValue)) {
+          const metric = prevUnitSystem === 'metric' ? numValue : ((numValue - 32) * 5) / 9;
+          const newUI = unitSystem === 'metric' ? metric : (metric * 9) / 5 + 32;
+          setWaterTemp(String(Math.round(newUI)));
+        }
+      }
+      if (visibility) {
+        const numValue = parseFloat(visibility);
+        if (!isNaN(numValue)) {
+          const metric = prevUnitSystem === 'metric' ? numValue : numValue / 3.28084;
+          const newUI = unitSystem === 'metric' ? metric : metric * 3.28084;
+          setVisibility(String(Math.round(newUI)));
+        }
+      }
+      setPrevUnitSystem(unitSystem);
+    }
+  }, [unitSystem, prevUnitSystem, maxDepth, waterTemp, visibility]);
+
+  // Custom submit handler that sets hidden inputs with UI values
+  const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
+    // The actual conversion to metric will happen in useLogPageState
+    onSubmit(e);
+  };
+
   return (
     <form
       key={formKey}
-      onSubmit={onSubmit}
+      onSubmit={handleSubmit}
       className={cardStyles.cardForm}
       style={{ marginTop: "var(--space-4)", padding: "var(--space-6)" }}
     >
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "var(--space-4)" }}>
+        <div></div>
+        <UnitToggle showLabel={true} />
+      </div>
       <div className={formStyles.field}>
         <label htmlFor="date" className={formStyles.label}>
           Date
@@ -81,16 +173,15 @@ export function DiveLogForm({
       <div className={formStyles.formGrid2}>
         <div className={formStyles.field}>
           <label htmlFor="maxDepth" className={formStyles.label}>
-            Max depth (m)
+            Max depth ({getUnitLabel('depth', unitSystem)})
           </label>
           <input
             type="number"
             id="maxDepth"
             name="maxDepth"
             required
-            defaultValue={
-              activeEntry?.maxDepth != null ? String(activeEntry.maxDepth) : ""
-            }
+            value={maxDepth}
+            onChange={(e) => setMaxDepth(e.target.value)}
             className={formStyles.input}
           />
         </div>
@@ -116,33 +207,27 @@ export function DiveLogForm({
       <div className={formStyles.formGrid2}>
         <div className={formStyles.field}>
           <label htmlFor="waterTemp" className={formStyles.label}>
-            Water temp (°C)
+            Water temp ({getUnitLabel('temperature', unitSystem)})
           </label>
           <input
             type="number"
             id="waterTemp"
             name="waterTemp"
-            defaultValue={
-              activeEntry?.waterTemp != null
-                ? String(activeEntry.waterTemp)
-                : ""
-            }
+            value={waterTemp}
+            onChange={(e) => setWaterTemp(e.target.value)}
             className={formStyles.input}
           />
         </div>
         <div className={formStyles.field}>
           <label htmlFor="visibility" className={formStyles.label}>
-            Visibility (m)
+            Visibility ({getUnitLabel('distance', unitSystem)})
           </label>
           <input
             type="number"
             id="visibility"
             name="visibility"
-            defaultValue={
-              activeEntry?.visibility != null
-                ? String(activeEntry.visibility)
-                : ""
-            }
+            value={visibility}
+            onChange={(e) => setVisibility(e.target.value)}
             className={formStyles.input}
           />
         </div>

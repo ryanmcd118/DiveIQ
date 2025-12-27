@@ -1,8 +1,12 @@
 import { FormEvent, useEffect, useState, useCallback } from "react";
 import { useSession } from "next-auth/react";
 import { PastPlan, PlanData, AIBriefing, RiskLevel } from "@/features/dive-plan/types";
+import { useUnitSystem } from "@/contexts/UnitSystemContext";
+import { uiToMetric } from "@/lib/units";
 
 export function usePlanPageState() {
+  const { unitSystem } = useUnitSystem();
+  
   // Draft state - the current plan being worked on (not yet saved)
   const [draftPlan, setDraftPlan] = useState<PlanData | null>(null);
   const [draftRiskLevel, setDraftRiskLevel] = useState<RiskLevel | null>(null);
@@ -83,11 +87,15 @@ export function usePlanPageState() {
     setLoading(true);
 
     const formData = new FormData(e.currentTarget);
+    
+    // Convert UI unit values to metric for database storage
+    const maxDepthUI = formData.get("maxDepth");
+    
     const values: PlanData = {
       region: formData.get("region") as string,
       siteName: formData.get("siteName") as string,
       date: formData.get("date") as string,
-      maxDepth: Number(formData.get("maxDepth")),
+      maxDepth: uiToMetric(maxDepthUI, unitSystem, 'depth') ?? 0,
       bottomTime: Number(formData.get("bottomTime")),
       experienceLevel: formData.get(
         "experienceLevel"

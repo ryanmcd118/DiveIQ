@@ -1,8 +1,11 @@
 "use client";
 
-import { useState, FormEvent } from "react";
+import { useState, FormEvent, useEffect } from "react";
 import { AIDiveBriefing } from "@/features/dive-plan/components/AIDiveBriefing";
 import type { AIBriefing, RiskLevel } from "@/features/dive-plan/types";
+import { useUnitSystem } from "@/contexts/UnitSystemContext";
+import { uiToMetric, getUnitLabel } from "@/lib/units";
+import { UnitToggle } from "@/components/UnitToggle";
 import styles from "./PublicHomePage.module.css";
 
 interface PlanResult {
@@ -11,9 +14,25 @@ interface PlanResult {
 }
 
 export function PlannerStub() {
+  const { unitSystem } = useUnitSystem();
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<PlanResult | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [maxDepth, setMaxDepth] = useState<string>("18");
+  const [prevUnitSystem, setPrevUnitSystem] = useState<typeof unitSystem>(unitSystem);
+
+  // Handle unit system change - convert current values
+  useEffect(() => {
+    if (prevUnitSystem !== unitSystem && maxDepth) {
+      const numValue = parseFloat(maxDepth);
+      if (!isNaN(numValue)) {
+        const metric = prevUnitSystem === 'metric' ? numValue : numValue / 3.28084;
+        const newUI = unitSystem === 'metric' ? metric : metric * 3.28084;
+        setMaxDepth(String(Math.round(newUI)));
+      }
+      setPrevUnitSystem(unitSystem);
+    }
+  }, [unitSystem, prevUnitSystem, maxDepth]);
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -28,11 +47,14 @@ export function PlannerStub() {
     const dateValue = formData.get("diveDate") as string;
     const date = dateValue || new Date().toISOString().split("T")[0];
 
+    // Convert UI unit values to metric for API
+    const maxDepthUI = formData.get("maxDepth");
+    
     const payload = {
       region: (formData.get("location") as string) || "Quick Plan",
       siteName: formData.get("location") || "Unspecified",
       date,
-      maxDepth: Number(formData.get("maxDepth")) || 18,
+      maxDepth: uiToMetric(maxDepthUI, unitSystem, 'depth') ?? 18,
       bottomTime: Number(formData.get("bottomTime")) || 45,
       experienceLevel: formData.get("experienceLevel") || "Intermediate",
     };
@@ -73,18 +95,22 @@ export function PlannerStub() {
         {/* Left side: Form */}
         <div className={styles.plannerCard}>
           <form onSubmit={handleSubmit} className={styles.plannerForm}>
+            <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: "var(--space-4)" }}>
+              <UnitToggle showLabel={true} />
+            </div>
             <div className={styles.plannerRow}>
               <div className={styles.plannerField}>
                 <label htmlFor="maxDepth" className={styles.plannerLabel}>
-                  Max Depth (m)
+                  Max Depth ({getUnitLabel('depth', unitSystem)})
                 </label>
                 <input
                   type="number"
                   id="maxDepth"
                   name="maxDepth"
                   min={1}
-                  max={60}
-                  defaultValue={18}
+                  max={unitSystem === 'metric' ? 60 : 200}
+                  value={maxDepth}
+                  onChange={(e) => setMaxDepth(e.target.value)}
                   required
                   className={styles.plannerInput}
                 />

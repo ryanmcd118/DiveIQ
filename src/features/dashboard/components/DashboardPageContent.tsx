@@ -1,5 +1,9 @@
+"use client";
+
 import Link from "next/link";
 import type { DiveLog, DivePlan } from "@prisma/client";
+import { useUnitSystem } from "@/contexts/UnitSystemContext";
+import { displayDepth, displayTemperature, displayDistance } from "@/lib/units";
 import layoutStyles from "@/styles/components/Layout.module.css";
 import cardStyles from "@/styles/components/Card.module.css";
 import buttonStyles from "@/styles/components/Button.module.css";
@@ -23,7 +27,10 @@ export function DashboardPageContent({
   recentPlans,
   isAuthenticated = false,
 }: Props) {
+  const { unitSystem } = useUnitSystem();
   const mostRecentDive: DiveLog | undefined = recentDives[0];
+  
+  const deepestDiveDisplay = displayDepth(deepestDive, unitSystem);
 
   return (
     <main className={layoutStyles.page}>
@@ -71,8 +78,8 @@ export function DashboardPageContent({
           <div className={cardStyles.stat}>
             <p className={cardStyles.statLabel}>Deepest dive</p>
             <p className={cardStyles.statValue}>
-              {deepestDive}
-              <span className={cardStyles.statUnit}>m</span>
+              {deepestDiveDisplay.value}
+              <span className={cardStyles.statUnit}>{deepestDiveDisplay.unit}</span>
             </p>
             <p className={cardStyles.statDescription}>
               Based on your current logbook.
@@ -92,7 +99,16 @@ export function DashboardPageContent({
                 </Link>
               </div>
 
-              {mostRecentDive ? (
+              {mostRecentDive ? (() => {
+                const depth = displayDepth(mostRecentDive.maxDepth, unitSystem);
+                const visibility = mostRecentDive.visibility != null 
+                  ? displayDistance(mostRecentDive.visibility, unitSystem)
+                  : null;
+                const waterTemp = mostRecentDive.waterTemp != null
+                  ? displayTemperature(mostRecentDive.waterTemp, unitSystem)
+                  : null;
+                
+                return (
                 <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-1)", fontSize: "var(--font-size-sm)" }}>
                   <p style={{ fontWeight: "var(--font-weight-medium)" }}>
                     {mostRecentDive.siteName}{" "}
@@ -104,11 +120,9 @@ export function DashboardPageContent({
                     {mostRecentDive.date}
                   </p>
                   <p className={listStyles.diveStats}>
-                    {mostRecentDive.maxDepth}m · {mostRecentDive.bottomTime}min
-                    {mostRecentDive.visibility != null &&
-                      ` · ${mostRecentDive.visibility}m vis`}
-                    {mostRecentDive.waterTemp != null &&
-                      ` · ${mostRecentDive.waterTemp}°C`}
+                    {depth.value}{depth.unit} · {mostRecentDive.bottomTime}min
+                    {visibility && ` · ${visibility.value}${visibility.unit} vis`}
+                    {waterTemp && ` · ${waterTemp.value}${waterTemp.unit}`}
                   </p>
                   {mostRecentDive.buddyName && (
                     <p className={listStyles.diveMeta}>
@@ -121,7 +135,8 @@ export function DashboardPageContent({
                     </p>
                   )}
                 </div>
-              ) : (
+                );
+              })() : (
                 <p className={listStyles.empty}>
                   {isAuthenticated ? (
                     <>
@@ -153,7 +168,9 @@ export function DashboardPageContent({
                 </p>
               ) : (
                 <ul className={listStyles.listCompact}>
-                  {recentDives.map((dive) => (
+                  {recentDives.map((dive) => {
+                    const depth = displayDepth(dive.maxDepth, unitSystem);
+                    return (
                     <li key={dive.id} className={cardStyles.listItem}>
                       <div className="flex-between" style={{ gap: "var(--space-2)" }}>
                         <span style={{ fontWeight: "var(--font-weight-medium)" }}>
@@ -165,7 +182,7 @@ export function DashboardPageContent({
                         </span>
                       </div>
                       <p className="body-small text-muted">
-                        {dive.maxDepth}m · {dive.bottomTime}min
+                        {depth.value}{depth.unit} · {dive.bottomTime}min
                       </p>
                       {dive.buddyName && (
                         <p className={listStyles.diveMeta} style={{ marginTop: "var(--space-1)" }}>
@@ -173,7 +190,8 @@ export function DashboardPageContent({
                         </p>
                       )}
                     </li>
-                  ))}
+                    );
+                  })}
                 </ul>
               )}
             </div>
@@ -233,7 +251,9 @@ export function DashboardPageContent({
             </p>
           ) : (
             <ul className={listStyles.listCompact}>
-              {recentPlans.map((plan) => (
+              {recentPlans.map((plan) => {
+                const depth = displayDepth(plan.maxDepth, unitSystem);
+                return (
                 <li key={plan.id} className={cardStyles.listItem}>
                   <div className="flex-between" style={{ gap: "var(--space-2)" }}>
                     <span style={{ fontWeight: "var(--font-weight-medium)" }}>
@@ -243,7 +263,7 @@ export function DashboardPageContent({
                     <span className={listStyles.diveDate}>{plan.date}</span>
                   </div>
                   <p className="body-small text-muted">
-                    {plan.maxDepth}m · {plan.bottomTime}min ·{" "}
+                    {depth.value}{depth.unit} · {plan.bottomTime}min ·{" "}
                     <span style={{ textTransform: "capitalize" }}>
                       {plan.experienceLevel}
                     </span>
@@ -255,7 +275,8 @@ export function DashboardPageContent({
                     </span>
                   </p>
                 </li>
-              ))}
+                );
+              })}
             </ul>
           )}
         </section>
