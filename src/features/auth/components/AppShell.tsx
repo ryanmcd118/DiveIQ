@@ -21,6 +21,7 @@ export function AppShell({ children }: AppShellProps) {
   // render children directly (PublicHomePage has its own nav)
   const isHomePage = pathname === "/";
   const isAuthPage = pathname === "/signin" || pathname === "/signup";
+  const isSignInPage = pathname === "/signin";
   const showPublicHome = isHomePage && !isAuthenticated && !isLoading;
   const showPublicNav = isAuthPage && !isAuthenticated && !isLoading;
 
@@ -32,7 +33,7 @@ export function AppShell({ children }: AppShellProps) {
   if (showPublicNav) {
     return (
       <>
-        <PublicNavbar />
+        <PublicNavbar variant={isSignInPage ? "minimal" : "default"} />
         {children}
       </>
     );
