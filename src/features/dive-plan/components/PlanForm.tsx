@@ -4,7 +4,6 @@ import { FormEvent, useState, useEffect } from "react";
 import { PlanData } from "@/features/dive-plan/types";
 import { useUnitSystem } from "@/contexts/UnitSystemContext";
 import { metricToUI, getUnitLabel } from "@/lib/units";
-import { UnitToggle } from "@/components/UnitToggle";
 import cardStyles from "@/styles/components/Card.module.css";
 import formStyles from "@/styles/components/Form.module.css";
 import buttonStyles from "@/styles/components/Button.module.css";
@@ -78,10 +77,6 @@ export function PlanForm({
 
   return (
     <form key={formKey} onSubmit={onSubmit} className={cardStyles.cardForm}>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "var(--space-4)" }}>
-        <div></div>
-        <UnitToggle showLabel={true} />
-      </div>
       <div className={formStyles.field}>
         <label htmlFor="region" className={formStyles.label}>
           Region

@@ -3,7 +3,7 @@
 import { useState, FormEvent, useEffect } from "react";
 import { AIDiveBriefing } from "@/features/dive-plan/components/AIDiveBriefing";
 import type { AIBriefing, RiskLevel } from "@/features/dive-plan/types";
-import { useUnitSystem } from "@/contexts/UnitSystemContext";
+import type { UnitSystem } from "@/lib/units";
 import { uiToMetric, getUnitLabel } from "@/lib/units";
 import { UnitToggle } from "@/components/UnitToggle";
 import styles from "./PublicHomePage.module.css";
@@ -14,12 +14,30 @@ interface PlanResult {
 }
 
 export function PlannerStub() {
-  const { unitSystem } = useUnitSystem();
+  // Use local state for logged-out planner stub (not global context)
+  const [unitSystem, setUnitSystem] = useState<UnitSystem>(() => {
+    // Try to load from localStorage, but this is local to this component
+    if (typeof window !== 'undefined') {
+      const stored = localStorage.getItem('diveiq:unitSystem');
+      if (stored === 'metric' || stored === 'imperial') {
+        return stored;
+      }
+    }
+    return 'metric';
+  });
+  
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<PlanResult | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [maxDepth, setMaxDepth] = useState<string>("18");
-  const [prevUnitSystem, setPrevUnitSystem] = useState<typeof unitSystem>(unitSystem);
+  const [prevUnitSystem, setPrevUnitSystem] = useState<UnitSystem>(unitSystem);
+
+  // Persist to localStorage when unitSystem changes (local preference for logged-out users)
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('diveiq:unitSystem', unitSystem);
+    }
+  }, [unitSystem]);
 
   // Handle unit system change - convert current values
   useEffect(() => {
@@ -96,7 +114,53 @@ export function PlannerStub() {
         <div className={styles.plannerCard}>
           <form onSubmit={handleSubmit} className={styles.plannerForm}>
             <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: "var(--space-4)" }}>
-              <UnitToggle showLabel={true} />
+              <div style={{ display: "flex", alignItems: "center", gap: "var(--space-2)" }}>
+                <span style={{ fontSize: "var(--font-size-xs)", fontWeight: "var(--font-weight-medium)", color: "var(--color-text-secondary)" }}>Units</span>
+                <div style={{ display: "inline-flex", backgroundColor: "var(--color-bg-elevated)", border: "1px solid var(--color-border-default)", borderRadius: "var(--radius-md)", padding: "2px", gap: "2px" }} role="group" aria-label="Unit system">
+                  <button
+                    type="button"
+                    onClick={() => setUnitSystem('metric')}
+                    aria-pressed={unitSystem === 'metric'}
+                    aria-label="Metric units"
+                    style={{
+                      padding: "var(--space-1) var(--space-3)",
+                      fontSize: "var(--font-size-xs)",
+                      fontWeight: "var(--font-weight-medium)",
+                      color: unitSystem === 'metric' ? "var(--color-text-primary)" : "var(--color-text-secondary)",
+                      backgroundColor: unitSystem === 'metric' ? "var(--color-bg-primary)" : "transparent",
+                      border: "none",
+                      borderRadius: "calc(var(--radius-md) - 2px)",
+                      cursor: "pointer",
+                      transition: "all var(--transition-base)",
+                      whiteSpace: "nowrap",
+                      boxShadow: unitSystem === 'metric' ? "var(--shadow-sm)" : "none",
+                    }}
+                  >
+                    Metric
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setUnitSystem('imperial')}
+                    aria-pressed={unitSystem === 'imperial'}
+                    aria-label="Imperial units"
+                    style={{
+                      padding: "var(--space-1) var(--space-3)",
+                      fontSize: "var(--font-size-xs)",
+                      fontWeight: "var(--font-weight-medium)",
+                      color: unitSystem === 'imperial' ? "var(--color-text-primary)" : "var(--color-text-secondary)",
+                      backgroundColor: unitSystem === 'imperial' ? "var(--color-bg-primary)" : "transparent",
+                      border: "none",
+                      borderRadius: "calc(var(--radius-md) - 2px)",
+                      cursor: "pointer",
+                      transition: "all var(--transition-base)",
+                      whiteSpace: "nowrap",
+                      boxShadow: unitSystem === 'imperial' ? "var(--shadow-sm)" : "none",
+                    }}
+                  >
+                    Imperial
+                  </button>
+                </div>
+              </div>
             </div>
             <div className={styles.plannerRow}>
               <div className={styles.plannerField}>

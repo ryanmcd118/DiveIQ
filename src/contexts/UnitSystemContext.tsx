@@ -11,7 +11,7 @@ interface UnitSystemContextType {
 
 const UnitSystemContext = createContext<UnitSystemContextType | undefined>(undefined);
 
-const STORAGE_KEY = 'diveiq-unit-system';
+const STORAGE_KEY = 'diveiq:unitSystem';
 
 export function UnitSystemProvider({ children }: { children: ReactNode }) {
   // Default to metric

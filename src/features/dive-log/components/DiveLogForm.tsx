@@ -4,7 +4,6 @@ import { FormEvent, useState, useEffect } from "react";
 import { DiveLogEntry } from "@/features/dive-log/types";
 import { useUnitSystem } from "@/contexts/UnitSystemContext";
 import { metricToUI, getUnitLabel } from "@/lib/units";
-import { UnitToggle } from "@/components/UnitToggle";
 import cardStyles from "@/styles/components/Card.module.css";
 import formStyles from "@/styles/components/Form.module.css";
 import buttonStyles from "@/styles/components/Button.module.css";
@@ -122,10 +121,6 @@ export function DiveLogForm({
       className={cardStyles.cardForm}
       style={{ marginTop: "var(--space-4)", padding: "var(--space-6)" }}
     >
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "var(--space-4)" }}>
-        <div></div>
-        <UnitToggle showLabel={true} />
-      </div>
       <div className={formStyles.field}>
         <label htmlFor="date" className={formStyles.label}>
           Date
