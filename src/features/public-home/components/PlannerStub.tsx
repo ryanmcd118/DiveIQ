@@ -33,9 +33,13 @@ export function PlannerStub() {
   const [prevUnitSystem, setPrevUnitSystem] = useState<UnitSystem>(unitSystem);
 
   // Persist to localStorage when unitSystem changes (local preference for logged-out users)
+  // Also dispatch custom event so AIDiveBriefing can pick it up
   useEffect(() => {
     if (typeof window !== 'undefined') {
       localStorage.setItem('diveiq:unitSystem', unitSystem);
+      // Dispatch event so AIDiveBriefing (via useUnitSystemOrLocal) can react to changes
+      const event = new CustomEvent('unitSystemChanged', { detail: unitSystem });
+      window.dispatchEvent(event);
     }
   }, [unitSystem]);
 
