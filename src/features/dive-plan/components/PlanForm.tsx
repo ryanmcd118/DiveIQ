@@ -2,7 +2,7 @@
 
 import { FormEvent, useState, useEffect } from "react";
 import { PlanData } from "@/features/dive-plan/types";
-import { useUnitSystem } from "@/contexts/UnitSystemContext";
+import { useUnitSystemOrLocal } from "@/hooks/useUnitSystemOrLocal";
 import { metricToUI, getUnitLabel } from "@/lib/units";
 import cardStyles from "@/styles/components/Card.module.css";
 import formStyles from "@/styles/components/Form.module.css";
@@ -29,7 +29,7 @@ export function PlanForm({
   onCancelEdit,
   onDeletePlan,
 }: PlanFormProps) {
-  const { unitSystem } = useUnitSystem();
+  const { unitSystem } = useUnitSystemOrLocal();
   
   // Helper to convert metric to UI units for display
   const metricToUIString = (metricValue: number | null | undefined) => {

@@ -1,11 +1,11 @@
 import { FormEvent, useEffect, useState, useCallback } from "react";
 import { useSession } from "next-auth/react";
 import { PastPlan, PlanData, AIBriefing, RiskLevel } from "@/features/dive-plan/types";
-import { useUnitSystem } from "@/contexts/UnitSystemContext";
+import { useUnitSystemOrLocal } from "@/hooks/useUnitSystemOrLocal";
 import { uiToMetric } from "@/lib/units";
 
 export function usePlanPageState() {
-  const { unitSystem } = useUnitSystem();
+  const { unitSystem } = useUnitSystemOrLocal();
   
   // Draft state - the current plan being worked on (not yet saved)
   const [draftPlan, setDraftPlan] = useState<PlanData | null>(null);
