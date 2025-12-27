@@ -179,6 +179,9 @@
   --z-modal: 1300;
   --z-popover: 1400;
   --z-tooltip: 1500;
+  
+  /* === LAYOUT HEIGHTS === */
+  --nav-height: 4rem;  /* Navbar height - used for positioning calculations */
 }
 
 

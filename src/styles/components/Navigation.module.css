@@ -15,7 +15,7 @@
   display: grid;
   grid-template-columns: auto 1fr auto;
   align-items: center;
-  height: 4rem;
+  height: var(--nav-height);
   max-width: var(--max-width-page);
   margin: 0 auto;
   padding: var(--space-4) var(--space-6);

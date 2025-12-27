@@ -4,6 +4,7 @@ import { usePathname } from "next/navigation";
 import Link from "next/link";
 import { useAuth } from "../hooks/useAuth";
 import AuthNav from "./AuthNav";
+import { PublicNavbar } from "@/features/public-home/components/PublicNavbar";
 import navStyles from "@/styles/components/Navigation.module.css";
 import layoutStyles from "@/styles/components/Layout.module.css";
 import buttonStyles from "@/styles/components/Button.module.css";
@@ -19,10 +20,22 @@ export function AppShell({ children }: AppShellProps) {
   // On the homepage ("/"), if user is not authenticated, 
   // render children directly (PublicHomePage has its own nav)
   const isHomePage = pathname === "/";
+  const isAuthPage = pathname === "/signin" || pathname === "/signup";
   const showPublicHome = isHomePage && !isAuthenticated && !isLoading;
+  const showPublicNav = isAuthPage && !isAuthenticated && !isLoading;
 
   if (showPublicHome) {
     return <>{children}</>;
+  }
+
+  // For signin/signup pages when not authenticated, show public navbar
+  if (showPublicNav) {
+    return (
+      <>
+        <PublicNavbar />
+        {children}
+      </>
+    );
   }
 
   // For all other pages, or authenticated users, show the app shell

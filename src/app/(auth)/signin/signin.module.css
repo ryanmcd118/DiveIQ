@@ -1,19 +1,40 @@
-.container {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  min-height: calc(100vh - 80px);
-  padding: var(--space-4);
+/* Disable document scrolling for signin page only */
+:global(html), :global(body) {
+  height: 100%;
+  overflow: hidden;
 }
 
-.authCard {
-  max-width: 450px;
+.container {
+  height: 100dvh;
   width: 100%;
+  overflow: hidden;
+}
+
+.section {
+  position: fixed;
+  inset: var(--nav-height) 0 0 0;
+  display: grid;
+  place-items: center;
+  max-width: var(--max-width-page);
+  width: 100%;
+  margin: 0 auto;
+  padding: var(--space-6);
+}
+
+.section > div {
+  width: 100%;
+  max-width: 28rem; /* Constrain form card width */
+}
+
+@media (min-width: 768px) {
+  .section {
+    padding: var(--space-8);
+  }
 }
 
 .header {
   text-align: center;
-  margin-bottom: var(--space-6);
+  margin-bottom: var(--space-8);
 }
 
 .title {

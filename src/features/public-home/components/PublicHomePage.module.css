@@ -29,7 +29,7 @@
   max-width: 80rem;
   margin: 0 auto;
   padding: var(--space-4) var(--space-6);
-  height: 4rem;
+  height: var(--nav-height);
 }
 
 .navBrand {
