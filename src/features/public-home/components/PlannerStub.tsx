@@ -75,6 +75,7 @@ export function PlannerStub() {
       maxDepth: uiToMetric(maxDepthUI, unitSystem, 'depth') ?? 18,
       bottomTime: Number(formData.get("bottomTime")) || 45,
       experienceLevel: formData.get("experienceLevel") || "Intermediate",
+      unitSystem, // Pass unit system to AI
     };
 
     try {

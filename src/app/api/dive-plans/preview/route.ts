@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { generateDivePlanBriefing } from "@/services/ai/openaiService";
 import { calculateRiskLevel } from "@/features/dive-plan/services/riskCalculator";
+import type { UnitSystem } from "@/lib/units";
 
 /**
  * POST /api/dive-plans/preview
@@ -13,18 +14,20 @@ export async function POST(req: NextRequest) {
       region: string;
       siteName: string;
       date: string;
-      maxDepth: number;
+      maxDepth: number; // Always in meters (canonical)
       bottomTime: number;
       experienceLevel: "Beginner" | "Intermediate" | "Advanced";
+      unitSystem?: UnitSystem; // Optional, defaults to 'metric'
     };
 
     // Calculate risk level
     const riskLevel = calculateRiskLevel(body.maxDepth, body.bottomTime);
 
-    // Generate AI structured briefing
+    // Generate AI structured briefing with unit system
     const aiBriefing = await generateDivePlanBriefing({
       ...body,
       riskLevel,
+      unitSystem: body.unitSystem || 'metric',
     });
 
     // Also include legacy aiAdvice for backward compatibility

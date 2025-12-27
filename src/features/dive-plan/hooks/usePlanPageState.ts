@@ -111,7 +111,11 @@ export function usePlanPageState() {
         const res = await fetch("/api/dive-plans", {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ id: editingPlanId, ...values }),
+          body: JSON.stringify({ 
+            id: editingPlanId, 
+            ...values,
+            unitSystem, // Pass unit system to AI
+          }),
         });
 
         if (!res.ok) {
@@ -146,7 +150,10 @@ export function usePlanPageState() {
         const res = await fetch("/api/dive-plans/preview", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(values),
+          body: JSON.stringify({
+            ...values,
+            unitSystem, // Pass unit system to AI
+          }),
         });
 
         if (!res.ok) {
@@ -182,7 +189,10 @@ export function usePlanPageState() {
       const res = await fetch("/api/dive-plans", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(draftPlan),
+        body: JSON.stringify({
+          ...draftPlan,
+          unitSystem, // Pass unit system to AI
+        }),
       });
 
       if (!res.ok) {
