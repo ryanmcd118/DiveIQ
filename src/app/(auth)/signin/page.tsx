@@ -1,6 +1,5 @@
 import SignInForm from "@/features/auth/components/SignInForm";
 import cardStyles from "@/styles/components/Card.module.css";
-import backgroundStyles from "@/styles/components/Background.module.css";
 import styles from "./signin.module.css";
 
 export const metadata = {
@@ -10,7 +9,7 @@ export const metadata = {
 
 export default function SignInPage() {
   return (
-    <div className={`${styles.container} ${backgroundStyles.pageGradient}`}>
+    <div className={styles.container}>
       <div className={styles.section}>
         <div className={cardStyles.elevatedForm}>
           <div className={styles.header}>
