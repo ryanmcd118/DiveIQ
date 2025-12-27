@@ -76,7 +76,8 @@ export function PlanForm({
   }, [unitSystem, prevUnitSystem, maxDepth]);
 
   return (
-    <form key={formKey} onSubmit={onSubmit} className={cardStyles.cardForm}>
+    <div className={cardStyles.elevatedForm}>
+      <form key={formKey} onSubmit={onSubmit} className={formStyles.form}>
       <div className={formStyles.field}>
         <label htmlFor="region" className={formStyles.label}>
           Region
@@ -182,7 +183,7 @@ export function PlanForm({
         <div style={{ display: "flex", gap: "var(--space-3)" }}>
           <button
             type="submit"
-            className={buttonStyles.primary}
+            className={buttonStyles.primaryGradient}
             disabled={loading}
           >
             {loading
@@ -216,6 +217,7 @@ export function PlanForm({
       </div>
 
       {apiError && <p className={formStyles.error}>{apiError}</p>}
-    </form>
+      </form>
+    </div>
   );
 }

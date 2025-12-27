@@ -9,6 +9,7 @@ import gridStyles from "@/styles/components/PageGrid.module.css";
 import listStyles from "@/styles/components/List.module.css";
 import cardStyles from "@/styles/components/Card.module.css";
 import buttonStyles from "@/styles/components/Button.module.css";
+import backgroundStyles from "@/styles/components/Background.module.css";
 
 export function LogPageContent() {
   const {
@@ -32,7 +33,7 @@ export function LogPageContent() {
   // Show sign-in prompt for unauthenticated users
   if (!loading && !isAuthenticated) {
     return (
-      <main className={layoutStyles.page}>
+      <main className={`${layoutStyles.page} ${backgroundStyles.pageGradientSubtle}`}>
         <div className={layoutStyles.pageContent}>
           <header className={layoutStyles.pageHeader}>
             <div>
@@ -47,10 +48,10 @@ export function LogPageContent() {
               Create an account or sign in to access your personal dive log.
             </p>
             <div style={{ display: "flex", gap: "var(--space-3)", justifyContent: "center" }}>
-              <Link href="/signup" className={buttonStyles.primary}>
+              <Link href="/signup" className={buttonStyles.primaryGradient}>
                 Create account
               </Link>
-              <Link href="/signin" className={buttonStyles.secondary}>
+              <Link href="/signin" className={buttonStyles.secondaryText}>
                 Sign in
               </Link>
             </div>
@@ -61,16 +62,20 @@ export function LogPageContent() {
   }
 
   return (
-    <main className={layoutStyles.page}>
+    <main className={`${layoutStyles.page} ${backgroundStyles.pageGradientSubtle}`}>
       <div className={gridStyles.logPageGrid}>
         {/* Left: log form */}
         <section className={gridStyles.section}>
-          <h1 className={layoutStyles.pageTitle}>Dive Log</h1>
-          <p className="body-small text-muted">
-            Capture the essentials from each dive: conditions, depth, time, and
-            notes. This will eventually feed stats and visualizations in your
-            DiveIQ logbook.
-          </p>
+          <header className={layoutStyles.pageHeader} style={{ paddingBottom: 'var(--space-6)', marginBottom: 'var(--space-6)' }}>
+            <div>
+              <h1 className={layoutStyles.pageTitle}>Dive Log</h1>
+              <p className={layoutStyles.pageSubtitle}>
+                Capture the essentials from each dive: conditions, depth, time, and
+                notes. This will eventually feed stats and visualizations in your
+                DiveIQ logbook.
+              </p>
+            </div>
+          </header>
 
           <DiveLogForm
             formKey={formKey}

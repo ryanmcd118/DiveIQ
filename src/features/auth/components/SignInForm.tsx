@@ -58,7 +58,7 @@ export default function SignInForm() {
 
       <button
         type="submit"
-        className={`${buttonStyles.button} ${buttonStyles.primary}`}
+        className={buttonStyles.primaryGradient}
         disabled={isLoading}
       >
         {isLoading ? "Signing in..." : "Sign In"}

@@ -7,7 +7,8 @@
   justify-content: center;
   min-height: 100vh;
   padding: var(--space-6);
-  background-color: var(--color-bg-primary);
+  /* Background handled by Background.module.css gradient classes */
+  /* Fallback for pages without gradient: body background from globals.css */
   color: var(--color-text-primary);
 }
 
@@ -34,21 +35,28 @@
   display: flex;
   flex-direction: column;
   gap: var(--space-4);
+  padding: var(--space-5) 0;
+  margin-bottom: var(--space-6);
+  position: relative;
+  border-bottom: 1px solid rgba(51, 65, 85, 0.2);
 }
 
 @media (min-width: 768px) {
   .pageHeader {
     flex-direction: row;
-    align-items: flex-end;
+    align-items: flex-start;
     justify-content: space-between;
+    padding: var(--space-6) 0;
+    margin-bottom: var(--space-6);
   }
 }
 
 .pageTitle {
   font-size: var(--font-size-3xl);
-  font-weight: var(--font-weight-semibold);
-  letter-spacing: -0.025em;
+  font-weight: var(--font-weight-bold);
+  letter-spacing: -0.03em;
   line-height: var(--line-height-tight);
+  margin-bottom: var(--space-2);
 }
 
 @media (min-width: 768px) {
@@ -73,6 +81,8 @@
 .statsGrid {
   display: grid;
   gap: var(--space-4);
+  max-width: 60rem;
+  margin: 0 auto;
 }
 
 @media (min-width: 768px) {

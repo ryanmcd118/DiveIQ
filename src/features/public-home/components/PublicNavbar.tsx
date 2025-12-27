@@ -2,8 +2,15 @@
 
 import Link from "next/link";
 import styles from "./PublicHomePage.module.css";
+import buttonStyles from "@/styles/components/Button.module.css";
 
-export function PublicNavbar() {
+interface PublicNavbarProps {
+  variant?: "default" | "minimal";
+}
+
+export function PublicNavbar({ variant = "default" }: PublicNavbarProps) {
+  const isMinimal = variant === "minimal";
+
   return (
     <nav className={styles.navbar}>
       <div className={styles.navContainer}>
@@ -11,17 +18,19 @@ export function PublicNavbar() {
           Dive<span className={styles.navBrandAccent}>IQ</span>
         </Link>
 
-        <div className={styles.navLinks}>
-          <Link href="/signin" className={styles.navLink}>
-            Log in
-          </Link>
-          <Link href="/signup" className={styles.navLink}>
-            Create account
-          </Link>
-          <Link href="/dive-plans" className={styles.navCta}>
-            Start a Dive Plan →
-          </Link>
-        </div>
+        {!isMinimal && (
+          <div className={styles.navLinks}>
+            <Link href="/signin" className={styles.navLink}>
+              Log in
+            </Link>
+            <Link href="/signup" className={styles.navLink}>
+              Create account
+            </Link>
+            <Link href="/dive-plans" className={`${buttonStyles.primaryGradient} ${styles.navCta}`}>
+              Start a Dive Plan →
+            </Link>
+          </div>
+        )}
       </div>
     </nav>
   );

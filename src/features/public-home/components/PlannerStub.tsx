@@ -6,6 +6,7 @@ import type { AIBriefing, RiskLevel } from "@/features/dive-plan/types";
 import type { UnitSystem } from "@/lib/units";
 import { uiToMetric, getUnitLabel } from "@/lib/units";
 import styles from "./PublicHomePage.module.css";
+import cardStyles from "@/styles/components/Card.module.css";
 
 interface PlanResult {
   aiBriefing: AIBriefing;
@@ -127,7 +128,7 @@ export function PlannerStub() {
 
       <div className={styles.plannerLayout}>
         {/* Left side: Form */}
-        <div className={styles.plannerCard}>
+        <div className={cardStyles.elevatedForm}>
           <form onSubmit={handleSubmit} className={styles.plannerForm}>
             {/* Unit toggle - only render after mount to prevent hydration mismatch */}
             {isMounted && (

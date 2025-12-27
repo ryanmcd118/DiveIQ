@@ -1,6 +1,7 @@
 "use client";
 
 import styles from "./PublicHomePage.module.css";
+import cardStyles from "@/styles/components/Card.module.css";
 
 const features = [
   {
@@ -25,7 +26,7 @@ export function FeatureTrio() {
     <section className={`${styles.section} ${styles.featureTrio}`}>
       <div className={styles.featureGrid}>
         {features.map((feature) => (
-          <article key={feature.title} className={styles.featureCard}>
+          <article key={feature.title} className={cardStyles.feature}>
             <div className={styles.featureIcon} aria-hidden="true">
               <img src={feature.icon} alt="" />
             </div>

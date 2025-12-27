@@ -1,0 +1,61 @@
+/* =========================================
+   BACKGROUND UTILITIES
+   ========================================= */
+
+/* Page gradient background (homepage style) */
+.pageGradient {
+  min-height: 100vh;
+  width: 100%;
+  background: var(--gradient-bg-page);
+  color: var(--color-text-primary);
+  overflow-x: hidden;
+}
+
+/* Subtle page gradient (for logged-in pages - slightly toned down) */
+.pageGradientSubtle {
+  min-height: 100vh;
+  width: 100%;
+  background: linear-gradient(
+    180deg,
+    #0a1628 0%,
+    #081420 25%,
+    #061018 50%,
+    #071218 75%,
+    #0a1820 100%
+  );
+  color: var(--color-text-primary);
+}
+
+/* Image overlay/vignette effect */
+.imageOverlay {
+  position: absolute;
+  inset: 0;
+  border-radius: var(--radius-xl);
+  pointer-events: none;
+  background: var(--gradient-vignette);
+}
+
+/* Placeholder shimmer animation */
+@keyframes shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+.placeholderShimmer {
+  position: relative;
+  overflow: hidden;
+}
+
+.placeholderShimmer::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: var(--gradient-shimmer);
+  background-size: 200% 200%;
+  animation: shimmer 3s infinite;
+}
+

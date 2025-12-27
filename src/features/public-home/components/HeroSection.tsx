@@ -3,6 +3,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import styles from "./PublicHomePage.module.css";
+import buttonStyles from "@/styles/components/Button.module.css";
 
 export function HeroSection() {
   return (
@@ -32,10 +33,10 @@ export function HeroSection() {
           </p>
 
           <div className={styles.heroCtas}>
-            <Link href="/dive-plans" className={styles.ctaPrimary}>
+            <Link href="/dive-plans" className={buttonStyles.primaryGradient}>
               Start a Dive Plan →
             </Link>
-            <Link href="/signup" className={styles.ctaSecondary}>
+            <Link href="/signup" className={buttonStyles.secondaryText}>
               Create a Free Account
             </Link>
           </div>

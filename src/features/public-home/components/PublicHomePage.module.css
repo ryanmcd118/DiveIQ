@@ -7,14 +7,7 @@
 .page {
   min-height: 100vh;
   width: 100%;
-  background: linear-gradient(
-    180deg,
-    #0a1628 0%,
-    #061220 25%,
-    #040e18 50%,
-    #051118 75%,
-    #071a22 100%
-  );
+  background: var(--gradient-bg-page);
   color: var(--color-text-primary);
   overflow-x: hidden;
 }
@@ -24,9 +17,9 @@
   position: sticky;
   top: 0;
   z-index: var(--z-sticky);
-  background: rgba(10, 22, 40, 0.85);
+  background: var(--color-surface-navbar);
   backdrop-filter: blur(16px);
-  border-bottom: 1px solid rgba(6, 182, 212, 0.1);
+  border-bottom: 1px solid var(--color-border-navbar);
 }
 
 .navContainer {
@@ -36,7 +29,7 @@
   max-width: 80rem;
   margin: 0 auto;
   padding: var(--space-4) var(--space-6);
-  height: 4rem;
+  height: var(--nav-height);
 }
 
 .navBrand {
@@ -69,30 +62,10 @@
   color: var(--color-text-primary);
 }
 
+/* Nav CTA override - smaller variant of primaryGradient */
 .navCta {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--space-2);
-  padding: var(--space-2) var(--space-5);
-  font-size: var(--font-size-sm);
-  font-weight: var(--font-weight-semibold);
-  color: #0a1628;
-  background: linear-gradient(
-    135deg,
-    var(--color-accent-light) 0%,
-    var(--color-accent-primary) 100%
-  );
-  border: none;
-  border-radius: var(--radius-full);
-  text-decoration: none;
-  cursor: pointer;
-  transition: all var(--transition-base);
-  box-shadow: 0 0 20px rgba(6, 182, 212, 0.3);
-}
-
-.navCta:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 4px 24px rgba(6, 182, 212, 0.4);
+  padding: var(--space-2) var(--space-5) !important;
+  font-size: var(--font-size-sm) !important;
 }
 
 /* === SECTION CONTAINER === */
@@ -195,44 +168,8 @@
   margin-top: var(--space-2);
 }
 
-.ctaPrimary {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--space-2);
-  padding: var(--space-4) var(--space-8);
-  font-size: var(--font-size-base);
-  font-weight: var(--font-weight-semibold);
-  color: #0a1628;
-  background: linear-gradient(
-    135deg,
-    var(--color-accent-light) 0%,
-    var(--color-accent-primary) 100%
-  );
-  border: none;
-  border-radius: var(--radius-full);
-  text-decoration: none;
-  cursor: pointer;
-  transition: all var(--transition-base);
-  box-shadow: 0 0 30px rgba(6, 182, 212, 0.35);
-}
-
-.ctaPrimary:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 40px rgba(6, 182, 212, 0.5);
-}
-
-.ctaSecondary {
-  font-size: var(--font-size-base);
-  font-weight: var(--font-weight-medium);
-  color: var(--color-text-tertiary);
-  text-decoration: none;
-  transition: color var(--transition-base);
-  padding: var(--space-2);
-}
-
-.ctaSecondary:hover {
-  color: var(--color-accent-light);
-}
+/* CTA styles now use shared Button.module.css classes */
+/* Keeping these as empty placeholders for any homepage-specific overrides if needed */
 
 .heroImageContainer {
   position: relative;
@@ -254,13 +191,7 @@
   inset: 0;
   border-radius: var(--radius-xl);
   pointer-events: none;
-  background: linear-gradient(
-    180deg,
-    transparent 0%,
-    transparent 40%,
-    rgba(5, 10, 20, 0.125) 60%,
-    rgba(5, 10, 20, 0.275) 100%
-  );
+  background: var(--gradient-vignette);
 }
 
 /* === PLACEHOLDER IMAGE === */
@@ -269,11 +200,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(
-    135deg,
-    rgba(6, 182, 212, 0.12) 0%,
-    rgba(6, 182, 212, 0.04) 100%
-  );
+  background: var(--gradient-placeholder);
   border: 1px solid rgba(6, 182, 212, 0.2);
   border-radius: var(--radius-xl);
   overflow: hidden;
@@ -283,12 +210,7 @@
   content: "";
   position: absolute;
   inset: 0;
-  background: linear-gradient(
-    45deg,
-    transparent 45%,
-    rgba(6, 182, 212, 0.05) 50%,
-    transparent 55%
-  );
+  background: var(--gradient-shimmer);
   background-size: 200% 200%;
   animation: shimmer 3s infinite;
 }
@@ -336,19 +258,10 @@
   }
 }
 
+/* Feature card styles now use shared Card.module.css .feature class */
+/* Keeping this as a reference/compose target if needed */
 .featureCard {
-  position: relative;
-  padding: var(--space-8);
-  background: rgba(15, 23, 42, 0.6);
-  border: 1px solid rgba(51, 65, 85, 0.5);
-  border-radius: var(--radius-xl);
-  transition: all var(--transition-slow);
-}
-
-.featureCard:hover {
-  border-color: rgba(6, 182, 212, 0.3);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-  transform: translateY(-4px);
+  /* Styles moved to Card.module.css .feature */
 }
 
 .featureIcon {
@@ -420,12 +333,9 @@
   }
 }
 
+/* Planner card styles now use shared Card.module.css .elevatedForm class */
 .plannerCard {
-  background: rgba(15, 23, 42, 0.8);
-  border: 1px solid rgba(51, 65, 85, 0.5);
-  border-radius: var(--radius-xl);
-  padding: var(--space-8);
-  box-shadow: 0 16px 64px rgba(0, 0, 0, 0.4);
+  /* Styles moved to Card.module.css .elevatedForm */
 }
 
 .plannerForm {
@@ -452,8 +362,8 @@
   padding: var(--space-3) var(--space-4);
   font-size: var(--font-size-base);
   color: var(--color-text-primary);
-  background: rgba(2, 6, 23, 0.6);
-  border: 1px solid rgba(51, 65, 85, 0.6);
+  background: var(--color-surface-input);
+  border: 1px solid var(--color-border-input);
   border-radius: var(--radius-lg);
   transition: all var(--transition-base);
 }
@@ -488,22 +398,18 @@
   padding: var(--space-4);
   font-size: var(--font-size-base);
   font-weight: var(--font-weight-semibold);
-  color: #0a1628;
-  background: linear-gradient(
-    135deg,
-    var(--color-accent-light) 0%,
-    var(--color-accent-primary) 100%
-  );
+  color: var(--color-button-gradient-text);
+  background: var(--gradient-button-primary);
   border: none;
   border-radius: var(--radius-lg);
   cursor: pointer;
   transition: all var(--transition-base);
-  box-shadow: 0 4px 24px rgba(6, 182, 212, 0.3);
+  box-shadow: var(--glow-planner-button);
 }
 
 .plannerButton:hover:not(:disabled) {
   transform: translateY(-2px);
-  box-shadow: 0 8px 32px rgba(6, 182, 212, 0.45);
+  box-shadow: var(--glow-planner-button-hover);
 }
 
 .plannerButton:disabled {
@@ -520,8 +426,8 @@
 .plannerResultPanel {
   display: flex;
   flex-direction: column;
-  background: rgba(15, 23, 42, 0.6);
-  border: 1px solid rgba(51, 65, 85, 0.5);
+  background: var(--color-surface-feature);
+  border: 1px solid var(--color-border-card);
   border-radius: var(--radius-xl);
   min-height: 20rem;
   /* Desktop: scrollable with fixed height */
@@ -871,12 +777,7 @@
 .brandDivider {
   width: 4rem;
   height: 2px;
-  background: linear-gradient(
-    90deg,
-    transparent,
-    var(--color-accent-primary),
-    transparent
-  );
+  background: var(--gradient-divider);
   margin: var(--space-8) auto 0;
 }
 
