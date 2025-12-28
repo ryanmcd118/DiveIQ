@@ -26,7 +26,7 @@ interface Props {
   kits: GearKitWithItems[];
   onEditGear: (item: GearItem) => void;
   onDeleteGear: (id: string) => void;
-  onArchiveGear: (id: string, isActive: boolean) => void;
+  onArchiveGear: (id: string) => void;
   onRefresh: () => void;
   autoExpandArchived?: boolean;
   onAutoExpandArchivedComplete?: () => void;
@@ -349,7 +349,7 @@ export function GearListSection({
             <button
               onClick={(e) => {
                 e.stopPropagation();
-                onArchiveGear(item.id, !item.isActive);
+                onArchiveGear(item.id);
               }}
               className={buttonStyles.ghost}
             >

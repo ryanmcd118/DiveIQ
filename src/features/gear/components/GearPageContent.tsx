@@ -28,9 +28,8 @@ export function GearPageContent() {
   const [archivedGearId, setArchivedGearId] = useState<string | null>(null);
   const [autoExpandArchived, setAutoExpandArchived] = useState(false);
   const [archiveConfirm, setArchiveConfirm] = useState<{
-    gearId: string;
-    gearName: string;
-    kitNames: Array<{ name: string; isDefault: boolean }>;
+    itemId: string;
+    kitIds: string[];
   } | null>(null);
 
   const loadData = async (showLoading = true) => {
@@ -131,81 +130,193 @@ export function GearPageContent() {
     }
   };
 
-  const handleArchiveGear = async (id: string, isActive: boolean) => {
-    const wasActive = isActive;
-    const previousActiveState = !isActive;
+  // Robust kit-membership lookup (NO stale closures)
+  const kitsContainingItem = (itemId: string) =>
+    kits.filter((k) => k.kitItems?.some((ki) => ki.gearItemId === itemId));
 
-    // Optimistically update local state
-    setGearItems((prevItems) =>
-      prevItems.map((item) =>
-        item.id === id ? { ...item, isActive } : item
-      )
-    );
-
-    // If archiving, auto-expand archived section
-    if (wasActive) {
-      setAutoExpandArchived(true);
+  const handleArchiveGear = (itemId: string) => {
+    // Look up the item from current state
+    const item = gearItems.find((g) => g.id === itemId);
+    
+    // Hard debug logs
+    console.log("[toggleArchive] clicked", itemId, "found?", !!item, "isActive?", item?.isActive);
+    
+    if (!item) {
+      console.warn("[toggleArchive] item not found in gearItems", itemId);
+      return;
     }
 
+    // Decide archive vs unarchive based on current state
+    if (item.isActive === true) {
+      // ARCHIVE action
+      const affected = kitsContainingItem(itemId);
+      
+      if (affected.length > 0) {
+        // Item is in kits - show confirmation modal
+        setArchiveConfirm({
+          itemId,
+          kitIds: affected.map((k) => k.id),
+        });
+        return;
+      } else {
+        // Item not in kits - archive immediately
+        void performArchive(itemId, []);
+      }
+    } else {
+      // UNARCHIVE action
+      void performUnarchive(itemId);
+    }
+  };
+
+  const performUnarchive = async (itemId: string) => {
+    // Optimistic: setGearItems -> mark isActive true
+    setGearItems((prev) =>
+      prev.map((g) => (g.id === itemId ? { ...g, isActive: true } : g))
+    );
+
     try {
+      // await API: update gear item isActive true
       const res = await fetch("/api/gear", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id, isActive }),
+        body: JSON.stringify({ id: itemId, isActive: true }),
       });
 
       if (!res.ok) {
         throw new Error("Failed to update");
       }
 
-      if (!wasActive) {
-        // Unarchiving - just show success
-        setToast({ message: "Gear unarchived" });
-        // Refresh data in background without scroll jump
-        void loadData(false);
-      } else {
-        // Archiving - show undo toast
-        setArchivedGearId(id);
-        setToast({
-          message: "Gear archived",
-          onUndo: async () => {
-            try {
-              const undoRes = await fetch("/api/gear", {
-                method: "PUT",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ id, isActive: previousActiveState }),
-              });
-
-              if (undoRes.ok) {
-                setArchivedGearId(null);
-                setToast(null);
-                // Optimistically revert
-                setGearItems((prevItems) =>
-                  prevItems.map((item) =>
-                    item.id === id ? { ...item, isActive: previousActiveState } : item
-                  )
-                );
-                // Refresh in background
-                void loadData(false);
-              }
-            } catch (err) {
-              console.error(err);
-            }
-          },
-        });
-        // Refresh data in background without scroll jump
-        void loadData(false);
-      }
+      setToast({ message: "Gear unarchived" });
+      // loadData(false)
+      await loadData(false);
     } catch (err) {
       console.error(err);
       // Revert optimistic update on error
-      setGearItems((prevItems) =>
-        prevItems.map((item) =>
-          item.id === id ? { ...item, isActive: previousActiveState } : item
-        )
+      setGearItems((prev) =>
+        prev.map((g) => (g.id === itemId ? { ...g, isActive: false } : g))
       );
-      alert("Failed to update gear item");
+      alert("Failed to unarchive gear item");
     }
+  };
+
+  const performArchive = async (itemId: string, kitIds: string[]) => {
+    // (1) Optimistic: setGearItems -> mark isActive false
+    setGearItems((prev) =>
+      prev.map((g) => (g.id === itemId ? { ...g, isActive: false } : g))
+    );
+
+    // (2) Optimistic: setKits -> remove kitItems with that gearItemId for those kitIds
+    if (kitIds.length > 0) {
+      setKits((prev) =>
+        prev.map((k) => {
+          if (!kitIds.includes(k.id)) return k;
+          return {
+            ...k,
+            kitItems: (k.kitItems ?? []).filter(
+              (ki) => ki.gearItemId !== itemId
+            ),
+          };
+        })
+      );
+    }
+
+    // Auto-expand archived section
+    setAutoExpandArchived(true);
+
+    try {
+      // (3) await API: update gear item isActive false
+      const res = await fetch("/api/gear", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: itemId, isActive: false }),
+      });
+
+      if (!res.ok) {
+        throw new Error("Failed to archive gear");
+      }
+
+      // (4) await API: for each kitId, persist updated kitItems list
+      if (kitIds.length > 0) {
+        const kitUpdatePromises = kitIds.map(async (kitId) => {
+          const kit = kits.find((k) => k.id === kitId);
+          if (!kit) return;
+
+          const updatedGearIds = (kit.kitItems ?? [])
+            .filter((ki) => ki.gearItemId !== itemId)
+            .map((ki) => ki.gearItemId);
+
+          const updateRes = await fetch("/api/gear-kits", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              action: "updateItems",
+              id: kitId,
+              gearItemIds: updatedGearIds,
+            }),
+          });
+
+          if (!updateRes.ok) {
+            throw new Error(`Failed to remove from kit: ${kit.name}`);
+          }
+        });
+
+        const results = await Promise.allSettled(kitUpdatePromises);
+        const failures = results.filter((r) => r.status === "rejected");
+
+        if (failures.length > 0) {
+          setToast({
+            message: `Gear archived, but couldn't remove from ${failures.length} kit${failures.length > 1 ? "s" : ""}.`,
+          });
+        }
+      }
+
+      // Show success toast
+      setArchivedGearId(itemId);
+      setToast({
+        message: "Gear archived",
+        onUndo: async () => {
+          try {
+            const undoRes = await fetch("/api/gear", {
+              method: "PUT",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ id: itemId, isActive: true }),
+            });
+
+            if (undoRes.ok) {
+              setArchivedGearId(null);
+              setToast(null);
+              // Optimistically revert
+              setGearItems((prev) =>
+                prev.map((g) => (g.id === itemId ? { ...g, isActive: true } : g))
+              );
+              void loadData(false);
+            }
+          } catch (err) {
+            console.error(err);
+          }
+        },
+      });
+
+      // (5) loadData(false)
+      await loadData(false);
+    } catch (err) {
+      console.error(err);
+      // Revert optimistic updates on error
+      setGearItems((prev) =>
+        prev.map((g) => (g.id === itemId ? { ...g, isActive: true } : g))
+      );
+      if (kitIds.length > 0) {
+        void loadData(false);
+      }
+      alert("Failed to archive gear item");
+    }
+  };
+
+  const confirmArchive = async () => {
+    if (!archiveConfirm) return;
+    const { itemId, kitIds } = archiveConfirm;
+    setArchiveConfirm(null);
+    await performArchive(itemId, kitIds);
   };
 
   const handleDeleteKit = (id: string) => {
@@ -273,6 +384,7 @@ export function GearPageContent() {
 
             <KitsSection
               kits={kits}
+              gearItems={gearItems}
               onEditKit={handleEditKit}
               onDeleteKit={handleDeleteKit}
               onSetDefaultKit={handleSetDefaultKit}
@@ -342,27 +454,29 @@ export function GearPageContent() {
             title="Archive gear?"
             message={
               <>
-                Are you sure you want to archive this gear? It will be removed from the following saved kits:
+                This item will be removed from the following saved kits:
                 <ul style={{ marginTop: "1rem", marginBottom: 0, paddingLeft: "1.5rem" }}>
-                  {archiveConfirm.kitNames.map((kit) => (
-                    <li key={kit.name} style={{ marginTop: "0.5rem" }}>
-                      {kit.name}
-                      {kit.isDefault && (
-                        <span
-                          style={{
-                            marginLeft: "0.5rem",
-                            fontSize: "0.75rem",
-                            color: "var(--color-accent-light)",
-                            background: "rgba(6, 182, 212, 0.2)",
-                            padding: "0.125rem 0.5rem",
-                            borderRadius: "9999px",
-                          }}
-                        >
-                          (Default)
-                        </span>
-                      )}
-                    </li>
-                  ))}
+                  {kits
+                    .filter((k) => archiveConfirm.kitIds.includes(k.id))
+                    .map((kit) => (
+                      <li key={kit.id} style={{ marginTop: "0.5rem" }}>
+                        {kit.name}
+                        {kit.isDefault && (
+                          <span
+                            style={{
+                              marginLeft: "0.5rem",
+                              fontSize: "0.75rem",
+                              color: "var(--color-accent-light)",
+                              background: "rgba(6, 182, 212, 0.2)",
+                              padding: "0.125rem 0.5rem",
+                              borderRadius: "9999px",
+                            }}
+                          >
+                            (Default)
+                          </span>
+                        )}
+                      </li>
+                    ))}
                 </ul>
               </>
             }
