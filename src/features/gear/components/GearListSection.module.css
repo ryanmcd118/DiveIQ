@@ -36,8 +36,7 @@
 
 .filters .field:has(input[type="checkbox"]) {
   display: flex;
-  flex-direction: row;
-  align-items: flex-end;
+  flex-direction: column;
   justify-content: flex-start;
   /* Match the total field height: label + gap + select input */
   min-height: calc(1.5rem + var(--space-1) + var(--space-3) * 2 + 1.5em);
@@ -48,6 +47,7 @@
   align-items: center;
   cursor: pointer;
   margin: 0;
+  margin-top: calc(1.5rem + var(--space-1)); /* Align with select input position: label height + gap */
   padding: 0;
   line-height: 1.5;
   height: calc(var(--space-3) * 2 + 1.5em); /* Match select input height: padding-top + padding-bottom + line-height */
