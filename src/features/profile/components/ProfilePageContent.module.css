@@ -217,7 +217,8 @@
 .previewDivider {
   height: 1px;
   background-color: var(--color-border-default);
-  margin-bottom: var(--space-6);
+  margin-bottom: var(--space-8);
+  opacity: 0.6;
 }
 
 .previewEmpty {
@@ -231,7 +232,7 @@
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: var(--space-4);
-  margin-bottom: var(--space-6);
+  margin-bottom: var(--space-8);
 }
 
 @media (max-width: 640px) {
@@ -247,6 +248,14 @@
   padding: var(--space-4);
   background-color: var(--color-bg-secondary, rgba(0, 0, 0, 0.02));
   border-radius: var(--radius-md);
+  transition: all var(--transition-base);
+  border: 1px solid transparent;
+}
+
+.previewTile:hover {
+  background-color: var(--color-bg-elevated, rgba(0, 0, 0, 0.04));
+  border-color: var(--color-border-default);
+  transform: translateY(-1px);
 }
 
 .previewTileLabel {
@@ -255,6 +264,17 @@
   color: var(--color-text-secondary);
   text-transform: uppercase;
   letter-spacing: 0.5px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.previewTileIconSvg {
+  width: 14px;
+  height: 14px;
+  opacity: 0.6;
+  color: inherit;
+  flex-shrink: 0;
 }
 
 .previewTileValue {
@@ -266,10 +286,19 @@
 .previewWebsiteLink {
   color: var(--color-accent-primary);
   text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
 }
 
 .previewWebsiteLink:hover {
   text-decoration: underline;
+}
+
+.previewExternalIcon {
+  font-size: 0.75em;
+  opacity: 0.7;
+  line-height: 1;
 }
 
 .previewBioSection {
@@ -279,6 +308,7 @@
   gap: var(--space-3);
   padding-top: var(--space-6);
   border-top: 1px solid var(--color-border-default);
+  border-top-color: rgba(0, 0, 0, 0.1);
 }
 
 .previewBioText {

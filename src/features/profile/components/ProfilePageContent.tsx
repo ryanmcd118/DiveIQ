@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useMemo, useRef } from "react";
 import Link from "next/link";
+import { Calendar, Link as LinkIcon, Info } from "lucide-react";
 import { useAuth } from "@/features/auth/hooks/useAuth";
 import cardStyles from "@/styles/components/Card.module.css";
 import formStyles from "@/styles/components/Form.module.css";
@@ -343,6 +344,33 @@ export function ProfilePageContent() {
   const displayName = formatUserName(user);
   const initials = getInitials(user);
 
+  // Helper to format website URL for display (show domain only)
+  const displayWebsiteUrl = (url: string): string => {
+    try {
+      const urlObj = new URL(url);
+      let domain = urlObj.hostname;
+      // Remove www. prefix if present
+      if (domain.startsWith("www.")) {
+        domain = domain.slice(4);
+      }
+      return domain;
+    } catch {
+      // If URL parsing fails, try simple string manipulation
+      let cleaned = url.trim();
+      // Remove protocol
+      cleaned = cleaned.replace(/^https?:\/\//, "");
+      // Remove trailing slash
+      cleaned = cleaned.replace(/\/$/, "");
+      // Remove www. prefix
+      if (cleaned.startsWith("www.")) {
+        cleaned = cleaned.slice(4);
+      }
+      // Take only the domain part (before first slash)
+      const domain = cleaned.split("/")[0];
+      return domain;
+    }
+  };
+
   // Render public profile preview
   const renderPublicPreview = () => {
     const fullName = [
@@ -362,24 +390,19 @@ export function ProfilePageContent() {
     }
     const subtitle = subtitleParts.join(" • ");
 
-    // Collect tiles (only non-empty fields)
-    const tiles: Array<{ label: string; value: string | JSX.Element }> = [];
-    
-    if (draftProfile.pronouns && draftProfile.pronouns.trim()) {
-      tiles.push({
-        label: "Pronouns",
-        value: draftProfile.pronouns,
-      });
-    }
+    // Collect tiles (only non-empty fields) - pronouns NOT included since it's in subtitle
+    const tiles: Array<{ label: string; value: string | JSX.Element; icon: JSX.Element }> = [];
     
     if (draftProfile.birthday && draftProfile.birthday.trim()) {
       tiles.push({
         label: "Birthday",
-        value: formatBirthdayDisplay(draftProfile.birthday),
+        value: formatBirthdayDisplay(draftProfile.birthday) || "",
+        icon: <Calendar className={styles.previewTileIconSvg} />,
       });
     }
     
     if (draftProfile.website && draftProfile.website.trim()) {
+      const websiteDisplay = displayWebsiteUrl(draftProfile.website);
       tiles.push({
         label: "Website",
         value: (
@@ -389,9 +412,13 @@ export function ProfilePageContent() {
             rel="noopener noreferrer"
             className={styles.previewWebsiteLink}
           >
-            {draftProfile.website}
+            {websiteDisplay}
+            <span className={styles.previewExternalIcon} aria-label="External link">
+              ↗
+            </span>
           </a>
         ),
+        icon: <LinkIcon className={styles.previewTileIconSvg} />,
       });
     }
 
@@ -425,7 +452,10 @@ export function ProfilePageContent() {
               <div className={styles.previewTiles}>
                 {tiles.map((tile) => (
                   <div key={tile.label} className={styles.previewTile}>
-                    <div className={styles.previewTileLabel}>{tile.label}</div>
+                    <div className={styles.previewTileLabel}>
+                      {tile.icon}
+                      {tile.label}
+                    </div>
                     <div className={styles.previewTileValue}>{tile.value}</div>
                   </div>
                 ))}
@@ -435,7 +465,10 @@ export function ProfilePageContent() {
             {/* Bio Section (full-width) */}
             {hasBio && (
               <div className={styles.previewBioSection}>
-                <div className={styles.previewTileLabel}>About</div>
+                <div className={styles.previewTileLabel}>
+                  <Info className={styles.previewTileIconSvg} />
+                  About
+                </div>
                 <div className={styles.previewBioText}>{draftProfile.bio}</div>
               </div>
             )}
