@@ -16,6 +16,11 @@ model User {
   firstName     String?   // User's first name
   lastName      String?   // User's last name (nullable for Google OAuth users)
   image         String?
+  birthday      DateTime? // User's birthday
+  location      String?   // User's location
+  bio           String?   // User's bio
+  pronouns      String?   // User's pronouns
+  website       String?   // User's website URL
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
   
