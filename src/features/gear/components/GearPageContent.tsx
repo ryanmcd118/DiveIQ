@@ -359,6 +359,15 @@ export function GearPageContent() {
             >
               Add gear
             </button>
+            <button
+              onClick={() => {
+                setEditingKit(null);
+                setShowKitForm(true);
+              }}
+              className={buttonStyles.secondaryGradient}
+            >
+              Create kit
+            </button>
           </div>
         </header>
 
