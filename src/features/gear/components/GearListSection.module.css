@@ -83,6 +83,26 @@
   align-items: center;
   justify-content: space-between;
   gap: var(--space-4);
+  transition: all var(--transition-base);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08), 0 1px 2px rgba(0, 0, 0, 0.04);
+}
+
+.item:hover {
+  border-color: var(--color-border-hover);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1), 0 2px 4px rgba(0, 0, 0, 0.06);
+  background: var(--color-surface-hover);
+}
+
+.itemExpandable {
+  cursor: pointer;
+}
+
+.itemExpandable:hover {
+  background: var(--color-surface-hover);
+}
+
+.itemExpanded {
+  /* Additional styling for expanded state if needed */
 }
 
 .itemContent {
@@ -102,15 +122,18 @@
 
 .itemName {
   font-weight: var(--font-weight-semibold);
-  font-size: var(--font-size-base);
+  font-size: calc(var(--font-size-base) * 1.05);
   color: var(--color-text-primary);
-  line-height: 1.4;
+  line-height: 1.3;
+  letter-spacing: -0.01em;
 }
 
 .itemNickname {
   font-size: var(--font-size-sm);
-  color: var(--color-text-muted);
+  color: var(--color-text-secondary);
   font-style: italic;
+  font-weight: var(--font-weight-normal);
+  line-height: 1.4;
 }
 
 .statusPill {
@@ -121,8 +144,10 @@
   white-space: nowrap;
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   height: 24px;
-  line-height: 1;
+  line-height: 1.2;
+  box-sizing: border-box;
 }
 
 .statusOverdue {
@@ -164,11 +189,11 @@
 .itemMeta {
   display: flex;
   gap: var(--space-3);
-  font-size: var(--font-size-sm);
-  color: var(--color-text-muted);
+  font-size: calc(var(--font-size-sm) * 0.95);
+  color: var(--color-text-tertiary);
   flex-wrap: wrap;
   align-items: center;
-  line-height: 1.4;
+  line-height: 1.5;
 }
 
 .itemType {
@@ -199,6 +224,20 @@
   gap: var(--space-2);
   flex-wrap: wrap;
   align-items: center;
+  opacity: 0.6;
+  transition: opacity var(--transition-base);
+}
+
+.item:hover .itemActions {
+  opacity: 1;
+}
+
+.itemActions:focus-within {
+  opacity: 1;
+}
+
+.itemActions button {
+  transition: opacity var(--transition-base);
 }
 
 .emptyState {
@@ -301,5 +340,50 @@
 .addGearButton:disabled {
   opacity: 0.6;
   cursor: not-allowed;
+}
+
+.itemExpandedContent {
+  margin-top: var(--space-3);
+  padding-top: var(--space-3);
+  border-top: 1px solid var(--color-border-default);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  animation: expandContent 0.2s ease-out;
+  overflow: hidden;
+}
+
+@keyframes expandContent {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.itemExpandedRow {
+  display: flex;
+  gap: var(--space-2);
+  font-size: var(--font-size-sm);
+  line-height: 1.5;
+}
+
+.itemExpandedLabel {
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-secondary);
+  min-width: 120px;
+  flex-shrink: 0;
+}
+
+.itemExpandedValue {
+  color: var(--color-text-primary);
+  flex: 1;
+}
+
+.itemExpandedRow:has(.itemExpandedValue:empty) {
+  display: none;
 }
 

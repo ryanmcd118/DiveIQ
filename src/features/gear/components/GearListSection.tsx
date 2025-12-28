@@ -48,6 +48,7 @@ export function GearListSection({
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [sortBy, setSortBy] = useState<SortOption>("soonest-due");
   const [isInactiveOpen, setIsInactiveOpen] = useState(false);
+  const [expandedItems, setExpandedItems] = useState<Set<string>>(new Set());
 
   // Create memoized map of gearId -> kit names
   const gearKitMap = useMemo(() => {
@@ -193,15 +194,52 @@ export function GearListSection({
     }).format(new Date(date));
   };
 
+  const toggleExpanded = (itemId: string) => {
+    setExpandedItems((prev) => {
+      const next = new Set(prev);
+      if (next.has(itemId)) {
+        next.delete(itemId);
+      } else {
+        next.add(itemId);
+      }
+      return next;
+    });
+  };
+
   const renderGearItem = (item: GearItem, kitNames: string[]) => {
     const status = computeMaintenanceStatus(item);
     const nextDue = getNextServiceDueAt(item);
+    const isExpanded = expandedItems.has(item.id);
 
     const primaryTitle = getPrimaryTitle(item);
     const secondaryText = getSecondaryText(item);
 
+    // Check if expanded content should be shown
+    const hasExpandedContent =
+      item.purchaseDate || item.notes || item.serviceIntervalMonths;
+
+    const handleCardClick = (e: React.MouseEvent) => {
+      // Don't expand if clicking on action buttons or their container
+      const target = e.target as HTMLElement;
+      if (
+        target.closest(`.${styles.itemActions}`) ||
+        target.closest(`button`)
+      ) {
+        return;
+      }
+      if (hasExpandedContent) {
+        toggleExpanded(item.id);
+      }
+    };
+
     return (
-      <li key={item.id} className={styles.item}>
+      <li
+        key={item.id}
+        className={`${styles.item} ${isExpanded ? styles.itemExpanded : ""} ${
+          hasExpandedContent ? styles.itemExpandable : ""
+        }`}
+        onClick={hasExpandedContent ? handleCardClick : undefined}
+      >
         <div className={styles.itemContent}>
           <div className={styles.itemTitleRow}>
             <span className={styles.itemName}>{primaryTitle}</span>
@@ -233,28 +271,73 @@ export function GearListSection({
               ))}
             </div>
           )}
+          {isExpanded && hasExpandedContent && (
+            <div className={styles.itemExpandedContent}>
+              {item.purchaseDate && (
+                <div className={styles.itemExpandedRow}>
+                  <span className={styles.itemExpandedLabel}>Purchased:</span>
+                  <span className={styles.itemExpandedValue}>
+                    {formatDate(item.purchaseDate)}
+                  </span>
+                </div>
+              )}
+              {item.serviceIntervalMonths && (
+                <div className={styles.itemExpandedRow}>
+                  <span className={styles.itemExpandedLabel}>
+                    Service interval:
+                  </span>
+                  <span className={styles.itemExpandedValue}>
+                    {item.serviceIntervalMonths} month
+                    {item.serviceIntervalMonths !== 1 ? "s" : ""}
+                  </span>
+                </div>
+              )}
+              {item.notes && (
+                <div className={styles.itemExpandedRow}>
+                  <span className={styles.itemExpandedLabel}>Notes:</span>
+                  <span className={styles.itemExpandedValue}>
+                    {item.notes}
+                  </span>
+                </div>
+              )}
+            </div>
+          )}
         </div>
         <div className={styles.itemRight}>
           <div className={styles.statusPills}>
             <span className={`${styles.statusPill} ${getStatusClass(status)}`}>
               {getStatusLabel(status)}
             </span>
+            {!item.isActive && (
+              <span className={`${styles.statusPill} ${styles.statusInactive}`}>
+                Inactive
+              </span>
+            )}
           </div>
           <div className={styles.itemActions}>
             <button
-              onClick={() => onEditGear(item)}
+              onClick={(e) => {
+                e.stopPropagation();
+                onEditGear(item);
+              }}
               className={buttonStyles.secondary}
             >
               Edit
             </button>
             <button
-              onClick={() => onArchiveGear(item.id, !item.isActive)}
+              onClick={(e) => {
+                e.stopPropagation();
+                onArchiveGear(item.id, !item.isActive);
+              }}
               className={buttonStyles.ghost}
             >
               {item.isActive ? "Archive" : "Unarchive"}
             </button>
             <button
-              onClick={() => onDeleteGear(item.id)}
+              onClick={(e) => {
+                e.stopPropagation();
+                onDeleteGear(item.id);
+              }}
               className={buttonStyles.danger}
             >
               Delete
