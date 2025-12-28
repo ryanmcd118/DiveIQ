@@ -42,28 +42,6 @@
   min-height: calc(1.5rem + var(--space-1) + var(--space-3) * 2 + 1.5em);
 }
 
-.hideArchivedToggle {
-  display: flex;
-  align-items: center;
-  cursor: pointer;
-  margin: 0;
-  margin-top: calc(1.5rem + var(--space-1)); /* Align with select input position: label height + gap */
-  padding: 0;
-  line-height: 1.5;
-  height: calc(var(--space-3) * 2 + 1.5em); /* Match select input height: padding-top + padding-bottom + line-height */
-  font-size: var(--font-size-base); /* Match select font size */
-  box-sizing: border-box;
-}
-
-.hideArchivedToggle input[type="checkbox"] {
-  margin: 0;
-  vertical-align: middle;
-  flex-shrink: 0;
-}
-
-.hideArchivedToggle span {
-  margin-left: 8px;
-}
 
 .list {
   list-style: none;
@@ -268,13 +246,13 @@
   border: 1px solid rgba(6, 182, 212, 0.3);
 }
 
-.inactiveSection {
+.archivedSection {
   margin-top: var(--space-6);
   padding-top: var(--space-6);
   border-top: 1px solid var(--color-border-default);
 }
 
-.inactiveHeader {
+.archivedHeader {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -290,12 +268,12 @@
   color: var(--color-text-secondary);
 }
 
-.inactiveHeader:hover {
+.archivedHeader:hover {
   background: var(--color-surface-hover);
   border-color: var(--color-border-hover);
 }
 
-.inactiveHeaderText {
+.archivedHeaderText {
   flex: 1;
   text-align: left;
 }

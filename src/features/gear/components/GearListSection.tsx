@@ -28,10 +28,8 @@ interface Props {
   onDeleteGear: (id: string) => void;
   onArchiveGear: (id: string, isActive: boolean) => void;
   onRefresh: () => void;
-  hideArchived: boolean;
-  onHideArchivedChange: (hide: boolean) => void;
-  autoExpandInactive?: boolean;
-  onAutoExpandInactiveComplete?: () => void;
+  autoExpandArchived?: boolean;
+  onAutoExpandArchivedComplete?: () => void;
   onAddGear: () => void;
 }
 
@@ -42,39 +40,37 @@ export function GearListSection({
   onDeleteGear,
   onArchiveGear,
   onRefresh,
-  hideArchived,
-  onHideArchivedChange,
-  autoExpandInactive = false,
-  onAutoExpandInactiveComplete,
+  autoExpandArchived = false,
+  onAutoExpandArchivedComplete,
   onAddGear,
 }: Props) {
   const [typeFilter, setTypeFilter] = useState<string>("all");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [sortBy, setSortBy] = useState<SortOption>("soonest-due");
-  const [isInactiveOpen, setIsInactiveOpen] = useState(false);
+  const [isArchivedOpen, setIsArchivedOpen] = useState(false);
   const [expandedItems, setExpandedItems] = useState<Set<string>>(new Set());
-  const inactiveSectionRef = useRef<HTMLDivElement>(null);
+  const archivedSectionRef = useRef<HTMLDivElement>(null);
 
   // Handle auto-expand when archiving
   useEffect(() => {
-    if (autoExpandInactive && !hideArchived) {
-      setIsInactiveOpen(true);
-      // Smooth scroll to inactive section after a brief delay to allow render
+    if (autoExpandArchived) {
+      setIsArchivedOpen(true);
+      // Smooth scroll to archived section after a brief delay to allow render
       setTimeout(() => {
-        if (inactiveSectionRef.current) {
-          const rect = inactiveSectionRef.current.getBoundingClientRect();
+        if (archivedSectionRef.current) {
+          const rect = archivedSectionRef.current.getBoundingClientRect();
           const isVisible = rect.top >= 0 && rect.bottom <= window.innerHeight;
           if (!isVisible) {
-            inactiveSectionRef.current.scrollIntoView({
+            archivedSectionRef.current.scrollIntoView({
               behavior: "smooth",
               block: "start",
             });
           }
         }
-        onAutoExpandInactiveComplete?.();
+        onAutoExpandArchivedComplete?.();
       }, 100);
     }
-  }, [autoExpandInactive, hideArchived, onAutoExpandInactiveComplete]);
+  }, [autoExpandArchived, onAutoExpandArchivedComplete]);
 
   // Create memoized map of gearId -> kit names
   const gearKitMap = useMemo(() => {
@@ -434,18 +430,6 @@ export function GearListSection({
             </select>
           </div>
 
-          <div className={formStyles.field}>
-            <label className={styles.hideArchivedToggle}>
-              <input
-                type="checkbox"
-                checked={hideArchived}
-                onChange={(e) => onHideArchivedChange(e.target.checked)}
-                className={styles.checkbox}
-              />
-              <span>Hide archived gear</span>
-            </label>
-          </div>
-
           <button onClick={onAddGear} className={styles.addGearButton}>
             Add gear
           </button>
@@ -465,22 +449,22 @@ export function GearListSection({
           </ul>
         )}
 
-        {/* Inactive gear section */}
-        {!hideArchived && filteredAndSortedInactive.length > 0 && (
-          <div ref={inactiveSectionRef} className={styles.inactiveSection}>
+        {/* Archived gear section */}
+        {filteredAndSortedInactive.length > 0 && (
+          <div ref={archivedSectionRef} className={styles.archivedSection}>
             <button
               type="button"
-              onClick={() => setIsInactiveOpen(!isInactiveOpen)}
-              className={styles.inactiveHeader}
+              onClick={() => setIsArchivedOpen(!isArchivedOpen)}
+              className={styles.archivedHeader}
             >
-              <span className={styles.inactiveHeaderText}>
-                Inactive ({filteredAndSortedInactive.length})
+              <span className={styles.archivedHeaderText}>
+                Archived gear ({filteredAndSortedInactive.length})
               </span>
               <span className={styles.chevron}>
-                {isInactiveOpen ? "▼" : "▶"}
+                {isArchivedOpen ? "▼" : "▶"}
               </span>
             </button>
-            {isInactiveOpen && (
+            {isArchivedOpen && (
               <ul className={styles.list}>
                 {filteredAndSortedInactive.map((item) => {
                   const kitNames = gearKitMap.get(item.id) || [];

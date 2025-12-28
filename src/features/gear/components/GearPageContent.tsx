@@ -26,8 +26,7 @@ export function GearPageContent() {
   const [toast, setToast] = useState<{ message: string; onUndo?: () => void } | null>(null);
   const [deleteConfirm, setDeleteConfirm] = useState<{ id: string; type: "gear" | "kit" } | null>(null);
   const [archivedGearId, setArchivedGearId] = useState<string | null>(null);
-  const [hideArchived, setHideArchived] = useState(true);
-  const [autoExpandInactive, setAutoExpandInactive] = useState(false);
+  const [autoExpandArchived, setAutoExpandArchived] = useState(false);
 
   const loadData = async (showLoading = true) => {
     try {
@@ -138,10 +137,9 @@ export function GearPageContent() {
       )
     );
 
-    // If archiving, ensure archived section is visible
+    // If archiving, auto-expand archived section
     if (wasActive) {
-      setHideArchived(false);
-      setAutoExpandInactive(true);
+      setAutoExpandArchived(true);
     }
 
     try {
@@ -282,10 +280,8 @@ export function GearPageContent() {
               onDeleteGear={handleDeleteGear}
               onArchiveGear={handleArchiveGear}
               onRefresh={loadData}
-              hideArchived={hideArchived}
-              onHideArchivedChange={setHideArchived}
-              autoExpandInactive={autoExpandInactive}
-              onAutoExpandInactiveComplete={() => setAutoExpandInactive(false)}
+              autoExpandArchived={autoExpandArchived}
+              onAutoExpandArchivedComplete={() => setAutoExpandArchived(false)}
               onAddGear={() => {
                 setEditingGear(null);
                 setShowGearForm(true);
