@@ -16,6 +16,7 @@ export function useLogPageState() {
   const [activeEntry, setActiveEntry] = useState<DiveLogEntry | null>(null);
   const [formKey, setFormKey] = useState<string>("new"); // force remount on edit/new
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
+  const [selectedGearIds, setSelectedGearIds] = useState<string[]>([]);
 
   const totalBottomTime = entries.reduce(
     (sum, entry) => sum + entry.bottomTime,
@@ -52,6 +53,7 @@ export function useLogPageState() {
     setEditingEntryId(null);
     setActiveEntry(null);
     setError(null);
+    setSelectedGearIds([]);
     setFormKey(`new-${Date.now()}`);
   };
 
@@ -85,6 +87,7 @@ export function useLogPageState() {
       visibility: uiToMetric(visibilityUI, unitSystem, 'distance'),
       buddyName: (formData.get("buddyName") as string) || null,
       notes: (formData.get("notes") as string) || null,
+      gearItemIds: selectedGearIds,
     };
 
     const isEditing = Boolean(editingEntryId);
@@ -104,12 +107,17 @@ export function useLogPageState() {
         throw new Error(`API returned ${res.status}`);
       }
 
-      const data: { entry: DiveLogEntry } = await res.json();
+      const data: { entry: DiveLogEntry; gearItems?: any[] } = await res.json();
+
+      const entryWithGear = {
+        ...data.entry,
+        gearItems: data.gearItems || [],
+      };
 
       setEntries((prev) =>
         isEditing
-          ? prev.map((e) => (e.id === data.entry.id ? data.entry : e))
-          : [data.entry, ...prev]
+          ? prev.map((e) => (e.id === entryWithGear.id ? entryWithGear : e))
+          : [entryWithGear, ...prev]
       );
 
       // Reset form + edit mode
@@ -117,6 +125,7 @@ export function useLogPageState() {
       setEditingEntryId(null);
       setEditingEntry(null);
       setActiveEntry(null);
+      setSelectedGearIds([]);
       setFormKey(`log-${Date.now()}`);
 
       const msg = isEditing ? "Log entry updated ✅" : "Dive added to log ✅";
@@ -137,6 +146,7 @@ export function useLogPageState() {
     setEditingEntry(entry);
     setEditingEntryId(entry.id);
     setActiveEntry(entry);
+    setSelectedGearIds(entry.gearItems?.map((g) => g.id) || []);
     setError(null);
     setStatusMessage(null);
     setFormKey(`edit-${entry.id}-${Date.now()}`);
@@ -204,6 +214,8 @@ export function useLogPageState() {
     formKey,
     statusMessage,
     totalBottomTime,
+    selectedGearIds,
+    setSelectedGearIds,
 
     // handlers
     handleSubmit,

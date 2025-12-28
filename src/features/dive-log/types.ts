@@ -1,9 +1,13 @@
-import type { DiveLog } from "@prisma/client";
+import type { DiveLog, GearItem } from "@prisma/client";
 
 // Dive Log Types
-export type DiveLogEntry = DiveLog;
+export type DiveLogEntry = DiveLog & {
+  gearItems?: GearItem[];
+};
 
-export type DiveLogInput = Omit<DiveLogEntry, "id" | "createdAt">;
+export type DiveLogInput = Omit<DiveLogEntry, "id" | "createdAt" | "gearItems"> & {
+  gearItemIds?: string[];
+};
 
 // API Action Types
 export type DiveLogAction = "create" | "update" | "delete";

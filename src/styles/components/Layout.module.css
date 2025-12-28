@@ -74,7 +74,8 @@
 
 .headerActions {
   display: flex;
-  gap: var(--space-3);
+  align-items: center;
+  gap: var(--space-4);
 }
 
 /* Dashboard specific layouts */

@@ -23,6 +23,8 @@ export function LogPageContent() {
     formKey,
     statusMessage,
     totalBottomTime,
+    selectedGearIds,
+    setSelectedGearIds,
     handleSubmit,
     handleSelectEntry,
     handleCancelEdit,
@@ -83,6 +85,8 @@ export function LogPageContent() {
             editingEntryId={editingEntryId}
             saving={saving}
             error={error}
+            selectedGearIds={selectedGearIds}
+            onGearSelectionChange={setSelectedGearIds}
             onSubmit={handleSubmit}
             onCancelEdit={handleCancelEdit}
             onDeleteFromForm={handleDeleteFromForm}

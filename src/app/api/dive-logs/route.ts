@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/features/auth/lib/auth";
 import { diveLogRepository } from "@/services/database/repositories/diveLogRepository";
+import { diveGearRepository } from "@/services/database/repositories/gearRepository";
+import { gearKitRepository } from "@/services/database/repositories/gearRepository";
 import type { DiveLogInput } from "@/features/dive-log/types";
 
 /**
@@ -26,7 +28,17 @@ export async function GET(req: NextRequest) {
   try {
     if (id) {
       const entry = await diveLogRepository.findById(id, session.user.id);
-      return NextResponse.json({ entry });
+      if (entry) {
+        const gearItems = await diveGearRepository.getGearForDive(
+          entry.id,
+          session.user.id
+        );
+        return NextResponse.json({
+          entry,
+          gearItems: gearItems.map((dgi) => dgi.gearItem),
+        });
+      }
+      return NextResponse.json({ entry: null });
     }
 
     const entries = await diveLogRepository.findMany({
@@ -34,7 +46,21 @@ export async function GET(req: NextRequest) {
       userId: session.user.id,
     });
 
-    return NextResponse.json({ entries });
+    // Load gear for all entries
+    const entriesWithGear = await Promise.all(
+      entries.map(async (entry) => {
+        const gearItems = await diveGearRepository.getGearForDive(
+          entry.id,
+          session.user.id
+        );
+        return {
+          ...entry,
+          gearItems: gearItems.map((dgi) => dgi.gearItem),
+        };
+      })
+    );
+
+    return NextResponse.json({ entries: entriesWithGear });
   } catch (err) {
     console.error("GET /api/dive-logs error", err);
     return NextResponse.json(
@@ -83,8 +109,34 @@ export async function POST(req: NextRequest) {
         );
       }
 
-      const created = await diveLogRepository.create(payload, session.user.id);
-      return NextResponse.json({ entry: created });
+      const { gearItemIds, ...diveLogData } = payload as DiveLogInput & {
+        gearItemIds?: string[];
+      };
+
+      const created = await diveLogRepository.create(
+        diveLogData,
+        session.user.id
+      );
+
+      // Handle gear associations
+      if (gearItemIds && Array.isArray(gearItemIds) && gearItemIds.length > 0) {
+        await diveGearRepository.setGearForDive(
+          created.id,
+          gearItemIds,
+          session.user.id
+        );
+      }
+
+      // Load gear items for response
+      const gearItems = await diveGearRepository.getGearForDive(
+        created.id,
+        session.user.id
+      );
+
+      return NextResponse.json({
+        entry: created,
+        gearItems: gearItems.map((dgi) => dgi.gearItem),
+      });
     }
 
     // UPDATE
@@ -96,8 +148,35 @@ export async function POST(req: NextRequest) {
         );
       }
 
-      const updated = await diveLogRepository.update(id, payload, session.user.id);
-      return NextResponse.json({ entry: updated });
+      const { gearItemIds, ...diveLogData } = payload as DiveLogInput & {
+        gearItemIds?: string[];
+      };
+
+      const updated = await diveLogRepository.update(
+        id,
+        diveLogData,
+        session.user.id
+      );
+
+      // Handle gear associations
+      if (gearItemIds !== undefined) {
+        await diveGearRepository.setGearForDive(
+          id,
+          gearItemIds || [],
+          session.user.id
+        );
+      }
+
+      // Load gear items for response
+      const gearItems = await diveGearRepository.getGearForDive(
+        id,
+        session.user.id
+      );
+
+      return NextResponse.json({
+        entry: updated,
+        gearItems: gearItems.map((dgi) => dgi.gearItem),
+      });
     }
 
     // DELETE
