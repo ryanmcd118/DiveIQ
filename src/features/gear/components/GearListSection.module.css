@@ -35,7 +35,8 @@
   flex-direction: row;
   align-items: flex-end;
   justify-content: flex-start;
-  padding-top: calc(1.5rem + var(--space-1)); /* Match label height + gap to align with select inputs */
+  /* Match the total field height: label + gap + select input */
+  min-height: calc(1.5rem + var(--space-1) + var(--space-3) * 2 + 1.5em);
 }
 
 .filters .field:has(input[type="checkbox"]) label {
