@@ -18,16 +18,17 @@ export type GearType = (typeof GearType)[keyof typeof GearType];
 
 /**
  * Default service intervals in months by gear type
+ * Based on standard maintenance schedules for dive equipment
  */
 export const DEFAULT_SERVICE_INTERVALS: Record<GearType, number | null> = {
   [GearType.BCD]: 12,
   [GearType.REGULATOR]: 12,
   [GearType.WETSUIT]: null, // No regular service schedule
-  [GearType.DIVE_COMPUTER]: null, // No regular service schedule
+  [GearType.DIVE_COMPUTER]: 24, // Battery/service varies; 24 months as default
   [GearType.FINS]: null,
   [GearType.MASK]: null,
   [GearType.SNORKEL]: null,
-  [GearType.TANK]: 12, // Annual visual inspection, hydrostatic every 5 years
+  [GearType.TANK]: 12, // TODO: Visual inspection 12 months, hydrostatic 60 months - using 12 for V1
   [GearType.WEIGHTS]: null,
   [GearType.OTHER]: null,
 };

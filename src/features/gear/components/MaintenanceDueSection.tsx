@@ -36,16 +36,14 @@ export function MaintenanceDueSection({ gearItems, onEditGear }: Props) {
       }
     );
 
-    return sorted
-      .slice(0, 3)
-      .map((item) => {
-        const found = itemsWithStatus.find((i) => i.item.id === item.id);
-        return {
-          item,
-          status: found?.status ?? "NO_SCHEDULE",
-          nextDue: found?.nextDue ?? null,
-        };
-      });
+    return sorted.map((item) => {
+      const found = itemsWithStatus.find((i) => i.item.id === item.id);
+      return {
+        item,
+        status: found?.status ?? "NO_SCHEDULE",
+        nextDue: found?.nextDue ?? null,
+      };
+    });
   }, [gearItems]);
 
   const getStatusLabel = (status: MaintenanceStatus): string => {

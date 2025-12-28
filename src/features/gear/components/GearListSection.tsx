@@ -5,6 +5,7 @@ import type { GearItem } from "@prisma/client";
 import {
   computeMaintenanceStatus,
   getNextServiceDueAt,
+  sortGearByMaintenanceDue,
   type MaintenanceStatus,
 } from "../lib/maintenance";
 import { GearType } from "../constants";
@@ -12,6 +13,8 @@ import cardStyles from "@/styles/components/Card.module.css";
 import buttonStyles from "@/styles/components/Button.module.css";
 import formStyles from "@/styles/components/Form.module.css";
 import styles from "./GearListSection.module.css";
+
+type SortOption = "soonest-due" | "most-overdue" | "name-az" | "recently-updated";
 
 interface Props {
   gearItems: GearItem[];
@@ -31,8 +34,13 @@ export function GearListSection({
   const [typeFilter, setTypeFilter] = useState<string>("all");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [showInactive, setShowInactive] = useState(false);
+  const [sortBy, setSortBy] = useState<SortOption>("soonest-due");
 
-  const filteredItems = useMemo(() => {
+  const getDisplayName = (item: GearItem): string => {
+    return item.nickname || `${item.manufacturer} ${item.model}`;
+  };
+
+  const filteredAndSortedItems = useMemo(() => {
     let filtered = [...gearItems];
 
     if (typeFilter !== "all") {
@@ -50,8 +58,31 @@ export function GearListSection({
       filtered = filtered.filter((item) => item.isActive);
     }
 
-    return filtered;
-  }, [gearItems, typeFilter, statusFilter, showInactive]);
+    // Apply sorting
+    let sorted = [...filtered];
+
+    if (sortBy === "soonest-due" || sortBy === "most-overdue") {
+      sorted = sortGearByMaintenanceDue(sorted, computeMaintenanceStatus);
+      if (sortBy === "most-overdue") {
+        // Reverse to show most overdue first
+        sorted = sorted.reverse();
+      }
+    } else if (sortBy === "name-az") {
+      sorted.sort((a, b) => {
+        const nameA = getDisplayName(a).toLowerCase();
+        const nameB = getDisplayName(b).toLowerCase();
+        return nameA.localeCompare(nameB);
+      });
+    } else if (sortBy === "recently-updated") {
+      sorted.sort((a, b) => {
+        const dateA = new Date(a.updatedAt).getTime();
+        const dateB = new Date(b.updatedAt).getTime();
+        return dateB - dateA; // Most recent first
+      });
+    }
+
+    return sorted;
+  }, [gearItems, typeFilter, statusFilter, showInactive, sortBy, getDisplayName]);
 
   const getStatusLabel = (status: MaintenanceStatus): string => {
     switch (status) {
@@ -94,10 +125,6 @@ export function GearListSection({
       day: "numeric",
       year: "numeric",
     }).format(new Date(date));
-  };
-
-  const getDisplayName = (item: GearItem): string => {
-    return item.nickname || `${item.manufacturer} ${item.model}`;
   };
 
   return (
@@ -144,6 +171,23 @@ export function GearListSection({
           </div>
 
           <div className={formStyles.field}>
+            <label htmlFor="sortBy" className={formStyles.label}>
+              Sort
+            </label>
+            <select
+              id="sortBy"
+              value={sortBy}
+              onChange={(e) => setSortBy(e.target.value as SortOption)}
+              className={formStyles.select}
+            >
+              <option value="soonest-due">Soonest due</option>
+              <option value="most-overdue">Most overdue</option>
+              <option value="name-az">Name A–Z</option>
+              <option value="recently-updated">Recently updated</option>
+            </select>
+          </div>
+
+          <div className={formStyles.field}>
             <label className={formStyles.label}>
               <input
                 type="checkbox"
@@ -156,11 +200,11 @@ export function GearListSection({
           </div>
         </div>
 
-        {filteredItems.length === 0 ? (
+        {filteredAndSortedItems.length === 0 ? (
           <p className={styles.emptyState}>No gear items match your filters.</p>
         ) : (
           <ul className={styles.list}>
-            {filteredItems.map((item) => {
+            {filteredAndSortedItems.map((item) => {
               const status = computeMaintenanceStatus(item);
               const nextDue = getNextServiceDueAt(item);
 

@@ -8,6 +8,8 @@ import { KitsSection } from "./KitsSection";
 import { GearListSection } from "./GearListSection";
 import { GearFormModal } from "./GearFormModal";
 import { KitFormModal } from "./KitFormModal";
+import { ConfirmModal } from "@/components/ConfirmModal";
+import { Toast } from "@/components/Toast";
 import layoutStyles from "@/styles/components/Layout.module.css";
 import buttonStyles from "@/styles/components/Button.module.css";
 import styles from "./GearPageContent.module.css";
@@ -21,6 +23,9 @@ export function GearPageContent() {
   const [showKitForm, setShowKitForm] = useState(false);
   const [editingGear, setEditingGear] = useState<GearItem | null>(null);
   const [editingKit, setEditingKit] = useState<GearKitWithItems | null>(null);
+  const [toast, setToast] = useState<{ message: string; onUndo?: () => void } | null>(null);
+  const [deleteConfirm, setDeleteConfirm] = useState<{ id: string; type: "gear" | "kit" } | null>(null);
+  const [archivedGearId, setArchivedGearId] = useState<string | null>(null);
 
   const loadData = async () => {
     try {
@@ -55,6 +60,7 @@ export function GearPageContent() {
   const handleGearCreated = () => {
     setShowGearForm(false);
     setEditingGear(null);
+    setToast({ message: "Gear added" });
     void loadData();
   };
 
@@ -67,6 +73,7 @@ export function GearPageContent() {
   const handleKitCreated = () => {
     setShowKitForm(false);
     setEditingKit(null);
+    setToast({ message: "Kit created" });
     void loadData();
   };
 
@@ -86,13 +93,16 @@ export function GearPageContent() {
     setShowKitForm(true);
   };
 
-  const handleDeleteGear = async (id: string) => {
-    if (!confirm("Are you sure you want to delete this gear item?")) {
-      return;
-    }
+  const handleDeleteGear = (id: string) => {
+    setDeleteConfirm({ id, type: "gear" });
+  };
+
+  const confirmDelete = async () => {
+    if (!deleteConfirm) return;
 
     try {
-      const res = await fetch(`/api/gear?id=${id}`, {
+      const endpoint = deleteConfirm.type === "gear" ? "/api/gear" : "/api/gear-kits";
+      const res = await fetch(`${endpoint}?id=${deleteConfirm.id}`, {
         method: "DELETE",
       });
 
@@ -100,14 +110,20 @@ export function GearPageContent() {
         throw new Error("Failed to delete");
       }
 
+      setDeleteConfirm(null);
+      setToast({ message: deleteConfirm.type === "gear" ? "Gear deleted" : "Kit deleted" });
       void loadData();
     } catch (err) {
       console.error(err);
-      alert("Failed to delete gear item");
+      setDeleteConfirm(null);
+      alert(`Failed to delete ${deleteConfirm.type}`);
     }
   };
 
   const handleArchiveGear = async (id: string, isActive: boolean) => {
+    const wasActive = isActive;
+    const previousActiveState = !isActive;
+
     try {
       const res = await fetch("/api/gear", {
         method: "PUT",
@@ -119,32 +135,43 @@ export function GearPageContent() {
         throw new Error("Failed to update");
       }
 
-      void loadData();
+      if (!wasActive) {
+        // Unarchiving - just show success
+        setToast({ message: "Gear unarchived" });
+        void loadData();
+      } else {
+        // Archiving - show undo toast
+        setArchivedGearId(id);
+        setToast({
+          message: "Gear archived",
+          onUndo: async () => {
+            try {
+              const undoRes = await fetch("/api/gear", {
+                method: "PUT",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ id, isActive: previousActiveState }),
+              });
+
+              if (undoRes.ok) {
+                setArchivedGearId(null);
+                setToast(null);
+                void loadData();
+              }
+            } catch (err) {
+              console.error(err);
+            }
+          },
+        });
+        void loadData();
+      }
     } catch (err) {
       console.error(err);
       alert("Failed to update gear item");
     }
   };
 
-  const handleDeleteKit = async (id: string) => {
-    if (!confirm("Are you sure you want to delete this kit?")) {
-      return;
-    }
-
-    try {
-      const res = await fetch(`/api/gear-kits?id=${id}`, {
-        method: "DELETE",
-      });
-
-      if (!res.ok) {
-        throw new Error("Failed to delete");
-      }
-
-      void loadData();
-    } catch (err) {
-      console.error(err);
-      alert("Failed to delete kit");
-    }
+  const handleDeleteKit = (id: string) => {
+    setDeleteConfirm({ id, type: "kit" });
   };
 
   const handleSetDefaultKit = async (id: string) => {
@@ -245,6 +272,30 @@ export function GearPageContent() {
             onSave={editingKit ? handleKitUpdated : handleKitCreated}
             editingKit={editingKit}
             availableGearItems={gearItems}
+          />
+        )}
+
+        {deleteConfirm && (
+          <ConfirmModal
+            isOpen={true}
+            title={`Delete ${deleteConfirm.type}?`}
+            message={
+              deleteConfirm.type === "gear"
+                ? "This permanently removes this item. This cannot be undone."
+                : "This permanently removes this kit. This cannot be undone."
+            }
+            confirmLabel="Delete"
+            onConfirm={confirmDelete}
+            onCancel={() => setDeleteConfirm(null)}
+          />
+        )}
+
+        {toast && (
+          <Toast
+            message={toast.message}
+            onUndo={toast.onUndo}
+            onClose={() => setToast(null)}
+            duration={toast.onUndo ? 5000 : 3000}
           />
         )}
       </div>
