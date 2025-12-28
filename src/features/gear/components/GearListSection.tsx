@@ -39,8 +39,33 @@ export function GearListSection({
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [sortBy, setSortBy] = useState<SortOption>("soonest-due");
 
-  const getDisplayName = (item: GearItem): string => {
-    return item.nickname || `${item.manufacturer} ${item.model}`;
+  const getPrimaryTitle = (item: GearItem): string => {
+    // Priority: manufacturer + model > manufacturer alone > model alone > nickname > gear type
+    if (item.manufacturer && item.model) {
+      return `${item.manufacturer} ${item.model}`;
+    }
+    if (item.manufacturer) {
+      return item.manufacturer;
+    }
+    if (item.model) {
+      return item.model;
+    }
+    if (item.nickname) {
+      return item.nickname;
+    }
+    // Final fallback to gear type
+    return formatGearTypeLabel(item.type as GearType);
+  };
+
+  const getSecondaryText = (item: GearItem): string | null => {
+    // Show nickname as secondary if it exists and is different from primary title
+    if (item.nickname) {
+      const primary = getPrimaryTitle(item);
+      if (item.nickname !== primary) {
+        return item.nickname;
+      }
+    }
+    return null;
   };
 
   const filteredAndSortedItems = useMemo(() => {
@@ -71,8 +96,8 @@ export function GearListSection({
       }
     } else if (sortBy === "name-az") {
       sorted.sort((a, b) => {
-        const nameA = getDisplayName(a).toLowerCase();
-        const nameB = getDisplayName(b).toLowerCase();
+        const nameA = getPrimaryTitle(a).toLowerCase();
+        const nameB = getPrimaryTitle(b).toLowerCase();
         return nameA.localeCompare(nameB);
       });
     } else if (sortBy === "recently-updated") {
@@ -84,7 +109,7 @@ export function GearListSection({
     }
 
     return sorted;
-  }, [gearItems, typeFilter, statusFilter, sortBy, getDisplayName]);
+  }, [gearItems, typeFilter, statusFilter, sortBy]);
 
   const getStatusLabel = (status: MaintenanceStatus): string => {
     switch (status) {
@@ -210,25 +235,21 @@ export function GearListSection({
               const status = computeMaintenanceStatus(item);
               const nextDue = getNextServiceDueAt(item);
 
+              const primaryTitle = getPrimaryTitle(item);
+              const secondaryText = getSecondaryText(item);
+
               return (
                 <li key={item.id} className={styles.item}>
                   <div className={styles.itemContent}>
-                    <div className={styles.itemHeader}>
+                    <div className={styles.itemTitleRow}>
                       <span className={styles.itemName}>
-                        {getDisplayName(item)}
+                        {primaryTitle}
                       </span>
-                      <div style={{ display: "flex", gap: "var(--space-2)", alignItems: "center" }}>
-                        {!item.isActive && (
-                          <span className={`${styles.statusPill} ${styles.statusInactive}`}>
-                            Inactive
-                          </span>
-                        )}
-                        <span
-                          className={`${styles.statusPill} ${getStatusClass(status)}`}
-                        >
-                          {getStatusLabel(status)}
+                      {secondaryText && (
+                        <span className={styles.itemNickname}>
+                          {secondaryText}
                         </span>
-                      </div>
+                      )}
                     </div>
                     <div className={styles.itemMeta}>
                       <span className={styles.itemType}>{formatGearTypeLabel(item.type as GearType)}</span>
@@ -244,25 +265,39 @@ export function GearListSection({
                       )}
                     </div>
                   </div>
-                  <div className={styles.itemActions}>
-                    <button
-                      onClick={() => onEditGear(item)}
-                      className={buttonStyles.secondary}
-                    >
-                      Edit
-                    </button>
-                    <button
-                      onClick={() => onArchiveGear(item.id, !item.isActive)}
-                      className={buttonStyles.ghost}
-                    >
-                      {item.isActive ? "Archive" : "Unarchive"}
-                    </button>
-                    <button
-                      onClick={() => onDeleteGear(item.id)}
-                      className={buttonStyles.danger}
-                    >
-                      Delete
-                    </button>
+                  <div className={styles.itemRight}>
+                    <div className={styles.statusPills}>
+                      {!item.isActive && (
+                        <span className={`${styles.statusPill} ${styles.statusInactive}`}>
+                          Inactive
+                        </span>
+                      )}
+                      <span
+                        className={`${styles.statusPill} ${getStatusClass(status)}`}
+                      >
+                        {getStatusLabel(status)}
+                      </span>
+                    </div>
+                    <div className={styles.itemActions}>
+                      <button
+                        onClick={() => onEditGear(item)}
+                        className={buttonStyles.secondary}
+                      >
+                        Edit
+                      </button>
+                      <button
+                        onClick={() => onArchiveGear(item.id, !item.isActive)}
+                        className={buttonStyles.ghost}
+                      >
+                        {item.isActive ? "Archive" : "Unarchive"}
+                      </button>
+                      <button
+                        onClick={() => onDeleteGear(item.id)}
+                        className={buttonStyles.danger}
+                      >
+                        Delete
+                      </button>
+                    </div>
                   </div>
                 </li>
               );

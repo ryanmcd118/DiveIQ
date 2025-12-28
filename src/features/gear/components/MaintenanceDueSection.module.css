@@ -46,8 +46,10 @@
 }
 
 .itemName {
-  font-weight: var(--font-weight-medium);
+  font-weight: var(--font-weight-semibold);
+  font-size: var(--font-size-base);
   color: var(--color-text-primary);
+  line-height: 1.4;
 }
 
 .statusPill {
@@ -56,6 +58,9 @@
   font-size: var(--font-size-xs);
   font-weight: var(--font-weight-medium);
   white-space: nowrap;
+  line-height: 1.2;
+  display: inline-flex;
+  align-items: center;
 }
 
 .statusOverdue {
@@ -75,6 +80,8 @@
   gap: var(--space-3);
   font-size: var(--font-size-sm);
   color: var(--color-text-muted);
+  align-items: center;
+  line-height: 1.4;
 }
 
 .itemType {

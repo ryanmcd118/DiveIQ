@@ -78,8 +78,22 @@ export function MaintenanceDueSection({ gearItems, onEditGear }: Props) {
     }).format(date);
   };
 
-  const getDisplayName = (item: GearItem): string => {
-    return item.nickname || `${item.manufacturer} ${item.model}`;
+  const getPrimaryTitle = (item: GearItem): string => {
+    // Priority: manufacturer + model > manufacturer alone > model alone > nickname > gear type
+    if (item.manufacturer && item.model) {
+      return `${item.manufacturer} ${item.model}`;
+    }
+    if (item.manufacturer) {
+      return item.manufacturer;
+    }
+    if (item.model) {
+      return item.model;
+    }
+    if (item.nickname) {
+      return item.nickname;
+    }
+    // Final fallback to gear type
+    return formatGearTypeLabel(item.type as GearType);
   };
 
   return (
@@ -99,7 +113,7 @@ export function MaintenanceDueSection({ gearItems, onEditGear }: Props) {
                 <div className={styles.itemContent}>
                   <div className={styles.itemHeader}>
                     <span className={styles.itemName}>
-                      {getDisplayName(item)}
+                      {getPrimaryTitle(item)}
                     </span>
                     <span className={`${styles.statusPill} ${getStatusClass(status)}`}>
                       {getStatusLabel(status)}

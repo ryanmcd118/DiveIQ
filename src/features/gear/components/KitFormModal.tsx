@@ -140,8 +140,22 @@ export function KitFormModal({
 
   const activeGearItems = availableGearItems.filter((item) => item.isActive);
 
-  const getDisplayName = (item: GearItem): string => {
-    return item.nickname || `${item.manufacturer} ${item.model}`;
+  const getPrimaryTitle = (item: GearItem): string => {
+    // Priority: manufacturer + model > manufacturer alone > model alone > nickname > gear type
+    if (item.manufacturer && item.model) {
+      return `${item.manufacturer} ${item.model}`;
+    }
+    if (item.manufacturer) {
+      return item.manufacturer;
+    }
+    if (item.model) {
+      return item.model;
+    }
+    if (item.nickname) {
+      return item.nickname;
+    }
+    // Final fallback to gear type
+    return formatGearTypeLabel(item.type as GearType);
   };
 
   return (
@@ -213,7 +227,7 @@ export function KitFormModal({
                     />
                     <div className={styles.gearItemContent}>
                       <span className={styles.gearItemName}>
-                        {getDisplayName(item)}
+                        {getPrimaryTitle(item)}
                       </span>
                       <span className={styles.gearItemType}>{formatGearTypeLabel(item.type as GearType)}</span>
                     </div>
