@@ -326,14 +326,14 @@ export function GearListSection({
           </div>
 
           <div className={formStyles.field}>
-            <label className={formStyles.label}>
+            <label className={styles.hideArchivedToggle}>
               <input
                 type="checkbox"
                 checked={hideArchived}
                 onChange={(e) => onHideArchivedChange(e.target.checked)}
                 className={styles.checkbox}
               />
-              Hide archived gear
+              <span>Hide archived gear</span>
             </label>
           </div>
 
