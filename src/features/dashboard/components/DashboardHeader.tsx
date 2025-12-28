@@ -1,8 +1,6 @@
 "use client";
 
-import Link from "next/link";
 import { useAuth } from "@/features/auth/hooks/useAuth";
-import buttonStyles from "@/styles/components/Button.module.css";
 import styles from "./DashboardHeader.module.css";
 
 interface DashboardHeaderProps {
@@ -59,14 +57,6 @@ export function DashboardHeader({
             Start logging your dives to see your stats here
           </p>
         )}
-      </div>
-      <div className={styles.right}>
-        <Link href="/dive-logs" className={buttonStyles.secondaryText}>
-          Log a dive
-        </Link>
-        <Link href="/dive-plans" className={buttonStyles.primaryGradient}>
-          Plan a dive
-        </Link>
       </div>
     </header>
   );

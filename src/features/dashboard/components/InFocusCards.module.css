@@ -46,11 +46,6 @@
   .cardsGrid {
     grid-template-columns: repeat(4, 1fr);
   }
-  
-  /* Primary card spans 2 columns on desktop */
-  .cardPrimary {
-    grid-column: span 2;
-  }
 }
 
 /* Tier 1: Primary cards (In Focus) */

@@ -35,8 +35,8 @@ export function InFocusCards({
         <span className={styles.sectionTitleText}>In Focus</span>
       </h2>
       <div className={styles.cardsGrid}>
-        {/* Next planned dive - Primary card (spans 2 cols on desktop) */}
-        <div className={`${styles.card} ${styles.cardTier1} ${styles.cardPrimary}`}>
+        {/* Next planned dive */}
+        <div className={`${styles.card} ${styles.cardTier1}`}>
           <h3 className={styles.cardTitle}>Next planned dive</h3>
           {nextPlannedDive ? (
             <div className={styles.cardContent}>

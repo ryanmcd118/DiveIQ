@@ -26,6 +26,37 @@
   border-color: var(--border-accent);
 }
 
+/* Elevated Quick actions - primary action zone */
+.quickActionsElevated {
+  background: rgba(15, 23, 42, 0.8);
+  border: 1px solid rgba(51, 65, 85, 0.7);
+  box-shadow: var(--surface-1-shadow), 0 0 0 1px rgba(6, 182, 212, 0.1);
+  position: relative;
+}
+
+.quickActionsElevated::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    var(--accent) 20%,
+    var(--accent) 80%,
+    transparent
+  );
+  opacity: 0.4;
+  border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+}
+
+.quickActionsElevated:hover {
+  border-color: rgba(6, 182, 212, 0.25);
+  box-shadow: var(--surface-1-shadow-hover), 0 0 0 1px rgba(6, 182, 212, 0.15);
+}
+
 /* Tier 3: Setup checklist, Gear snapshot */
 .cardTier3 {
   background: var(--surface-3);
@@ -48,7 +79,86 @@
 .actions {
   display: flex;
   flex-direction: column;
-  gap: var(--space-2);
+  gap: var(--space-3);
+}
+
+/* Primary action - "Plan a dive" */
+.primaryAction {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-3) var(--space-5);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-button-gradient-text);
+  background: var(--gradient-button-primary);
+  border: none;
+  border-radius: var(--radius-md);
+  box-shadow: var(--glow-primary);
+  text-decoration: none;
+  transition: all var(--transition-base);
+  width: 100%;
+}
+
+.primaryAction:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--glow-primary-hover);
+}
+
+.primaryAction:active {
+  transform: translateY(0);
+}
+
+.primaryAction:focus {
+  outline: none;
+  box-shadow: var(--glow-primary-hover), 0 0 0 3px rgba(6, 182, 212, 0.15);
+}
+
+/* Secondary action - "Log a dive" */
+.secondaryAction {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-3) var(--space-5);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--text-primary);
+  background: var(--surface-2);
+  border: 1px solid var(--border-2);
+  border-radius: var(--radius-md);
+  text-decoration: none;
+  transition: all var(--transition-base);
+  width: 100%;
+}
+
+.secondaryAction:hover {
+  border-color: var(--accent);
+  color: var(--accent-light);
+  background: rgba(6, 182, 212, 0.05);
+  transform: translateY(-1px);
+}
+
+.secondaryAction:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--app-bg), 0 0 0 4px var(--accent);
+}
+
+/* Disabled action - "Import from dive computer" */
+.disabledAction {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-3) var(--space-5);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--text-muted);
+  background: transparent;
+  border: 1px solid var(--border-2);
+  border-radius: var(--radius-md);
+  cursor: not-allowed;
+  opacity: 0.5;
+  width: 100%;
+  font-style: italic;
 }
 
 .checklistSubtitle {
@@ -118,25 +228,13 @@
 .snapshot {
   display: flex;
   flex-direction: column;
-  gap: var(--space-3);
-}
-
-.snapshotItem {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-1);
-}
-
-.snapshotLabel {
-  font-size: var(--font-size-xs);
-  color: var(--text-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
+  gap: var(--space-2);
 }
 
 .snapshotValue {
   font-size: var(--font-size-sm);
   font-weight: var(--font-weight-medium);
   color: var(--text-primary);
+  margin: 0;
 }
 

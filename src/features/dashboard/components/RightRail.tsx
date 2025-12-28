@@ -13,17 +13,17 @@ interface RightRailProps {
 export function RightRail({ gearCount = 0, certCount = 0 }: RightRailProps) {
   return (
     <aside className={styles.rightRail}>
-      {/* Quick actions - Tier 1 */}
-      <div className={`${styles.card} ${styles.cardTier1}`}>
+      {/* Quick actions - Elevated primary action zone */}
+      <div className={`${styles.card} ${styles.cardTier1} ${styles.quickActionsElevated}`}>
         <h3 className={styles.cardTitle}>Quick actions</h3>
         <div className={styles.actions}>
-          <Link href="/dive-plans" className={buttonStyles.ghost}>
+          <Link href="/dive-plans" className={styles.primaryAction}>
             Plan a dive
           </Link>
-          <Link href="/dive-logs" className={buttonStyles.ghost}>
+          <Link href="/dive-logs" className={styles.secondaryAction}>
             Log a dive
           </Link>
-          <button className={buttonStyles.disabled} disabled title="Coming soon">
+          <button className={styles.disabledAction} disabled title="Coming soon">
             Import from dive computer (coming soon)
           </button>
         </div>
@@ -61,24 +61,25 @@ export function RightRail({ gearCount = 0, certCount = 0 }: RightRailProps) {
         </ul>
       </div>
 
-      {/* Gear & certifications snapshot - Tier 3 */}
+      {/* Gear - Tier 3 */}
       <div className={`${styles.card} ${styles.cardTier3}`}>
-        <h3 className={styles.cardTitle}>Gear & certifications</h3>
+        <h3 className={styles.cardTitle}>Gear</h3>
         <div className={styles.snapshot}>
-          <div className={styles.snapshotItem}>
-            <span className={styles.snapshotLabel}>Gear</span>
-            <span className={styles.snapshotValue}>
-              {gearCount} item{gearCount !== 1 ? "s" : ""} tracked
-              {gearCount === 0 && " (coming soon)"}
-            </span>
-          </div>
-          <div className={styles.snapshotItem}>
-            <span className={styles.snapshotLabel}>Certifications</span>
-            <span className={styles.snapshotValue}>
-              {certCount} on file
-              {certCount === 0 && " (coming soon)"}
-            </span>
-          </div>
+          <p className={styles.snapshotValue}>
+            {gearCount} item{gearCount !== 1 ? "s" : ""} tracked
+            {gearCount === 0 && " (coming soon)"}
+          </p>
+        </div>
+      </div>
+
+      {/* Certifications - Tier 3 */}
+      <div className={`${styles.card} ${styles.cardTier3}`}>
+        <h3 className={styles.cardTitle}>Certifications</h3>
+        <div className={styles.snapshot}>
+          <p className={styles.snapshotValue}>
+            {certCount} on file
+            {certCount === 0 && " (coming soon)"}
+          </p>
         </div>
       </div>
     </aside>
