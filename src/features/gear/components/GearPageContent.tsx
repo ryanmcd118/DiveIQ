@@ -27,6 +27,11 @@ export function GearPageContent() {
   const [deleteConfirm, setDeleteConfirm] = useState<{ id: string; type: "gear" | "kit" } | null>(null);
   const [archivedGearId, setArchivedGearId] = useState<string | null>(null);
   const [autoExpandArchived, setAutoExpandArchived] = useState(false);
+  const [archiveConfirm, setArchiveConfirm] = useState<{
+    gearId: string;
+    gearName: string;
+    kitNames: Array<{ name: string; isDefault: boolean }>;
+  } | null>(null);
 
   const loadData = async (showLoading = true) => {
     try {
@@ -328,6 +333,42 @@ export function GearPageContent() {
             confirmLabel="Delete"
             onConfirm={confirmDelete}
             onCancel={() => setDeleteConfirm(null)}
+          />
+        )}
+
+        {archiveConfirm && (
+          <ConfirmModal
+            isOpen={true}
+            title="Archive gear?"
+            message={
+              <>
+                Are you sure you want to archive this gear? It will be removed from the following saved kits:
+                <ul style={{ marginTop: "1rem", marginBottom: 0, paddingLeft: "1.5rem" }}>
+                  {archiveConfirm.kitNames.map((kit) => (
+                    <li key={kit.name} style={{ marginTop: "0.5rem" }}>
+                      {kit.name}
+                      {kit.isDefault && (
+                        <span
+                          style={{
+                            marginLeft: "0.5rem",
+                            fontSize: "0.75rem",
+                            color: "var(--color-accent-light)",
+                            background: "rgba(6, 182, 212, 0.2)",
+                            padding: "0.125rem 0.5rem",
+                            borderRadius: "9999px",
+                          }}
+                        >
+                          (Default)
+                        </span>
+                      )}
+                    </li>
+                  ))}
+                </ul>
+              </>
+            }
+            confirmLabel="Yes, archive this item"
+            onConfirm={confirmArchive}
+            onCancel={() => setArchiveConfirm(null)}
           />
         )}
 

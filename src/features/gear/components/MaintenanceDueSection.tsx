@@ -19,7 +19,10 @@ interface Props {
 
 export function MaintenanceDueSection({ gearItems, onEditGear }: Props) {
   const maintenanceItems = useMemo(() => {
-    const itemsWithStatus = gearItems.map((item) => ({
+    // Filter out archived/inactive items
+    const activeItems = gearItems.filter((item) => item.isActive);
+    
+    const itemsWithStatus = activeItems.map((item) => ({
       item,
       status: computeMaintenanceStatus(item),
       nextDue: getNextServiceDueAt(item),
