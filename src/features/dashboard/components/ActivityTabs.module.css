@@ -1,0 +1,115 @@
+/* Standard container (Activity) - default tier */
+.activitySection {
+  margin-bottom: 0;
+  background: var(--card-standard-bg);
+  border: 1px solid var(--card-standard-border);
+  border-radius: var(--radius-xl);
+  padding: var(--space-6);
+  box-shadow: var(--card-standard-shadow);
+  transition: var(--transition-hover);
+}
+
+.activitySection:hover {
+  background: rgba(15, 23, 42, 0.66);
+  border-color: rgba(148, 163, 184, 0.14);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.3);
+}
+
+.activitySection:focus-within {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.tabs {
+  display: flex;
+  gap: var(--space-2);
+  border-bottom: 1px solid var(--border-2);
+  margin-bottom: var(--space-4);
+  padding-bottom: var(--space-2);
+}
+
+.tab {
+  padding: var(--space-3) var(--space-4);
+  background: transparent;
+  border: none;
+  border-bottom: 3px solid transparent;
+  color: var(--text-muted);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  cursor: pointer;
+  transition: all var(--transition-base);
+  margin-bottom: -3px;
+  position: relative;
+}
+
+.tab::after {
+  content: "";
+  position: absolute;
+  bottom: -3px;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: var(--accent);
+  transform: scaleX(0);
+  transition: transform var(--transition-accent);
+  border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+}
+
+.tab:hover {
+  color: var(--text-primary);
+}
+
+.tab.active {
+  color: var(--accent-light);
+}
+
+.tab.active::after {
+  transform: scaleX(1);
+}
+
+.tabContent {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: var(--space-2);
+}
+
+.left {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.siteName {
+  font-weight: var(--font-weight-medium);
+  color: var(--text-body);
+}
+
+.region {
+  color: var(--text-body);
+  font-weight: var(--font-weight-normal);
+}
+
+.meta {
+  font-size: var(--font-size-xs);
+  color: var(--text-body);
+}
+
+.capitalize {
+  text-transform: capitalize;
+}
+

@@ -1,0 +1,117 @@
+.dashboard {
+  padding: 0;
+  color: var(--color-text-primary);
+  /* Background handled by app layout */
+}
+
+.dashboardContent {
+  width: 100%;
+  max-width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+/* Hero block - guarantees spacing between greeting and "In Focus" */
+.heroBlock {
+  margin-bottom: 32px;
+}
+
+@media (min-width: 1024px) {
+  .heroBlock {
+    margin-bottom: 40px;
+  }
+}
+
+/* =========================================
+   DASHBOARD VISUAL TIERING v2
+   Dashboard-only surface tokens for clear hierarchy
+   
+   Usage:
+   - Hero: Dashboard header/greeting area (--dash-surface-hero)
+   - Tier 1: Primary cards - In Focus cards (--dash-surface-1)
+   - Tier 2: Secondary cards - At a Glance stats, Activity, Setup/Gear (--dash-surface-2)
+   - Tier 3: Tertiary cards - Trends charts (--dash-surface-3)
+   ========================================= */
+.dashboardContent {
+  /* Hero surface - for greeting area */
+  --dash-surface-hero: rgba(20, 30, 50, 0.85);
+  --dash-border-hero: rgba(34, 211, 238, 0.2);
+  --dash-shadow-hero: 0 16px 48px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(34, 211, 238, 0.15);
+  
+  /* Tier 1: Primary cards (In Focus) - highest contrast */
+  --dash-surface-1: rgba(15, 23, 42, 0.75);
+  --dash-border-1: rgba(148, 163, 184, 0.18);
+  --dash-shadow-1: 0 12px 36px rgba(0, 0, 0, 0.3);
+  --dash-shadow-1-hover: 0 16px 44px rgba(0, 0, 0, 0.4);
+  
+  /* Tier 2: Secondary cards (At a Glance, Activity, Setup/Gear) - standard */
+  --dash-surface-2: rgba(15, 23, 42, 0.58);
+  --dash-border-2: rgba(148, 163, 184, 0.12);
+  --dash-shadow-2: 0 8px 24px rgba(0, 0, 0, 0.25);
+  --dash-shadow-2-hover: 0 12px 32px rgba(0, 0, 0, 0.3);
+  
+  /* Tier 3: Tertiary cards (Trends) - quiet, don't compete */
+  --dash-surface-3: rgba(15, 23, 42, 0.45);
+  --dash-border-3: rgba(148, 163, 184, 0.08);
+  --dash-shadow-3: 0 4px 16px rgba(0, 0, 0, 0.2);
+  --dash-shadow-3-hover: 0 8px 24px rgba(0, 0, 0, 0.25);
+  
+  /* Card tier classes - global dashboard card styling
+     Subtler + sharper: contrast via background + shadow, not glow rings
+  */
+  /* Featured: Quick actions - slightly brighter surface + stronger shadow */
+  --card-featured-bg: rgba(15, 23, 42, 0.68);
+  --card-featured-border: rgba(148, 163, 184, 0.14);
+  --card-featured-shadow: 0 12px 36px rgba(0, 0, 0, 0.3);
+  
+  /* Standard: Most content cards (In Focus, Activity) - default */
+  --card-standard-bg: rgba(15, 23, 42, 0.58);
+  --card-standard-border: rgba(148, 163, 184, 0.12);
+  --card-standard-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+  
+  /* Quiet: At a Glance stats, Trends - lower contrast */
+  --card-quiet-bg: rgba(15, 23, 42, 0.42);
+  --card-quiet-border: rgba(148, 163, 184, 0.08);
+  --card-quiet-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+}
+
+.mainGrid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-8);
+}
+
+@media (min-width: 1024px) {
+  .mainGrid {
+    grid-template-columns: 2fr 1fr;
+    gap: var(--space-8);
+  }
+}
+
+.mainContent {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+/* Section spacing - matches hero block spacing (32px/40px) */
+.mainContent > * {
+  margin-bottom: 32px;
+}
+
+.mainContent > *:last-child {
+  margin-bottom: 0;
+}
+
+@media (min-width: 1024px) {
+  .mainContent > * {
+    margin-bottom: 40px;
+  }
+}
+
+.rightRail {
+  display: flex;
+  flex-direction: column;
+}
+

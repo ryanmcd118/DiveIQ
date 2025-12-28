@@ -9,11 +9,36 @@ interface UnitToggleProps {
 }
 
 export function UnitToggle({ className, showLabel = true }: UnitToggleProps) {
-  const { unitSystem, setUnitSystem } = useUnitSystem();
+  const { unitSystem, setUnitSystem, isMounted } = useUnitSystem();
 
-  return (
-    <div className={`${styles.container} ${className || ''}`}>
-      {showLabel && <span className={styles.label}>Units</span>}
+  // Before mount, render with no active state to match SSR
+  const renderToggle = () => {
+    if (!isMounted) {
+      return (
+        <div className={styles.toggle} role="group" aria-label="Unit system">
+          <button
+            type="button"
+            className={styles.segment}
+            onClick={() => setUnitSystem('metric')}
+            aria-pressed={false}
+            aria-label="Metric units"
+          >
+            Metric
+          </button>
+          <button
+            type="button"
+            className={styles.segment}
+            onClick={() => setUnitSystem('imperial')}
+            aria-pressed={false}
+            aria-label="Imperial units"
+          >
+            Imperial
+          </button>
+        </div>
+      );
+    }
+
+    return (
       <div className={styles.toggle} role="group" aria-label="Unit system">
         <button
           type="button"
@@ -34,6 +59,13 @@ export function UnitToggle({ className, showLabel = true }: UnitToggleProps) {
           Imperial
         </button>
       </div>
+    );
+  };
+
+  return (
+    <div className={`${styles.container} ${className || ''}`}>
+      {showLabel && <span className={styles.label}>Units</span>}
+      {renderToggle()}
     </div>
   );
 }

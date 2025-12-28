@@ -1,16 +1,14 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import Link from "next/link";
 import type { DiveLog, DivePlan } from "@prisma/client";
-import { useUnitSystem } from "@/contexts/UnitSystemContext";
-import { displayDepth, displayTemperature, displayDistance } from "@/lib/units";
-import layoutStyles from "@/styles/components/Layout.module.css";
-import cardStyles from "@/styles/components/Card.module.css";
-import buttonStyles from "@/styles/components/Button.module.css";
-import navStyles from "@/styles/components/Navigation.module.css";
-import listStyles from "@/styles/components/List.module.css";
+import { DashboardHeader } from "./DashboardHeader";
+import { InFocusCards } from "./InFocusCards";
+import { StatsGrid } from "./StatsGrid";
+import { ActivityTabs } from "./ActivityTabs";
+import { RightRail } from "./RightRail";
+import { Trends } from "./Trends";
 import backgroundStyles from "@/styles/components/Background.module.css";
+import styles from "./DashboardPageContent.module.css";
 
 type Props = {
   recentDives: DiveLog[];
@@ -29,268 +27,71 @@ export function DashboardPageContent({
   recentPlans,
   isAuthenticated = false,
 }: Props) {
-  const { unitSystem } = useUnitSystem();
-  const [isMounted, setIsMounted] = useState(false);
-  const mostRecentDive: DiveLog | undefined = recentDives[0];
-  
-  // Prevent hydration mismatch by using stable metric value until mounted
-  useEffect(() => {
-    setIsMounted(true);
-  }, []);
-  
-  // Use metric (stable) for SSR, user preference after mount
-  const deepestDiveDisplay = displayDepth(deepestDive, isMounted ? unitSystem : 'metric');
+  const mostRecentDive = recentDives[0];
+  const nextPlannedDive = recentPlans[0]; // Assuming plans are ordered by date
+
+  // Calculate additional stats
+  const avgDepth =
+    recentDives.length > 0
+      ? recentDives.reduce((sum, dive) => sum + dive.maxDepth, 0) / recentDives.length
+      : undefined;
+  const avgBottomTime =
+    recentDives.length > 0
+      ? recentDives.reduce((sum, dive) => sum + dive.bottomTime, 0) / recentDives.length
+      : undefined;
+
+  // Calculate dives this month (mock for now, would need date filtering)
+  const divesThisMonth = recentDives.length; // Simplified
+
+  // Get last dive date
+  const lastDiveDate = mostRecentDive?.date;
 
   return (
-    <main className={`${layoutStyles.page} ${backgroundStyles.pageGradientSubtle}`}>
-        <div className={layoutStyles.pageContent}>
-        {/* Header */}
-        <header className={layoutStyles.pageHeader}>
-          <div>
-            <h1 className={layoutStyles.pageTitle}>DiveIQ Dashboard</h1>
-            <p className={layoutStyles.pageSubtitle}>
-              {totalCount > 0 
-                ? `${totalCount} dive${totalCount === 1 ? '' : 's'} logged • ${totalBottomTime} min bottom time`
-                : 'Your personal hub for planning dives, logging experiences, and eventually tracking gear, certifications, and more.'}
-            </p>
-          </div>
-          <div className={layoutStyles.headerActions} style={{ alignSelf: 'flex-start', paddingTop: 'var(--space-1)' }}>
-            <Link href="/dive-plans" className={buttonStyles.primaryGradient}>
-              Plan a dive
-            </Link>
-            <Link href="/dive-logs" className={buttonStyles.secondaryText}>
-              Log a dive
-            </Link>
-          </div>
-        </header>
+    <div className={styles.dashboard}>
+      <div className={styles.dashboardContent}>
+        {/* Hero block - greeting area with guaranteed spacing */}
+        <div className={styles.heroBlock}>
+          <DashboardHeader
+            totalDives={totalCount}
+            totalBottomTime={totalBottomTime}
+            lastDiveDate={lastDiveDate}
+            divesThisMonth={divesThisMonth}
+          />
+        </div>
 
-        {/* Stats row */}
-        <section className={layoutStyles.statsGrid} style={{ marginBottom: 'var(--space-10)' }}>
-          <div className={cardStyles.statEmphasis}>
-            <p className={cardStyles.statLabel}>Total dives</p>
-            <p className={cardStyles.statValue}>{totalCount}</p>
-            <p className={cardStyles.statDescription}>
-              Logged in your DiveIQ logbook.
-            </p>
-          </div>
+        {/* Main grid: 8 cols main, 4 cols right rail */}
+        <div className={styles.mainGrid}>
+          <div className={styles.mainContent}>
+            {/* In Focus */}
+            <InFocusCards
+              nextPlannedDive={nextPlannedDive}
+              mostRecentDive={mostRecentDive}
+              divesThisMonth={divesThisMonth}
+            />
 
-          <div className={cardStyles.statEmphasis}>
-            <p className={cardStyles.statLabel}>Total bottom time</p>
-            <p className={cardStyles.statValue}>
-              {totalBottomTime}
-              <span className={cardStyles.statUnit}>min</span>
-            </p>
-            <p className={cardStyles.statDescription}>
-              Across all logged dives.
-            </p>
+            {/* At a Glance */}
+            <StatsGrid
+              totalDives={totalCount}
+              totalBottomTime={totalBottomTime}
+              deepestDive={deepestDive}
+              avgDepth={avgDepth}
+              avgBottomTime={avgBottomTime}
+              divesThisMonth={divesThisMonth}
+            />
+
+            {/* Activity section */}
+            <ActivityTabs recentDives={recentDives} plannedDives={recentPlans} />
+
+            {/* Trends */}
+            <Trends />
           </div>
 
-          <div className={cardStyles.statEmphasis}>
-            <p className={cardStyles.statLabel}>Deepest dive</p>
-            <p className={cardStyles.statValue}>
-              {deepestDiveDisplay.value}
-              <span className={cardStyles.statUnit}>{deepestDiveDisplay.unit}</span>
-            </p>
-            <p className={cardStyles.statDescription}>
-              Based on your current logbook.
-            </p>
+          {/* Right rail */}
+          <div className={styles.rightRail}>
+            <RightRail gearCount={0} certCount={0} />
           </div>
-        </section>
-
-        {/* Main grid: recent dives + planning / gear */}
-        <section className={layoutStyles.dashboardGrid} style={{ marginBottom: 'var(--space-10)' }}>
-          {/* Left: most recent dive + recent dives */}
-          <div className={layoutStyles.section}>
-            <div className={`${cardStyles.card} ${cardStyles.feature}`}>
-              <div className={cardStyles.header}>
-                <h2 className={cardStyles.title}>Most recent dive</h2>
-                <Link href="/dive-logs" className={navStyles.linkAccentSmall}>
-                  View full log
-                </Link>
-              </div>
-
-              {mostRecentDive ? (() => {
-                const depth = displayDepth(mostRecentDive.maxDepth, isMounted ? unitSystem : 'metric');
-                const visibility = mostRecentDive.visibility != null 
-                  ? displayDistance(mostRecentDive.visibility, isMounted ? unitSystem : 'metric')
-                  : null;
-                const waterTemp = mostRecentDive.waterTemp != null
-                  ? displayTemperature(mostRecentDive.waterTemp, isMounted ? unitSystem : 'metric')
-                  : null;
-                
-                return (
-                <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-1)", fontSize: "var(--font-size-sm)" }}>
-                  <p style={{ fontWeight: "var(--font-weight-medium)" }}>
-                    {mostRecentDive.siteName}{" "}
-                    <span className="text-muted">
-                      ({mostRecentDive.region})
-                    </span>
-                  </p>
-                  <p className="caption text-muted">
-                    {mostRecentDive.date}
-                  </p>
-                  <p className={listStyles.diveStats}>
-                    {depth.value}{depth.unit} · {mostRecentDive.bottomTime}min
-                    {visibility && ` · ${visibility.value}${visibility.unit} vis`}
-                    {waterTemp && ` · ${waterTemp.value}${waterTemp.unit}`}
-                  </p>
-                  {mostRecentDive.buddyName && (
-                    <p className={listStyles.diveMeta}>
-                      Buddy: {mostRecentDive.buddyName}
-                    </p>
-                  )}
-                  {mostRecentDive.notes && (
-                    <p className={listStyles.diveNotes} style={{ marginTop: "var(--space-2)" }}>
-                      {mostRecentDive.notes}
-                    </p>
-                  )}
-                </div>
-                );
-              })() : (
-                <p className={listStyles.empty}>
-                  {isAuthenticated ? (
-                    <>
-                      No dives logged yet.{" "}
-                      <Link href="/dive-logs" className={navStyles.linkAccent}>
-                        Log your first dive
-                      </Link>{" "}
-                      to see it here.
-                    </>
-                  ) : (
-                    <>
-                      <Link href="/signin" className={navStyles.linkAccent}>
-                        Sign in
-                      </Link>{" "}
-                      to view your dive log history.
-                    </>
-                  )}
-                </p>
-              )}
-            </div>
-
-            <div className={`${cardStyles.card} ${cardStyles.feature}`}>
-              <h2 className={cardStyles.titleWithMargin}>Recent dives</h2>
-              {recentDives.length === 0 ? (
-                <p className={listStyles.empty}>
-                  {isAuthenticated
-                    ? "Once you start logging dives, the latest few will appear here for a quick snapshot."
-                    : "Sign in to see your recent dives here."}
-                </p>
-              ) : (
-                <ul className={listStyles.listCompact}>
-                  {recentDives.map((dive) => {
-                    const depth = displayDepth(dive.maxDepth, isMounted ? unitSystem : 'metric');
-                    return (
-                    <li key={dive.id} className={cardStyles.listItem}>
-                      <div className="flex-between" style={{ gap: "var(--space-2)" }}>
-                        <span style={{ fontWeight: "var(--font-weight-medium)" }}>
-                          {dive.siteName}{" "}
-                          <span className="text-muted">({dive.region})</span>
-                        </span>
-                        <span className={listStyles.diveDate}>
-                          {dive.date}
-                        </span>
-                      </div>
-                      <p className="body-small text-muted">
-                        {depth.value}{depth.unit} · {dive.bottomTime}min
-                      </p>
-                      {dive.buddyName && (
-                        <p className={listStyles.diveMeta} style={{ marginTop: "var(--space-1)" }}>
-                          Buddy: {dive.buddyName}
-                        </p>
-                      )}
-                    </li>
-                    );
-                  })}
-                </ul>
-              )}
-            </div>
-          </div>
-
-          {/* Right: planning + gear */}
-          <div className={layoutStyles.section}>
-            <div className={`${cardStyles.card} ${cardStyles.feature}`}>
-              <h2 className={cardStyles.titleWithMargin}>Planning shortcuts</h2>
-              <p className={listStyles.empty} style={{ marginBottom: "var(--space-3)" }}>
-                Jump straight into planning your next dive.
-              </p>
-              <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-2)" }}>
-                <Link href="/dive-plans" className={buttonStyles.ghost}>
-                  Plan a new dive
-                </Link>
-                <button
-                  type="button"
-                  className={buttonStyles.disabled}
-                  title="Coming soon"
-                >
-                  🌊 Plan a weekend trip (coming soon)
-                </button>
-              </div>
-            </div>
-
-            <div className={`${cardStyles.card} ${cardStyles.feature}`}>
-              <h2 className={cardStyles.titleWithMargin}>
-                Gear & certifications
-              </h2>
-              <p className={listStyles.empty} style={{ marginBottom: "var(--space-3)" }}>
-                This space will eventually track your gear service dates,
-                certification levels, and training goals.
-              </p>
-              <p className={cardStyles.statDescription}>
-                For now, it&apos;s a placeholder to show where those features
-                will live in your product story and interviews.
-              </p>
-            </div>
-          </div>
-        </section>
-
-        {/* Recent planned dives */}
-        <section className={`${cardStyles.card} ${cardStyles.feature}`}>
-          <div className={cardStyles.header}>
-            <h2 className={cardStyles.title}>Recent planned dives</h2>
-            <Link href="/dive-plans" className={navStyles.linkAccentSmall}>
-              Open planner
-            </Link>
-          </div>
-
-          {recentPlans.length === 0 ? (
-            <p className={listStyles.empty}>
-              {isAuthenticated
-                ? "Once you start generating AI-assisted dive plans, the latest few will appear here with their estimated risk levels."
-                : "Sign in to see your saved dive plans here."}
-            </p>
-          ) : (
-            <ul className={listStyles.listCompact}>
-              {recentPlans.map((plan) => {
-                const depth = displayDepth(plan.maxDepth, isMounted ? unitSystem : 'metric');
-                return (
-                <li key={plan.id} className={cardStyles.listItem}>
-                  <div className="flex-between" style={{ gap: "var(--space-2)" }}>
-                    <span style={{ fontWeight: "var(--font-weight-medium)" }}>
-                      {plan.siteName}{" "}
-                      <span className="text-muted">({plan.region})</span>
-                    </span>
-                    <span className={listStyles.diveDate}>{plan.date}</span>
-                  </div>
-                  <p className="body-small text-muted">
-                    {depth.value}{depth.unit} · {plan.bottomTime}min ·{" "}
-                    <span style={{ textTransform: "capitalize" }}>
-                      {plan.experienceLevel}
-                    </span>
-                  </p>
-                  <p className={listStyles.planRisk}>
-                    Estimated risk:{" "}
-                    <span style={{ color: "var(--color-text-secondary)" }}>
-                      {plan.riskLevel}
-                    </span>
-                  </p>
-                </li>
-                );
-              })}
-            </ul>
-          )}
-        </section>
+        </div>
       </div>
-    </main>
+    </div>
   );
 }

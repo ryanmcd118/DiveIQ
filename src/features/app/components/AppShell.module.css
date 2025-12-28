@@ -1,0 +1,43 @@
+.appShell {
+  display: flex;
+  min-height: 100vh;
+  /* Transparent - let parent app layout background show through */
+  background: transparent;
+}
+
+.mainContent {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  margin-left: 16rem;
+  transition: margin-left var(--transition-base);
+  min-width: 0;
+}
+
+.mainContent.sidebarCollapsed {
+  margin-left: 4rem;
+}
+
+@media (max-width: 767px) {
+  .mainContent {
+    margin-left: 0;
+  }
+
+  .mainContent.sidebarCollapsed {
+    margin-left: 0;
+  }
+}
+
+.content {
+  flex: 1;
+  overflow-y: auto;
+  padding: var(--space-6);
+  color: var(--color-text-primary);
+}
+
+@media (min-width: 768px) {
+  .content {
+    padding: var(--space-8) var(--space-10);
+  }
+}
+

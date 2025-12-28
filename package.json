@@ -8,6 +8,7 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
+    "clean": "rm -rf .next",
     "lint": "eslint",
     "lint:fix": "eslint --fix",
     "format": "prettier --write .",
