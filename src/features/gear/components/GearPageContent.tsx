@@ -27,10 +27,13 @@ export function GearPageContent() {
   const [deleteConfirm, setDeleteConfirm] = useState<{ id: string; type: "gear" | "kit" } | null>(null);
   const [archivedGearId, setArchivedGearId] = useState<string | null>(null);
   const [hideArchived, setHideArchived] = useState(true);
+  const [autoExpandInactive, setAutoExpandInactive] = useState(false);
 
-  const loadData = async () => {
+  const loadData = async (showLoading = true) => {
     try {
-      setLoading(true);
+      if (showLoading) {
+        setLoading(true);
+      }
       // Always load all gear (active + inactive) so we can split them
       const [gearRes, kitsRes] = await Promise.all([
         fetch("/api/gear?includeInactive=true"),
@@ -51,7 +54,9 @@ export function GearPageContent() {
       console.error(err);
       setError("Failed to load gear data");
     } finally {
-      setLoading(false);
+      if (showLoading) {
+        setLoading(false);
+      }
     }
   };
 
@@ -126,6 +131,19 @@ export function GearPageContent() {
     const wasActive = isActive;
     const previousActiveState = !isActive;
 
+    // Optimistically update local state
+    setGearItems((prevItems) =>
+      prevItems.map((item) =>
+        item.id === id ? { ...item, isActive } : item
+      )
+    );
+
+    // If archiving, ensure archived section is visible
+    if (wasActive) {
+      setHideArchived(false);
+      setAutoExpandInactive(true);
+    }
+
     try {
       const res = await fetch("/api/gear", {
         method: "PUT",
@@ -140,7 +158,8 @@ export function GearPageContent() {
       if (!wasActive) {
         // Unarchiving - just show success
         setToast({ message: "Gear unarchived" });
-        void loadData();
+        // Refresh data in background without scroll jump
+        void loadData(false);
       } else {
         // Archiving - show undo toast
         setArchivedGearId(id);
@@ -157,17 +176,31 @@ export function GearPageContent() {
               if (undoRes.ok) {
                 setArchivedGearId(null);
                 setToast(null);
-                void loadData();
+                // Optimistically revert
+                setGearItems((prevItems) =>
+                  prevItems.map((item) =>
+                    item.id === id ? { ...item, isActive: previousActiveState } : item
+                  )
+                );
+                // Refresh in background
+                void loadData(false);
               }
             } catch (err) {
               console.error(err);
             }
           },
         });
-        void loadData();
+        // Refresh data in background without scroll jump
+        void loadData(false);
       }
     } catch (err) {
       console.error(err);
+      // Revert optimistic update on error
+      setGearItems((prevItems) =>
+        prevItems.map((item) =>
+          item.id === id ? { ...item, isActive: previousActiveState } : item
+        )
+      );
       alert("Failed to update gear item");
     }
   };
@@ -251,6 +284,8 @@ export function GearPageContent() {
               onRefresh={loadData}
               hideArchived={hideArchived}
               onHideArchivedChange={setHideArchived}
+              autoExpandInactive={autoExpandInactive}
+              onAutoExpandInactiveComplete={() => setAutoExpandInactive(false)}
               onAddGear={() => {
                 setEditingGear(null);
                 setShowGearForm(true);

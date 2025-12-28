@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
 import type { GearItem } from "@prisma/client";
 import { GearKitWithItems } from "@/services/database/repositories/gearRepository";
 import {
@@ -30,6 +30,8 @@ interface Props {
   onRefresh: () => void;
   hideArchived: boolean;
   onHideArchivedChange: (hide: boolean) => void;
+  autoExpandInactive?: boolean;
+  onAutoExpandInactiveComplete?: () => void;
   onAddGear: () => void;
 }
 
@@ -42,6 +44,8 @@ export function GearListSection({
   onRefresh,
   hideArchived,
   onHideArchivedChange,
+  autoExpandInactive = false,
+  onAutoExpandInactiveComplete,
   onAddGear,
 }: Props) {
   const [typeFilter, setTypeFilter] = useState<string>("all");
@@ -49,6 +53,28 @@ export function GearListSection({
   const [sortBy, setSortBy] = useState<SortOption>("soonest-due");
   const [isInactiveOpen, setIsInactiveOpen] = useState(false);
   const [expandedItems, setExpandedItems] = useState<Set<string>>(new Set());
+  const inactiveSectionRef = useRef<HTMLDivElement>(null);
+
+  // Handle auto-expand when archiving
+  useEffect(() => {
+    if (autoExpandInactive && !hideArchived) {
+      setIsInactiveOpen(true);
+      // Smooth scroll to inactive section after a brief delay to allow render
+      setTimeout(() => {
+        if (inactiveSectionRef.current) {
+          const rect = inactiveSectionRef.current.getBoundingClientRect();
+          const isVisible = rect.top >= 0 && rect.bottom <= window.innerHeight;
+          if (!isVisible) {
+            inactiveSectionRef.current.scrollIntoView({
+              behavior: "smooth",
+              block: "start",
+            });
+          }
+        }
+        onAutoExpandInactiveComplete?.();
+      }, 100);
+    }
+  }, [autoExpandInactive, hideArchived, onAutoExpandInactiveComplete]);
 
   // Create memoized map of gearId -> kit names
   const gearKitMap = useMemo(() => {
@@ -441,7 +467,7 @@ export function GearListSection({
 
         {/* Inactive gear section */}
         {!hideArchived && filteredAndSortedInactive.length > 0 && (
-          <div className={styles.inactiveSection}>
+          <div ref={inactiveSectionRef} className={styles.inactiveSection}>
             <button
               type="button"
               onClick={() => setIsInactiveOpen(!isInactiveOpen)}
