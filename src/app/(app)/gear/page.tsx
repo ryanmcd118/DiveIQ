@@ -1,22 +1,19 @@
 import { Metadata } from "next";
-import { PlaceholderPage } from "@/features/app/components/PlaceholderPage";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/features/auth/lib/auth";
+import { redirect } from "next/navigation";
+import { GearPageContent } from "@/features/gear/components/GearPageContent";
 
 export const metadata: Metadata = {
   title: "Gear | DiveIQ",
 };
 
-export default function GearPage() {
-  return (
-    <PlaceholderPage
-      title="Gear"
-      subtitle="Coming soon"
-      features={[
-        "Track your dive equipment inventory",
-        "Monitor service dates and maintenance schedules",
-        "Set primary gear configurations",
-        "Track gear usage and dive history",
-      ]}
-    />
-  );
-}
+export default async function GearPage() {
+  const session = await getServerSession(authOptions);
 
+  if (!session?.user) {
+    redirect("/signin");
+  }
+
+  return <GearPageContent />;
+}

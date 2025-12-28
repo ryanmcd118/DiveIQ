@@ -82,6 +82,11 @@ function DiveLogList({ entries, onSelect, onDelete }: Props) {
           {entry.buddyName && (
             <p className={listStyles.diveMeta}>Buddy: {entry.buddyName}</p>
           )}
+          {entry.gearItems && entry.gearItems.length > 0 && (
+            <p className={listStyles.diveMeta}>
+              Gear: {entry.gearItems.map((g) => g.nickname || `${g.manufacturer} ${g.model}`).join(", ")}
+            </p>
+          )}
           {entry.notes && <p className={listStyles.diveNotes}>{entry.notes}</p>}
         </li>
         );

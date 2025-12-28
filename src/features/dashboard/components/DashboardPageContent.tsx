@@ -88,7 +88,7 @@ export function DashboardPageContent({
 
           {/* Right rail */}
           <div className={styles.rightRail}>
-            <RightRail gearCount={0} certCount={0} />
+            <RightRail certCount={0} />
           </div>
         </div>
       </div>

@@ -3,6 +3,7 @@
 import Link from "next/link";
 import cardStyles from "@/styles/components/Card.module.css";
 import buttonStyles from "@/styles/components/Button.module.css";
+import { GearCard } from "./GearCard";
 import styles from "./RightRail.module.css";
 
 interface RightRailProps {
@@ -61,16 +62,8 @@ export function RightRail({ gearCount = 0, certCount = 0 }: RightRailProps) {
         </ul>
       </div>
 
-      {/* Gear - Tier 3 */}
-      <div className={`${styles.card} ${styles.cardTier3}`}>
-        <h3 className={styles.cardTitle}>Gear</h3>
-        <div className={styles.snapshot}>
-          <p className={styles.snapshotValue}>
-            {gearCount} item{gearCount !== 1 ? "s" : ""} tracked
-            {gearCount === 0 && " (coming soon)"}
-          </p>
-        </div>
-      </div>
+      {/* Gear Card - Tier 3 */}
+      <GearCard />
 
       {/* Certifications - Tier 3 */}
       <div className={`${styles.card} ${styles.cardTier3}`}>

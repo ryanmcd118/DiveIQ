@@ -21,6 +21,8 @@ model User {
   // Relations
   diveLogs      DiveLog[]
   divePlans     DivePlan[]
+  gearItems     GearItem[]
+  gearKits      GearKit[]
   accounts      Account[]
   sessions      Session[]
 }
@@ -76,6 +78,7 @@ model DiveLog {
   createdAt   DateTime @default(now())
   
   user        User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  gearItems   DiveGearItem[]
   
   @@index([userId])
 }
@@ -96,4 +99,69 @@ model DivePlan {
   user            User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
   
   @@index([userId])
+}
+
+// Gear models
+model GearItem {
+  id                  String    @id @default(cuid())
+  userId              String
+  type                String    // enum: BCD, REGULATOR, WETSUIT, DIVE_COMPUTER, FINS, MASK, SNORKEL, TANK, WEIGHTS, OTHER
+  manufacturer        String
+  model               String
+  nickname            String?
+  purchaseDate        DateTime?
+  notes               String?
+  isActive            Boolean   @default(true)
+  lastServicedAt      DateTime?
+  serviceIntervalMonths Int?
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+  
+  user                User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  kitItems            GearKitItem[]
+  diveGearItems       DiveGearItem[]
+  
+  @@index([userId])
+  @@index([userId, isActive])
+}
+
+model GearKit {
+  id          String    @id @default(cuid())
+  userId      String
+  name        String
+  isDefault   Boolean   @default(false)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  kitItems    GearKitItem[]
+  
+  @@index([userId])
+  @@index([userId, isDefault])
+}
+
+model GearKitItem {
+  id          String    @id @default(cuid())
+  kitId       String
+  gearItemId  String
+  
+  kit         GearKit   @relation(fields: [kitId], references: [id], onDelete: Cascade)
+  gearItem    GearItem  @relation(fields: [gearItemId], references: [id], onDelete: Cascade)
+  
+  @@unique([kitId, gearItemId])
+  @@index([kitId])
+  @@index([gearItemId])
+}
+
+model DiveGearItem {
+  id          String    @id @default(cuid())
+  diveId      String
+  gearItemId  String
+  
+  dive        DiveLog   @relation(fields: [diveId], references: [id], onDelete: Cascade)
+  gearItem    GearItem  @relation(fields: [gearItemId], references: [id], onDelete: Cascade)
+  
+  @@unique([diveId, gearItemId])
+  @@index([diveId])
+  @@index([gearItemId])
 }
