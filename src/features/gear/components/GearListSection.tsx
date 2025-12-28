@@ -326,6 +326,121 @@ export function GearListSection({
           )}
         </div>
         <div className={styles.itemRight}>
+          {/* Top-right: Edit, Archive, and Delete icons */}
+          <div className={styles.itemActionsTop}>
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                onEditGear(item);
+              }}
+              className={styles.iconButton}
+              title="Edit gear"
+              type="button"
+              aria-label="Edit gear"
+            >
+              <svg
+                width="14"
+                height="14"
+                viewBox="0 0 14 14"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M8.5 2.5L11.5 5.5M10.5 1.5C10.8978 1.10218 11.4374 0.878679 12 0.878679C12.5626 0.878679 13.1022 1.10218 13.5 1.5C13.8978 1.89782 14.1213 2.43739 14.1213 3C14.1213 3.56261 13.8978 4.10218 13.5 4.5L4.5 13.5H0.5V9.5L9.5 0.5C9.89782 0.102178 10.4374 -0.121323 11 -0.121323C11.5626 -0.121323 12.1022 0.102178 12.5 0.5L10.5 1.5Z"
+                  stroke="currentColor"
+                  strokeWidth="1.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+            </button>
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                onArchiveGear(item.id);
+              }}
+              className={styles.iconButton}
+              title={item.isActive ? "Archive gear" : "Restore gear"}
+              type="button"
+              aria-label={item.isActive ? "Archive gear" : "Restore gear"}
+            >
+              {item.isActive ? (
+                <svg
+                  width="14"
+                  height="14"
+                  viewBox="0 0 14 14"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M2.5 2.5H11.5C12.0523 2.5 12.5 2.94772 12.5 3.5V11.5C12.5 12.0523 12.0523 12.5 11.5 12.5H2.5C1.94772 12.5 1.5 12.0523 1.5 11.5V3.5C1.5 2.94772 1.94772 2.5 2.5 2.5Z"
+                    stroke="currentColor"
+                    strokeWidth="1.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                  <path
+                    d="M5.5 5.5H8.5"
+                    stroke="currentColor"
+                    strokeWidth="1.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              ) : (
+                <svg
+                  width="14"
+                  height="14"
+                  viewBox="0 0 14 14"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M2.5 2.5H11.5C12.0523 2.5 12.5 2.94772 12.5 3.5V11.5C12.5 12.0523 12.0523 12.5 11.5 12.5H2.5C1.94772 12.5 1.5 12.0523 1.5 11.5V3.5C1.5 2.94772 1.94772 2.5 2.5 2.5Z"
+                    stroke="currentColor"
+                    strokeWidth="1.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                  <path
+                    d="M5.5 5.5L7 7L8.5 5.5"
+                    stroke="currentColor"
+                    strokeWidth="1.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              )}
+            </button>
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                onDeleteGear(item.id);
+              }}
+              className={`${styles.iconButton} ${styles.iconButtonDanger}`}
+              title="Delete gear"
+              type="button"
+              aria-label="Delete gear"
+            >
+              <svg
+                width="14"
+                height="14"
+                viewBox="0 0 14 14"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M11 3.5L10.5 11.5C10.5 12.0523 10.0523 12.5 9.5 12.5H4.5C3.94772 12.5 3.5 12.0523 3.5 11.5L3 3.5M5.5 3.5V2.5C5.5 1.94772 5.94772 1.5 6.5 1.5H7.5C8.05228 1.5 8.5 1.94772 8.5 2.5V3.5M1.5 3.5H12.5"
+                  stroke="currentColor"
+                  strokeWidth="1.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+            </button>
+          </div>
+
+          {/* Bottom-right: Status pills */}
           <div className={styles.statusPills}>
             <span className={`${styles.statusPill} ${getStatusClass(status)}`}>
               {getStatusLabel(status)}
@@ -335,35 +450,6 @@ export function GearListSection({
                 Inactive
               </span>
             )}
-          </div>
-          <div className={styles.itemActions}>
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                onEditGear(item);
-              }}
-              className={buttonStyles.secondary}
-            >
-              Edit
-            </button>
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                onArchiveGear(item.id);
-              }}
-              className={buttonStyles.ghost}
-            >
-              {item.isActive ? "Archive" : "Unarchive"}
-            </button>
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                onDeleteGear(item.id);
-              }}
-              className={buttonStyles.danger}
-            >
-              Delete
-            </button>
           </div>
         </div>
       </li>
