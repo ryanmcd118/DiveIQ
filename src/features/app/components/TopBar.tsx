@@ -2,17 +2,20 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useAuth } from "@/features/auth/hooks/useAuth";
 import { NavbarUnitToggle } from "@/components/NavbarUnitToggle";
-import buttonStyles from "@/styles/components/Button.module.css";
 import styles from "./TopBar.module.css";
 
 interface TopBarProps {
   onMenuClick?: () => void;
 }
 
+const ALLOWED_UNITS_TOGGLE_PATHS = ["/dashboard", "/plan", "/dive-logs"];
+
 export function TopBar({ onMenuClick }: TopBarProps) {
   const { user, signOutUser } = useAuth();
+  const pathname = usePathname();
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
 
@@ -23,6 +26,7 @@ export function TopBar({ onMenuClick }: TopBarProps) {
     return () => window.removeEventListener("resize", checkMobile);
   }, []);
 
+  const showUnitsToggle = ALLOWED_UNITS_TOGGLE_PATHS.includes(pathname);
   const firstName = user?.name?.split(" ")[0] || user?.name || "User";
   const initials = firstName.charAt(0).toUpperCase();
 
@@ -41,10 +45,7 @@ export function TopBar({ onMenuClick }: TopBarProps) {
       </div>
 
       <div className={styles.right}>
-        <NavbarUnitToggle />
-        <Link href="/plan" className={`${buttonStyles.primaryGradient} ${styles.cta}`}>
-          Plan a dive
-        </Link>
+        {showUnitsToggle && <NavbarUnitToggle />}
         <div className={styles.profileContainer}>
           <button
             className={styles.profileButton}

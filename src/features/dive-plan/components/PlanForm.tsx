@@ -1,9 +1,11 @@
 "use client";
 
 import { FormEvent, useState, useEffect } from "react";
+import { useSession } from "next-auth/react";
 import { PlanData } from "@/features/dive-plan/types";
 import { useUnitSystemOrLocal } from "@/hooks/useUnitSystemOrLocal";
 import { metricToUI, getUnitLabel } from "@/lib/units";
+import { FormUnitToggle } from "@/components/FormUnitToggle";
 import cardStyles from "@/styles/components/Card.module.css";
 import formStyles from "@/styles/components/Form.module.css";
 import buttonStyles from "@/styles/components/Button.module.css";
@@ -29,6 +31,8 @@ export function PlanForm({
   onCancelEdit,
   onDeletePlan,
 }: PlanFormProps) {
+  const { data: session } = useSession();
+  const isAuthenticated = !!session;
   const { unitSystem } = useUnitSystemOrLocal();
   
   // Helper to convert metric to UI units for display
@@ -78,6 +82,8 @@ export function PlanForm({
   return (
     <div className={cardStyles.elevatedForm}>
       <form key={formKey} onSubmit={onSubmit} className={formStyles.form}>
+      {/* Units toggle - only show for logged-out users */}
+      {!isAuthenticated && <FormUnitToggle />}
       <div className={formStyles.field}>
         <label htmlFor="region" className={formStyles.label}>
           Region
