@@ -7,10 +7,27 @@
   /* === COLORS === */
   
   /* Background */
-  --color-bg-primary: #020617;        /* slate-950 */
+  --color-bg-primary: #020617;        /* slate-950 - default/fallback */
   --color-bg-secondary: #0f172a;      /* slate-900 */
   --color-bg-tertiary: #1e293b;       /* slate-800 */
   --color-bg-elevated: #334155;       /* slate-700 */
+  
+  /* App background (navy/blue tone for logged-in UI) */
+  --color-bg-app: #0a1628;            /* Navy base - matches dashboard cards */
+  --gradient-bg-app: 
+    radial-gradient(
+      circle at 15% 25%,
+      rgba(15, 35, 55, 0.25) 0%,
+      transparent 45%
+    ),
+    linear-gradient(
+      180deg,
+      #0a1628 0%,
+      #081420 20%,
+      #061018 50%,
+      #071218 80%,
+      #0a1820 100%
+    );
   
   /* Surface (cards, containers) */
   --color-surface: rgba(15, 23, 42, 0.7);

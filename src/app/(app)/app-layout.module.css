@@ -1,0 +1,9 @@
+/* App route background - navy/blue tone with subtle gradient */
+.appBackground {
+  min-height: 100vh;
+  width: 100%;
+  background: var(--gradient-bg-app);
+  /* Ensure background extends behind fixed sidebar */
+  position: relative;
+}
+

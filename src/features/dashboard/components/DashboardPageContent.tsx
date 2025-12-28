@@ -47,7 +47,7 @@ export function DashboardPageContent({
   const lastDiveDate = mostRecentDive?.date;
 
   return (
-    <div className={`${styles.dashboard} ${backgroundStyles.pageGradientSubtle}`}>
+    <div className={styles.dashboard}>
       <div className={styles.dashboardContent}>
         {/* Dashboard Header */}
         <DashboardHeader

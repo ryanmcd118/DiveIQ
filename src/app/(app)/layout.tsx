@@ -1,4 +1,5 @@
 import { AppShell } from "@/features/app/components/AppShell";
+import styles from "./app-layout.module.css";
 
 export default function AppLayout({
   children,
@@ -6,6 +7,11 @@ export default function AppLayout({
   children: React.ReactNode;
 }) {
   // Authenticated app routes: wrap with AppShell (Sidebar + TopBar)
-  return <AppShell>{children}</AppShell>;
+  // Apply app background with subtle gradient
+  return (
+    <div className={styles.appBackground}>
+      <AppShell>{children}</AppShell>
+    </div>
+  );
 }
 

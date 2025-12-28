@@ -1,7 +1,8 @@
 .appShell {
   display: flex;
   min-height: 100vh;
-  background: var(--color-bg-primary);
+  /* Transparent - let parent app layout background show through */
+  background: transparent;
 }
 
 .mainContent {

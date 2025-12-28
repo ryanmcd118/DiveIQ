@@ -3,7 +3,6 @@
 import Link from "next/link";
 import cardStyles from "@/styles/components/Card.module.css";
 import buttonStyles from "@/styles/components/Button.module.css";
-import backgroundStyles from "@/styles/components/Background.module.css";
 import styles from "./PlaceholderPage.module.css";
 
 interface PlaceholderPageProps {
@@ -14,7 +13,7 @@ interface PlaceholderPageProps {
 
 export function PlaceholderPage({ title, subtitle, features }: PlaceholderPageProps) {
   return (
-    <div className={`${styles.placeholderPage} ${backgroundStyles.pageGradientSubtle}`}>
+    <div className={styles.placeholderPage}>
       <div className={styles.content}>
         <div className={`${cardStyles.card} ${styles.card}`}>
           <h1 className={styles.title}>{title}</h1>
