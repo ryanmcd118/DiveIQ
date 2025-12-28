@@ -16,11 +16,24 @@ model User {
   firstName     String?   // User's first name
   lastName      String?   // User's last name (nullable for Google OAuth users)
   image         String?
-  birthday      DateTime? // User's birthday
-  location      String?   // User's location
-  bio           String?   // User's bio
+  birthday      DateTime? // User's birthday (private, not displayed publicly)
+  location      String?   // User's location (city, country)
+  bio           String?   // User's bio/about
   pronouns      String?   // User's pronouns
   website       String?   // User's website URL
+  
+  // DiveIQ-specific profile fields
+  homeDiveRegion          String?  // Home dive region
+  languages               String?  // Comma-separated list of languages
+  primaryDiveTypes        String?  // JSON array of dive types (e.g., ["Recreational", "Wreck", "Cold Water"])
+  experienceLevel         String?  // "Beginner" | "Intermediate" | "Advanced"
+  yearsDiving             Int?     // Years of diving experience
+  certifyingAgency        String?  // Certifying agency (e.g., "PADI", "NAUI", "SSI")
+  typicalDivingEnvironment String? // JSON array (e.g., ["Tropical", "Cold Water", "Wreck"])
+  lookingFor              String?  // JSON array (e.g., ["Buddies", "Trips", "Instructors"])
+  favoriteDiveType        String?  // Favorite dive type
+  favoriteDiveLocation    String?  // Favorite dive location
+  
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
   

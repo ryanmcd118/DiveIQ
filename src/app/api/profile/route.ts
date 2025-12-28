@@ -66,6 +66,16 @@ export async function GET() {
         bio: true,
         pronouns: true,
         website: true,
+        homeDiveRegion: true,
+        languages: true,
+        primaryDiveTypes: true,
+        experienceLevel: true,
+        yearsDiving: true,
+        certifyingAgency: true,
+        typicalDivingEnvironment: true,
+        lookingFor: true,
+        favoriteDiveType: true,
+        favoriteDiveLocation: true,
       },
     });
 
@@ -189,7 +199,25 @@ export async function PATCH(req: NextRequest) {
     }
 
     const body = await req.json();
-    const { firstName, lastName, birthday, location, bio, pronouns, website } = body;
+    const {
+      firstName,
+      lastName,
+      birthday,
+      location,
+      bio,
+      pronouns,
+      website,
+      homeDiveRegion,
+      languages,
+      primaryDiveTypes,
+      experienceLevel,
+      yearsDiving,
+      certifyingAgency,
+      typicalDivingEnvironment,
+      lookingFor,
+      favoriteDiveType,
+      favoriteDiveLocation,
+    } = body;
 
     // Normalize string values: trim and convert empty strings to null
     const normalizeString = (val: string | null | undefined): string | null => {
@@ -205,6 +233,15 @@ export async function PATCH(req: NextRequest) {
     const normalizedWebsite = normalizeString(website);
     const normalizedLocation = normalizeString(location);
     const normalizedPronouns = normalizeString(pronouns);
+    const normalizedHomeDiveRegion = normalizeString(homeDiveRegion);
+    const normalizedLanguages = normalizeString(languages);
+    const normalizedPrimaryDiveTypes = normalizeString(primaryDiveTypes);
+    const normalizedExperienceLevel = normalizeString(experienceLevel);
+    const normalizedCertifyingAgency = normalizeString(certifyingAgency);
+    const normalizedTypicalDivingEnvironment = normalizeString(typicalDivingEnvironment);
+    const normalizedLookingFor = normalizeString(lookingFor);
+    const normalizedFavoriteDiveType = normalizeString(favoriteDiveType);
+    const normalizedFavoriteDiveLocation = normalizeString(favoriteDiveLocation);
 
     // Validate firstName/lastName max length (if provided)
     if (normalizedFirstName && normalizedFirstName.length > 50) {
@@ -274,6 +311,15 @@ export async function PATCH(req: NextRequest) {
       }
     }
 
+    // Normalize yearsDiving (convert to integer or null)
+    let normalizedYearsDiving: number | null = null;
+    if (yearsDiving !== undefined && yearsDiving !== null && yearsDiving !== "") {
+      const parsed = typeof yearsDiving === "number" ? yearsDiving : parseInt(String(yearsDiving), 10);
+      if (!isNaN(parsed) && parsed >= 0) {
+        normalizedYearsDiving = parsed;
+      }
+    }
+
     // Update user profile (only allowed fields) - use normalized values
     const updatedUser = await prisma.user.update({
       where: { id: session.user.id },
@@ -285,6 +331,16 @@ export async function PATCH(req: NextRequest) {
         ...(bio !== undefined && { bio: normalizedBio }),
         ...(pronouns !== undefined && { pronouns: normalizedPronouns }),
         ...(website !== undefined && { website: normalizedWebsite }),
+        ...(homeDiveRegion !== undefined && { homeDiveRegion: normalizedHomeDiveRegion }),
+        ...(languages !== undefined && { languages: normalizedLanguages }),
+        ...(primaryDiveTypes !== undefined && { primaryDiveTypes: normalizedPrimaryDiveTypes }),
+        ...(experienceLevel !== undefined && { experienceLevel: normalizedExperienceLevel }),
+        ...(yearsDiving !== undefined && { yearsDiving: normalizedYearsDiving }),
+        ...(certifyingAgency !== undefined && { certifyingAgency: normalizedCertifyingAgency }),
+        ...(typicalDivingEnvironment !== undefined && { typicalDivingEnvironment: normalizedTypicalDivingEnvironment }),
+        ...(lookingFor !== undefined && { lookingFor: normalizedLookingFor }),
+        ...(favoriteDiveType !== undefined && { favoriteDiveType: normalizedFavoriteDiveType }),
+        ...(favoriteDiveLocation !== undefined && { favoriteDiveLocation: normalizedFavoriteDiveLocation }),
       },
       select: {
         id: true,
@@ -297,6 +353,16 @@ export async function PATCH(req: NextRequest) {
         bio: true,
         pronouns: true,
         website: true,
+        homeDiveRegion: true,
+        languages: true,
+        primaryDiveTypes: true,
+        experienceLevel: true,
+        yearsDiving: true,
+        certifyingAgency: true,
+        typicalDivingEnvironment: true,
+        lookingFor: true,
+        favoriteDiveType: true,
+        favoriteDiveLocation: true,
       },
     });
 

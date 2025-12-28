@@ -21,7 +21,6 @@ interface ProfileData {
   firstName: string | null;
   lastName: string | null;
   location: string | null;
-  pronouns: string | null;
   homeDiveRegion: string | null;
   website: string | null;
   languages: string | null;
@@ -91,7 +90,6 @@ export function ProfilePageContent() {
     firstName: null,
     lastName: null,
     location: null,
-    pronouns: null,
     homeDiveRegion: null,
     website: null,
     languages: null,
@@ -128,7 +126,6 @@ export function ProfilePageContent() {
       norm(draftProfile.firstName) !== norm(originalProfile.firstName) ||
       norm(draftProfile.lastName) !== norm(originalProfile.lastName) ||
       norm(draftProfile.location) !== norm(originalProfile.location) ||
-      norm(draftProfile.pronouns) !== norm(originalProfile.pronouns) ||
       norm(draftProfile.homeDiveRegion) !== norm(originalProfile.homeDiveRegion) ||
       norm(draftProfile.website) !== norm(originalProfile.website) ||
       norm(draftProfile.languages) !== norm(originalProfile.languages) ||
@@ -165,7 +162,6 @@ export function ProfilePageContent() {
         firstName: data.user.firstName || null,
         lastName: data.user.lastName || null,
         location: data.user.location || null,
-        pronouns: data.user.pronouns || null,
         homeDiveRegion: data.user.homeDiveRegion || null,
         website: data.user.website || null,
         languages: data.user.languages || null,
@@ -236,7 +232,6 @@ export function ProfilePageContent() {
         firstName: normalizeValue(draftProfile.firstName),
         lastName: normalizeValue(draftProfile.lastName),
         location: normalizeValue(draftProfile.location),
-        pronouns: normalizeValue(draftProfile.pronouns),
         homeDiveRegion: normalizeValue(draftProfile.homeDiveRegion),
         website: normalizeValue(draftProfile.website),
         languages: normalizeValue(draftProfile.languages),
@@ -296,7 +291,6 @@ export function ProfilePageContent() {
         firstName: data.user.firstName || null,
         lastName: data.user.lastName || null,
         location: data.user.location || null,
-        pronouns: data.user.pronouns || null,
         homeDiveRegion: data.user.homeDiveRegion || null,
         website: data.user.website || null,
         languages: data.user.languages || null,
@@ -347,6 +341,7 @@ export function ProfilePageContent() {
     options: readonly string[]
   ) => {
     const selected = draftProfile[field] || [];
+    const isEditing = editingField === field;
 
     const toggleOption = (option: string) => {
       const current = draftProfile[field] || [];
@@ -359,21 +354,40 @@ export function ProfilePageContent() {
     return (
       <div className={styles.fieldRow}>
         <div className={styles.fieldLabel}>{label}</div>
-        <div className={styles.tagContainer}>
-          {options.map((option) => {
-            const isSelected = selected.includes(option);
-            return (
-              <button
-                key={option}
-                type="button"
-                onClick={() => toggleOption(option)}
-                className={`${styles.tag} ${isSelected ? styles.tagSelected : ""}`}
-              >
-                {option}
-              </button>
-            );
-          })}
-        </div>
+        {isEditing ? (
+          <div className={styles.tagContainer}>
+            {options.map((option) => {
+              const isSelected = selected.includes(option);
+              return (
+                <button
+                  key={option}
+                  type="button"
+                  onClick={() => toggleOption(option)}
+                  className={`${styles.tag} ${isSelected ? styles.tagSelected : ""}`}
+                >
+                  {option}
+                </button>
+              );
+            })}
+          </div>
+        ) : (
+          <div
+            className={`${styles.fieldValue} ${styles.fieldValueClickable}`}
+            onClick={() => handleFieldClick(field)}
+          >
+            {selected.length > 0 ? (
+              <div className={styles.tagContainer}>
+                {selected.map((tag) => (
+                  <span key={tag} className={`${styles.tag} ${styles.tagSelected}`}>
+                    {tag}
+                  </span>
+                ))}
+              </div>
+            ) : (
+              <span className={styles.fieldPlaceholder}>Add {label.toLowerCase()}</span>
+            )}
+          </div>
+        )}
       </div>
     );
   };
@@ -386,23 +400,41 @@ export function ProfilePageContent() {
     placeholder: string
   ) => {
     const value = draftProfile[field] || "";
+    const isEditing = editingField === field;
     const isEmpty = !value;
 
     return (
       <div className={styles.fieldRow}>
         <div className={styles.fieldLabel}>{label}</div>
-        <select
-          value={value}
-          onChange={(e) => handleFieldChange(field, e.target.value || null)}
-          className={styles.fieldInput}
-        >
-          <option value="">{placeholder}</option>
-          {options.map((opt) => (
-            <option key={opt} value={opt}>
-              {opt}
-            </option>
-          ))}
-        </select>
+        {isEditing ? (
+          <select
+            ref={(el) => {
+              if (el) inputRefs.current[field] = el;
+            }}
+            value={value}
+            onChange={(e) => handleFieldChange(field, e.target.value || null)}
+            onBlur={handleFieldBlur}
+            className={styles.fieldInput}
+          >
+            <option value="">{placeholder}</option>
+            {options.map((opt) => (
+              <option key={opt} value={opt}>
+                {opt}
+              </option>
+            ))}
+          </select>
+        ) : (
+          <div
+            className={`${styles.fieldValue} ${styles.fieldValueClickable}`}
+            onClick={() => handleFieldClick(field)}
+          >
+            {isEmpty ? (
+              <span className={styles.fieldPlaceholder}>{placeholder}</span>
+            ) : (
+              value
+            )}
+          </div>
+        )}
       </div>
     );
   };
@@ -482,7 +514,6 @@ export function ProfilePageContent() {
       .filter(Boolean)
       .join(" ") || displayName;
 
-    // Build metadata line: Location, Home Dive Region, Experience Level (pronouns appear next to name, not here)
     const metadataParts: string[] = [];
     if (draftProfile.location) metadataParts.push(draftProfile.location);
     if (draftProfile.homeDiveRegion) metadataParts.push(draftProfile.homeDiveRegion);
@@ -528,12 +559,7 @@ export function ProfilePageContent() {
         <div className={styles.previewHeader}>
           <div className={styles.avatar}>{initials}</div>
           <div className={styles.previewInfo}>
-            <h2 className={styles.previewName}>
-              {fullName}
-              {draftProfile.pronouns && (
-                <span className={styles.previewPronouns}> {draftProfile.pronouns}</span>
-              )}
-            </h2>
+            <h2 className={styles.previewName}>{fullName}</h2>
             {metadata && <p className={styles.previewSubtitle}>{metadata}</p>}
             {primaryDiveTypes.length > 0 && (
               <div className={styles.previewTags}>
@@ -632,7 +658,6 @@ export function ProfilePageContent() {
                     {renderEditableField("firstName", "First Name", "Add your first name", "text", 50)}
                     {renderEditableField("lastName", "Last Name", "Add your last name", "text", 50)}
                     {renderEditableField("location", "Location (City, Country)", "Add your location", "text")}
-                    {renderEditableField("pronouns", "Pronouns", "e.g. he/him, she/her, they/them", "text")}
                     {renderEditableField("homeDiveRegion", "Home Dive Region", "Add your home dive region", "text")}
                     {renderEditableField("website", "Website", "Add your website", "url")}
                     {renderEditableField("languages", "Languages", "Add languages (comma-separated)", "text")}
