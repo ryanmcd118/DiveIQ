@@ -123,10 +123,39 @@ export async function PATCH(req: NextRequest) {
     }
 
     const body = await req.json();
-    const { birthday, location, bio, pronouns, website } = body;
+    const { firstName, lastName, birthday, location, bio, pronouns, website } = body;
+
+    // Normalize string values: trim and convert empty strings to null
+    const normalizeString = (val: string | null | undefined): string | null => {
+      if (val === undefined || val === null) return null;
+      const trimmed = val.trim();
+      return trimmed === "" ? null : trimmed;
+    };
+
+    // Normalize values first for validation
+    const normalizedFirstName = normalizeString(firstName);
+    const normalizedLastName = normalizeString(lastName);
+    const normalizedBio = normalizeString(bio);
+    const normalizedWebsite = normalizeString(website);
+    const normalizedLocation = normalizeString(location);
+    const normalizedPronouns = normalizeString(pronouns);
+
+    // Validate firstName/lastName max length (if provided)
+    if (normalizedFirstName && normalizedFirstName.length > 50) {
+      return NextResponse.json(
+        { error: "First name must be 50 characters or less" },
+        { status: 400 }
+      );
+    }
+    if (normalizedLastName && normalizedLastName.length > 50) {
+      return NextResponse.json(
+        { error: "Last name must be 50 characters or less" },
+        { status: 400 }
+      );
+    }
 
     // Validate bio max length (if provided)
-    if (bio !== undefined && bio !== null && bio.length > 500) {
+    if (normalizedBio && normalizedBio.length > 500) {
       return NextResponse.json(
         { error: "Bio must be 500 characters or less" },
         { status: 400 }
@@ -134,10 +163,10 @@ export async function PATCH(req: NextRequest) {
     }
 
     // Validate website URL format (if provided)
-    if (website !== undefined && website !== null && website !== "") {
+    if (normalizedWebsite) {
       try {
         // Basic URL validation
-        new URL(website);
+        new URL(normalizedWebsite);
       } catch {
         return NextResponse.json(
           { error: "Invalid website URL format" },
@@ -179,15 +208,17 @@ export async function PATCH(req: NextRequest) {
       }
     }
 
-    // Update user profile (only allowed fields)
+    // Update user profile (only allowed fields) - use normalized values
     const updatedUser = await prisma.user.update({
       where: { id: session.user.id },
       data: {
+        ...(firstName !== undefined && { firstName: normalizedFirstName }),
+        ...(lastName !== undefined && { lastName: normalizedLastName }),
         ...(birthday !== undefined && { birthday: birthdayDate }),
-        ...(location !== undefined && { location: location || null }),
-        ...(bio !== undefined && { bio: bio || null }),
-        ...(pronouns !== undefined && { pronouns: pronouns || null }),
-        ...(website !== undefined && { website: website || null }),
+        ...(location !== undefined && { location: normalizedLocation }),
+        ...(bio !== undefined && { bio: normalizedBio }),
+        ...(pronouns !== undefined && { pronouns: normalizedPronouns }),
+        ...(website !== undefined && { website: normalizedWebsite }),
       },
       select: {
         id: true,
