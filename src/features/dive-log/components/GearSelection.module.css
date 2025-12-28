@@ -58,6 +58,13 @@
   margin-top: var(--space-2);
 }
 
+.defaultKitCta {
+  margin-top: var(--space-3);
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
 .emptyState {
   font-size: var(--font-size-sm);
   color: var(--color-text-muted);

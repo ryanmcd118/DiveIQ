@@ -214,6 +214,8 @@ export function useLogPageState() {
     formKey,
     statusMessage,
     totalBottomTime,
+    selectedGearIds,
+    setSelectedGearIds,
 
     // handlers
     handleSubmit,

@@ -3,19 +3,23 @@
 import { useState, useEffect } from "react";
 import type { GearItem } from "@prisma/client";
 import formStyles from "@/styles/components/Form.module.css";
+import buttonStyles from "@/styles/components/Button.module.css";
 import styles from "./GearSelection.module.css";
 
 interface Props {
   selectedGearIds: string[];
-  onSelectionChange: (ids: string[]) => void;
-  editingEntryId: string | null;
+  onSelectionChange: (ids: string[]) => void; // REQUIRED - must be a function
+  editingEntryId?: string | null;
 }
 
 export function GearSelection({
-  selectedGearIds,
+  selectedGearIds = [],
   onSelectionChange,
-  editingEntryId,
+  editingEntryId = null,
 }: Props) {
+  // Ensure selectedGearIds is always an array
+  const selectedGearIdsSafe = selectedGearIds ?? [];
+  
   const [gearItems, setGearItems] = useState<GearItem[]>([]);
   const [defaultKitGearIds, setDefaultKitGearIds] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
@@ -40,10 +44,7 @@ export function GearSelection({
               (ki: any) => ki.gearItemId
             );
             setDefaultKitGearIds(kitGearIds);
-            // Pre-populate with default kit if creating new entry (not editing)
-            if (!editingEntryId && selectedGearIds.length === 0) {
-              onSelectionChange(kitGearIds);
-            }
+            // No auto-prefill - user must explicitly click "Use default kit" button
           }
         }
       } catch (err) {
@@ -54,13 +55,27 @@ export function GearSelection({
     };
 
     void loadData();
-  }, [editingEntryId, selectedGearIds.length, onSelectionChange]);
+  }, [editingEntryId, onSelectionChange]);
 
   const toggleGearItem = (id: string) => {
-    const newSelection = selectedGearIds.includes(id)
-      ? selectedGearIds.filter((i) => i !== id)
-      : [...selectedGearIds, id];
+    if (typeof onSelectionChange !== 'function') {
+      console.error('GearSelection: onSelectionChange is not a function');
+      return;
+    }
+    const newSelection = selectedGearIdsSafe.includes(id)
+      ? selectedGearIdsSafe.filter((i) => i !== id)
+      : [...selectedGearIdsSafe, id];
     onSelectionChange(newSelection);
+  };
+
+  const handleUseDefaultKit = () => {
+    if (typeof onSelectionChange !== 'function') {
+      console.error('GearSelection: onSelectionChange is not a function');
+      return;
+    }
+    if (defaultKitGearIds.length > 0) {
+      onSelectionChange(defaultKitGearIds);
+    }
   };
 
   const getDisplayName = (item: GearItem): string => {
@@ -99,12 +114,12 @@ export function GearSelection({
           <label
             key={item.id}
             className={`${styles.gearItem} ${
-              selectedGearIds.includes(item.id) ? styles.selected : ""
+              selectedGearIdsSafe.includes(item.id) ? styles.selected : ""
             }`}
           >
             <input
               type="checkbox"
-              checked={selectedGearIds.includes(item.id)}
+              checked={selectedGearIdsSafe.includes(item.id)}
               onChange={() => toggleGearItem(item.id)}
               className={styles.checkbox}
             />
@@ -115,10 +130,20 @@ export function GearSelection({
           </label>
         ))}
       </div>
-      {selectedGearIds.length === 0 && (
+      {selectedGearIdsSafe.length === 0 && defaultKitGearIds.length > 0 && (
+        <div className={styles.defaultKitCta}>
+          <button
+            type="button"
+            onClick={handleUseDefaultKit}
+            className={buttonStyles.ghost}
+          >
+            Use default kit
+          </button>
+        </div>
+      )}
+      {selectedGearIdsSafe.length === 0 && defaultKitGearIds.length === 0 && (
         <p className={styles.helpText}>
-          Select the gear you used on this dive. Your default kit is pre-selected
-          if available.
+          Select the gear you used on this dive.
         </p>
       )}
     </div>
