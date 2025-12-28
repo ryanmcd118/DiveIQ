@@ -1,8 +1,10 @@
 "use client";
 
-import { useState, FormEvent } from "react";
+import { useState, FormEvent, useEffect } from "react";
+import { useSearchParams } from "next/navigation";
 import { useAuth } from "../hooks/useAuth";
 import Link from "next/link";
+import GoogleOAuthButton from "./GoogleOAuthButton";
 import formStyles from "@/styles/components/Form.module.css";
 import buttonStyles from "@/styles/components/Button.module.css";
 
@@ -11,6 +13,17 @@ export default function SignInForm() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const { signInUser, isLoading } = useAuth();
+  const searchParams = useSearchParams();
+
+  // Check for OAuth error in URL params
+  useEffect(() => {
+    const oauthError = searchParams.get("oauth");
+    const hasError = searchParams.get("error");
+    
+    if (oauthError === "google" && hasError === "1") {
+      setError("Google sign-in failed. Please try again or use email/password to sign in.");
+    }
+  }, [searchParams]);
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -63,6 +76,8 @@ export default function SignInForm() {
       >
         {isLoading ? "Signing in..." : "Sign In"}
       </button>
+
+      <GoogleOAuthButton callbackUrl="/" />
 
       <p className={formStyles.formFooter}>
         Don't have an account?{" "}

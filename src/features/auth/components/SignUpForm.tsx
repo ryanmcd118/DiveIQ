@@ -3,6 +3,7 @@
 import { useState, FormEvent } from "react";
 import { useAuth } from "../hooks/useAuth";
 import Link from "next/link";
+import GoogleOAuthButton from "./GoogleOAuthButton";
 import formStyles from "@/styles/components/Form.module.css";
 import buttonStyles from "@/styles/components/Button.module.css";
 
@@ -106,11 +107,13 @@ export default function SignUpForm() {
 
       <button
         type="submit"
-        className={`${buttonStyles.button} ${buttonStyles.primary}`}
+        className={buttonStyles.primary}
         disabled={isLoading}
       >
         {isLoading ? "Creating account..." : "Sign Up"}
       </button>
+
+      <GoogleOAuthButton callbackUrl="/" />
 
       <p className={formStyles.formFooter}>
         Already have an account?{" "}

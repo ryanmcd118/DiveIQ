@@ -1,21 +1,26 @@
 import { FormEvent, useEffect, useState, useCallback } from "react";
 import { useSession } from "next-auth/react";
-import { PastPlan, PlanData, AIBriefing, RiskLevel } from "@/features/dive-plan/types";
+import {
+  PastPlan,
+  PlanData,
+  AIBriefing,
+  RiskLevel,
+} from "@/features/dive-plan/types";
 import { useUnitSystemOrLocal } from "@/hooks/useUnitSystemOrLocal";
 import { uiToMetric } from "@/lib/units";
 
 export function usePlanPageState() {
   const { unitSystem } = useUnitSystemOrLocal();
-  
+
   // Draft state - the current plan being worked on (not yet saved)
   const [draftPlan, setDraftPlan] = useState<PlanData | null>(null);
   const [draftRiskLevel, setDraftRiskLevel] = useState<RiskLevel | null>(null);
   const [aiBriefing, setAiBriefing] = useState<AIBriefing | null>(null);
   const [aiAdvice, setAiAdvice] = useState<string | null>(null);
-  
+
   // Legacy submittedPlan - kept for form default values
   const [submittedPlan, setSubmittedPlan] = useState<PlanData | null>(null);
-  
+
   // UI states
   const [apiError, setApiError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -41,7 +46,7 @@ export function usePlanPageState() {
     const fetchPlans = async () => {
       // Don't fetch if session is still loading
       if (isSessionLoading) return;
-      
+
       // Don't fetch if not authenticated
       if (!isAuthenticated) {
         setPlansLoading(false);
@@ -87,15 +92,15 @@ export function usePlanPageState() {
     setLoading(true);
 
     const formData = new FormData(e.currentTarget);
-    
+
     // Convert UI unit values to metric for database storage
     const maxDepthUI = formData.get("maxDepth");
-    
+
     const values: PlanData = {
       region: formData.get("region") as string,
       siteName: formData.get("siteName") as string,
       date: formData.get("date") as string,
-      maxDepth: uiToMetric(maxDepthUI, unitSystem, 'depth') ?? 0,
+      maxDepth: uiToMetric(maxDepthUI, unitSystem, "depth") ?? 0,
       bottomTime: Number(formData.get("bottomTime")),
       experienceLevel: formData.get(
         "experienceLevel"
@@ -111,8 +116,8 @@ export function usePlanPageState() {
         const res = await fetch("/api/dive-plans", {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ 
-            id: editingPlanId, 
+          body: JSON.stringify({
+            id: editingPlanId,
             ...values,
             unitSystem, // Pass unit system to AI
           }),
@@ -243,7 +248,12 @@ export function usePlanPageState() {
   };
 
   const handleSelectPastPlan = (plan: PastPlan) => {
-    const { id, aiAdvice: savedAdvice, aiBriefing: savedBriefing, ...rest } = plan;
+    const {
+      id,
+      aiAdvice: savedAdvice,
+      aiBriefing: savedBriefing,
+      ...rest
+    } = plan;
 
     const planData: PlanData = {
       region: rest.region,
@@ -346,7 +356,7 @@ export function usePlanPageState() {
     apiError,
     loading,
     saving,
-    
+
     // Past plans
     pastPlans,
     plansLoading: plansLoading || isSessionLoading,
@@ -354,7 +364,7 @@ export function usePlanPageState() {
     editingPlanId,
     statusMessage,
     formKey,
-    
+
     // Auth
     isAuthenticated,
     isSessionLoading,
