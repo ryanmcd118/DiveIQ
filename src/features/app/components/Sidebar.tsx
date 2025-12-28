@@ -13,7 +13,7 @@ interface NavItem {
 
 const navItems: NavItem[] = [
   { href: "/dashboard", label: "Dashboard", icon: <DashboardIcon /> },
-  { href: "/dive-plans", label: "Plan", icon: <PlanIcon /> },
+  { href: "/plan", label: "Plan", icon: <PlanIcon /> },
   { href: "/dive-logs", label: "Logbook", icon: <LogbookIcon /> },
   { href: "/gear", label: "Gear", icon: <GearIcon /> },
   { href: "/certifications", label: "Certifications", icon: <CertIcon /> },

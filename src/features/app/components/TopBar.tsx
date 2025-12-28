@@ -42,7 +42,7 @@ export function TopBar({ onMenuClick }: TopBarProps) {
 
       <div className={styles.right}>
         <NavbarUnitToggle />
-        <Link href="/dive-plans" className={`${buttonStyles.primaryGradient} ${styles.cta}`}>
+        <Link href="/plan" className={`${buttonStyles.primaryGradient} ${styles.cta}`}>
           Plan a dive
         </Link>
         <div className={styles.profileContainer}>

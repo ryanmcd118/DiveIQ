@@ -82,7 +82,7 @@ export function ActivityTabs({ recentDives, plannedDives }: ActivityTabsProps) {
           <>
             <div className={styles.header}>
               <h3 className={cardStyles.title}>Planned dives</h3>
-              <Link href="/dive-plans" className={navStyles.linkAccentSmall}>
+              <Link href="/plan" className={navStyles.linkAccentSmall}>
                 Open planner
               </Link>
             </div>

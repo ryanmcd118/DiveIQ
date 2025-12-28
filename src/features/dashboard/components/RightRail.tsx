@@ -17,7 +17,7 @@ export function RightRail({ gearCount = 0, certCount = 0 }: RightRailProps) {
       <div className={`${styles.card} ${styles.cardTier1} ${styles.quickActionsElevated}`}>
         <h3 className={styles.cardTitle}>Quick actions</h3>
         <div className={styles.actions}>
-          <Link href="/dive-plans" className={styles.primaryAction}>
+          <Link href="/plan" className={styles.primaryAction}>
             Plan a dive
           </Link>
           <Link href="/dive-logs" className={styles.secondaryAction}>

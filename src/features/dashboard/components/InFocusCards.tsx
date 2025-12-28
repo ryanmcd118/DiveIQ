@@ -61,7 +61,7 @@ export function InFocusCards({
           ) : (
             <div className={styles.emptyState}>
               <p className={styles.emptyText}>No upcoming dives</p>
-              <Link href="/dive-plans" className={buttonStyles.ghost}>
+              <Link href="/plan" className={buttonStyles.ghost}>
                 Plan a dive
               </Link>
             </div>
