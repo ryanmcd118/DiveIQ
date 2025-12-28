@@ -359,15 +359,6 @@ export function GearPageContent() {
             >
               Add gear
             </button>
-            <button
-              onClick={() => {
-                setEditingKit(null);
-                setShowKitForm(true);
-              }}
-              className={buttonStyles.secondary}
-            >
-              Create kit
-            </button>
           </div>
         </header>
 
@@ -388,6 +379,10 @@ export function GearPageContent() {
               onEditKit={handleEditKit}
               onDeleteKit={handleDeleteKit}
               onSetDefaultKit={handleSetDefaultKit}
+              onCreateKit={() => {
+                setEditingKit(null);
+                setShowKitForm(true);
+              }}
             />
 
             <GearListSection

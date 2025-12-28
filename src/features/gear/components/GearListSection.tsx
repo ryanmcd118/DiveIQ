@@ -372,7 +372,17 @@ export function GearListSection({
 
   return (
     <section className={styles.section}>
-      <h2 className={styles.sectionTitle}>Your Gear</h2>
+      <h2 className={styles.sectionTitle}>
+        <span className={styles.sectionTitleText}>Your Gear</span>
+        <button
+          onClick={onAddGear}
+          className={styles.addIcon}
+          title="Add new gear"
+          type="button"
+        >
+          +
+        </button>
+      </h2>
       <div className={cardStyles.card}>
         <div className={styles.filters}>
           <div className={formStyles.field}>
@@ -430,9 +440,6 @@ export function GearListSection({
             </select>
           </div>
 
-          <button onClick={onAddGear} className={styles.addGearButton}>
-            Add gear
-          </button>
         </div>
 
         {/* Active gear list */}

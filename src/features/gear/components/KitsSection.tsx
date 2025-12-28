@@ -13,6 +13,7 @@ interface Props {
   onEditKit: (kit: GearKitWithItems) => void;
   onDeleteKit: (id: string) => void;
   onSetDefaultKit: (id: string) => void;
+  onCreateKit: () => void;
 }
 
 export function KitsSection({
@@ -21,6 +22,7 @@ export function KitsSection({
   onEditKit,
   onDeleteKit,
   onSetDefaultKit,
+  onCreateKit,
 }: Props) {
   // Create a set of active gear item IDs for quick lookup
   const activeGearIds = useMemo(() => {
@@ -29,7 +31,17 @@ export function KitsSection({
   if (kits.length === 0) {
     return (
       <section className={styles.section}>
-        <h2 className={styles.sectionTitle}>Your Kits</h2>
+        <h2 className={styles.sectionTitle}>
+          <span className={styles.sectionTitleText}>Your Kits</span>
+          <button
+            onClick={onCreateKit}
+            className={styles.addIcon}
+            title="Add a new kit"
+            type="button"
+          >
+            +
+          </button>
+        </h2>
         <div className={cardStyles.card}>
           <p className={styles.emptyState}>No kits yet. Create one to get started.</p>
         </div>
@@ -39,7 +51,17 @@ export function KitsSection({
 
   return (
     <section className={styles.section}>
-      <h2 className={styles.sectionTitle}>Your Kits</h2>
+      <h2 className={styles.sectionTitle}>
+        <span className={styles.sectionTitleText}>Your Kits</span>
+        <button
+          onClick={onCreateKit}
+          className={styles.addIcon}
+          title="Add a new kit"
+          type="button"
+        >
+          +
+        </button>
+      </h2>
       <div className={styles.kitsGrid}>
         {kits.map((kit) => {
           const activeItemCount = kit.kitItems.filter((ki) =>
