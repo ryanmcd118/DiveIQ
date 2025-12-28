@@ -251,6 +251,10 @@ export function GearPageContent() {
               onRefresh={loadData}
               hideArchived={hideArchived}
               onHideArchivedChange={setHideArchived}
+              onAddGear={() => {
+                setEditingGear(null);
+                setShowGearForm(true);
+              }}
             />
           </>
         )}

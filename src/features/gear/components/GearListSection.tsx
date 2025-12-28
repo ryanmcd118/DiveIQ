@@ -15,7 +15,11 @@ import buttonStyles from "@/styles/components/Button.module.css";
 import formStyles from "@/styles/components/Form.module.css";
 import styles from "./GearListSection.module.css";
 
-type SortOption = "soonest-due" | "most-overdue" | "name-az" | "recently-updated";
+type SortOption =
+  | "soonest-due"
+  | "most-overdue"
+  | "name-az"
+  | "recently-updated";
 
 interface Props {
   gearItems: GearItem[];
@@ -26,6 +30,7 @@ interface Props {
   onRefresh: () => void;
   hideArchived: boolean;
   onHideArchivedChange: (hide: boolean) => void;
+  onAddGear: () => void;
 }
 
 export function GearListSection({
@@ -37,6 +42,7 @@ export function GearListSection({
   onRefresh,
   hideArchived,
   onHideArchivedChange,
+  onAddGear,
 }: Props) {
   const [typeFilter, setTypeFilter] = useState<string>("all");
   const [statusFilter, setStatusFilter] = useState<string>("all");
@@ -198,17 +204,15 @@ export function GearListSection({
       <li key={item.id} className={styles.item}>
         <div className={styles.itemContent}>
           <div className={styles.itemTitleRow}>
-            <span className={styles.itemName}>
-              {primaryTitle}
-            </span>
+            <span className={styles.itemName}>{primaryTitle}</span>
             {secondaryText && (
-              <span className={styles.itemNickname}>
-                {secondaryText}
-              </span>
+              <span className={styles.itemNickname}>{secondaryText}</span>
             )}
           </div>
           <div className={styles.itemMeta}>
-            <span className={styles.itemType}>{formatGearTypeLabel(item.type as GearType)}</span>
+            <span className={styles.itemType}>
+              {formatGearTypeLabel(item.type as GearType)}
+            </span>
             {item.lastServicedAt && (
               <span className={styles.itemMetaText}>
                 Last serviced: {formatDate(item.lastServicedAt)}
@@ -232,9 +236,7 @@ export function GearListSection({
         </div>
         <div className={styles.itemRight}>
           <div className={styles.statusPills}>
-            <span
-              className={`${styles.statusPill} ${getStatusClass(status)}`}
-            >
+            <span className={`${styles.statusPill} ${getStatusClass(status)}`}>
               {getStatusLabel(status)}
             </span>
           </div>
@@ -334,11 +336,17 @@ export function GearListSection({
               Hide archived gear
             </label>
           </div>
+
+          <button onClick={onAddGear} className={styles.addGearButton}>
+            Add gear
+          </button>
         </div>
 
         {/* Active gear list */}
         {filteredAndSortedActive.length === 0 ? (
-          <p className={styles.emptyState}>No active gear items match your filters.</p>
+          <p className={styles.emptyState}>
+            No active gear items match your filters.
+          </p>
         ) : (
           <ul className={styles.list}>
             {filteredAndSortedActive.map((item) => {
@@ -377,4 +385,3 @@ export function GearListSection({
     </section>
   );
 }
-

@@ -1,5 +1,5 @@
 .section {
-  margin-bottom: var(--space-8);
+  margin-bottom: var(--space-5);
 }
 
 .sectionTitle {
@@ -17,6 +17,10 @@
   padding-bottom: var(--space-4);
   border-bottom: 1px solid var(--color-border-default);
   flex-wrap: wrap;
+}
+
+.filters > *:last-child {
+  margin-left: auto;
 }
 
 .filters .field {
@@ -257,5 +261,41 @@
   font-size: var(--font-size-xs);
   color: var(--color-text-muted);
   transition: transform var(--transition-base);
+}
+
+.addGearButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-3) var(--space-4);
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-primary);
+  background: transparent;
+  border: 1px solid var(--color-border-default);
+  border-radius: var(--radius-lg);
+  cursor: pointer;
+  transition: all var(--transition-base);
+  white-space: nowrap;
+  height: calc(var(--space-3) * 2 + 1.5em); /* Match select input height */
+  box-sizing: border-box;
+}
+
+.addGearButton:hover:not(:disabled) {
+  border-color: var(--color-accent-primary);
+  color: var(--color-accent-light);
+  background: rgba(6, 182, 212, 0.05);
+  box-shadow: 0 0 0 3px rgba(6, 182, 212, 0.1);
+}
+
+.addGearButton:focus {
+  outline: none;
+  border-color: var(--color-accent-primary);
+  box-shadow: 0 0 0 3px rgba(6, 182, 212, 0.15);
+}
+
+.addGearButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 
