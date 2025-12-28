@@ -244,8 +244,10 @@ export function GearListSection({
       // Don't expand if clicking on action buttons or their container
       const target = e.target as HTMLElement;
       if (
-        target.closest(`.${styles.itemActions}`) ||
-        target.closest(`button`)
+        target.closest(`.${styles.itemActionsTop}`) ||
+        target.closest(`.${styles.itemRight}`) ||
+        target.closest(`button`) ||
+        target.closest(`svg`)
       ) {
         return;
       }
@@ -341,7 +343,10 @@ export function GearListSection({
             </div>
           )}
         </div>
-        <div className={styles.itemRight}>
+        <div
+          className={styles.itemRight}
+          onClick={(e) => e.stopPropagation()}
+        >
           {/* Top-right: Edit, Archive, and Delete icons */}
           <div className={styles.itemActionsTop}>
             <button
