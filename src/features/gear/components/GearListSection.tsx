@@ -2,6 +2,7 @@
 
 import { useState, useMemo } from "react";
 import type { GearItem } from "@prisma/client";
+import { GearKitWithItems } from "@/services/database/repositories/gearRepository";
 import {
   computeMaintenanceStatus,
   getNextServiceDueAt,
@@ -18,26 +19,44 @@ type SortOption = "soonest-due" | "most-overdue" | "name-az" | "recently-updated
 
 interface Props {
   gearItems: GearItem[];
+  kits: GearKitWithItems[];
   onEditGear: (item: GearItem) => void;
   onDeleteGear: (id: string) => void;
   onArchiveGear: (id: string, isActive: boolean) => void;
   onRefresh: () => void;
-  showInactive: boolean;
-  onShowInactiveChange: (show: boolean) => void;
+  hideArchived: boolean;
+  onHideArchivedChange: (hide: boolean) => void;
 }
 
 export function GearListSection({
   gearItems,
+  kits,
   onEditGear,
   onDeleteGear,
   onArchiveGear,
   onRefresh,
-  showInactive,
-  onShowInactiveChange,
+  hideArchived,
+  onHideArchivedChange,
 }: Props) {
   const [typeFilter, setTypeFilter] = useState<string>("all");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [sortBy, setSortBy] = useState<SortOption>("soonest-due");
+  const [isInactiveOpen, setIsInactiveOpen] = useState(false);
+
+  // Create memoized map of gearId -> kit names
+  const gearKitMap = useMemo(() => {
+    const map = new Map<string, string[]>();
+    kits.forEach((kit) => {
+      kit.kitItems.forEach((kitItem) => {
+        const gearId = kitItem.gearItemId;
+        if (!map.has(gearId)) {
+          map.set(gearId, []);
+        }
+        map.get(gearId)!.push(kit.name);
+      });
+    });
+    return map;
+  }, [kits]);
 
   const getPrimaryTitle = (item: GearItem): string => {
     // Priority: manufacturer + model > manufacturer alone > model alone > nickname > gear type
@@ -68,8 +87,15 @@ export function GearListSection({
     return null;
   };
 
-  const filteredAndSortedItems = useMemo(() => {
-    let filtered = [...gearItems];
+  // Split into active and inactive, then apply filters and sorting
+  const { activeItems, inactiveItems } = useMemo(() => {
+    const active = gearItems.filter((item) => item.isActive);
+    const inactive = gearItems.filter((item) => !item.isActive);
+    return { activeItems: active, inactiveItems: inactive };
+  }, [gearItems]);
+
+  const applyFiltersAndSort = (items: GearItem[]) => {
+    let filtered = [...items];
 
     if (typeFilter !== "all") {
       filtered = filtered.filter((item) => item.type === typeFilter);
@@ -81,9 +107,6 @@ export function GearListSection({
         return status === statusFilter;
       });
     }
-
-    // Note: isActive filtering is handled by the API based on showInactive prop
-    // We don't need to filter here since the API already returns the correct set
 
     // Apply sorting
     let sorted = [...filtered];
@@ -109,7 +132,17 @@ export function GearListSection({
     }
 
     return sorted;
-  }, [gearItems, typeFilter, statusFilter, sortBy]);
+  };
+
+  const filteredAndSortedActive = useMemo(
+    () => applyFiltersAndSort(activeItems),
+    [activeItems, typeFilter, statusFilter, sortBy]
+  );
+
+  const filteredAndSortedInactive = useMemo(
+    () => applyFiltersAndSort(inactiveItems),
+    [inactiveItems, typeFilter, statusFilter, sortBy]
+  );
 
   const getStatusLabel = (status: MaintenanceStatus): string => {
     switch (status) {
@@ -152,6 +185,82 @@ export function GearListSection({
       day: "numeric",
       year: "numeric",
     }).format(new Date(date));
+  };
+
+  const renderGearItem = (item: GearItem, kitNames: string[]) => {
+    const status = computeMaintenanceStatus(item);
+    const nextDue = getNextServiceDueAt(item);
+
+    const primaryTitle = getPrimaryTitle(item);
+    const secondaryText = getSecondaryText(item);
+
+    return (
+      <li key={item.id} className={styles.item}>
+        <div className={styles.itemContent}>
+          <div className={styles.itemTitleRow}>
+            <span className={styles.itemName}>
+              {primaryTitle}
+            </span>
+            {secondaryText && (
+              <span className={styles.itemNickname}>
+                {secondaryText}
+              </span>
+            )}
+          </div>
+          <div className={styles.itemMeta}>
+            <span className={styles.itemType}>{formatGearTypeLabel(item.type as GearType)}</span>
+            {item.lastServicedAt && (
+              <span className={styles.itemMetaText}>
+                Last serviced: {formatDate(item.lastServicedAt)}
+              </span>
+            )}
+            {nextDue && (
+              <span className={styles.itemMetaText}>
+                Due: {formatDate(nextDue)}
+              </span>
+            )}
+          </div>
+          {kitNames.length > 0 && (
+            <div className={styles.kitPills}>
+              {kitNames.map((kitName) => (
+                <span key={kitName} className={styles.kitPill}>
+                  {kitName}
+                </span>
+              ))}
+            </div>
+          )}
+        </div>
+        <div className={styles.itemRight}>
+          <div className={styles.statusPills}>
+            <span
+              className={`${styles.statusPill} ${getStatusClass(status)}`}
+            >
+              {getStatusLabel(status)}
+            </span>
+          </div>
+          <div className={styles.itemActions}>
+            <button
+              onClick={() => onEditGear(item)}
+              className={buttonStyles.secondary}
+            >
+              Edit
+            </button>
+            <button
+              onClick={() => onArchiveGear(item.id, !item.isActive)}
+              className={buttonStyles.ghost}
+            >
+              {item.isActive ? "Archive" : "Unarchive"}
+            </button>
+            <button
+              onClick={() => onDeleteGear(item.id)}
+              className={buttonStyles.danger}
+            >
+              Delete
+            </button>
+          </div>
+        </div>
+      </li>
+    );
   };
 
   return (
@@ -218,91 +327,51 @@ export function GearListSection({
             <label className={formStyles.label}>
               <input
                 type="checkbox"
-                checked={showInactive}
-                onChange={(e) => onShowInactiveChange(e.target.checked)}
+                checked={hideArchived}
+                onChange={(e) => onHideArchivedChange(e.target.checked)}
                 className={styles.checkbox}
               />
-              Show inactive
+              Hide archived gear
             </label>
           </div>
         </div>
 
-        {filteredAndSortedItems.length === 0 ? (
-          <p className={styles.emptyState}>No gear items match your filters.</p>
+        {/* Active gear list */}
+        {filteredAndSortedActive.length === 0 ? (
+          <p className={styles.emptyState}>No active gear items match your filters.</p>
         ) : (
           <ul className={styles.list}>
-            {filteredAndSortedItems.map((item) => {
-              const status = computeMaintenanceStatus(item);
-              const nextDue = getNextServiceDueAt(item);
-
-              const primaryTitle = getPrimaryTitle(item);
-              const secondaryText = getSecondaryText(item);
-
-              return (
-                <li key={item.id} className={styles.item}>
-                  <div className={styles.itemContent}>
-                    <div className={styles.itemTitleRow}>
-                      <span className={styles.itemName}>
-                        {primaryTitle}
-                      </span>
-                      {secondaryText && (
-                        <span className={styles.itemNickname}>
-                          {secondaryText}
-                        </span>
-                      )}
-                    </div>
-                    <div className={styles.itemMeta}>
-                      <span className={styles.itemType}>{formatGearTypeLabel(item.type as GearType)}</span>
-                      {item.lastServicedAt && (
-                        <span className={styles.itemMetaText}>
-                          Last serviced: {formatDate(item.lastServicedAt)}
-                        </span>
-                      )}
-                      {nextDue && (
-                        <span className={styles.itemMetaText}>
-                          Due: {formatDate(nextDue)}
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                  <div className={styles.itemRight}>
-                    <div className={styles.statusPills}>
-                      {!item.isActive && (
-                        <span className={`${styles.statusPill} ${styles.statusInactive}`}>
-                          Inactive
-                        </span>
-                      )}
-                      <span
-                        className={`${styles.statusPill} ${getStatusClass(status)}`}
-                      >
-                        {getStatusLabel(status)}
-                      </span>
-                    </div>
-                    <div className={styles.itemActions}>
-                      <button
-                        onClick={() => onEditGear(item)}
-                        className={buttonStyles.secondary}
-                      >
-                        Edit
-                      </button>
-                      <button
-                        onClick={() => onArchiveGear(item.id, !item.isActive)}
-                        className={buttonStyles.ghost}
-                      >
-                        {item.isActive ? "Archive" : "Unarchive"}
-                      </button>
-                      <button
-                        onClick={() => onDeleteGear(item.id)}
-                        className={buttonStyles.danger}
-                      >
-                        Delete
-                      </button>
-                    </div>
-                  </div>
-                </li>
-              );
+            {filteredAndSortedActive.map((item) => {
+              const kitNames = gearKitMap.get(item.id) || [];
+              return renderGearItem(item, kitNames);
             })}
           </ul>
+        )}
+
+        {/* Inactive gear section */}
+        {!hideArchived && filteredAndSortedInactive.length > 0 && (
+          <div className={styles.inactiveSection}>
+            <button
+              type="button"
+              onClick={() => setIsInactiveOpen(!isInactiveOpen)}
+              className={styles.inactiveHeader}
+            >
+              <span className={styles.inactiveHeaderText}>
+                Inactive ({filteredAndSortedInactive.length})
+              </span>
+              <span className={styles.chevron}>
+                {isInactiveOpen ? "▼" : "▶"}
+              </span>
+            </button>
+            {isInactiveOpen && (
+              <ul className={styles.list}>
+                {filteredAndSortedInactive.map((item) => {
+                  const kitNames = gearKitMap.get(item.id) || [];
+                  return renderGearItem(item, kitNames);
+                })}
+              </ul>
+            )}
+          </div>
         )}
       </div>
     </section>

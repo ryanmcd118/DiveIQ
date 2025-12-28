@@ -26,13 +26,14 @@ export function GearPageContent() {
   const [toast, setToast] = useState<{ message: string; onUndo?: () => void } | null>(null);
   const [deleteConfirm, setDeleteConfirm] = useState<{ id: string; type: "gear" | "kit" } | null>(null);
   const [archivedGearId, setArchivedGearId] = useState<string | null>(null);
-  const [showInactive, setShowInactive] = useState(false);
+  const [hideArchived, setHideArchived] = useState(true);
 
-  const loadData = async (includeInactive: boolean = false) => {
+  const loadData = async () => {
     try {
       setLoading(true);
+      // Always load all gear (active + inactive) so we can split them
       const [gearRes, kitsRes] = await Promise.all([
-        fetch(`/api/gear?includeInactive=${includeInactive}`),
+        fetch("/api/gear?includeInactive=true"),
         fetch("/api/gear-kits"),
       ]);
 
@@ -55,33 +56,33 @@ export function GearPageContent() {
   };
 
   useEffect(() => {
-    void loadData(showInactive);
-  }, [showInactive]);
+    void loadData();
+  }, []);
 
   const handleGearCreated = () => {
     setShowGearForm(false);
     setEditingGear(null);
     setToast({ message: "Gear added" });
-    void loadData(showInactive);
+    void loadData();
   };
 
   const handleGearUpdated = () => {
     setShowGearForm(false);
     setEditingGear(null);
-    void loadData(showInactive);
+    void loadData();
   };
 
   const handleKitCreated = () => {
     setShowKitForm(false);
     setEditingKit(null);
     setToast({ message: "Kit created" });
-    void loadData(showInactive);
+    void loadData();
   };
 
   const handleKitUpdated = () => {
     setShowKitForm(false);
     setEditingKit(null);
-    void loadData(showInactive);
+    void loadData();
   };
 
   const handleEditGear = (item: GearItem) => {
@@ -113,7 +114,7 @@ export function GearPageContent() {
 
       setDeleteConfirm(null);
       setToast({ message: deleteConfirm.type === "gear" ? "Gear deleted" : "Kit deleted" });
-      void loadData(showInactive);
+      void loadData();
     } catch (err) {
       console.error(err);
       setDeleteConfirm(null);
@@ -139,7 +140,7 @@ export function GearPageContent() {
       if (!wasActive) {
         // Unarchiving - just show success
         setToast({ message: "Gear unarchived" });
-        void loadData(showInactive);
+        void loadData();
       } else {
         // Archiving - show undo toast
         setArchivedGearId(id);
@@ -156,14 +157,14 @@ export function GearPageContent() {
               if (undoRes.ok) {
                 setArchivedGearId(null);
                 setToast(null);
-                void loadData(showInactive);
+                void loadData();
               }
             } catch (err) {
               console.error(err);
             }
           },
         });
-        void loadData(showInactive);
+        void loadData();
       }
     } catch (err) {
       console.error(err);
@@ -243,12 +244,13 @@ export function GearPageContent() {
 
             <GearListSection
               gearItems={gearItems}
+              kits={kits}
               onEditGear={handleEditGear}
               onDeleteGear={handleDeleteGear}
               onArchiveGear={handleArchiveGear}
-              onRefresh={() => loadData(showInactive)}
-              showInactive={showInactive}
-              onShowInactiveChange={setShowInactive}
+              onRefresh={loadData}
+              hideArchived={hideArchived}
+              onHideArchivedChange={setHideArchived}
             />
           </>
         )}
@@ -262,6 +264,7 @@ export function GearPageContent() {
             }}
             onSave={editingGear ? handleGearUpdated : handleGearCreated}
             editingGear={editingGear}
+            kits={kits}
           />
         )}
 

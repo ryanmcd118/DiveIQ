@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useEffect, FormEvent } from "react";
+import { useState, useEffect, useMemo, FormEvent } from "react";
 import type { GearItem } from "@prisma/client";
+import { GearKitWithItems } from "@/services/database/repositories/gearRepository";
 import { GearType, getDefaultServiceInterval, formatGearTypeLabel } from "../constants";
 import formStyles from "@/styles/components/Form.module.css";
 import buttonStyles from "@/styles/components/Button.module.css";
@@ -12,6 +13,7 @@ interface Props {
   onClose: () => void;
   onSave: () => void;
   editingGear: GearItem | null;
+  kits: GearKitWithItems[];
 }
 
 export function GearFormModal({
@@ -19,9 +21,11 @@ export function GearFormModal({
   onClose,
   onSave,
   editingGear,
+  kits,
 }: Props) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [kitUpdateErrors, setKitUpdateErrors] = useState<string | null>(null);
 
   const [type, setType] = useState<string>(GearType.BCD);
   const [manufacturer, setManufacturer] = useState("");
@@ -33,6 +37,30 @@ export function GearFormModal({
   const [serviceIntervalMonths, setServiceIntervalMonths] = useState<
     number | null
   >(null);
+  const [selectedKitIds, setSelectedKitIds] = useState<string[]>([]);
+
+  // Compute initial selected kit IDs based on which kits contain this gear item
+  const initialSelectedKitIds = useMemo(() => {
+    if (!editingGear) return [];
+    return kits
+      .filter((kit) =>
+        kit.kitItems.some((kitItem) => kitItem.gearItemId === editingGear.id)
+      )
+      .map((kit) => kit.id);
+  }, [editingGear, kits]);
+
+  // Set selectedKitIds when modal opens or editingGear changes
+  useEffect(() => {
+    if (isOpen) {
+      if (editingGear) {
+        // When editing, set to kits that contain this gear
+        setSelectedKitIds(initialSelectedKitIds);
+      } else {
+        // When creating new gear, start with empty selection
+        setSelectedKitIds([]);
+      }
+    }
+  }, [isOpen, editingGear, initialSelectedKitIds]);
 
   // Initialize form when editing or modal opens
   useEffect(() => {
@@ -64,6 +92,8 @@ export function GearFormModal({
       setLastServicedAt("");
       setServiceIntervalMonths(null);
     }
+    // Note: selectedKitIds is set separately via useEffect based on initialSelectedKitIds
+    setKitUpdateErrors(null);
   }, [editingGear, isOpen]);
 
   // Prefill service interval when type changes (for new items)
@@ -103,6 +133,7 @@ export function GearFormModal({
     e.preventDefault();
     setLoading(true);
     setError(null);
+    setKitUpdateErrors(null);
 
     try {
       const payload: any = {
@@ -134,6 +165,169 @@ export function GearFormModal({
         throw new Error(data.error || "Failed to save");
       }
 
+      const gearData = await res.json();
+      const gearId = gearData.item?.id || editingGear?.id;
+
+      if (!gearId) {
+        throw new Error("Failed to get gear ID");
+      }
+
+      // Handle kit membership updates
+      if (gearId) {
+        if (editingGear) {
+          // Editing: reconcile kit membership
+          const previousKitIds = initialSelectedKitIds;
+          const currentKitIds = selectedKitIds;
+
+          // Kits to remove gear from (were selected, now unchecked)
+          const kitsToRemove = previousKitIds.filter(
+            (id) => !currentKitIds.includes(id)
+          );
+
+          // Kits to add gear to (were not selected, now checked)
+          const kitsToAdd = currentKitIds.filter(
+            (id) => !previousKitIds.includes(id)
+          );
+
+          const kitUpdatePromises: Promise<void>[] = [];
+
+          // Remove from kits
+          for (const kitId of kitsToRemove) {
+            kitUpdatePromises.push(
+              (async () => {
+                try {
+                  const kit = kits.find((k) => k.id === kitId);
+                  if (!kit) {
+                    throw new Error(`Kit ${kitId} not found`);
+                  }
+
+                  // Get current gear item IDs and remove this gear
+                  const currentGearIds = kit.kitItems
+                    .map((ki) => ki.gearItemId)
+                    .filter((id) => id !== gearId);
+
+                  const updateRes = await fetch("/api/gear-kits", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                      action: "updateItems",
+                      id: kitId,
+                      gearItemIds: currentGearIds,
+                    }),
+                  });
+
+                  if (!updateRes.ok) {
+                    throw new Error(`Failed to remove from kit: ${kit.name}`);
+                  }
+                } catch (err) {
+                  console.error(`Failed to remove gear from kit ${kitId}:`, err);
+                  throw err;
+                }
+              })()
+            );
+          }
+
+          // Add to kits
+          for (const kitId of kitsToAdd) {
+            kitUpdatePromises.push(
+              (async () => {
+                try {
+                  const kit = kits.find((k) => k.id === kitId);
+                  if (!kit) {
+                    throw new Error(`Kit ${kitId} not found`);
+                  }
+
+                  // Get current gear item IDs and add this gear
+                  const currentGearIds = kit.kitItems.map((ki) => ki.gearItemId);
+                  if (!currentGearIds.includes(gearId)) {
+                    const updatedGearIds = [...currentGearIds, gearId];
+
+                    const updateRes = await fetch("/api/gear-kits", {
+                      method: "POST",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify({
+                        action: "updateItems",
+                        id: kitId,
+                        gearItemIds: updatedGearIds,
+                      }),
+                    });
+
+                    if (!updateRes.ok) {
+                      throw new Error(`Failed to add to kit: ${kit.name}`);
+                    }
+                  }
+                } catch (err) {
+                  console.error(`Failed to add gear to kit ${kitId}:`, err);
+                  throw err;
+                }
+              })()
+            );
+          }
+
+          // Wait for all kit updates
+          if (kitUpdatePromises.length > 0) {
+            const results = await Promise.allSettled(kitUpdatePromises);
+            const failures = results.filter((r) => r.status === "rejected");
+
+            if (failures.length > 0) {
+              setKitUpdateErrors(
+                `Gear updated, but couldn't update ${failures.length} kit${failures.length > 1 ? "s" : ""}. Try again.`
+              );
+              await new Promise((resolve) => setTimeout(resolve, 2000));
+            }
+          }
+        } else {
+          // Creating new gear: add to selected kits
+          if (selectedKitIds.length > 0) {
+            const kitUpdatePromises = selectedKitIds.map(async (kitId) => {
+              try {
+                // Get current kit to find existing gear items
+                const kit = kits.find((k) => k.id === kitId);
+                if (!kit) {
+                  throw new Error(`Kit ${kitId} not found`);
+                }
+
+                // Get current gear item IDs and add the new one
+                const currentGearIds = kit.kitItems.map((ki) => ki.gearItemId);
+                const updatedGearIds = [...currentGearIds, gearId];
+
+                // Update kit with new gear item
+                const updateRes = await fetch("/api/gear-kits", {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({
+                    action: "updateItems",
+                    id: kitId,
+                    gearItemIds: updatedGearIds,
+                  }),
+                });
+
+                if (!updateRes.ok) {
+                  throw new Error(`Failed to add to kit: ${kit.name}`);
+                }
+              } catch (err) {
+                console.error(`Failed to add gear to kit ${kitId}:`, err);
+                throw err;
+              }
+            });
+
+            // Wait for all kit updates, but don't fail if some fail
+            const results = await Promise.allSettled(kitUpdatePromises);
+            const failures = results.filter((r) => r.status === "rejected");
+            
+            if (failures.length > 0) {
+              setKitUpdateErrors(
+                `Gear added, but couldn't add to ${failures.length} kit${failures.length > 1 ? "s" : ""}. Try again.`
+              );
+              // Show error briefly before closing
+              await new Promise((resolve) => setTimeout(resolve, 2000));
+            }
+          }
+        }
+      }
+
+      // Only call onSave if gear creation succeeded
+      // (kit update errors are non-blocking)
       onSave();
     } catch (err) {
       console.error(err);
@@ -141,6 +335,14 @@ export function GearFormModal({
     } finally {
       setLoading(false);
     }
+  };
+
+  const toggleKitSelection = (kitId: string) => {
+    setSelectedKitIds((prev) =>
+      prev.includes(kitId)
+        ? prev.filter((id) => id !== kitId)
+        : [...prev, kitId]
+    );
   };
 
   if (!isOpen) return null;
@@ -286,7 +488,49 @@ export function GearFormModal({
             />
           </div>
 
+          {/* Kits section */}
+          <div className={formStyles.field}>
+            <label className={formStyles.label}>Kits</label>
+              {kits.length === 0 ? (
+                <p className={formStyles.helpText}>
+                  No kits yet. Create a kit to group gear items.
+                </p>
+              ) : (
+                <div className={styles.kitList}>
+                  {kits.map((kit) => (
+                    <label
+                      key={kit.id}
+                      className={`${styles.kitItem} ${
+                        selectedKitIds.includes(kit.id) ? styles.selected : ""
+                      }`}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={selectedKitIds.includes(kit.id)}
+                        onChange={() => toggleKitSelection(kit.id)}
+                        className={styles.checkbox}
+                        disabled={loading}
+                      />
+                      <div className={styles.kitItemContent}>
+                        <span className={styles.kitItemName}>
+                          {kit.name}
+                        </span>
+                        {kit.isDefault && (
+                          <span className={styles.defaultBadge}>(Default)</span>
+                        )}
+                      </div>
+                    </label>
+                  ))}
+                </div>
+              )}
+          </div>
+
           {error && <p className={formStyles.error}>{error}</p>}
+          {kitUpdateErrors && (
+            <p className={formStyles.error} style={{ color: "var(--color-warning)" }}>
+              {kitUpdateErrors}
+            </p>
+          )}
 
           <div className={formStyles.buttonGroup}>
             <button
