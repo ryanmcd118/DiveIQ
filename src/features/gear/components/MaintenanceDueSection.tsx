@@ -9,15 +9,14 @@ import {
   type MaintenanceStatus,
 } from "../lib/maintenance";
 import { formatGearTypeLabel, GearType } from "../constants";
-import cardStyles from "@/styles/components/Card.module.css";
 import styles from "./MaintenanceDueSection.module.css";
 
 interface Props {
   gearItems: GearItem[];
-  onEditGear: (item: GearItem) => void;
+  onJumpToGear: (gearId: string) => void;
 }
 
-export function MaintenanceDueSection({ gearItems, onEditGear }: Props) {
+export function MaintenanceDueSection({ gearItems, onJumpToGear }: Props) {
   const maintenanceItems = useMemo(() => {
     // Filter out archived/inactive items
     const activeItems = gearItems.filter((item) => item.isActive);
@@ -102,38 +101,36 @@ export function MaintenanceDueSection({ gearItems, onEditGear }: Props) {
   return (
     <section className={styles.section}>
       <h2 className={styles.sectionTitle}>Maintenance Due</h2>
-      <div className={cardStyles.card}>
+      <div className={styles.panel}>
         {maintenanceItems.length === 0 ? (
-          <p className={styles.emptyState}>All gear up to date.</p>
+          <p className={styles.emptyState}>No maintenance due 🎉</p>
         ) : (
-          <ul className={styles.list}>
+          <div className={styles.rows}>
             {maintenanceItems.map(({ item, status, nextDue }) => (
-              <li
+              <button
                 key={item.id}
-                className={styles.item}
-                onClick={() => onEditGear(item)}
+                type="button"
+                className={styles.row}
+                onClick={() => onJumpToGear(item.id)}
+                aria-label={`Jump to ${getPrimaryTitle(item)}`}
               >
-                <div className={styles.itemContent}>
-                  <div className={styles.itemHeader}>
-                    <span className={styles.itemName}>
-                      {getPrimaryTitle(item)}
-                    </span>
-                    <span className={`${styles.statusPill} ${getStatusClass(status)}`}>
-                      {getStatusLabel(status)}
-                    </span>
-                  </div>
-                  <div className={styles.itemMeta}>
-                    <span className={styles.itemType}>{formatGearTypeLabel(item.type as GearType)}</span>
-                    {nextDue && (
-                      <span className={styles.itemDue}>
-                        Due: {formatDate(nextDue)}
-                      </span>
-                    )}
-                  </div>
+                <div className={styles.rowLeft}>
+                  <span className={styles.rowName}>
+                    {getPrimaryTitle(item)}
+                  </span>
+                  <span className={styles.rowMeta}>
+                    {formatGearTypeLabel(item.type as GearType)}
+                    {nextDue && ` • Due: ${formatDate(nextDue)}`}
+                  </span>
                 </div>
-              </li>
+                <div className={styles.rowRight}>
+                  <span className={`${styles.statusPill} ${getStatusClass(status)}`}>
+                    {getStatusLabel(status)}
+                  </span>
+                </div>
+              </button>
             ))}
-          </ul>
+          </div>
         )}
       </div>
     </section>

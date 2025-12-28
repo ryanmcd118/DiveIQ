@@ -11,7 +11,6 @@ import {
 } from "../lib/maintenance";
 import { GearType, formatGearTypeLabel } from "../constants";
 import cardStyles from "@/styles/components/Card.module.css";
-import buttonStyles from "@/styles/components/Button.module.css";
 import formStyles from "@/styles/components/Form.module.css";
 import styles from "./GearListSection.module.css";
 
@@ -31,6 +30,8 @@ interface Props {
   autoExpandArchived?: boolean;
   onAutoExpandArchivedComplete?: () => void;
   onAddGear: () => void;
+  highlightedGearId?: string | null;
+  gearCardRefs: React.MutableRefObject<Map<string, HTMLLIElement>>;
 }
 
 export function GearListSection({
@@ -43,6 +44,8 @@ export function GearListSection({
   autoExpandArchived = false,
   onAutoExpandArchivedComplete,
   onAddGear,
+  highlightedGearId = null,
+  gearCardRefs,
 }: Props) {
   const [typeFilter, setTypeFilter] = useState<string>("all");
   const [statusFilter, setStatusFilter] = useState<string>("all");
@@ -256,12 +259,21 @@ export function GearListSection({
       }
     };
 
+    const isHighlighted = highlightedGearId === item.id;
+
     return (
       <li
         key={item.id}
+        ref={(el) => {
+          if (el) {
+            gearCardRefs.current.set(item.id, el);
+          } else {
+            gearCardRefs.current.delete(item.id);
+          }
+        }}
         className={`${styles.item} ${isExpanded ? styles.itemExpanded : ""} ${
           hasExpandedContent ? styles.itemExpandable : ""
-        }`}
+        } ${isHighlighted ? styles.itemHighlighted : ""}`}
         onClick={hasExpandedContent ? handleCardClick : undefined}
       >
         <div className={styles.itemContent}>
@@ -269,17 +281,14 @@ export function GearListSection({
           <div className={styles.itemTitleRow}>
             <span className={styles.itemName}>{primaryTitle}</span>
           </div>
-          
+
           {/* Row 2: Subtitle (nickname) - always reserves space */}
           <div className={styles.subtitleRow}>
-            <span
-              className={styles.itemNickname}
-              aria-hidden={!secondaryText}
-            >
+            <span className={styles.itemNickname} aria-hidden={!secondaryText}>
               {secondaryText || "\u00A0"}
             </span>
           </div>
-          
+
           {/* Row 3: Meta line (type + last serviced + due) - always present */}
           <div className={styles.itemMeta}>
             <span className={styles.itemType}>
@@ -296,7 +305,7 @@ export function GearListSection({
               </span>
             )}
           </div>
-          
+
           {/* Row 4: Kit pills - always reserves space */}
           <div className={styles.kitsRow}>
             {kitNames.length > 0 ? (
@@ -335,18 +344,13 @@ export function GearListSection({
               {item.notes && (
                 <div className={styles.itemExpandedRow}>
                   <span className={styles.itemExpandedLabel}>Notes:</span>
-                  <span className={styles.itemExpandedValue}>
-                    {item.notes}
-                  </span>
+                  <span className={styles.itemExpandedValue}>{item.notes}</span>
                 </div>
               )}
             </div>
           )}
         </div>
-        <div
-          className={styles.itemRight}
-          onClick={(e) => e.stopPropagation()}
-        >
+        <div className={styles.itemRight} onClick={(e) => e.stopPropagation()}>
           {/* Top-right: Edit, Archive, and Delete icons */}
           <div className={styles.itemActionsTop}>
             <button
@@ -546,7 +550,6 @@ export function GearListSection({
               <option value="recently-updated">Recently updated</option>
             </select>
           </div>
-
         </div>
 
         {/* Active gear list */}

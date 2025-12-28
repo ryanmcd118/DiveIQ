@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import type { GearItem, GearKit } from "@prisma/client";
 import { GearKitWithItems } from "@/services/database/repositories/gearRepository";
 import { MaintenanceDueSection } from "./MaintenanceDueSection";
@@ -31,6 +31,8 @@ export function GearPageContent() {
     itemId: string;
     kitIds: string[];
   } | null>(null);
+  const [highlightedGearId, setHighlightedGearId] = useState<string | null>(null);
+  const gearCardRefs = useRef<Map<string, HTMLLIElement>>(new Map());
 
   const loadData = async (showLoading = true) => {
     try {
@@ -323,6 +325,20 @@ export function GearPageContent() {
     setDeleteConfirm({ id, type: "kit" });
   };
 
+  const handleJumpToGear = useCallback((gearId: string) => {
+    const cardElement = gearCardRefs.current.get(gearId);
+    if (cardElement) {
+      cardElement.scrollIntoView({
+        behavior: "smooth",
+        block: "center",
+      });
+      setHighlightedGearId(gearId);
+      setTimeout(() => {
+        setHighlightedGearId(null);
+      }, 1500);
+    }
+  }, []);
+
   const handleSetDefaultKit = async (id: string) => {
     try {
       const res = await fetch("/api/gear-kits", {
@@ -379,7 +395,7 @@ export function GearPageContent() {
           <>
             <MaintenanceDueSection
               gearItems={gearItems}
-              onEditGear={handleEditGear}
+              onJumpToGear={handleJumpToGear}
             />
 
             <KitsSection
@@ -407,6 +423,8 @@ export function GearPageContent() {
                 setEditingGear(null);
                 setShowGearForm(true);
               }}
+              highlightedGearId={highlightedGearId}
+              gearCardRefs={gearCardRefs}
             />
           </>
         )}
