@@ -21,7 +21,6 @@ interface ProfileData {
 interface UserData {
   firstName: string | null;
   lastName: string | null;
-  name?: string | null; // Fallback field (exists before migrations)
   email: string;
 }
 
@@ -41,12 +40,7 @@ function formatUserName(user: UserData | null): string {
     return user.firstName!; // Safe because we checked hasFirstName
   }
 
-  // Priority 2: name field (fallback for users before migrations)
-  if (user.name && user.name.trim().length > 0) {
-    return user.name;
-  }
-
-  // Priority 3: email prefix (before @)
+  // Priority 2: email prefix (before @)
   if (user.email && user.email.trim()) {
     const emailPrefix = user.email.split("@")[0];
     if (emailPrefix && emailPrefix.trim()) {
@@ -179,7 +173,6 @@ export function ProfilePageContent() {
       setUser({
         firstName: data.user.firstName || null,
         lastName: data.user.lastName || null,
-        name: data.user.name || null, // Fallback field (before migrations)
         email: data.user.email || "",
       });
 
@@ -314,7 +307,6 @@ export function ProfilePageContent() {
       setUser({
         firstName: data.user.firstName || null,
         lastName: data.user.lastName || null,
-        name: data.user.name || null,
         email: data.user.email || "",
       });
 

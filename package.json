@@ -13,7 +13,7 @@
     "lint:fix": "eslint --fix",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "backfill:names": "tsx scripts/backfill-user-names.ts"
+    "db:reset": "prisma migrate reset --force --skip-seed"
   },
   "dependencies": {
     "@auth/prisma-adapter": "^2.11.1",

@@ -7,14 +7,17 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     const { email, password, firstName, lastName } = body;
 
-    // Validate input
-    if (!email || !password || !firstName || !lastName) {
+    // Validate input - trim and check for non-empty strings
+    const trimmedFirstName = firstName?.trim() || "";
+    const trimmedLastName = lastName?.trim() || "";
+    
+    if (!email || !password || !trimmedFirstName || !trimmedLastName) {
       return NextResponse.json(
-        { error: "Missing required fields" },
+        { error: "First and last name are required." },
         { status: 400 }
       );
     }
-
+    
     // Validate email format
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
@@ -23,7 +26,7 @@ export async function POST(req: NextRequest) {
         { status: 400 }
       );
     }
-
+    
     // Validate password strength
     if (password.length < 8) {
       return NextResponse.json(
@@ -47,13 +50,13 @@ export async function POST(req: NextRequest) {
     // Hash password
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Create user
+    // Create user with trimmed names (preserve spaces inside names, only trim edges)
     const user = await prisma.user.create({
       data: {
         email,
         password: hashedPassword,
-        firstName,
-        lastName,
+        firstName: trimmedFirstName,
+        lastName: trimmedLastName,
       },
     });
 

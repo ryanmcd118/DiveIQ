@@ -9,29 +9,33 @@ function extractNamesFromGoogleProfile(profile: any, user: any): { firstName: st
   // Prefer given_name and family_name from profile if available
   if (profile?.given_name && profile?.family_name) {
     return {
-      firstName: profile.given_name,
-      lastName: profile.family_name,
+      firstName: profile.given_name.trim(),
+      lastName: profile.family_name.trim(),
     };
   }
   
   // Fallback: split the full name if provided
-  const fullName = profile?.name || user.name || "";
+  const fullName = profile?.name || user?.name || "";
   if (fullName) {
-    const nameParts = fullName.trim().split(/\s+/);
-    if (nameParts.length === 1) {
-      return {
-        firstName: nameParts[0],
-        lastName: null, // Allow lastName to be null for Google OAuth users
-      };
-    } else {
-      return {
-        firstName: nameParts[0],
-        lastName: nameParts.slice(1).join(" "), // Join remaining parts as lastName
-      };
+    const trimmed = fullName.trim();
+    if (trimmed) {
+      const nameParts = trimmed.split(/\s+/);
+      if (nameParts.length === 1) {
+        return {
+          firstName: nameParts[0],
+          lastName: null,
+        };
+      } else {
+        // First token is firstName, rest joined as lastName (preserves compound names like "Van Dyke")
+        return {
+          firstName: nameParts[0],
+          lastName: nameParts.slice(1).join(" "),
+        };
+      }
     }
   }
   
-  // If no name available, return null for both (Google OAuth allows nullable lastName)
+  // If no name available, return null for both
   return {
     firstName: null,
     lastName: null,
@@ -115,13 +119,30 @@ export const authOptions: NextAuthOptions = {
               },
             },
             include: {
-              user: true,
+              user: {
+                select: {
+                  id: true,
+                  firstName: true,
+                  lastName: true,
+                },
+              },
             },
           });
 
           if (existingAccount) {
             // User already linked with Google, sign them in
-            user.id = existingAccount.user.id;
+            // Backfill firstName/lastName if missing
+            const existingUser = existingAccount.user;
+            if ((!existingUser.firstName || !existingUser.lastName) && (firstName || lastName)) {
+              await prisma.user.update({
+                where: { id: existingUser.id },
+                data: {
+                  ...(existingUser.firstName ? {} : { firstName }),
+                  ...(existingUser.lastName ? {} : { lastName }),
+                },
+              });
+            }
+            user.id = existingUser.id;
             return true;
           }
 
@@ -134,6 +155,15 @@ export const authOptions: NextAuthOptions = {
 
           if (existingUser) {
             // Link Google account to existing user
+            // Backfill firstName/lastName if missing
+            const updateData: { firstName?: string | null; lastName?: string | null } = {};
+            if (!existingUser.firstName && firstName) {
+              updateData.firstName = firstName;
+            }
+            if (!existingUser.lastName && lastName) {
+              updateData.lastName = lastName;
+            }
+            
             await prisma.account.create({
               data: {
                 userId: existingUser.id,
@@ -148,6 +178,15 @@ export const authOptions: NextAuthOptions = {
                 id_token: account.id_token,
               },
             });
+            
+            // Update user names if needed
+            if (Object.keys(updateData).length > 0) {
+              await prisma.user.update({
+                where: { id: existingUser.id },
+                data: updateData,
+              });
+            }
+            
             user.id = existingUser.id;
             return true;
           }

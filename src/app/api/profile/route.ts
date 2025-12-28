@@ -46,12 +46,14 @@ export async function GET() {
     }
 
     const userId = session.user.id;
+    const userEmail = session.user.email;
 
     if (process.env.NODE_ENV === 'development') {
       console.log("[GET /api/profile] Fetching user with id:", userId);
     }
 
-    const user = await prisma.user.findUnique({
+    // Try to find user by ID first
+    let user = await prisma.user.findUnique({
       where: { id: userId },
       select: {
         id: true,
@@ -67,13 +69,77 @@ export async function GET() {
       },
     });
 
+    // If not found by ID, try by email (resilience for stale sessions)
+    if (!user && userEmail) {
+      if (process.env.NODE_ENV === 'development') {
+        console.log("[GET /api/profile] User not found by id, trying email:", userEmail);
+      }
+      user = await prisma.user.findUnique({
+        where: { email: userEmail },
+        select: {
+          id: true,
+          email: true,
+          firstName: true,
+          lastName: true,
+          image: true,
+          birthday: true,
+          location: true,
+          bio: true,
+          pronouns: true,
+          website: true,
+        },
+      });
+    }
+
+    // If still not found, recover by creating user record (dev resilience)
+    if (!user && userEmail) {
+      if (process.env.NODE_ENV === 'development') {
+        console.log("[GET /api/profile] User not found, recovering by creating user record");
+      }
+      
+      // Extract firstName/lastName from session if available
+      let recoveryFirstName: string | null = session.user.firstName || null;
+      let recoveryLastName: string | null = session.user.lastName || null;
+      
+      // If names missing, try to split session.user.name
+      if (!recoveryFirstName && (session.user as any).name) {
+        const nameParts = (session.user as any).name.trim().split(/\s+/);
+        if (nameParts.length > 0) {
+          recoveryFirstName = nameParts[0];
+          recoveryLastName = nameParts.length > 1 ? nameParts.slice(1).join(" ") : null;
+        }
+      }
+      
+      // Create user record with available data
+      user = await prisma.user.create({
+        data: {
+          email: userEmail,
+          firstName: recoveryFirstName,
+          lastName: recoveryLastName,
+          emailVerified: new Date(),
+        },
+        select: {
+          id: true,
+          email: true,
+          firstName: true,
+          lastName: true,
+          image: true,
+          birthday: true,
+          location: true,
+          bio: true,
+          pronouns: true,
+          website: true,
+        },
+      });
+    }
+
     if (!user) {
       if (process.env.NODE_ENV === 'development') {
-        console.error("[GET /api/profile] User not found for id:", userId);
+        console.error("[GET /api/profile] Unable to find or create user");
       }
       return NextResponse.json(
-        { error: "User not found" },
-        { status: 404 }
+        { error: "Unable to load user profile" },
+        { status: 500 }
       );
     }
 
