@@ -263,12 +263,22 @@ export function GearListSection({
         onClick={hasExpandedContent ? handleCardClick : undefined}
       >
         <div className={styles.itemContent}>
+          {/* Row 1: Title (always present) */}
           <div className={styles.itemTitleRow}>
             <span className={styles.itemName}>{primaryTitle}</span>
-            {secondaryText && (
-              <span className={styles.itemNickname}>{secondaryText}</span>
-            )}
           </div>
+          
+          {/* Row 2: Subtitle (nickname) - always reserves space */}
+          <div className={styles.subtitleRow}>
+            <span
+              className={styles.itemNickname}
+              aria-hidden={!secondaryText}
+            >
+              {secondaryText || "\u00A0"}
+            </span>
+          </div>
+          
+          {/* Row 3: Meta line (type + last serviced + due) - always present */}
           <div className={styles.itemMeta}>
             <span className={styles.itemType}>
               {formatGearTypeLabel(item.type as GearType)}
@@ -284,15 +294,21 @@ export function GearListSection({
               </span>
             )}
           </div>
-          {kitNames.length > 0 && (
-            <div className={styles.kitPills}>
-              {kitNames.map((kitName) => (
-                <span key={kitName} className={styles.kitPill}>
-                  {kitName}
-                </span>
-              ))}
-            </div>
-          )}
+          
+          {/* Row 4: Kit pills - always reserves space */}
+          <div className={styles.kitsRow}>
+            {kitNames.length > 0 ? (
+              <div className={styles.kitPills}>
+                {kitNames.map((kitName) => (
+                  <span key={kitName} className={styles.kitPill}>
+                    {kitName}
+                  </span>
+                ))}
+              </div>
+            ) : (
+              <span className={styles.kitPillEmpty}>No kits</span>
+            )}
+          </div>
           {isExpanded && hasExpandedContent && (
             <div className={styles.itemExpandedContent}>
               {item.purchaseDate && (

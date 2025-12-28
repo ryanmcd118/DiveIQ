@@ -130,7 +130,6 @@
 .itemTitleRow {
   display: flex;
   flex-direction: column;
-  gap: var(--space-1);
   min-width: 0;
 }
 
@@ -142,12 +141,22 @@
   letter-spacing: -0.01em;
 }
 
+.subtitleRow {
+  min-height: calc(var(--font-size-sm) * 1.4);
+  display: flex;
+  align-items: flex-start;
+}
+
 .itemNickname {
   font-size: var(--font-size-sm);
   color: var(--color-text-secondary);
   font-style: italic;
   font-weight: var(--font-weight-normal);
   line-height: 1.4;
+}
+
+.itemNickname[aria-hidden="true"] {
+  visibility: hidden;
 }
 
 .statusPill {
@@ -310,11 +319,33 @@
   color: var(--color-text-muted);
 }
 
+.kitsRow {
+  min-height: calc(20px + var(--space-2));
+  display: flex;
+  align-items: center;
+  margin-top: var(--space-2);
+  gap: var(--space-2);
+}
+
 .kitPills {
   display: flex;
   flex-wrap: wrap;
   gap: var(--space-2);
-  margin-top: var(--space-2);
+}
+
+.kitPillEmpty {
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-full);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-normal);
+  white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  height: 20px;
+  line-height: 1;
+  background: transparent;
+  color: var(--color-text-tertiary);
+  border: 1px solid var(--color-border-default);
 }
 
 .kitPill {
