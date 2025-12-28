@@ -528,12 +528,12 @@ export function ProfilePageContent() {
         <div className={styles.previewHeader}>
           <div className={styles.avatar}>{initials}</div>
           <div className={styles.previewInfo}>
-            <h2 className={styles.previewName}>
-              {fullName}
+            <div className={styles.nameRow}>
+              <h2 className={styles.fullName}>{fullName}</h2>
               {draftProfile.pronouns && (
-                <span className={styles.previewPronouns}> {draftProfile.pronouns}</span>
+                <span className={styles.previewPronouns}>{draftProfile.pronouns}</span>
               )}
-            </h2>
+            </div>
             {metadata && <p className={styles.previewSubtitle}>{metadata}</p>}
             {primaryDiveTypes.length > 0 && (
               <div className={styles.previewTags}>
