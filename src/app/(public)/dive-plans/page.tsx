@@ -1,5 +1,5 @@
 /*
-server component
+server component - public (logged-out) version
 */
 
 import { Metadata } from "next";
@@ -9,6 +9,7 @@ export const metadata: Metadata = {
   title: "Dive Plan | DiveIQ",
 };
 
-export default function PlanPage() {
+export default function PublicPlanPage() {
   return <PlanPageContent />;
 }
+
