@@ -1,0 +1,85 @@
+.rightRail {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.actions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.checklistSubtitle {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  margin-bottom: var(--space-2);
+}
+
+.checklist {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.checklistItem {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-primary);
+  text-decoration: none;
+  transition: color var(--transition-base);
+}
+
+.checklistItem:hover {
+  color: var(--color-accent-light);
+}
+
+.checkbox {
+  width: 1rem;
+  height: 1rem;
+  border: 1px solid var(--color-border-default);
+  border-radius: var(--radius-sm);
+  flex-shrink: 0;
+  transition: all var(--transition-base);
+}
+
+.checklistItem:hover .checkbox {
+  border-color: var(--color-accent-primary);
+}
+
+.snapshot {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.snapshotItem {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.snapshotLabel {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.snapshotValue {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-primary);
+}
+

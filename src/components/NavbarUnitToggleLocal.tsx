@@ -9,35 +9,67 @@ import styles from './NavbarUnitToggle.module.css';
  * Uses local component state (not global context)
  */
 export function NavbarUnitToggleLocal() {
-  const [unitSystem, setUnitSystem] = useState<UnitSystem>(() => {
-    // Try to load from localStorage
-    if (typeof window !== 'undefined') {
-      const stored = localStorage.getItem('diveiq:unitSystem');
-      if (stored === 'metric' || stored === 'imperial') {
-        return stored;
-      }
-    }
-    return 'metric';
-  });
+  // Always start with 'metric' for SSR/client consistency
+  const [unitSystem, setUnitSystem] = useState<UnitSystem>('metric');
+  const [isMounted, setIsMounted] = useState(false);
 
-  // Persist to localStorage when unitSystem changes
+  // Load from localStorage after mount
   useEffect(() => {
-    if (typeof window !== 'undefined') {
+    setIsMounted(true);
+    const stored = localStorage.getItem('diveiq:unitSystem');
+    if (stored === 'metric' || stored === 'imperial') {
+      setUnitSystem(stored);
+    }
+  }, []);
+
+  // Persist to localStorage when unitSystem changes (only after mount)
+  useEffect(() => {
+    if (isMounted) {
       localStorage.setItem('diveiq:unitSystem', unitSystem);
     }
-  }, [unitSystem]);
+  }, [unitSystem, isMounted]);
 
   // Dispatch custom event so PlanForm can listen to changes
-  // Dispatch on mount and whenever unitSystem changes
+  // Dispatch on mount and whenever unitSystem changes (only after mount)
   useEffect(() => {
+    if (!isMounted) return;
     // Small delay to ensure listeners are set up
     const timer = setTimeout(() => {
       const event = new CustomEvent('unitSystemChanged', { detail: unitSystem });
       window.dispatchEvent(event);
     }, 0);
     return () => clearTimeout(timer);
-  }, [unitSystem]);
+  }, [unitSystem, isMounted]);
 
+  // Before mount, render with no active state to match SSR
+  if (!isMounted) {
+    return (
+      <div className={styles.container} role="group" aria-label="Unit system">
+        <button
+          type="button"
+          className={styles.segment}
+          onClick={() => setUnitSystem('metric')}
+          aria-pressed={false}
+          aria-label="Metric units"
+          title="Metric units (m, °C)"
+        >
+          Metric
+        </button>
+        <button
+          type="button"
+          className={styles.segment}
+          onClick={() => setUnitSystem('imperial')}
+          aria-pressed={false}
+          aria-label="Imperial units"
+          title="Imperial units (ft, °F)"
+        >
+          Imperial
+        </button>
+      </div>
+    );
+  }
+
+  // After mount, render with actual unitSystem state
   return (
     <div className={styles.container} role="group" aria-label="Unit system">
       <button

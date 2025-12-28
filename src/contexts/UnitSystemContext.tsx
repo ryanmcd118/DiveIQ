@@ -7,6 +7,7 @@ interface UnitSystemContextType {
   unitSystem: UnitSystem;
   setUnitSystem: (system: UnitSystem) => void;
   toggleUnitSystem: () => void;
+  isMounted: boolean;
 }
 
 const UnitSystemContext = createContext<UnitSystemContextType | undefined>(undefined);
@@ -14,24 +15,25 @@ const UnitSystemContext = createContext<UnitSystemContextType | undefined>(undef
 const STORAGE_KEY = 'diveiq:unitSystem';
 
 export function UnitSystemProvider({ children }: { children: ReactNode }) {
-  // Default to metric
-  const [unitSystem, setUnitSystemState] = useState<UnitSystem>(() => {
-    // Try to load from localStorage on mount
-    if (typeof window !== 'undefined') {
-      const stored = localStorage.getItem(STORAGE_KEY);
-      if (stored === 'metric' || stored === 'imperial') {
-        return stored;
-      }
-    }
-    return 'metric';
-  });
+  // Always start with 'metric' for SSR/client consistency
+  const [unitSystem, setUnitSystemState] = useState<UnitSystem>('metric');
+  const [isMounted, setIsMounted] = useState(false);
 
-  // Persist to localStorage when unitSystem changes
+  // Load from localStorage after mount
   useEffect(() => {
-    if (typeof window !== 'undefined') {
+    setIsMounted(true);
+    const stored = localStorage.getItem(STORAGE_KEY);
+    if (stored === 'metric' || stored === 'imperial') {
+      setUnitSystemState(stored);
+    }
+  }, []);
+
+  // Persist to localStorage when unitSystem changes (only after mount)
+  useEffect(() => {
+    if (isMounted) {
       localStorage.setItem(STORAGE_KEY, unitSystem);
     }
-  }, [unitSystem]);
+  }, [unitSystem, isMounted]);
 
   const setUnitSystem = (system: UnitSystem) => {
     setUnitSystemState(system);
@@ -47,6 +49,7 @@ export function UnitSystemProvider({ children }: { children: ReactNode }) {
         unitSystem,
         setUnitSystem,
         toggleUnitSystem,
+        isMounted,
       }}
     >
       {children}

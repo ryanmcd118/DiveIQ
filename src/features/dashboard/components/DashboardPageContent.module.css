@@ -1,0 +1,38 @@
+.dashboard {
+  min-height: 100vh;
+  padding: 0;
+  color: var(--color-text-primary);
+}
+
+.dashboardContent {
+  width: 100%;
+  max-width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.mainGrid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-8);
+}
+
+@media (min-width: 1024px) {
+  .mainGrid {
+    grid-template-columns: 2fr 1fr;
+    gap: var(--space-8);
+  }
+}
+
+.mainContent {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.rightRail {
+  display: flex;
+  flex-direction: column;
+}
+
