@@ -8,7 +8,8 @@ import formStyles from "@/styles/components/Form.module.css";
 import buttonStyles from "@/styles/components/Button.module.css";
 
 export default function SignUpForm() {
-  const [name, setName] = useState("");
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -31,7 +32,7 @@ export default function SignUpForm() {
       return;
     }
 
-    const result = await signUpUser(email, password, name);
+    const result = await signUpUser(email, password, firstName, lastName);
     if (!result.success) {
       setError(result.error || "Failed to create account");
     }
@@ -40,17 +41,32 @@ export default function SignUpForm() {
   return (
     <form onSubmit={handleSubmit} className={formStyles.form}>
       <div className={formStyles.formGroup}>
-        <label htmlFor="name" className={formStyles.label}>
+        <label htmlFor="firstName" className={formStyles.label}>
           First Name
         </label>
         <input
-          id="name"
+          id="firstName"
           type="text"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
+          value={firstName}
+          onChange={(e) => setFirstName(e.target.value)}
           className={formStyles.input}
           required
           autoComplete="given-name"
+        />
+      </div>
+
+      <div className={formStyles.formGroup}>
+        <label htmlFor="lastName" className={formStyles.label}>
+          Last Name
+        </label>
+        <input
+          id="lastName"
+          type="text"
+          value={lastName}
+          onChange={(e) => setLastName(e.target.value)}
+          className={formStyles.input}
+          required
+          autoComplete="family-name"
         />
       </div>
 

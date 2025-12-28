@@ -13,7 +13,8 @@ model User {
   email         String    @unique
   emailVerified DateTime?
   password      String?   // hashed password for credentials provider
-  name          String?   // User's first name or full name
+  firstName     String?   // User's first name
+  lastName      String?   // User's last name (nullable for Google OAuth users)
   image         String?
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt

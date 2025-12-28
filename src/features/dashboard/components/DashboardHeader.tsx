@@ -17,7 +17,7 @@ export function DashboardHeader({
   divesThisMonth = 0,
 }: DashboardHeaderProps) {
   const { user } = useAuth();
-  const firstName = user?.name?.split(" ")[0];
+  const firstName = user?.firstName;
 
   const getGreeting = () => {
     const hour = new Date().getHours();

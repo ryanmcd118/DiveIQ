@@ -22,8 +22,7 @@ export default function AuthNav() {
   }
 
   if (isAuthenticated && user) {
-    // Extract first name from user.name
-    const firstName = user.name?.split(" ")[0] || user.name || "User";
+    const firstName = user.firstName || "User";
 
     return (
       <div className={styles.authSection}>

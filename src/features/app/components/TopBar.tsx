@@ -27,7 +27,10 @@ export function TopBar({ onMenuClick }: TopBarProps) {
   }, []);
 
   const showUnitsToggle = ALLOWED_UNITS_TOGGLE_PATHS.includes(pathname);
-  const firstName = user?.name?.split(" ")[0] || user?.name || "User";
+  const firstName = user?.firstName || "User";
+  const displayName = user?.firstName && user?.lastName 
+    ? `${user.firstName} ${user.lastName}` 
+    : user?.firstName || "User";
   const initials = firstName.charAt(0).toUpperCase();
 
   return (
@@ -64,7 +67,7 @@ export function TopBar({ onMenuClick }: TopBarProps) {
                 <div className={styles.profileMenuHeader}>
                   <div className={styles.avatar}>{initials}</div>
                   <div>
-                    <div className={styles.profileName}>{user?.name || "User"}</div>
+                    <div className={styles.profileName}>{displayName}</div>
                     <div className={styles.profileEmail}>{user?.email}</div>
                   </div>
                 </div>
