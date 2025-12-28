@@ -4,7 +4,6 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useAuth } from "@/features/auth/hooks/useAuth";
 import { NavbarUnitToggle } from "@/components/NavbarUnitToggle";
-import buttonStyles from "@/styles/components/Button.module.css";
 import styles from "./TopBar.module.css";
 
 interface TopBarProps {
@@ -42,9 +41,6 @@ export function TopBar({ onMenuClick }: TopBarProps) {
 
       <div className={styles.right}>
         <NavbarUnitToggle />
-        <Link href="/plan" className={`${buttonStyles.primaryGradient} ${styles.cta}`}>
-          Plan a dive
-        </Link>
         <div className={styles.profileContainer}>
           <button
             className={styles.profileButton}
