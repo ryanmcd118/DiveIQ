@@ -17,7 +17,7 @@ export function DashboardHeader({
   divesThisMonth = 0,
 }: DashboardHeaderProps) {
   const { user } = useAuth();
-  const firstName = user?.name?.split(" ")[0] || "there";
+  const firstName = user?.name?.split(" ")[0];
 
   const getGreeting = () => {
     const hour = new Date().getHours();
@@ -42,7 +42,8 @@ export function DashboardHeader({
       <div className={styles.left}>
         <div className={styles.heroContent}>
           <h1 className={styles.greeting}>
-            {getGreeting()}, {firstName}
+            {getGreeting()}
+            {firstName ? `, ${firstName}` : ""}
           </h1>
           {divesThisMonth > 0 && (
             <span className={styles.statusPill}>
