@@ -14,6 +14,7 @@ The `db:reset` script will **permanently delete all data** in your development d
 ## Reset Steps
 
 1. **Run the reset command:**
+
    ```bash
    npm run db:reset
    ```
@@ -29,6 +30,7 @@ The `db:reset` script will **permanently delete all data** in your development d
    - Option C: Delete the NextAuth session cookie manually
 
 3. **Restart your development server:**
+
    ```bash
    npm run dev
    ```
@@ -50,7 +52,7 @@ The `db:reset` script will **permanently delete all data** in your development d
 ## Troubleshooting
 
 If you encounter errors after reset:
+
 1. Make sure all migrations are up to date: `npx prisma migrate dev`
 2. Regenerate Prisma Client: `npx prisma generate`
 3. Restart your development server
-
