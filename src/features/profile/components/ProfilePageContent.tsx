@@ -343,6 +343,108 @@ export function ProfilePageContent() {
   const displayName = formatUserName(user);
   const initials = getInitials(user);
 
+  // Render public profile preview
+  const renderPublicPreview = () => {
+    const fullName = [
+      draftProfile.firstName,
+      draftProfile.lastName,
+    ]
+      .filter(Boolean)
+      .join(" ") || displayName;
+
+    // Build subtitle (location + pronouns)
+    const subtitleParts: string[] = [];
+    if (draftProfile.location && draftProfile.location.trim()) {
+      subtitleParts.push(draftProfile.location.trim());
+    }
+    if (draftProfile.pronouns && draftProfile.pronouns.trim()) {
+      subtitleParts.push(draftProfile.pronouns.trim());
+    }
+    const subtitle = subtitleParts.join(" • ");
+
+    // Collect tiles (only non-empty fields)
+    const tiles: Array<{ label: string; value: string | JSX.Element }> = [];
+    
+    if (draftProfile.pronouns && draftProfile.pronouns.trim()) {
+      tiles.push({
+        label: "Pronouns",
+        value: draftProfile.pronouns,
+      });
+    }
+    
+    if (draftProfile.birthday && draftProfile.birthday.trim()) {
+      tiles.push({
+        label: "Birthday",
+        value: formatBirthdayDisplay(draftProfile.birthday),
+      });
+    }
+    
+    if (draftProfile.website && draftProfile.website.trim()) {
+      tiles.push({
+        label: "Website",
+        value: (
+          <a
+            href={draftProfile.website}
+            target="_blank"
+            rel="noopener noreferrer"
+            className={styles.previewWebsiteLink}
+          >
+            {draftProfile.website}
+          </a>
+        ),
+      });
+    }
+
+    const hasBio = draftProfile.bio && draftProfile.bio.trim();
+    const hasAnyFields = tiles.length > 0 || hasBio;
+
+    return (
+      <>
+        {/* Profile Header */}
+        <div className={styles.previewHeader}>
+          <div className={styles.avatar}>{initials}</div>
+          <div className={styles.previewInfo}>
+            <h2 className={styles.previewName}>{fullName}</h2>
+            {subtitle && <p className={styles.previewSubtitle}>{subtitle}</p>}
+          </div>
+        </div>
+
+        <div className={styles.previewDivider}></div>
+
+        {/* Empty State */}
+        {!hasAnyFields && (
+          <div className={styles.previewEmpty}>
+            <p>This diver hasn&apos;t shared any profile details yet.</p>
+          </div>
+        )}
+
+        {/* Tiles Grid */}
+        {hasAnyFields && (
+          <>
+            {tiles.length > 0 && (
+              <div className={styles.previewTiles}>
+                {tiles.map((tile) => (
+                  <div key={tile.label} className={styles.previewTile}>
+                    <div className={styles.previewTileLabel}>{tile.label}</div>
+                    <div className={styles.previewTileValue}>{tile.value}</div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Bio Section (full-width) */}
+            {hasBio && (
+              <div className={styles.previewBioSection}>
+                <div className={styles.previewTileLabel}>About</div>
+                <div className={styles.previewBioText}>{draftProfile.bio}</div>
+              </div>
+            )}
+          </>
+        )}
+      </>
+    );
+  };
+
   // Render inline editable field
   const renderEditableField = (
     field: keyof ProfileData,
@@ -351,32 +453,6 @@ export function ProfilePageContent() {
     type: "text" | "textarea" | "url" | "date" = "text",
     maxLength?: number
   ) => {
-    if (mode === "preview") {
-      const value = draftProfile[field];
-      if (!value || !value.trim()) return null; // Hide empty fields in preview
-      
-      return (
-        <div className={styles.fieldRow}>
-          <div className={styles.fieldLabel}>{label}</div>
-          <div className={styles.fieldValue}>
-            {type === "url" ? (
-              <a
-                href={value}
-                target="_blank"
-                rel="noopener noreferrer"
-                className={styles.websiteLink}
-              >
-                {value}
-              </a>
-            ) : field === "birthday" ? (
-              formatBirthdayDisplay(value)
-            ) : (
-              value
-            )}
-          </div>
-        </div>
-      );
-    }
 
     const isEditing = editingField === field;
     const value = draftProfile[field] || "";
@@ -484,50 +560,56 @@ export function ProfilePageContent() {
 
         {!loading && !error && (
           <>
-            {/* Profile Header */}
-            <div className={styles.profileHeader}>
-              <div className={styles.avatar}>{initials}</div>
-              <div className={styles.profileInfo}>
-                <h2 className={styles.nameLarge}>{displayName}</h2>
-                <p className={styles.email}>{user?.email}</p>
-              </div>
-            </div>
-
-            {/* Profile Fields */}
-            <div className={styles.fields}>
-              {renderEditableField("firstName", "First Name", "Add your first name", "text", 50)}
-              {renderEditableField("lastName", "Last Name", "Add your last name", "text", 50)}
-              {renderEditableField("location", "Location", "Add your location", "text")}
-              {renderEditableField("bio", "Bio", "Add a bio", "textarea", 500)}
-              {renderEditableField("pronouns", "Pronouns", "Add your pronouns", "text")}
-              {renderEditableField("website", "Website", "Add your website", "url")}
-              {renderEditableField("birthday", "Birthday", "Add your birthday", "date")}
-            </div>
-
-            {/* Save/Cancel Footer - only show when dirty */}
-            {isDirty && mode === "edit" && (
-              <div className={styles.footer}>
-                {error && <div className={styles.footerError}>{error}</div>}
-                {success && <div className={styles.footerSuccess}>Profile updated</div>}
-                <div className={styles.footerActions}>
-                  <button
-                    onClick={handleCancel}
-                    className={buttonStyles.secondary}
-                    type="button"
-                    disabled={saving}
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    onClick={handleSave}
-                    className={buttonStyles.primary}
-                    type="button"
-                    disabled={saving}
-                  >
-                    {saving ? "Saving..." : "Save"}
-                  </button>
+            {mode === "preview" ? (
+              renderPublicPreview()
+            ) : (
+              <>
+                {/* Profile Header */}
+                <div className={styles.profileHeader}>
+                  <div className={styles.avatar}>{initials}</div>
+                  <div className={styles.profileInfo}>
+                    <h2 className={styles.nameLarge}>{displayName}</h2>
+                    <p className={styles.email}>{user?.email}</p>
+                  </div>
                 </div>
-              </div>
+
+                {/* Profile Fields */}
+                <div className={styles.fields}>
+                  {renderEditableField("firstName", "First Name", "Add your first name", "text", 50)}
+                  {renderEditableField("lastName", "Last Name", "Add your last name", "text", 50)}
+                  {renderEditableField("location", "Location", "Add your location", "text")}
+                  {renderEditableField("bio", "Bio", "Add a bio", "textarea", 500)}
+                  {renderEditableField("pronouns", "Pronouns", "Add your pronouns", "text")}
+                  {renderEditableField("website", "Website", "Add your website", "url")}
+                  {renderEditableField("birthday", "Birthday", "Add your birthday", "date")}
+                </div>
+
+                {/* Save/Cancel Footer - only show when dirty */}
+                {isDirty && (
+                  <div className={styles.footer}>
+                    {error && <div className={styles.footerError}>{error}</div>}
+                    {success && <div className={styles.footerSuccess}>Profile updated</div>}
+                    <div className={styles.footerActions}>
+                      <button
+                        onClick={handleCancel}
+                        className={buttonStyles.secondary}
+                        type="button"
+                        disabled={saving}
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        onClick={handleSave}
+                        className={buttonStyles.primary}
+                        type="button"
+                        disabled={saving}
+                      >
+                        {saving ? "Saving..." : "Save"}
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </>
             )}
           </>
         )}

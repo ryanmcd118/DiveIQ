@@ -186,3 +186,104 @@
   padding: var(--space-4);
   align-items: flex-start;
 }
+
+/* Public Preview Styles */
+.previewHeader {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-4);
+  margin-bottom: var(--space-6);
+}
+
+.previewInfo {
+  flex: 1;
+}
+
+.previewName {
+  font-size: var(--font-size-3xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-primary);
+  margin: 0 0 var(--space-1) 0;
+  line-height: 1.2;
+}
+
+.previewSubtitle {
+  font-size: var(--font-size-base);
+  color: var(--color-text-secondary);
+  margin: 0;
+  line-height: 1.5;
+}
+
+.previewDivider {
+  height: 1px;
+  background-color: var(--color-border-default);
+  margin-bottom: var(--space-6);
+}
+
+.previewEmpty {
+  padding: var(--space-8) var(--space-4);
+  text-align: center;
+  color: var(--color-text-secondary);
+  font-style: italic;
+}
+
+.previewTiles {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--space-4);
+  margin-bottom: var(--space-6);
+}
+
+@media (max-width: 640px) {
+  .previewTiles {
+    grid-template-columns: 1fr;
+  }
+}
+
+.previewTile {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-4);
+  background-color: var(--color-bg-secondary, rgba(0, 0, 0, 0.02));
+  border-radius: var(--radius-md);
+}
+
+.previewTileLabel {
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.previewTileValue {
+  font-size: var(--font-size-base);
+  color: var(--color-text-primary);
+  line-height: 1.5;
+}
+
+.previewWebsiteLink {
+  color: var(--color-accent-primary);
+  text-decoration: none;
+}
+
+.previewWebsiteLink:hover {
+  text-decoration: underline;
+}
+
+.previewBioSection {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding-top: var(--space-6);
+  border-top: 1px solid var(--color-border-default);
+}
+
+.previewBioText {
+  font-size: var(--font-size-base);
+  color: var(--color-text-primary);
+  line-height: 1.7;
+  white-space: pre-wrap;
+}
