@@ -1,29 +1,16 @@
+/* Hero strip - tight, premium header card (not a billboard) */
 .header {
   display: flex;
   flex-direction: column;
   gap: var(--space-6);
-  margin-bottom: var(--space-12);
-  padding-top: var(--space-4);
+  margin-bottom: 0;
+  padding: 16px 18px;
   position: relative;
-  /* Subtle radial/gradient glow behind header content */
-}
-
-.header::before {
-  content: "";
-  position: absolute;
-  top: -2rem;
-  left: -2rem;
-  right: -2rem;
-  bottom: -1rem;
-  background: radial-gradient(
-    ellipse at top left,
-    rgba(6, 182, 212, 0.08) 0%,
-    rgba(10, 30, 50, 0.04) 40%,
-    transparent 70%
-  );
-  pointer-events: none;
-  z-index: 0;
+  background: rgba(15, 23, 42, 0.35);
+  border: 1px solid rgba(148, 163, 184, 0.12);
   border-radius: var(--radius-xl);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.25);
+  /* No cyan outline, no glow rings */
 }
 
 .header > * {
@@ -33,15 +20,7 @@
 
 @media (min-width: 768px) {
   .header {
-    margin-bottom: var(--space-16);
-    padding-top: var(--space-6);
-  }
-  
-  .header::before {
-    top: -3rem;
-    left: -3rem;
-    right: -3rem;
-    bottom: -2rem;
+    padding: 20px 24px;
   }
 }
 
@@ -89,7 +68,7 @@
 
 .subtext {
   font-size: var(--font-size-xs);
-  color: var(--text-muted);
+  color: var(--text-body);
   line-height: var(--line-height-normal);
   font-weight: var(--font-weight-normal);
 }

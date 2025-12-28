@@ -1,17 +1,18 @@
 .inFocus {
-  margin-bottom: var(--space-10);
+  margin-bottom: 0;
 }
 
 .sectionTitle {
   font-size: var(--font-size-lg);
-  font-weight: var(--font-weight-semibold);
-  color: var(--text-primary);
-  margin-bottom: var(--space-6);
+  font-weight: var(--font-weight-bold);
+  color: var(--text-secondary);
+  margin-bottom: var(--space-8);
   display: flex;
   align-items: center;
   gap: var(--space-3);
   position: relative;
   padding-left: var(--space-4);
+  letter-spacing: 0.02em;
 }
 
 .sectionTitle::before {
@@ -24,6 +25,7 @@
   height: 1.5rem;
   background: var(--accent);
   border-radius: var(--radius-full);
+  opacity: 0.9;
 }
 
 .sectionTitleText {
@@ -48,36 +50,35 @@
   }
 }
 
-/* Tier 1: Primary cards (In Focus) */
+/* Standard cards (In Focus) - default tier */
 .card {
   display: flex;
   flex-direction: column;
   gap: var(--space-3);
-  background: var(--surface-1);
-  border: 1px solid var(--surface-1-border);
+  background: var(--card-standard-bg);
+  border: 1px solid var(--card-standard-border);
   border-radius: var(--radius-xl);
   padding: var(--space-5);
-  box-shadow: var(--surface-1-shadow);
-  transition: all var(--transition-base);
+  box-shadow: var(--card-standard-shadow);
+  transition: var(--transition-hover);
   position: relative;
 }
 
 .cardTier1 {
-  background: var(--surface-1);
-  border-color: var(--surface-1-border);
-  box-shadow: var(--surface-1-shadow);
+  background: var(--card-standard-bg);
+  border-color: var(--card-standard-border);
+  box-shadow: var(--card-standard-shadow);
 }
 
 .cardTier1:hover {
-  transform: translateY(-2px);
-  box-shadow: var(--surface-1-shadow-hover);
-  border-color: var(--border-accent);
-  transition: var(--transition-lift), box-shadow var(--transition-base), border-color var(--transition-base);
+  background: rgba(15, 23, 42, 0.66);
+  border-color: rgba(148, 163, 184, 0.14);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.3);
 }
 
 .cardTier1:focus-within {
-  border-color: var(--border-accent);
-  box-shadow: var(--surface-1-shadow-hover);
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
 }
 
 .cardTitle {
@@ -85,7 +86,7 @@
   font-weight: var(--font-weight-medium);
   color: var(--text-muted);
   text-transform: uppercase;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.06em;
   margin: 0;
 }
 
@@ -99,17 +100,17 @@
 .siteName {
   font-size: var(--font-size-sm);
   font-weight: var(--font-weight-semibold);
-  color: var(--text-primary);
+  color: var(--text-body);
 }
 
 .region {
-  color: var(--text-muted);
+  color: var(--text-body);
   font-weight: var(--font-weight-normal);
 }
 
 .meta {
   font-size: var(--font-size-xs);
-  color: var(--text-muted);
+  color: var(--text-body);
 }
 
 .capitalize {

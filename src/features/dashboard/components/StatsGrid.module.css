@@ -1,17 +1,18 @@
 .statsSection {
-  margin-bottom: var(--space-10);
+  margin-bottom: 0;
 }
 
 .sectionTitle {
   font-size: var(--font-size-lg);
-  font-weight: var(--font-weight-semibold);
-  color: var(--text-primary);
-  margin-bottom: var(--space-6);
+  font-weight: var(--font-weight-bold);
+  color: var(--text-secondary);
+  margin-bottom: var(--space-8);
   display: flex;
   align-items: center;
   gap: var(--space-3);
   position: relative;
   padding-left: var(--space-4);
+  letter-spacing: 0.02em;
 }
 
 .sectionTitle::before {
@@ -24,6 +25,7 @@
   height: 1.5rem;
   background: var(--accent);
   border-radius: var(--radius-full);
+  opacity: 0.9;
 }
 
 .sectionTitleText {
@@ -47,27 +49,32 @@
   }
 }
 
-/* Tier 2: Standard cards (At a Glance) */
+/* Quiet cards (At a Glance stats) - lower contrast */
 .statCard {
   text-align: center;
-  background: var(--surface-2);
-  border: 1px solid var(--surface-2-border);
+  background: var(--card-quiet-bg);
+  border: 1px solid var(--card-quiet-border);
   border-radius: var(--radius-xl);
   padding: var(--space-5);
-  box-shadow: var(--surface-2-shadow);
-  transition: all var(--transition-base);
+  box-shadow: var(--card-quiet-shadow);
+  transition: var(--transition-hover);
 }
 
 .statCardTier2 {
-  background: var(--surface-2);
-  border-color: var(--surface-2-border);
-  box-shadow: var(--surface-2-shadow);
+  background: var(--card-quiet-bg);
+  border-color: var(--card-quiet-border);
+  box-shadow: var(--card-quiet-shadow);
 }
 
 .statCardTier2:hover {
-  transform: translateY(-1px);
-  box-shadow: var(--surface-2-shadow-hover);
-  transition: var(--transition-lift), box-shadow var(--transition-base);
+  background: rgba(15, 23, 42, 0.52);
+  border-color: rgba(148, 163, 184, 0.08);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+}
+
+.statCardTier2:focus-within {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
 }
 
 .statLabel {
@@ -75,7 +82,7 @@
   font-weight: var(--font-weight-medium);
   color: var(--text-muted);
   text-transform: uppercase;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.06em;
   margin-bottom: var(--space-2);
 }
 
@@ -84,6 +91,8 @@
   font-weight: var(--font-weight-bold);
   color: var(--text-primary);
   line-height: 1.1;
+  /* Numbers pop more - higher contrast */
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
 }
 
 .statCardHero .statValue {

@@ -49,25 +49,27 @@ export function DashboardPageContent({
   return (
     <div className={styles.dashboard}>
       <div className={styles.dashboardContent}>
-        {/* Dashboard Header */}
-        <DashboardHeader
-          totalDives={totalCount}
-          totalBottomTime={totalBottomTime}
-          lastDiveDate={lastDiveDate}
-          divesThisMonth={divesThisMonth}
-        />
+        {/* Hero block - greeting area with guaranteed spacing */}
+        <div className={styles.heroBlock}>
+          <DashboardHeader
+            totalDives={totalCount}
+            totalBottomTime={totalBottomTime}
+            lastDiveDate={lastDiveDate}
+            divesThisMonth={divesThisMonth}
+          />
+        </div>
 
         {/* Main grid: 8 cols main, 4 cols right rail */}
         <div className={styles.mainGrid}>
           <div className={styles.mainContent}>
-            {/* In Focus row */}
+            {/* In Focus */}
             <InFocusCards
               nextPlannedDive={nextPlannedDive}
               mostRecentDive={mostRecentDive}
               divesThisMonth={divesThisMonth}
             />
 
-            {/* At a Glance metrics */}
+            {/* At a Glance */}
             <StatsGrid
               totalDives={totalCount}
               totalBottomTime={totalBottomTime}
@@ -77,10 +79,10 @@ export function DashboardPageContent({
               divesThisMonth={divesThisMonth}
             />
 
-            {/* Activity section (Tabbed) */}
+            {/* Activity section */}
             <ActivityTabs recentDives={recentDives} plannedDives={recentPlans} />
 
-            {/* Trends section */}
+            {/* Trends */}
             <Trends />
           </div>
 
