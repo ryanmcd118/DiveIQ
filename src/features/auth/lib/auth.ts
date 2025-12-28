@@ -188,6 +188,7 @@ export const authOptions: NextAuthOptions = {
     },
     async jwt({ token, user, account }) {
       if (user) {
+        // Always set token.id from user.id (this is critical)
         token.id = user.id;
         token.email = user.email;
         // For credentials provider, user object has firstName/lastName from authorize
@@ -211,8 +212,9 @@ export const authOptions: NextAuthOptions = {
     },
     async session({ session, token }) {
       if (session.user) {
-        session.user.id = token.id as string;
-        session.user.email = token.email as string;
+        // Always set user.id from token.id (fallback to token.sub if needed)
+        session.user.id = (token.id || token.sub) as string;
+        session.user.email = (token.email || session.user.email) as string;
         session.user.firstName = token.firstName as string | null;
         session.user.lastName = token.lastName as string | null;
       }

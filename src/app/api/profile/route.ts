@@ -9,18 +9,50 @@ import { prisma } from "@/lib/prisma";
  * Requires authentication
  */
 export async function GET() {
-  const session = await getServerSession(authOptions);
-
-  if (!session?.user?.id) {
-    return NextResponse.json(
-      { error: "Unauthorized" },
-      { status: 401 }
-    );
-  }
-
   try {
+    const session = await getServerSession(authOptions);
+
+    // Log session state in development
+    if (process.env.NODE_ENV === 'development') {
+      console.log("[GET /api/profile] Session:", {
+        hasSession: !!session,
+        hasUser: !!session?.user,
+        userId: session?.user?.id,
+        userEmail: session?.user?.email,
+        userContents: session?.user,
+      });
+    }
+
+    // Check for session and user.id
+    if (!session?.user) {
+      if (process.env.NODE_ENV === 'development') {
+        console.error("[GET /api/profile] No session or user");
+      }
+      return NextResponse.json(
+        { error: "Unauthorized" },
+        { status: 401 }
+      );
+    }
+
+    // Check for user.id - this is critical
+    if (!session.user.id || typeof session.user.id !== 'string' || session.user.id.trim() === '') {
+      if (process.env.NODE_ENV === 'development') {
+        console.error("[GET /api/profile] Missing or invalid user.id:", session.user.id);
+      }
+      return NextResponse.json(
+        { error: "Unauthorized" },
+        { status: 401 }
+      );
+    }
+
+    const userId = session.user.id;
+
+    if (process.env.NODE_ENV === 'development') {
+      console.log("[GET /api/profile] Fetching user with id:", userId);
+    }
+
     const user = await prisma.user.findUnique({
-      where: { id: session.user.id },
+      where: { id: userId },
       select: {
         id: true,
         email: true,
@@ -36,17 +68,38 @@ export async function GET() {
     });
 
     if (!user) {
+      if (process.env.NODE_ENV === 'development') {
+        console.error("[GET /api/profile] User not found for id:", userId);
+      }
       return NextResponse.json(
         { error: "User not found" },
         { status: 404 }
       );
     }
 
+    if (process.env.NODE_ENV === 'development') {
+      console.log("[GET /api/profile] Successfully fetched user:", { 
+        id: user.id, 
+        email: user.email, 
+        firstName: user.firstName, 
+        lastName: user.lastName 
+      });
+    }
+
     return NextResponse.json({ user });
   } catch (error) {
-    console.error("Error fetching profile:", error);
+    // Always log the full error in development
+    if (process.env.NODE_ENV === 'development') {
+      console.error("[GET /api/profile] Error:", error);
+      if (error instanceof Error) {
+        console.error("[GET /api/profile] Error message:", error.message);
+        console.error("[GET /api/profile] Error stack:", error.stack);
+      }
+    } else {
+      console.error("[GET /api/profile] Error fetching profile");
+    }
     return NextResponse.json(
-      { error: "Failed to fetch profile" },
+      { error: "Internal Server Error" },
       { status: 500 }
     );
   }
@@ -59,16 +112,16 @@ export async function GET() {
  * Only allows updating profile fields, not email or password
  */
 export async function PATCH(req: NextRequest) {
-  const session = await getServerSession(authOptions);
-
-  if (!session?.user?.id) {
-    return NextResponse.json(
-      { error: "Unauthorized" },
-      { status: 401 }
-    );
-  }
-
   try {
+    const session = await getServerSession(authOptions);
+
+    if (!session?.user?.id || typeof session.user.id !== 'string' || session.user.id.trim() === '') {
+      return NextResponse.json(
+        { error: "Unauthorized" },
+        { status: 401 }
+      );
+    }
+
     const body = await req.json();
     const { birthday, location, bio, pronouns, website } = body;
 
@@ -152,9 +205,18 @@ export async function PATCH(req: NextRequest) {
 
     return NextResponse.json({ user: updatedUser });
   } catch (error) {
-    console.error("Error updating profile:", error);
+    // Outer catch for all other errors
+    if (process.env.NODE_ENV === 'development') {
+      console.error("[PATCH /api/profile] Error:", error);
+      if (error instanceof Error) {
+        console.error("[PATCH /api/profile] Error message:", error.message);
+        console.error("[PATCH /api/profile] Error stack:", error.stack);
+      }
+    } else {
+      console.error("[PATCH /api/profile] Error updating profile");
+    }
     return NextResponse.json(
-      { error: "Failed to update profile" },
+      { error: "Internal Server Error" },
       { status: 500 }
     );
   }

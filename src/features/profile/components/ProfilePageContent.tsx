@@ -3,7 +3,6 @@
 import { useState, useEffect, FormEvent, useMemo } from "react";
 import Link from "next/link";
 import { useAuth } from "@/features/auth/hooks/useAuth";
-import { useRouter } from "next/navigation";
 import cardStyles from "@/styles/components/Card.module.css";
 import formStyles from "@/styles/components/Form.module.css";
 import buttonStyles from "@/styles/components/Button.module.css";
@@ -20,42 +19,54 @@ interface ProfileData {
 interface UserData {
   firstName: string | null;
   lastName: string | null;
+  name?: string | null; // Fallback field (exists before migrations)
   email: string;
 }
 
 // Helper function to format user name with fallbacks
 function formatUserName(user: UserData | null): string {
-  if (!user) return "Your profile";
-  
-  if (user.firstName && user.lastName) {
+  if (!user) return "Profile";
+
+  // Priority 1: firstName + optional lastName
+  const hasFirstName = user.firstName && user.firstName.trim().length > 0;
+  const hasLastName = user.lastName && user.lastName.trim().length > 0;
+
+  if (hasFirstName && hasLastName) {
     return `${user.firstName} ${user.lastName}`;
   }
-  
-  if (user.firstName) {
-    return user.firstName;
+
+  if (hasFirstName) {
+    return user.firstName!; // Safe because we checked hasFirstName
   }
-  
-  // Fallback to email prefix
-  if (user.email) {
+
+  // Priority 2: name field (fallback for users before migrations)
+  if (user.name && user.name.trim().length > 0) {
+    return user.name;
+  }
+
+  // Priority 3: email prefix (before @)
+  if (user.email && user.email.trim()) {
     const emailPrefix = user.email.split("@")[0];
-    return emailPrefix || "Your profile";
+    if (emailPrefix && emailPrefix.trim()) {
+      return emailPrefix;
+    }
   }
-  
-  return "Your profile";
+
+  return "Profile";
 }
 
 // Helper to get initials for avatar
 function getInitials(user: UserData | null): string {
   if (!user) return "?";
-  
+
   if (user.firstName) {
     return user.firstName.charAt(0).toUpperCase();
   }
-  
+
   if (user.email) {
     return user.email.charAt(0).toUpperCase();
   }
-  
+
   return "?";
 }
 
@@ -78,9 +89,7 @@ function normalizeDate(dateString: string | null): string | null {
 
 export function ProfilePageContent() {
   const { isAuthenticated } = useAuth();
-  const router = useRouter();
   const [user, setUser] = useState<UserData | null>(null);
-  const [profile, setProfile] = useState<ProfileData | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -96,62 +105,109 @@ export function ProfilePageContent() {
   });
   const [originalData, setOriginalData] = useState<ProfileData | null>(null);
 
-  // Compute if form is dirty
+  // Compute if form is dirty - compare current form values with original data
   const isDirty = useMemo(() => {
     if (!originalData) return false;
+
+    // Normalize empty strings to null for comparison
+    const normalize = (val: string | null) => (val && val.trim()) || null;
+
     return (
-      formData.birthday !== originalData.birthday ||
-      formData.location !== originalData.location ||
-      formData.bio !== originalData.bio ||
-      formData.pronouns !== originalData.pronouns ||
-      formData.website !== originalData.website
+      normalize(formData.birthday) !== normalize(originalData.birthday) ||
+      normalize(formData.location) !== normalize(originalData.location) ||
+      normalize(formData.bio) !== normalize(originalData.bio) ||
+      normalize(formData.pronouns) !== normalize(originalData.pronouns) ||
+      normalize(formData.website) !== normalize(originalData.website)
     );
   }, [formData, originalData]);
 
   // Fetch profile data from DB (not session)
-  useEffect(() => {
-    if (!isAuthenticated) return;
+  const fetchProfile = async () => {
+    setLoading(true);
+    setError(null);
 
-    const fetchProfile = async () => {
-      try {
-        const response = await fetch("/api/profile");
-        if (!response.ok) {
-          throw new Error("Failed to fetch profile");
+    try {
+      const response = await fetch("/api/profile");
+      const data = await response
+        .json()
+        .catch(() => ({ error: "Failed to parse response" }));
+
+      if (!response.ok) {
+        // Don't throw - just set error state
+        const errorMessage =
+          data.error || `Failed to fetch profile (${response.status})`;
+        setError(errorMessage);
+        if (process.env.NODE_ENV === "development") {
+          console.error("[ProfilePage] Fetch failed:", response.status, data);
         }
-        const data = await response.json();
-        
-        // Store user data
-        setUser({
-          firstName: data.user.firstName || null,
-          lastName: data.user.lastName || null,
-          email: data.user.email,
-        });
-
-        // Normalize birthday to date-only format
-        const profileData: ProfileData = {
-          birthday: normalizeDate(
-            data.user.birthday 
-              ? new Date(data.user.birthday).toISOString().split("T")[0]
-              : null
-          ),
-          location: data.user.location || null,
-          bio: data.user.bio || null,
-          pronouns: data.user.pronouns || null,
-          website: data.user.website || null,
-        };
-        
-        setProfile(profileData);
-        setFormData(profileData);
-        setOriginalData(profileData);
-      } catch (err) {
-        setError(err instanceof Error ? err.message : "Failed to load profile");
-      } finally {
         setLoading(false);
+        return;
       }
-    };
+
+      if (process.env.NODE_ENV === "development") {
+        console.log("[ProfilePage] Fetched user data:", data.user);
+      }
+
+      // Store user data - preserve empty strings as null for consistency
+      setUser({
+        firstName:
+          data.user.firstName && data.user.firstName.trim()
+            ? data.user.firstName
+            : null,
+        lastName:
+          data.user.lastName && data.user.lastName.trim()
+            ? data.user.lastName
+            : null,
+        name: data.user.name || null, // Fallback field (before migrations)
+        email: data.user.email || "",
+      });
+
+      // Normalize birthday to date-only format
+      const profileData: ProfileData = {
+        birthday: normalizeDate(
+          data.user.birthday
+            ? new Date(data.user.birthday).toISOString().split("T")[0]
+            : null
+        ),
+        location:
+          data.user.location && data.user.location.trim()
+            ? data.user.location
+            : null,
+        bio: data.user.bio && data.user.bio.trim() ? data.user.bio : null,
+        pronouns:
+          data.user.pronouns && data.user.pronouns.trim()
+            ? data.user.pronouns
+            : null,
+        website:
+          data.user.website && data.user.website.trim()
+            ? data.user.website
+            : null,
+      };
+
+      setFormData(profileData);
+      setOriginalData(profileData);
+      setError(null);
+    } catch (err) {
+      // Catch any unexpected errors - don't throw to prevent Next.js overlay
+      const errorMessage =
+        err instanceof Error ? err.message : "Failed to load profile";
+      setError(errorMessage);
+      if (process.env.NODE_ENV === "development") {
+        console.error("[ProfilePage] Unexpected error:", err);
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (!isAuthenticated) {
+      setLoading(false);
+      return;
+    }
 
     fetchProfile();
-  }, [isAuthenticated, router]);
+  }, [isAuthenticated]);
 
   const handleCancel = () => {
     if (originalData) {
@@ -161,16 +217,17 @@ export function ProfilePageContent() {
     setSuccess(false);
   };
 
-  const handleChange = (
-    field: keyof ProfileData,
-    value: string | null
-  ) => {
+  const handleChange = (field: keyof ProfileData, value: string | null) => {
+    // Normalize empty strings to null
+    const normalizedValue = (value && value.trim()) || null;
     setFormData((prev) => ({
       ...prev,
-      [field]: value || null,
+      [field]: normalizedValue,
     }));
     // Clear success message when user makes changes
     if (success) setSuccess(false);
+    // Clear any previous errors
+    if (error) setError(null);
   };
 
   const handleSubmit = async (e: FormEvent) => {
@@ -206,27 +263,34 @@ export function ProfilePageContent() {
         body: JSON.stringify(formData),
       });
 
+      const data = await response.json();
+
       if (!response.ok) {
-        const data = await response.json();
         throw new Error(data.error || "Failed to update profile");
       }
-
-      const data = await response.json();
       const updatedProfile: ProfileData = {
         birthday: normalizeDate(
-          data.user.birthday 
+          data.user.birthday
             ? new Date(data.user.birthday).toISOString().split("T")[0]
             : null
         ),
-        location: data.user.location || null,
-        bio: data.user.bio || null,
-        pronouns: data.user.pronouns || null,
-        website: data.user.website || null,
+        location:
+          data.user.location && data.user.location.trim()
+            ? data.user.location
+            : null,
+        bio: data.user.bio && data.user.bio.trim() ? data.user.bio : null,
+        pronouns:
+          data.user.pronouns && data.user.pronouns.trim()
+            ? data.user.pronouns
+            : null,
+        website:
+          data.user.website && data.user.website.trim()
+            ? data.user.website
+            : null,
       };
 
-      setProfile(updatedProfile);
       setFormData(updatedProfile);
-      setOriginalData(updatedProfile);
+      setOriginalData(updatedProfile); // Update original data so isDirty becomes false
       setSuccess(true);
       setTimeout(() => setSuccess(false), 3000);
     } catch (err) {
@@ -236,18 +300,9 @@ export function ProfilePageContent() {
     }
   };
 
-  if (loading) {
-    return (
-      <div className={styles.container}>
-        <div className={cardStyles.card}>
-          <p>Loading profile...</p>
-        </div>
-      </div>
-    );
-  }
-
   const displayName = formatUserName(user);
   const initials = getInitials(user);
+  const isFormDisabled = loading || !!error || !originalData;
 
   return (
     <div className={styles.container}>
@@ -255,7 +310,8 @@ export function ProfilePageContent() {
         <div>
           <h1 className={styles.title}>Profile</h1>
           <p className={styles.helperText}>
-            Keep your profile up to date so your logs and plans feel more personal.
+            Keep your profile up to date so your logs and plans feel more
+            personal.
           </p>
         </div>
         <Link href="/settings" className={buttonStyles.secondary}>
@@ -264,124 +320,147 @@ export function ProfilePageContent() {
       </div>
 
       <div className={cardStyles.card}>
-        {/* Profile Header */}
-        <div className={styles.profileHeader}>
-          <div className={styles.avatar}>{initials}</div>
-          <div className={styles.profileInfo}>
-            <h2 className={styles.name}>{displayName}</h2>
-            <p className={styles.email}>{user?.email}</p>
+        {loading && <p>Loading profile...</p>}
+
+        {error && !loading && (
+          <div className={styles.errorContainer}>
+            <p className={formStyles.error}>
+              We couldn&apos;t load your profile. Please try again.
+            </p>
+            <button
+              onClick={fetchProfile}
+              className={buttonStyles.primary}
+              type="button"
+            >
+              Retry
+            </button>
           </div>
-        </div>
+        )}
 
-        {/* Always-visible editable form */}
-        <form onSubmit={handleSubmit} className={styles.form}>
-          <div className={formStyles.field}>
-            <label htmlFor="birthday" className={formStyles.label}>
-              Birthday
-            </label>
-            <input
-              id="birthday"
-              type="date"
-              value={formData.birthday || ""}
-              onChange={(e) =>
-                handleChange("birthday", e.target.value || null)
-              }
-              className={formStyles.input}
-              placeholder="mm/dd/yyyy"
-            />
-          </div>
-
-          <div className={formStyles.field}>
-            <label htmlFor="location" className={formStyles.label}>
-              Location
-            </label>
-            <input
-              id="location"
-              type="text"
-              value={formData.location || ""}
-              onChange={(e) =>
-                handleChange("location", e.target.value || null)
-              }
-              className={formStyles.input}
-              placeholder="City, Country"
-            />
-          </div>
-
-          <div className={formStyles.field}>
-            <label htmlFor="bio" className={formStyles.label}>
-              Bio
-            </label>
-            <textarea
-              id="bio"
-              value={formData.bio || ""}
-              onChange={(e) => handleChange("bio", e.target.value || null)}
-              className={formStyles.textarea}
-              rows={4}
-              placeholder="Tell us a bit about yourself…"
-              maxLength={500}
-            />
-            <span className={formStyles.hint}>
-              {formData.bio?.length || 0}/500 characters
-            </span>
-          </div>
-
-          <div className={formStyles.field}>
-            <label htmlFor="pronouns" className={formStyles.label}>
-              Pronouns
-            </label>
-            <input
-              id="pronouns"
-              type="text"
-              value={formData.pronouns || ""}
-              onChange={(e) =>
-                handleChange("pronouns", e.target.value || null)
-              }
-              className={formStyles.input}
-              placeholder="e.g., they/them, she/her, he/him"
-            />
-          </div>
-
-          <div className={formStyles.field}>
-            <label htmlFor="website" className={formStyles.label}>
-              Website
-            </label>
-            <input
-              id="website"
-              type="url"
-              value={formData.website || ""}
-              onChange={(e) =>
-                handleChange("website", e.target.value || null)
-              }
-              className={formStyles.input}
-              placeholder="https://example.com"
-            />
-          </div>
-
-          {error && <div className={formStyles.error}>{error}</div>}
-          {success && (
-            <div className={styles.success}>Profile updated</div>
-          )}
-
-          {isDirty && (
-            <div className={formStyles.buttonGroup}>
-              <button
-                type="submit"
-                className={buttonStyles.primary}
-                disabled={saving}
-              >
-                {saving ? "Saving..." : "Save"}
-              </button>
-              <button
-                type="button"
-                onClick={handleCancel}
-                className={buttonStyles.secondary}
-                disabled={saving}
-              >
-                Cancel
-              </button>
+        {!loading && !error && (
+          <>
+            {/* Profile Header */}
+            <div className={styles.profileHeader}>
+              <div className={styles.avatar}>{initials}</div>
+              <div className={styles.profileInfo}>
+                <h2 className={styles.name}>{displayName}</h2>
+                <p className={styles.email}>{user?.email}</p>
+              </div>
             </div>
-          )}
-        </form>
+
+            {/* Always-visible editable form */}
+            <form onSubmit={handleSubmit} className={styles.form}>
+              <div className={formStyles.field}>
+                <label htmlFor="birthday" className={formStyles.label}>
+                  Birthday
+                </label>
+                <input
+                  id="birthday"
+                  type="date"
+                  value={formData.birthday || ""}
+                  onChange={(e) =>
+                    handleChange("birthday", e.target.value || null)
+                  }
+                  className={formStyles.input}
+                  placeholder="mm/dd/yyyy"
+                  disabled={isFormDisabled}
+                />
+              </div>
+
+              <div className={formStyles.field}>
+                <label htmlFor="location" className={formStyles.label}>
+                  Location
+                </label>
+                <input
+                  id="location"
+                  type="text"
+                  value={formData.location || ""}
+                  onChange={(e) =>
+                    handleChange("location", e.target.value || null)
+                  }
+                  className={formStyles.input}
+                  placeholder="City, Country"
+                  disabled={isFormDisabled}
+                />
+              </div>
+
+              <div className={formStyles.field}>
+                <label htmlFor="bio" className={formStyles.label}>
+                  Bio
+                </label>
+                <textarea
+                  id="bio"
+                  value={formData.bio || ""}
+                  onChange={(e) => handleChange("bio", e.target.value || null)}
+                  className={formStyles.textarea}
+                  rows={4}
+                  placeholder="Tell us a bit about yourself…"
+                  maxLength={500}
+                  disabled={isFormDisabled}
+                />
+                <span className={formStyles.hint}>
+                  {formData.bio?.length || 0}/500 characters
+                </span>
+              </div>
+
+              <div className={formStyles.field}>
+                <label htmlFor="pronouns" className={formStyles.label}>
+                  Pronouns
+                </label>
+                <input
+                  id="pronouns"
+                  type="text"
+                  value={formData.pronouns || ""}
+                  onChange={(e) =>
+                    handleChange("pronouns", e.target.value || null)
+                  }
+                  className={formStyles.input}
+                  placeholder="e.g., they/them, she/her, he/him"
+                  disabled={isFormDisabled}
+                />
+              </div>
+
+              <div className={formStyles.field}>
+                <label htmlFor="website" className={formStyles.label}>
+                  Website
+                </label>
+                <input
+                  id="website"
+                  type="url"
+                  value={formData.website || ""}
+                  onChange={(e) =>
+                    handleChange("website", e.target.value || null)
+                  }
+                  className={formStyles.input}
+                  placeholder="https://example.com"
+                  disabled={isFormDisabled}
+                />
+              </div>
+
+              {success && <div className={styles.success}>Profile updated</div>}
+
+              {isDirty && (
+                <div className={formStyles.buttonGroup}>
+                  <button
+                    type="submit"
+                    className={buttonStyles.primary}
+                    disabled={saving}
+                  >
+                    {saving ? "Saving..." : "Save"}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleCancel}
+                    className={buttonStyles.secondary}
+                    disabled={saving}
+                  >
+                    Cancel
+                  </button>
+                </div>
+              )}
+            </form>
+          </>
+        )}
       </div>
     </div>
   );
