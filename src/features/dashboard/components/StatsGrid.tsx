@@ -37,52 +37,55 @@ export function StatsGrid({
 
   return (
     <section className={styles.statsSection}>
-      <h2 className={styles.sectionTitle}>At a Glance</h2>
+      <h2 className={styles.sectionTitle}>
+        <span className={styles.sectionTitleText}>At a Glance</span>
+      </h2>
       <div className={styles.grid}>
-        <div className={`${cardStyles.card} ${cardStyles.cardCompact} ${styles.statCard}`}>
-          <p className={cardStyles.statLabel}>Total dives</p>
-          <p className={cardStyles.statValue}>{totalDives}</p>
+        {/* Hero stat - spans 2 columns on desktop */}
+        <div className={`${styles.statCard} ${styles.statCardTier2} ${styles.statCardHero}`}>
+          <p className={styles.statLabel}>Total dives</p>
+          <p className={styles.statValue}>{totalDives}</p>
         </div>
 
-        <div className={`${cardStyles.card} ${cardStyles.cardCompact} ${styles.statCard}`}>
-          <p className={cardStyles.statLabel}>Total bottom time</p>
-          <p className={cardStyles.statValue}>
+        <div className={`${styles.statCard} ${styles.statCardTier2}`}>
+          <p className={styles.statLabel}>Total bottom time</p>
+          <p className={styles.statValue}>
             {totalBottomTime}
-            <span className={cardStyles.statUnit}>min</span>
+            <span className={styles.statUnit}>min</span>
           </p>
         </div>
 
-        <div className={`${cardStyles.card} ${cardStyles.cardCompact} ${styles.statCard}`}>
-          <p className={cardStyles.statLabel}>Deepest dive</p>
-          <p className={cardStyles.statValue}>
+        <div className={`${styles.statCard} ${styles.statCardTier2}`}>
+          <p className={styles.statLabel}>Deepest dive</p>
+          <p className={styles.statValue}>
             {deepestDiveDisplay.value}
-            <span className={cardStyles.statUnit}>{deepestDiveDisplay.unit}</span>
+            <span className={styles.statUnit}>{deepestDiveDisplay.unit}</span>
           </p>
         </div>
 
         {avgDepthDisplay && (
-          <div className={`${cardStyles.card} ${cardStyles.cardCompact} ${styles.statCard}`}>
-            <p className={cardStyles.statLabel}>Avg depth</p>
-            <p className={cardStyles.statValue}>
+          <div className={`${styles.statCard} ${styles.statCardTier2}`}>
+            <p className={styles.statLabel}>Avg depth</p>
+            <p className={styles.statValue}>
               {avgDepthDisplay.value}
-              <span className={cardStyles.statUnit}>{avgDepthDisplay.unit}</span>
+              <span className={styles.statUnit}>{avgDepthDisplay.unit}</span>
             </p>
           </div>
         )}
 
         {avgBottomTime && (
-          <div className={`${cardStyles.card} ${cardStyles.cardCompact} ${styles.statCard}`}>
-            <p className={cardStyles.statLabel}>Avg bottom time</p>
-            <p className={cardStyles.statValue}>
+          <div className={`${styles.statCard} ${styles.statCardTier2}`}>
+            <p className={styles.statLabel}>Avg bottom time</p>
+            <p className={styles.statValue}>
               {avgBottomTime}
-              <span className={cardStyles.statUnit}>min</span>
+              <span className={styles.statUnit}>min</span>
             </p>
           </div>
         )}
 
-        <div className={`${cardStyles.card} ${cardStyles.cardCompact} ${styles.statCard}`}>
-          <p className={cardStyles.statLabel}>Dives this month</p>
-          <p className={cardStyles.statValue}>{divesThisMonth}</p>
+        <div className={`${styles.statCard} ${styles.statCardTier2}`}>
+          <p className={styles.statLabel}>Dives this month</p>
+          <p className={styles.statValue}>{divesThisMonth}</p>
         </div>
       </div>
     </section>

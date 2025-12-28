@@ -1,34 +1,62 @@
 .activitySection {
-  margin-bottom: var(--space-8);
+  margin-bottom: var(--space-10);
+  background: var(--surface-2);
+  border: 1px solid var(--surface-2-border);
+  border-radius: var(--radius-xl);
+  padding: var(--space-6);
+  box-shadow: var(--surface-2-shadow);
+  transition: all var(--transition-base);
+}
+
+.activitySection:hover {
+  box-shadow: var(--surface-2-shadow-hover);
 }
 
 .tabs {
   display: flex;
   gap: var(--space-2);
-  border-bottom: 1px solid var(--color-border-default);
+  border-bottom: 1px solid var(--border-2);
   margin-bottom: var(--space-4);
+  padding-bottom: var(--space-2);
 }
 
 .tab {
   padding: var(--space-3) var(--space-4);
   background: transparent;
   border: none;
-  border-bottom: 2px solid transparent;
-  color: var(--color-text-tertiary);
+  border-bottom: 3px solid transparent;
+  color: var(--text-muted);
   font-size: var(--font-size-sm);
   font-weight: var(--font-weight-medium);
   cursor: pointer;
   transition: all var(--transition-base);
-  margin-bottom: -1px;
+  margin-bottom: -3px;
+  position: relative;
+}
+
+.tab::after {
+  content: "";
+  position: absolute;
+  bottom: -3px;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: var(--accent);
+  transform: scaleX(0);
+  transition: transform var(--transition-accent);
+  border-radius: var(--radius-sm) var(--radius-sm) 0 0;
 }
 
 .tab:hover {
-  color: var(--color-text-primary);
+  color: var(--text-primary);
 }
 
 .tab.active {
-  color: var(--color-accent-light);
-  border-bottom-color: var(--color-accent-primary);
+  color: var(--accent-light);
+}
+
+.tab.active::after {
+  transform: scaleX(1);
 }
 
 .tabContent {
@@ -60,17 +88,17 @@
 
 .siteName {
   font-weight: var(--font-weight-medium);
-  color: var(--color-text-primary);
+  color: var(--text-primary);
 }
 
 .region {
-  color: var(--color-text-muted);
+  color: var(--text-muted);
   font-weight: var(--font-weight-normal);
 }
 
 .meta {
   font-size: var(--font-size-xs);
-  color: var(--color-text-muted);
+  color: var(--text-muted);
 }
 
 .capitalize {

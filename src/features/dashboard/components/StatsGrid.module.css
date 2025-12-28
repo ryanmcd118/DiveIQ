@@ -1,12 +1,33 @@
 .statsSection {
-  margin-bottom: var(--space-8);
+  margin-bottom: var(--space-10);
 }
 
 .sectionTitle {
   font-size: var(--font-size-lg);
   font-weight: var(--font-weight-semibold);
-  color: var(--color-text-primary);
-  margin-bottom: var(--space-4);
+  color: var(--text-primary);
+  margin-bottom: var(--space-6);
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  position: relative;
+  padding-left: var(--space-4);
+}
+
+.sectionTitle::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 3px;
+  height: 1.5rem;
+  background: var(--accent);
+  border-radius: var(--radius-full);
+}
+
+.sectionTitleText {
+  position: relative;
 }
 
 .grid {
@@ -15,7 +36,64 @@
   gap: var(--space-4);
 }
 
+@media (min-width: 1024px) {
+  .grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+  
+  /* Hero stat spans 2 columns on desktop */
+  .statCardHero {
+    grid-column: span 2;
+  }
+}
+
+/* Tier 2: Standard cards (At a Glance) */
 .statCard {
   text-align: center;
+  background: var(--surface-2);
+  border: 1px solid var(--surface-2-border);
+  border-radius: var(--radius-xl);
+  padding: var(--space-5);
+  box-shadow: var(--surface-2-shadow);
+  transition: all var(--transition-base);
+}
+
+.statCardTier2 {
+  background: var(--surface-2);
+  border-color: var(--surface-2-border);
+  box-shadow: var(--surface-2-shadow);
+}
+
+.statCardTier2:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--surface-2-shadow-hover);
+  transition: var(--transition-lift), box-shadow var(--transition-base);
+}
+
+.statLabel {
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: var(--space-2);
+}
+
+.statValue {
+  font-size: var(--font-size-3xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--text-primary);
+  line-height: 1.1;
+}
+
+.statCardHero .statValue {
+  font-size: var(--font-size-4xl);
+}
+
+.statUnit {
+  margin-left: var(--space-1);
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-normal);
+  color: var(--text-muted);
 }
 

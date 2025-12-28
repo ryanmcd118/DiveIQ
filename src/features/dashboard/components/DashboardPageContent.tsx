@@ -54,6 +54,7 @@ export function DashboardPageContent({
           totalDives={totalCount}
           totalBottomTime={totalBottomTime}
           lastDiveDate={lastDiveDate}
+          divesThisMonth={divesThisMonth}
         />
 
         {/* Main grid: 8 cols main, 4 cols right rail */}

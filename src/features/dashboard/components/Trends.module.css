@@ -1,12 +1,29 @@
 .trends {
-  margin-bottom: var(--space-8);
+  margin-bottom: var(--space-10);
 }
 
 .sectionTitle {
   font-size: var(--font-size-lg);
   font-weight: var(--font-weight-semibold);
-  color: var(--color-text-primary);
-  margin-bottom: var(--space-4);
+  color: var(--text-primary);
+  margin-bottom: var(--space-6);
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  position: relative;
+  padding-left: var(--space-4);
+}
+
+.sectionTitle::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 3px;
+  height: 1.5rem;
+  background: var(--accent);
+  border-radius: var(--radius-full);
 }
 
 .chartsGrid {
@@ -21,16 +38,33 @@
   }
 }
 
+/* Tier 2: Standard cards (Trends) */
 .chartCard {
   display: flex;
   flex-direction: column;
   gap: var(--space-4);
+  border-radius: var(--radius-xl);
+  padding: var(--space-5);
+  transition: all var(--transition-base);
+}
+
+.chartCardTier2 {
+  background: var(--surface-2);
+  border: 1px solid var(--surface-2-border);
+  box-shadow: var(--surface-2-shadow);
+}
+
+.chartCardTier2:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--surface-2-shadow-hover);
+  transition: var(--transition-lift), box-shadow var(--transition-base);
 }
 
 .chartTitle {
   font-size: var(--font-size-sm);
   font-weight: var(--font-weight-semibold);
-  color: var(--color-text-primary);
+  color: var(--text-primary);
+  margin: 0;
 }
 
 .chart {
@@ -67,12 +101,12 @@
 
 .barLabel {
   font-size: var(--font-size-xs);
-  color: var(--color-text-muted);
+  color: var(--text-muted);
 }
 
 .placeholderNote {
   font-size: var(--font-size-xs);
-  color: var(--color-text-disabled);
+  color: var(--text-muted);
   font-style: italic;
   text-align: center;
   margin-top: var(--space-2);

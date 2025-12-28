@@ -1,6 +1,5 @@
 "use client";
 
-import cardStyles from "@/styles/components/Card.module.css";
 import styles from "./Trends.module.css";
 
 interface TrendsProps {
@@ -36,7 +35,7 @@ export function Trends({ divesOverTime, bottomTimeTrend }: TrendsProps) {
       <h2 className={styles.sectionTitle}>Trends</h2>
       <div className={styles.chartsGrid}>
         {/* Dives over time */}
-        <div className={`${cardStyles.card} ${cardStyles.cardCompact} ${styles.chartCard}`}>
+        <div className={`${styles.chartCard} ${styles.chartCardTier2}`}>
           <h3 className={styles.chartTitle}>Dives over time</h3>
           <div className={styles.chart}>
             {mockDivesOverTime.map((item, index) => (
@@ -58,7 +57,7 @@ export function Trends({ divesOverTime, bottomTimeTrend }: TrendsProps) {
         </div>
 
         {/* Bottom time trend */}
-        <div className={`${cardStyles.card} ${cardStyles.cardCompact} ${styles.chartCard}`}>
+        <div className={`${styles.chartCard} ${styles.chartCardTier2}`}>
           <h3 className={styles.chartTitle}>Bottom time trend</h3>
           <div className={styles.chart}>
             {mockBottomTimeTrend.map((item, index) => (

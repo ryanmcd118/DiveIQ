@@ -25,7 +25,7 @@ export function ActivityTabs({ recentDives, plannedDives }: ActivityTabsProps) {
   }, []);
 
   return (
-    <section className={`${cardStyles.card} ${styles.activitySection}`}>
+    <section className={styles.activitySection}>
       <div className={styles.tabs}>
         <button
           className={`${styles.tab} ${activeTab === "recent" ? styles.active : ""}`}

@@ -13,9 +13,9 @@ interface RightRailProps {
 export function RightRail({ gearCount = 0, certCount = 0 }: RightRailProps) {
   return (
     <aside className={styles.rightRail}>
-      {/* Quick actions */}
-      <div className={`${cardStyles.card} ${cardStyles.cardCompact} ${styles.card}`}>
-        <h3 className={cardStyles.title}>Quick actions</h3>
+      {/* Quick actions - Tier 1 */}
+      <div className={`${styles.card} ${styles.cardTier1}`}>
+        <h3 className={styles.cardTitle}>Quick actions</h3>
         <div className={styles.actions}>
           <Link href="/dive-plans" className={buttonStyles.ghost}>
             Plan a dive
@@ -29,9 +29,9 @@ export function RightRail({ gearCount = 0, certCount = 0 }: RightRailProps) {
         </div>
       </div>
 
-      {/* Setup checklist */}
-      <div className={`${cardStyles.card} ${cardStyles.cardCompact} ${styles.card}`}>
-        <h3 className={cardStyles.title}>Setup checklist</h3>
+      {/* Setup checklist - Tier 3 */}
+      <div className={`${styles.card} ${styles.cardTier3}`}>
+        <h3 className={styles.cardTitle}>Setup checklist</h3>
         <p className={styles.checklistSubtitle}>Complete your profile</p>
         <ul className={styles.checklist}>
           <li>
@@ -61,9 +61,9 @@ export function RightRail({ gearCount = 0, certCount = 0 }: RightRailProps) {
         </ul>
       </div>
 
-      {/* Gear & certifications snapshot */}
-      <div className={`${cardStyles.card} ${cardStyles.cardCompact} ${styles.card}`}>
-        <h3 className={cardStyles.title}>Gear & certifications</h3>
+      {/* Gear & certifications snapshot - Tier 3 */}
+      <div className={`${styles.card} ${styles.cardTier3}`}>
+        <h3 className={styles.cardTitle}>Gear & certifications</h3>
         <div className={styles.snapshot}>
           <div className={styles.snapshotItem}>
             <span className={styles.snapshotLabel}>Gear</span>

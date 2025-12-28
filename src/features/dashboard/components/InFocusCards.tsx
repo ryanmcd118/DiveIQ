@@ -31,10 +31,12 @@ export function InFocusCards({
 
   return (
     <section className={styles.inFocus}>
-      <h2 className={styles.sectionTitle}>In Focus</h2>
+      <h2 className={styles.sectionTitle}>
+        <span className={styles.sectionTitleText}>In Focus</span>
+      </h2>
       <div className={styles.cardsGrid}>
-        {/* Next planned dive */}
-        <div className={`${cardStyles.card} ${cardStyles.cardCompact} ${styles.card}`}>
+        {/* Next planned dive - Primary card (spans 2 cols on desktop) */}
+        <div className={`${styles.card} ${styles.cardTier1} ${styles.cardPrimary}`}>
           <h3 className={styles.cardTitle}>Next planned dive</h3>
           {nextPlannedDive ? (
             <div className={styles.cardContent}>
@@ -67,7 +69,7 @@ export function InFocusCards({
         </div>
 
         {/* Most recent dive */}
-        <div className={`${cardStyles.card} ${cardStyles.cardCompact} ${styles.card}`}>
+        <div className={`${styles.card} ${styles.cardTier1}`}>
           <h3 className={styles.cardTitle}>Most recent dive</h3>
           {mostRecentDive ? (
             <div className={styles.cardContent}>
@@ -105,7 +107,7 @@ export function InFocusCards({
         </div>
 
         {/* Readiness / Activity */}
-        <div className={`${cardStyles.card} ${cardStyles.cardCompact} ${styles.card}`}>
+        <div className={`${styles.card} ${styles.cardTier1}`}>
           <h3 className={styles.cardTitle}>Activity</h3>
           <div className={styles.cardContent}>
             <div className={styles.statRow}>
@@ -122,7 +124,7 @@ export function InFocusCards({
         </div>
 
         {/* Profile setup / Gear/Cert status */}
-        <div className={`${cardStyles.card} ${cardStyles.cardCompact} ${styles.card}`}>
+        <div className={`${styles.card} ${styles.cardTier1}`}>
           <h3 className={styles.cardTitle}>Profile setup</h3>
           <div className={styles.cardContent}>
             <p className={styles.setupText}>2 items incomplete</p>

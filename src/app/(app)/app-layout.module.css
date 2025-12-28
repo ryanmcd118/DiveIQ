@@ -1,9 +1,56 @@
-/* App route background - navy/blue tone with subtle gradient */
+/* =========================================
+   APP CANVAS - Premium Background Layer
+   ========================================= */
+
 .appBackground {
   min-height: 100vh;
   width: 100%;
-  background: var(--gradient-bg-app);
-  /* Ensure background extends behind fixed sidebar */
   position: relative;
+  /* Base deep navy background */
+  background: var(--app-bg);
+  /* Ensure background extends behind fixed sidebar */
 }
+
+/* Canvas layers using pseudo-elements for performance */
+.appBackground::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  /* Subtle radial glow behind top-left header area */
+  background: radial-gradient(
+    circle at 15% 20%,
+    rgba(15, 35, 55, 0.4) 0%,
+    rgba(10, 30, 50, 0.2) 30%,
+    transparent 60%
+  );
+}
+
+.appBackground::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  /* Very subtle vignette near edges */
+  background: radial-gradient(
+    ellipse at center,
+    transparent 0%,
+    transparent 60%,
+    rgba(0, 0, 0, 0.15) 100%
+  );
+  /* Ultra-subtle noise/grain overlay */
+  background-image: 
+    radial-gradient(ellipse at center, transparent 0%, transparent 60%, rgba(0, 0, 0, 0.15) 100%),
+    url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.04'/%3E%3C/svg%3E");
+  background-blend-mode: overlay;
+}
+
+/* Ensure AppShell content is above canvas layers */
+.appBackground > * {
+  position: relative;
+  z-index: 1;
+}
+
 
