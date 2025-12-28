@@ -8,6 +8,7 @@ import {
   sortGearByMaintenanceDue,
   type MaintenanceStatus,
 } from "../lib/maintenance";
+import { formatGearTypeLabel, GearType } from "../constants";
 import cardStyles from "@/styles/components/Card.module.css";
 import styles from "./MaintenanceDueSection.module.css";
 
@@ -105,7 +106,7 @@ export function MaintenanceDueSection({ gearItems, onEditGear }: Props) {
                     </span>
                   </div>
                   <div className={styles.itemMeta}>
-                    <span className={styles.itemType}>{item.type}</span>
+                    <span className={styles.itemType}>{formatGearTypeLabel(item.type as GearType)}</span>
                     {nextDue && (
                       <span className={styles.itemDue}>
                         Due: {formatDate(nextDue)}

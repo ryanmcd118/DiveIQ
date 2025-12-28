@@ -2,7 +2,7 @@
 
 import { useState, useEffect, FormEvent } from "react";
 import type { GearItem } from "@prisma/client";
-import { GearType, getDefaultServiceInterval } from "../constants";
+import { GearType, getDefaultServiceInterval, formatGearTypeLabel } from "../constants";
 import formStyles from "@/styles/components/Form.module.css";
 import buttonStyles from "@/styles/components/Button.module.css";
 import styles from "./GearFormModal.module.css";
@@ -175,7 +175,7 @@ export function GearFormModal({
             >
               {Object.values(GearType).map((t) => (
                 <option key={t} value={t}>
-                  {t}
+                  {formatGearTypeLabel(t)}
                 </option>
               ))}
             </select>

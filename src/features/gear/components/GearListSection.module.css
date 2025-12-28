@@ -99,6 +99,12 @@
   border: 1px solid rgba(100, 116, 139, 0.3);
 }
 
+.statusInactive {
+  background: rgba(148, 163, 184, 0.2);
+  color: #cbd5e1;
+  border: 1px solid rgba(148, 163, 184, 0.3);
+}
+
 .itemMeta {
   display: flex;
   gap: var(--space-3);
@@ -108,7 +114,7 @@
 }
 
 .itemType {
-  text-transform: capitalize;
+  /* Formatting handled by formatGearTypeLabel() helper */
 }
 
 .itemMetaText {

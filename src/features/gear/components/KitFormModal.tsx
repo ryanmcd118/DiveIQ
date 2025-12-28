@@ -3,6 +3,7 @@
 import { useState, useEffect, FormEvent } from "react";
 import type { GearItem } from "@prisma/client";
 import { GearKitWithItems } from "@/services/database/repositories/gearRepository";
+import { formatGearTypeLabel, GearType } from "../constants";
 import formStyles from "@/styles/components/Form.module.css";
 import buttonStyles from "@/styles/components/Button.module.css";
 import styles from "./KitFormModal.module.css";
@@ -214,7 +215,7 @@ export function KitFormModal({
                       <span className={styles.gearItemName}>
                         {getDisplayName(item)}
                       </span>
-                      <span className={styles.gearItemType}>{item.type}</span>
+                      <span className={styles.gearItemType}>{formatGearTypeLabel(item.type as GearType)}</span>
                     </div>
                   </label>
                 ))}

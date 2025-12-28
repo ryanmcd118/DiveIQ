@@ -8,7 +8,7 @@ import {
   sortGearByMaintenanceDue,
   type MaintenanceStatus,
 } from "../lib/maintenance";
-import { GearType } from "../constants";
+import { GearType, formatGearTypeLabel } from "../constants";
 import cardStyles from "@/styles/components/Card.module.css";
 import buttonStyles from "@/styles/components/Button.module.css";
 import formStyles from "@/styles/components/Form.module.css";
@@ -22,6 +22,8 @@ interface Props {
   onDeleteGear: (id: string) => void;
   onArchiveGear: (id: string, isActive: boolean) => void;
   onRefresh: () => void;
+  showInactive: boolean;
+  onShowInactiveChange: (show: boolean) => void;
 }
 
 export function GearListSection({
@@ -30,10 +32,11 @@ export function GearListSection({
   onDeleteGear,
   onArchiveGear,
   onRefresh,
+  showInactive,
+  onShowInactiveChange,
 }: Props) {
   const [typeFilter, setTypeFilter] = useState<string>("all");
   const [statusFilter, setStatusFilter] = useState<string>("all");
-  const [showInactive, setShowInactive] = useState(false);
   const [sortBy, setSortBy] = useState<SortOption>("soonest-due");
 
   const getDisplayName = (item: GearItem): string => {
@@ -54,9 +57,8 @@ export function GearListSection({
       });
     }
 
-    if (!showInactive) {
-      filtered = filtered.filter((item) => item.isActive);
-    }
+    // Note: isActive filtering is handled by the API based on showInactive prop
+    // We don't need to filter here since the API already returns the correct set
 
     // Apply sorting
     let sorted = [...filtered];
@@ -82,7 +84,7 @@ export function GearListSection({
     }
 
     return sorted;
-  }, [gearItems, typeFilter, statusFilter, showInactive, sortBy, getDisplayName]);
+  }, [gearItems, typeFilter, statusFilter, sortBy, getDisplayName]);
 
   const getStatusLabel = (status: MaintenanceStatus): string => {
     switch (status) {
@@ -145,7 +147,7 @@ export function GearListSection({
               <option value="all">All types</option>
               {Object.values(GearType).map((type) => (
                 <option key={type} value={type}>
-                  {type}
+                  {formatGearTypeLabel(type)}
                 </option>
               ))}
             </select>
@@ -192,7 +194,7 @@ export function GearListSection({
               <input
                 type="checkbox"
                 checked={showInactive}
-                onChange={(e) => setShowInactive(e.target.checked)}
+                onChange={(e) => onShowInactiveChange(e.target.checked)}
                 className={styles.checkbox}
               />
               Show inactive
@@ -215,14 +217,21 @@ export function GearListSection({
                       <span className={styles.itemName}>
                         {getDisplayName(item)}
                       </span>
-                      <span
-                        className={`${styles.statusPill} ${getStatusClass(status)}`}
-                      >
-                        {getStatusLabel(status)}
-                      </span>
+                      <div style={{ display: "flex", gap: "var(--space-2)", alignItems: "center" }}>
+                        {!item.isActive && (
+                          <span className={`${styles.statusPill} ${styles.statusInactive}`}>
+                            Inactive
+                          </span>
+                        )}
+                        <span
+                          className={`${styles.statusPill} ${getStatusClass(status)}`}
+                        >
+                          {getStatusLabel(status)}
+                        </span>
+                      </div>
                     </div>
                     <div className={styles.itemMeta}>
-                      <span className={styles.itemType}>{item.type}</span>
+                      <span className={styles.itemType}>{formatGearTypeLabel(item.type as GearType)}</span>
                       {item.lastServicedAt && (
                         <span className={styles.itemMetaText}>
                           Last serviced: {formatDate(item.lastServicedAt)}

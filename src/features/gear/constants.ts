@@ -45,3 +45,22 @@ export function getDefaultServiceInterval(type: GearType): number | null {
   return DEFAULT_SERVICE_INTERVALS[type] ?? null;
 }
 
+/**
+ * Format gear type enum value to human-readable label
+ * - Converts underscores to spaces
+ * - Capitalizes first letter of first word only
+ * - Preserves acronyms like BCD as-is
+ */
+export function formatGearTypeLabel(type: GearType): string {
+  // Handle acronyms that should stay uppercase
+  if (type === GearType.BCD) {
+    return "BCD";
+  }
+
+  // Convert underscores to spaces and lowercase everything
+  const withSpaces = type.replace(/_/g, " ").toLowerCase();
+
+  // Capitalize first letter only
+  return withSpaces.charAt(0).toUpperCase() + withSpaces.slice(1);
+}
+

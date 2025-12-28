@@ -78,7 +78,7 @@
 }
 
 .itemType {
-  text-transform: capitalize;
+  /* Formatting handled by formatGearTypeLabel() helper */
 }
 
 .itemDue {
