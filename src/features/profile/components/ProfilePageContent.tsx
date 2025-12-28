@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, FormEvent, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import Link from "next/link";
 import { useAuth } from "@/features/auth/hooks/useAuth";
 import cardStyles from "@/styles/components/Card.module.css";
@@ -28,7 +28,6 @@ interface UserData {
 function formatUserName(user: UserData | null): string {
   if (!user) return "Profile";
 
-  // Priority 1: firstName + optional lastName
   const hasFirstName = user.firstName && user.firstName.trim().length > 0;
   const hasLastName = user.lastName && user.lastName.trim().length > 0;
 
@@ -37,10 +36,9 @@ function formatUserName(user: UserData | null): string {
   }
 
   if (hasFirstName) {
-    return user.firstName!; // Safe because we checked hasFirstName
+    return user.firstName!;
   }
 
-  // Priority 2: email prefix (before @)
   if (user.email && user.email.trim()) {
     const emailPrefix = user.email.split("@")[0];
     if (emailPrefix && emailPrefix.trim()) {
@@ -66,14 +64,12 @@ function getInitials(user: UserData | null): string {
   return "?";
 }
 
-// Helper to normalize date to date-only string (avoid timezone issues)
+// Helper to normalize date to date-only string
 function normalizeDate(dateString: string | null): string | null {
   if (!dateString) return null;
-  // If it's already in YYYY-MM-DD format, return as-is
   if (/^\d{4}-\d{2}-\d{2}$/.test(dateString)) {
     return dateString;
   }
-  // Otherwise parse and extract date part
   try {
     const date = new Date(dateString);
     if (isNaN(date.getTime())) return null;
@@ -83,6 +79,23 @@ function normalizeDate(dateString: string | null): string | null {
   }
 }
 
+// Format birthday for display
+function formatBirthdayDisplay(birthday: string | null): string | null {
+  if (!birthday) return null;
+  try {
+    const date = new Date(birthday + "T12:00:00Z");
+    return date.toLocaleDateString("en-US", {
+      month: "long",
+      day: "numeric",
+      year: "numeric",
+    });
+  } catch {
+    return birthday;
+  }
+}
+
+type EditMode = "edit" | "preview";
+
 export function ProfilePageContent() {
   const { isAuthenticated } = useAuth();
   const [user, setUser] = useState<UserData | null>(null);
@@ -90,9 +103,10 @@ export function ProfilePageContent() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
+  const [mode, setMode] = useState<EditMode>("edit");
 
-  // Form state
-  const [formData, setFormData] = useState<ProfileData>({
+  // Profile data state
+  const [draftProfile, setDraftProfile] = useState<ProfileData>({
     firstName: null,
     lastName: null,
     birthday: null,
@@ -101,62 +115,45 @@ export function ProfilePageContent() {
     pronouns: null,
     website: null,
   });
-  const [originalData, setOriginalData] = useState<ProfileData | null>(null);
-  const [isEditing, setIsEditing] = useState(false);
+  const [originalProfile, setOriginalProfile] = useState<ProfileData | null>(null);
 
-  // Helper to normalize values (trim and convert empty to null) - only use when saving/comparing
+  // Track which field is being edited (null = no field editing)
+  const [editingField, setEditingField] = useState<keyof ProfileData | null>(null);
+  const inputRefs = useRef<{ [key in keyof ProfileData]?: HTMLInputElement | HTMLTextAreaElement }>({});
+
+  // Helper to normalize values (trim and convert empty to null)
   const normalizeValue = (val: string | null): string | null => {
     if (!val) return null;
     const trimmed = val.trim();
     return trimmed === "" ? null : trimmed;
   };
 
-  // Compute if form is dirty - compare current form values with original data
+  // Compute if profile is dirty
   const isDirty = useMemo(() => {
-    if (!originalData) return false;
+    if (!originalProfile) return false;
 
     return (
-      normalizeValue(formData.firstName) !== normalizeValue(originalData.firstName) ||
-      normalizeValue(formData.lastName) !== normalizeValue(originalData.lastName) ||
-      normalizeValue(formData.birthday) !== normalizeValue(originalData.birthday) ||
-      normalizeValue(formData.location) !== normalizeValue(originalData.location) ||
-      normalizeValue(formData.bio) !== normalizeValue(originalData.bio) ||
-      normalizeValue(formData.pronouns) !== normalizeValue(originalData.pronouns) ||
-      normalizeValue(formData.website) !== normalizeValue(originalData.website)
+      normalizeValue(draftProfile.firstName) !== normalizeValue(originalProfile.firstName) ||
+      normalizeValue(draftProfile.lastName) !== normalizeValue(originalProfile.lastName) ||
+      normalizeValue(draftProfile.birthday) !== normalizeValue(originalProfile.birthday) ||
+      normalizeValue(draftProfile.location) !== normalizeValue(originalProfile.location) ||
+      normalizeValue(draftProfile.bio) !== normalizeValue(originalProfile.bio) ||
+      normalizeValue(draftProfile.pronouns) !== normalizeValue(originalProfile.pronouns) ||
+      normalizeValue(draftProfile.website) !== normalizeValue(originalProfile.website)
     );
-  }, [formData, originalData]);
+  }, [draftProfile, originalProfile]);
 
-  // Calculate profile completeness percentage
-  const profileCompleteness = useMemo(() => {
-    if (!originalData) return 0;
-    const fields = [
-      formData.firstName,
-      formData.lastName,
-      formData.location,
-      formData.bio,
-      formData.pronouns,
-      formData.website,
-      formData.birthday,
-    ];
-    const filled = fields.filter((f) => f && normalizeValue(f) !== null).length;
-    return Math.round((filled / fields.length) * 100);
-  }, [formData, originalData]);
-
-  // Fetch profile data from DB (not session)
+  // Fetch profile data
   const fetchProfile = async () => {
     setLoading(true);
     setError(null);
 
     try {
       const response = await fetch("/api/profile");
-      const data = await response
-        .json()
-        .catch(() => ({ error: "Failed to parse response" }));
+      const data = await response.json().catch(() => ({ error: "Failed to parse response" }));
 
       if (!response.ok) {
-        // Don't throw - just set error state
-        const errorMessage =
-          data.error || `Failed to fetch profile (${response.status})`;
+        const errorMessage = data.error || `Failed to fetch profile (${response.status})`;
         setError(errorMessage);
         if (process.env.NODE_ENV === "development") {
           console.error("[ProfilePage] Fetch failed:", response.status, data);
@@ -169,21 +166,17 @@ export function ProfilePageContent() {
         console.log("[ProfilePage] Fetched user data:", data.user);
       }
 
-      // Store user data
       setUser({
         firstName: data.user.firstName || null,
         lastName: data.user.lastName || null,
         email: data.user.email || "",
       });
 
-      // Store profile data - preserve raw values, don't trim here
       const profileData: ProfileData = {
         firstName: data.user.firstName || null,
         lastName: data.user.lastName || null,
         birthday: normalizeDate(
-          data.user.birthday
-            ? new Date(data.user.birthday).toISOString().split("T")[0]
-            : null
+          data.user.birthday ? new Date(data.user.birthday).toISOString().split("T")[0] : null
         ),
         location: data.user.location || null,
         bio: data.user.bio || null,
@@ -191,13 +184,11 @@ export function ProfilePageContent() {
         website: data.user.website || null,
       };
 
-      setFormData(profileData);
-      setOriginalData(profileData);
+      setDraftProfile(profileData);
+      setOriginalProfile(profileData);
       setError(null);
     } catch (err) {
-      // Catch any unexpected errors - don't throw to prevent Next.js overlay
-      const errorMessage =
-        err instanceof Error ? err.message : "Failed to load profile";
+      const errorMessage = err instanceof Error ? err.message : "Failed to load profile";
       setError(errorMessage);
       if (process.env.NODE_ENV === "development") {
         console.error("[ProfilePage] Unexpected error:", err);
@@ -212,51 +203,66 @@ export function ProfilePageContent() {
       setLoading(false);
       return;
     }
-
     fetchProfile();
   }, [isAuthenticated]);
 
-  const handleCancel = () => {
-    if (originalData) {
-      setFormData(originalData);
-    }
-    setError(null);
-    setSuccess(false);
-    setIsEditing(false);
+  // Handle field click to enter edit mode
+  const handleFieldClick = (field: keyof ProfileData) => {
+    if (mode === "preview") return;
+    setEditingField(field);
+    // Focus input after render
+    setTimeout(() => {
+      const input = inputRefs.current[field];
+      if (input) {
+        input.focus();
+        if (input instanceof HTMLInputElement && input.type === "text") {
+          input.select();
+        }
+      }
+    }, 0);
   };
 
-  const handleChange = (field: keyof ProfileData, value: string | null) => {
-    // Store raw value during typing - DO NOT trim here (allows spaces)
-    setFormData((prev) => ({
+  // Handle field value change
+  const handleFieldChange = (field: keyof ProfileData, value: string) => {
+    setDraftProfile((prev) => ({
       ...prev,
       [field]: value || null,
     }));
-    // Clear success message when user makes changes
     if (success) setSuccess(false);
-    // Clear any previous errors
     if (error) setError(null);
   };
 
-  const handleEdit = () => {
-    setIsEditing(true);
+  // Handle field blur (exit edit mode, but keep changes)
+  const handleFieldBlur = () => {
+    setEditingField(null);
   };
 
-  const handleSubmit = async (e: FormEvent) => {
-    e.preventDefault();
+  // Handle cancel - reset draft to original
+  const handleCancel = () => {
+    if (originalProfile) {
+      setDraftProfile(originalProfile);
+    }
+    setEditingField(null);
+    setError(null);
+    setSuccess(false);
+  };
+
+  // Handle save
+  const handleSave = async () => {
     setSaving(true);
     setError(null);
     setSuccess(false);
 
     try {
-      // Normalize and validate values before sending (trim only at save time)
+      // Normalize values before sending
       const normalizedData: Partial<ProfileData> = {
-        firstName: normalizeValue(formData.firstName),
-        lastName: normalizeValue(formData.lastName),
-        birthday: normalizeValue(formData.birthday),
-        location: normalizeValue(formData.location),
-        bio: normalizeValue(formData.bio),
-        pronouns: normalizeValue(formData.pronouns),
-        website: normalizeValue(formData.website),
+        firstName: normalizeValue(draftProfile.firstName),
+        lastName: normalizeValue(draftProfile.lastName),
+        birthday: normalizeValue(draftProfile.birthday),
+        location: normalizeValue(draftProfile.location),
+        bio: normalizeValue(draftProfile.bio),
+        pronouns: normalizeValue(draftProfile.pronouns),
+        website: normalizeValue(draftProfile.website),
       };
 
       // Validate firstName/lastName max length
@@ -314,9 +320,7 @@ export function ProfilePageContent() {
         firstName: data.user.firstName || null,
         lastName: data.user.lastName || null,
         birthday: normalizeDate(
-          data.user.birthday
-            ? new Date(data.user.birthday).toISOString().split("T")[0]
-            : null
+          data.user.birthday ? new Date(data.user.birthday).toISOString().split("T")[0] : null
         ),
         location: data.user.location || null,
         bio: data.user.bio || null,
@@ -324,10 +328,10 @@ export function ProfilePageContent() {
         website: data.user.website || null,
       };
 
-      setFormData(updatedProfile);
-      setOriginalData(updatedProfile); // Update original data so isDirty becomes false
+      setDraftProfile(updatedProfile);
+      setOriginalProfile(updatedProfile);
+      setEditingField(null);
       setSuccess(true);
-      setIsEditing(false);
       setTimeout(() => setSuccess(false), 3000);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to update profile");
@@ -338,36 +342,130 @@ export function ProfilePageContent() {
 
   const displayName = formatUserName(user);
   const initials = getInitials(user);
-  const isFormDisabled = loading || !!error || !originalData;
 
-  // Format birthday for display
-  const formatBirthdayDisplay = (birthday: string | null): string | null => {
-    if (!birthday) return null;
-    try {
-      const date = new Date(birthday + "T12:00:00Z"); // Add time to avoid timezone issues
-      return date.toLocaleDateString("en-US", {
-        month: "long",
-        day: "numeric",
-        year: "numeric",
-      });
-    } catch {
-      return birthday;
+  // Render inline editable field
+  const renderEditableField = (
+    field: keyof ProfileData,
+    label: string,
+    placeholder: string,
+    type: "text" | "textarea" | "url" | "date" = "text",
+    maxLength?: number
+  ) => {
+    if (mode === "preview") {
+      const value = draftProfile[field];
+      if (!value || !value.trim()) return null; // Hide empty fields in preview
+      
+      return (
+        <div className={styles.fieldRow}>
+          <div className={styles.fieldLabel}>{label}</div>
+          <div className={styles.fieldValue}>
+            {type === "url" ? (
+              <a
+                href={value}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={styles.websiteLink}
+              >
+                {value}
+              </a>
+            ) : field === "birthday" ? (
+              formatBirthdayDisplay(value)
+            ) : (
+              value
+            )}
+          </div>
+        </div>
+      );
     }
+
+    const isEditing = editingField === field;
+    const value = draftProfile[field] || "";
+    const isEmpty = !value || !value.trim();
+
+    return (
+      <div className={styles.fieldRow}>
+        <div className={styles.fieldLabel}>{label}</div>
+        {isEditing ? (
+          <div className={styles.fieldEdit}>
+            {type === "textarea" ? (
+              <>
+                <textarea
+                  ref={(el) => {
+                    if (el) inputRefs.current[field] = el;
+                  }}
+                  value={value}
+                  onChange={(e) => handleFieldChange(field, e.target.value)}
+                  onBlur={handleFieldBlur}
+                  className={styles.fieldInput}
+                  placeholder={placeholder}
+                  maxLength={maxLength}
+                  rows={4}
+                />
+                {maxLength && (
+                  <span className={styles.fieldHint}>
+                    {value.length}/{maxLength} characters
+                  </span>
+                )}
+              </>
+            ) : (
+              <input
+                ref={(el) => {
+                  if (el) inputRefs.current[field] = el;
+                }}
+                type={type}
+                value={value}
+                onChange={(e) => handleFieldChange(field, e.target.value)}
+                onBlur={handleFieldBlur}
+                className={styles.fieldInput}
+                placeholder={placeholder}
+                maxLength={maxLength}
+              />
+            )}
+          </div>
+        ) : (
+          <div
+            className={`${styles.fieldValue} ${styles.fieldValueClickable}`}
+            onClick={() => handleFieldClick(field)}
+          >
+            {isEmpty ? (
+              <span className={styles.fieldPlaceholder}>{placeholder}</span>
+            ) : field === "birthday" ? (
+              formatBirthdayDisplay(value)
+            ) : (
+              value
+            )}
+          </div>
+        )}
+      </div>
+    );
   };
 
   return (
     <div className={styles.container}>
       <div className={styles.header}>
-        <div>
-          <h1 className={styles.title}>Profile</h1>
-          <p className={styles.helperText}>
-            Keep your profile up to date so your logs and plans feel more
-            personal.
-          </p>
+        <h1 className={styles.title}>Profile</h1>
+        <div className={styles.headerActions}>
+          {mode === "edit" ? (
+            <button
+              onClick={() => setMode("preview")}
+              className={buttonStyles.secondary}
+              type="button"
+            >
+              Preview public profile
+            </button>
+          ) : (
+            <button
+              onClick={() => setMode("edit")}
+              className={buttonStyles.secondary}
+              type="button"
+            >
+              Back to editing
+            </button>
+          )}
+          <Link href="/settings" className={buttonStyles.secondary}>
+            Settings
+          </Link>
         </div>
-        <Link href="/settings" className={buttonStyles.secondary}>
-          Settings
-        </Link>
       </div>
 
       <div className={cardStyles.card}>
@@ -378,11 +476,7 @@ export function ProfilePageContent() {
             <p className={formStyles.error}>
               We couldn&apos;t load your profile. Please try again.
             </p>
-            <button
-              onClick={fetchProfile}
-              className={buttonStyles.primary}
-              type="button"
-            >
+            <button onClick={fetchProfile} className={buttonStyles.primary} type="button">
               Retry
             </button>
           </div>
@@ -390,243 +484,50 @@ export function ProfilePageContent() {
 
         {!loading && !error && (
           <>
-            {!isEditing ? (
-              /* VIEW MODE */
-              <div className={styles.viewMode}>
-                <div className={styles.profileHeader}>
-                  <div className={styles.avatar}>{initials}</div>
-                  <div className={styles.profileInfo}>
-                    <h2 className={styles.nameLarge}>{displayName}</h2>
-                    <p className={styles.email}>{user?.email}</p>
-                  </div>
-                </div>
-
-                <div className={styles.completenessSection}>
-                  <div className={styles.completenessHeader}>
-                    <span>Profile Completeness</span>
-                    <span className={styles.completenessPercent}>
-                      {profileCompleteness}%
-                    </span>
-                  </div>
-                  <div className={styles.completenessBar}>
-                    <div
-                      className={styles.completenessFill}
-                      style={{ width: `${profileCompleteness}%` }}
-                    />
-                  </div>
-                </div>
-
-                <div className={styles.viewFields}>
-                  {formData.location && (
-                    <div className={styles.viewField}>
-                      <span className={styles.viewLabel}>Location</span>
-                      <span className={styles.viewValue}>{formData.location}</span>
-                    </div>
-                  )}
-
-                  {formData.bio ? (
-                    <div className={styles.viewField}>
-                      <span className={styles.viewLabel}>Bio</span>
-                      <p className={styles.viewValue}>{formData.bio}</p>
-                    </div>
-                  ) : (
-                    <div className={styles.viewField}>
-                      <span className={styles.viewLabel}>Bio</span>
-                      <p className={styles.viewPlaceholder}>
-                        Add a bio to help others get to know you better.
-                      </p>
-                    </div>
-                  )}
-
-                  {formData.pronouns && (
-                    <div className={styles.viewField}>
-                      <span className={styles.viewLabel}>Pronouns</span>
-                      <span className={styles.viewValue}>{formData.pronouns}</span>
-                    </div>
-                  )}
-
-                  {formData.website && (
-                    <div className={styles.viewField}>
-                      <span className={styles.viewLabel}>Website</span>
-                      <a
-                        href={formData.website}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className={styles.websiteLink}
-                      >
-                        {formData.website}
-                      </a>
-                    </div>
-                  )}
-
-                  {formData.birthday && (
-                    <div className={styles.viewField}>
-                      <span className={styles.viewLabel}>Birthday</span>
-                      <span className={styles.viewValue}>
-                        {formatBirthdayDisplay(formData.birthday)}
-                      </span>
-                    </div>
-                  )}
-                </div>
-
-                <p className={styles.privacyNote}>
-                  Private for now — only you can see this.
-                </p>
-
-                <button
-                  onClick={handleEdit}
-                  className={buttonStyles.primaryGradient}
-                  type="button"
-                >
-                  Edit Profile
-                </button>
+            {/* Profile Header */}
+            <div className={styles.profileHeader}>
+              <div className={styles.avatar}>{initials}</div>
+              <div className={styles.profileInfo}>
+                <h2 className={styles.nameLarge}>{displayName}</h2>
+                <p className={styles.email}>{user?.email}</p>
               </div>
-            ) : (
-              /* EDIT MODE */
-              <form onSubmit={handleSubmit} className={styles.form}>
-                <div className={formStyles.field}>
-                  <label htmlFor="firstName" className={formStyles.label}>
-                    First Name
-                  </label>
-                  <input
-                    id="firstName"
-                    type="text"
-                    value={formData.firstName || ""}
-                    onChange={(e) =>
-                      handleChange("firstName", e.target.value || null)
-                    }
-                    className={formStyles.input}
-                    placeholder="First name"
-                    maxLength={50}
-                    disabled={isFormDisabled}
-                  />
-                </div>
+            </div>
 
-                <div className={formStyles.field}>
-                  <label htmlFor="lastName" className={formStyles.label}>
-                    Last Name
-                  </label>
-                  <input
-                    id="lastName"
-                    type="text"
-                    value={formData.lastName || ""}
-                    onChange={(e) =>
-                      handleChange("lastName", e.target.value || null)
-                    }
-                    className={formStyles.input}
-                    placeholder="Last name"
-                    maxLength={50}
-                    disabled={isFormDisabled}
-                  />
-                </div>
+            {/* Profile Fields */}
+            <div className={styles.fields}>
+              {renderEditableField("firstName", "First Name", "Add your first name", "text", 50)}
+              {renderEditableField("lastName", "Last Name", "Add your last name", "text", 50)}
+              {renderEditableField("location", "Location", "Add your location", "text")}
+              {renderEditableField("bio", "Bio", "Add a bio", "textarea", 500)}
+              {renderEditableField("pronouns", "Pronouns", "Add your pronouns", "text")}
+              {renderEditableField("website", "Website", "Add your website", "url")}
+              {renderEditableField("birthday", "Birthday", "Add your birthday", "date")}
+            </div>
 
-                <div className={formStyles.field}>
-                  <label htmlFor="location" className={formStyles.label}>
-                    Location
-                  </label>
-                  <input
-                    id="location"
-                    type="text"
-                    value={formData.location || ""}
-                    onChange={(e) =>
-                      handleChange("location", e.target.value || null)
-                    }
-                    className={formStyles.input}
-                    placeholder="City, Country"
-                    disabled={isFormDisabled}
-                  />
-                </div>
-
-                <div className={formStyles.field}>
-                  <label htmlFor="bio" className={formStyles.label}>
-                    Bio
-                  </label>
-                  <textarea
-                    id="bio"
-                    value={formData.bio || ""}
-                    onChange={(e) => handleChange("bio", e.target.value || null)}
-                    className={formStyles.textarea}
-                    rows={4}
-                    placeholder="Tell us a bit about yourself…"
-                    maxLength={500}
-                    disabled={isFormDisabled}
-                  />
-                  <span className={formStyles.hint}>
-                    {formData.bio?.length || 0}/500 characters
-                  </span>
-                </div>
-
-                <div className={formStyles.field}>
-                  <label htmlFor="pronouns" className={formStyles.label}>
-                    Pronouns
-                  </label>
-                  <input
-                    id="pronouns"
-                    type="text"
-                    value={formData.pronouns || ""}
-                    onChange={(e) =>
-                      handleChange("pronouns", e.target.value || null)
-                    }
-                    className={formStyles.input}
-                    placeholder="e.g., they/them, she/her, he/him"
-                    disabled={isFormDisabled}
-                  />
-                </div>
-
-                <div className={formStyles.field}>
-                  <label htmlFor="website" className={formStyles.label}>
-                    Website
-                  </label>
-                  <input
-                    id="website"
-                    type="url"
-                    value={formData.website || ""}
-                    onChange={(e) =>
-                      handleChange("website", e.target.value || null)
-                    }
-                    className={formStyles.input}
-                    placeholder="https://example.com"
-                    disabled={isFormDisabled}
-                  />
-                </div>
-
-                <div className={formStyles.field}>
-                  <label htmlFor="birthday" className={formStyles.label}>
-                    Birthday
-                  </label>
-                  <input
-                    id="birthday"
-                    type="date"
-                    value={formData.birthday || ""}
-                    onChange={(e) =>
-                      handleChange("birthday", e.target.value || null)
-                    }
-                    className={formStyles.input}
-                    disabled={isFormDisabled}
-                  />
-                </div>
-
-                {error && <div className={formStyles.error}>{error}</div>}
-                {success && <div className={styles.success}>Profile updated</div>}
-
-                <div className={formStyles.buttonGroup}>
+            {/* Save/Cancel Footer - only show when dirty */}
+            {isDirty && mode === "edit" && (
+              <div className={styles.footer}>
+                {error && <div className={styles.footerError}>{error}</div>}
+                {success && <div className={styles.footerSuccess}>Profile updated</div>}
+                <div className={styles.footerActions}>
                   <button
-                    type="submit"
-                    className={buttonStyles.primary}
-                    disabled={saving || !isDirty}
-                  >
-                    {saving ? "Saving..." : "Save"}
-                  </button>
-                  <button
-                    type="button"
                     onClick={handleCancel}
                     className={buttonStyles.secondary}
+                    type="button"
                     disabled={saving}
                   >
                     Cancel
                   </button>
+                  <button
+                    onClick={handleSave}
+                    className={buttonStyles.primary}
+                    type="button"
+                    disabled={saving}
+                  >
+                    {saving ? "Saving..." : "Save"}
+                  </button>
                 </div>
-              </form>
+              </div>
             )}
           </>
         )}
