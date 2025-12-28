@@ -4,11 +4,26 @@
   margin: 0 auto;
 }
 
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: var(--space-6);
+  gap: var(--space-4);
+}
+
 .title {
   font-size: var(--font-size-3xl);
   font-weight: var(--font-weight-bold);
   color: var(--color-text-primary);
-  margin-bottom: var(--space-6);
+  margin: 0 0 var(--space-2) 0;
+}
+
+.helperText {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  margin: 0;
+  line-height: 1.5;
 }
 
 .profileHeader {
@@ -68,43 +83,5 @@
   border-radius: var(--radius-md);
   font-size: var(--font-size-sm);
   border: 1px solid var(--color-success-border, rgba(34, 197, 94, 0.2));
-}
-
-.profileDisplay {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-4);
-  margin-top: var(--space-4);
-}
-
-.profileField {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-1);
-}
-
-.fieldLabel {
-  font-size: var(--font-size-sm);
-  font-weight: var(--font-weight-medium);
-  color: var(--color-text-secondary);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-}
-
-.fieldValue {
-  font-size: var(--font-size-base);
-  color: var(--color-text-primary);
-  line-height: 1.6;
-}
-
-.websiteLink {
-  color: var(--color-accent-primary);
-  text-decoration: none;
-  transition: color var(--transition-base);
-}
-
-.websiteLink:hover {
-  color: var(--color-accent-hover);
-  text-decoration: underline;
 }
 

@@ -93,11 +93,27 @@ export async function PATCH(req: NextRequest) {
       }
     }
 
-    // Parse birthday if provided
+    // Parse birthday if provided - normalize to noon UTC to avoid timezone issues
     let birthdayDate: Date | null = null;
     if (birthday !== undefined) {
       if (birthday !== null && birthday !== "") {
-        birthdayDate = new Date(birthday);
+        // Parse the date string (expected format: YYYY-MM-DD)
+        const dateParts = birthday.split("-");
+        if (dateParts.length !== 3) {
+          return NextResponse.json(
+            { error: "Invalid birthday date format" },
+            { status: 400 }
+          );
+        }
+        
+        // Create date at noon UTC to avoid timezone shifts
+        birthdayDate = new Date(Date.UTC(
+          parseInt(dateParts[0], 10),
+          parseInt(dateParts[1], 10) - 1, // Month is 0-indexed
+          parseInt(dateParts[2], 10),
+          12, 0, 0, 0 // Noon UTC
+        ));
+        
         if (isNaN(birthdayDate.getTime())) {
           return NextResponse.json(
             { error: "Invalid birthday date format" },
