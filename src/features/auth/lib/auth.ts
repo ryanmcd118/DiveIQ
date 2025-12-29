@@ -80,6 +80,7 @@ export const authOptions: NextAuthOptions = {
           firstName: user.firstName,
           lastName: user.lastName,
           image: user.image,
+          avatarUrl: user.avatarUrl,
         };
       },
     }),
@@ -124,6 +125,7 @@ export const authOptions: NextAuthOptions = {
                   id: true,
                   firstName: true,
                   lastName: true,
+                  avatarUrl: true,
                 },
               },
             },
@@ -132,15 +134,35 @@ export const authOptions: NextAuthOptions = {
           if (existingAccount) {
             // User already linked with Google, sign them in
             // Backfill firstName/lastName if missing
+            // Import Google avatar if avatarUrl is empty
             const existingUser = existingAccount.user;
+            const updateData: { firstName?: string | null; lastName?: string | null; avatarUrl?: string | null } = {};
+            
             if ((!existingUser.firstName || !existingUser.lastName) && (firstName || lastName)) {
+              if (!existingUser.firstName && firstName) {
+                updateData.firstName = firstName;
+              }
+              if (!existingUser.lastName && lastName) {
+                updateData.lastName = lastName;
+              }
+            }
+            
+            // Import Google avatar only if avatarUrl is currently null/empty
+            if (!existingUser.avatarUrl && googleImage) {
+              updateData.avatarUrl = googleImage;
+              if (process.env.NODE_ENV === 'development') {
+                console.log('[NextAuth] Importing Google avatar for existing user:', existingUser.id);
+              }
+            }
+            
+            if (Object.keys(updateData).length > 0) {
               await prisma.user.update({
                 where: { id: existingUser.id },
-                data: {
-                  ...(existingUser.firstName ? {} : { firstName }),
-                  ...(existingUser.lastName ? {} : { lastName }),
-                },
+                data: updateData,
               });
+              if (process.env.NODE_ENV === 'development' && updateData.avatarUrl) {
+                console.log('[NextAuth] Successfully imported Google avatar to DB');
+              }
             }
             user.id = existingUser.id;
             return true;
@@ -151,17 +173,32 @@ export const authOptions: NextAuthOptions = {
             where: {
               email: googleEmail,
             },
+            select: {
+              id: true,
+              firstName: true,
+              lastName: true,
+              avatarUrl: true,
+            },
           });
 
           if (existingUser) {
             // Link Google account to existing user
             // Backfill firstName/lastName if missing
-            const updateData: { firstName?: string | null; lastName?: string | null } = {};
+            // Import Google avatar if avatarUrl is empty
+            const updateData: { firstName?: string | null; lastName?: string | null; avatarUrl?: string | null } = {};
             if (!existingUser.firstName && firstName) {
               updateData.firstName = firstName;
             }
             if (!existingUser.lastName && lastName) {
               updateData.lastName = lastName;
+            }
+            
+            // Import Google avatar only if avatarUrl is currently null/empty
+            if (!existingUser.avatarUrl && googleImage) {
+              updateData.avatarUrl = googleImage;
+              if (process.env.NODE_ENV === 'development') {
+                console.log('[NextAuth] Importing Google avatar for existing user (email link):', existingUser.id);
+              }
             }
             
             await prisma.account.create({
@@ -179,12 +216,15 @@ export const authOptions: NextAuthOptions = {
               },
             });
             
-            // Update user names if needed
+            // Update user names and avatar if needed
             if (Object.keys(updateData).length > 0) {
               await prisma.user.update({
                 where: { id: existingUser.id },
                 data: updateData,
               });
+              if (process.env.NODE_ENV === 'development' && updateData.avatarUrl) {
+                console.log('[NextAuth] Successfully imported Google avatar to DB (email link)');
+              }
             }
             
             user.id = existingUser.id;
@@ -192,12 +232,14 @@ export const authOptions: NextAuthOptions = {
           }
 
           // Create new user with Google account
+          // Set avatarUrl from Google image (preferred over image field)
           const newUser = await prisma.user.create({
             data: {
               email: googleEmail,
               firstName,
               lastName,
               image: googleImage,
+              avatarUrl: googleImage || null, // Set avatarUrl from Google image
               emailVerified: new Date(),
               accounts: {
                 create: {
@@ -214,6 +256,9 @@ export const authOptions: NextAuthOptions = {
               },
             },
           });
+          if (process.env.NODE_ENV === 'development' && googleImage) {
+            console.log('[NextAuth] Created new user with Google avatar:', newUser.id);
+          }
           user.id = newUser.id;
           return true;
         } catch (error) {
@@ -235,15 +280,17 @@ export const authOptions: NextAuthOptions = {
         if ('firstName' in user && 'lastName' in user) {
           token.firstName = user.firstName as string | null;
           token.lastName = user.lastName as string | null;
+          token.avatarUrl = (user as any).avatarUrl as string | null | undefined;
         } else if (user.id) {
-          // Fetch user from DB to get firstName/lastName (for OAuth providers)
+          // Fetch user from DB to get firstName/lastName/avatarUrl (for OAuth providers)
           const dbUser = await prisma.user.findUnique({
             where: { id: user.id },
-            select: { firstName: true, lastName: true },
+            select: { firstName: true, lastName: true, avatarUrl: true },
           });
           if (dbUser) {
             token.firstName = dbUser.firstName;
             token.lastName = dbUser.lastName;
+            token.avatarUrl = dbUser.avatarUrl;
           }
         }
       }
@@ -256,6 +303,7 @@ export const authOptions: NextAuthOptions = {
         session.user.email = (token.email || session.user.email) as string;
         session.user.firstName = token.firstName as string | null;
         session.user.lastName = token.lastName as string | null;
+        session.user.avatarUrl = (token.avatarUrl as string | null | undefined) || null;
       }
       return session;
     },

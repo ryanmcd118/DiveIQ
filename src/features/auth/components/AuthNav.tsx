@@ -3,6 +3,7 @@
 import { usePathname } from "next/navigation";
 import { useAuth } from "../hooks/useAuth";
 import Link from "next/link";
+import { Avatar } from "@/components/Avatar/Avatar";
 import { NavbarUnitToggle } from "@/components/NavbarUnitToggle";
 import { NavbarUnitToggleLocal } from "@/components/NavbarUnitToggleLocal";
 import navStyles from "@/styles/components/Navigation.module.css";
@@ -27,6 +28,13 @@ export default function AuthNav() {
     return (
       <div className={styles.authSection}>
         <NavbarUnitToggle />
+        <Avatar
+          firstName={user.firstName}
+          lastName={user.lastName}
+          avatarUrl={user.avatarUrl || null}
+          size="sm"
+          editable={false}
+        />
         <span className={styles.greeting}>Hi, {firstName}</span>
         <button onClick={signOutUser} className={styles.signOutButton}>
           Sign out

@@ -21,9 +21,7 @@ export default function RootLayout({
     <html lang="en">
       <body className={inter.className}>
         <SessionProvider>
-          <UnitSystemProvider>
-            {children}
-          </UnitSystemProvider>
+          <UnitSystemProvider>{children}</UnitSystemProvider>
         </SessionProvider>
       </body>
     </html>
