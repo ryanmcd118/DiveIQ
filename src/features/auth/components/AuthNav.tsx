@@ -3,6 +3,7 @@
 import { usePathname } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { useAuth } from "../hooks/useAuth";
+import { useMe } from "../hooks/useMe";
 import Link from "next/link";
 import { Avatar } from "@/components/Avatar/Avatar";
 import { NavbarUnitToggle } from "@/components/NavbarUnitToggle";
@@ -13,16 +14,9 @@ import styles from "./AuthNav.module.css";
 export default function AuthNav() {
   const { data: session } = useSession();
   const { user, isAuthenticated, isLoading, signOutUser } = useAuth();
+  const { me } = useMe();
   const pathname = usePathname();
   const isDivePlansPage = pathname === '/dive-plans';
-
-  // Debug logging
-  if (process.env.NODE_ENV === 'development') {
-    console.log('[AuthNav] session.user.avatarUrl:', session?.user?.avatarUrl);
-    console.log('[AuthNav] session.user.image:', session?.user?.image);
-    console.log('[AuthNav] user.avatarUrl:', user?.avatarUrl);
-    console.log('[AuthNav] user.image:', user?.image);
-  }
 
   if (isLoading) {
     return (
@@ -33,17 +27,17 @@ export default function AuthNav() {
   }
 
   if (isAuthenticated && user) {
-    const firstName = user.firstName || "User";
-    // Use session directly for avatarUrl to ensure it updates immediately
-    const avatarUrl = session?.user?.avatarUrl ?? user?.avatarUrl ?? null;
-    const fallbackImageUrl = session?.user?.image ?? user?.image ?? null;
+    const firstName = me?.firstName ?? user.firstName ?? "User";
+    // Use DB-fresh avatarUrl from /api/me, fallback to session.user.image for OAuth users
+    const avatarUrl = me?.avatarUrl ?? null;
+    const fallbackImageUrl = session?.user?.image ?? me?.image ?? null;
 
     return (
       <div className={styles.authSection}>
         <NavbarUnitToggle />
         <Avatar
-          firstName={user.firstName}
-          lastName={user.lastName}
+          firstName={me?.firstName ?? user.firstName ?? null}
+          lastName={me?.lastName ?? user.lastName ?? null}
           avatarUrl={avatarUrl}
           fallbackImageUrl={fallbackImageUrl}
           size="sm"
