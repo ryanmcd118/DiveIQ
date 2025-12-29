@@ -21,6 +21,7 @@ const navItems: NavItem[] = [
   { href: "/trips", label: "Trips", icon: <TripsIcon /> },
   { href: "/insights", label: "Insights", icon: <InsightsIcon /> },
   { href: "/community", label: "Community", icon: <CommunityIcon /> },
+  { href: "/profile", label: "Profile", icon: <ProfileIcon /> },
   { href: "/settings", label: "Settings", icon: <SettingsIcon /> },
 ];
 
@@ -284,6 +285,20 @@ function CommunityIcon() {
         stroke="currentColor"
         strokeWidth="1.5"
         fill="none"
+      />
+    </svg>
+  );
+}
+
+function ProfileIcon() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+      <circle cx="10" cy="8" r="3.5" stroke="currentColor" strokeWidth="1.5" fill="none" />
+      <path
+        d="M4 17.5c0-3.314 2.686-6 6-6s6 2.686 6 6"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
       />
     </svg>
   );

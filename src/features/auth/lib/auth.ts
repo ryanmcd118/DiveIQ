@@ -4,6 +4,44 @@ import GoogleProvider from "next-auth/providers/google";
 import { prisma } from "@/lib/prisma";
 import bcrypt from "bcryptjs";
 
+// Helper function to extract firstName and lastName from Google profile
+function extractNamesFromGoogleProfile(profile: any, user: any): { firstName: string | null; lastName: string | null } {
+  // Prefer given_name and family_name from profile if available
+  if (profile?.given_name && profile?.family_name) {
+    return {
+      firstName: profile.given_name.trim(),
+      lastName: profile.family_name.trim(),
+    };
+  }
+  
+  // Fallback: split the full name if provided
+  const fullName = profile?.name || user?.name || "";
+  if (fullName) {
+    const trimmed = fullName.trim();
+    if (trimmed) {
+      const nameParts = trimmed.split(/\s+/);
+      if (nameParts.length === 1) {
+        return {
+          firstName: nameParts[0],
+          lastName: null,
+        };
+      } else {
+        // First token is firstName, rest joined as lastName (preserves compound names like "Van Dyke")
+        return {
+          firstName: nameParts[0],
+          lastName: nameParts.slice(1).join(" "),
+        };
+      }
+    }
+  }
+  
+  // If no name available, return null for both
+  return {
+    firstName: null,
+    lastName: null,
+  };
+}
+
 export const authOptions: NextAuthOptions = {
   providers: [
     CredentialsProvider({
@@ -39,7 +77,8 @@ export const authOptions: NextAuthOptions = {
         return {
           id: user.id,
           email: user.email,
-          name: user.name,
+          firstName: user.firstName,
+          lastName: user.lastName,
           image: user.image,
         };
       },
@@ -64,8 +103,8 @@ export const authOptions: NextAuthOptions = {
         try {
           const googleEmail = user.email;
           const googleId = account.providerAccountId;
-          const googleName = user.name || "";
           const googleImage = user.image;
+          const { firstName, lastName } = extractNamesFromGoogleProfile(profile, user);
 
           if (!googleEmail) {
             return false; // Cannot proceed without email
@@ -80,13 +119,30 @@ export const authOptions: NextAuthOptions = {
               },
             },
             include: {
-              user: true,
+              user: {
+                select: {
+                  id: true,
+                  firstName: true,
+                  lastName: true,
+                },
+              },
             },
           });
 
           if (existingAccount) {
             // User already linked with Google, sign them in
-            user.id = existingAccount.user.id;
+            // Backfill firstName/lastName if missing
+            const existingUser = existingAccount.user;
+            if ((!existingUser.firstName || !existingUser.lastName) && (firstName || lastName)) {
+              await prisma.user.update({
+                where: { id: existingUser.id },
+                data: {
+                  ...(existingUser.firstName ? {} : { firstName }),
+                  ...(existingUser.lastName ? {} : { lastName }),
+                },
+              });
+            }
+            user.id = existingUser.id;
             return true;
           }
 
@@ -99,6 +155,15 @@ export const authOptions: NextAuthOptions = {
 
           if (existingUser) {
             // Link Google account to existing user
+            // Backfill firstName/lastName if missing
+            const updateData: { firstName?: string | null; lastName?: string | null } = {};
+            if (!existingUser.firstName && firstName) {
+              updateData.firstName = firstName;
+            }
+            if (!existingUser.lastName && lastName) {
+              updateData.lastName = lastName;
+            }
+            
             await prisma.account.create({
               data: {
                 userId: existingUser.id,
@@ -113,6 +178,15 @@ export const authOptions: NextAuthOptions = {
                 id_token: account.id_token,
               },
             });
+            
+            // Update user names if needed
+            if (Object.keys(updateData).length > 0) {
+              await prisma.user.update({
+                where: { id: existingUser.id },
+                data: updateData,
+              });
+            }
+            
             user.id = existingUser.id;
             return true;
           }
@@ -121,7 +195,8 @@ export const authOptions: NextAuthOptions = {
           const newUser = await prisma.user.create({
             data: {
               email: googleEmail,
-              name: googleName,
+              firstName,
+              lastName,
               image: googleImage,
               emailVerified: new Date(),
               accounts: {
@@ -152,17 +227,35 @@ export const authOptions: NextAuthOptions = {
     },
     async jwt({ token, user, account }) {
       if (user) {
+        // Always set token.id from user.id (this is critical)
         token.id = user.id;
         token.email = user.email;
-        token.name = user.name;
+        // For credentials provider, user object has firstName/lastName from authorize
+        // For OAuth providers, we need to fetch from DB
+        if ('firstName' in user && 'lastName' in user) {
+          token.firstName = user.firstName as string | null;
+          token.lastName = user.lastName as string | null;
+        } else if (user.id) {
+          // Fetch user from DB to get firstName/lastName (for OAuth providers)
+          const dbUser = await prisma.user.findUnique({
+            where: { id: user.id },
+            select: { firstName: true, lastName: true },
+          });
+          if (dbUser) {
+            token.firstName = dbUser.firstName;
+            token.lastName = dbUser.lastName;
+          }
+        }
       }
       return token;
     },
     async session({ session, token }) {
       if (session.user) {
-        session.user.id = token.id as string;
-        session.user.email = token.email as string;
-        session.user.name = token.name as string;
+        // Always set user.id from token.id (fallback to token.sub if needed)
+        session.user.id = (token.id || token.sub) as string;
+        session.user.email = (token.email || session.user.email) as string;
+        session.user.firstName = token.firstName as string | null;
+        session.user.lastName = token.lastName as string | null;
       }
       return session;
     },

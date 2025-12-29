@@ -26,7 +26,8 @@ export function AuthModal({
   const [error, setError] = useState("");
 
   // Signup form state
-  const [name, setName] = useState("");
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -36,7 +37,8 @@ export function AuthModal({
     if (isOpen) {
       setMode(initialMode);
       setError("");
-      setName("");
+      setFirstName("");
+      setLastName("");
       setEmail("");
       setPassword("");
       setConfirmPassword("");
@@ -86,7 +88,7 @@ export function AuthModal({
       const response = await fetch("/api/auth/signup", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password, name }),
+        body: JSON.stringify({ email, password, firstName, lastName }),
       });
 
       const data = await response.json();
@@ -186,21 +188,38 @@ export function AuthModal({
           className={styles.form}
         >
           {mode === "signup" && (
-            <div className={formStyles.formGroup}>
-              <label htmlFor="modal-name" className={formStyles.label}>
-                First Name
-              </label>
-              <input
-                id="modal-name"
-                type="text"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                className={formStyles.input}
-                required
-                autoComplete="given-name"
-                disabled={isLoading}
-              />
-            </div>
+            <>
+              <div className={formStyles.formGroup}>
+                <label htmlFor="modal-firstName" className={formStyles.label}>
+                  First Name
+                </label>
+                <input
+                  id="modal-firstName"
+                  type="text"
+                  value={firstName}
+                  onChange={(e) => setFirstName(e.target.value)}
+                  className={formStyles.input}
+                  required
+                  autoComplete="given-name"
+                  disabled={isLoading}
+                />
+              </div>
+              <div className={formStyles.formGroup}>
+                <label htmlFor="modal-lastName" className={formStyles.label}>
+                  Last Name
+                </label>
+                <input
+                  id="modal-lastName"
+                  type="text"
+                  value={lastName}
+                  onChange={(e) => setLastName(e.target.value)}
+                  className={formStyles.input}
+                  required
+                  autoComplete="family-name"
+                  disabled={isLoading}
+                />
+              </div>
+            </>
           )}
 
           <div className={formStyles.formGroup}>

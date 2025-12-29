@@ -17,6 +17,14 @@ export default function SettingsPage() {
         "Emergency contacts and safety settings",
         "Notification preferences",
       ]}
+      primaryAction={{
+        href: "/profile",
+        label: "Go to Profile",
+      }}
+      secondaryAction={{
+        href: "/dashboard",
+        label: "Back to Dashboard",
+      }}
     />
   );
 }

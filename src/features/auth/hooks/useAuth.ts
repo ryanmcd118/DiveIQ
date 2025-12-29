@@ -35,7 +35,8 @@ export function useAuth() {
   const signUpUser = async (
     email: string,
     password: string,
-    name: string
+    firstName: string,
+    lastName: string
   ) => {
     setIsLoading(true);
     try {
@@ -44,7 +45,7 @@ export function useAuth() {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ email, password, name }),
+        body: JSON.stringify({ email, password, firstName, lastName }),
       });
 
       const data = await response.json();

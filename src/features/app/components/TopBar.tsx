@@ -27,7 +27,10 @@ export function TopBar({ onMenuClick }: TopBarProps) {
   }, []);
 
   const showUnitsToggle = ALLOWED_UNITS_TOGGLE_PATHS.includes(pathname);
-  const firstName = user?.name?.split(" ")[0] || user?.name || "User";
+  const firstName = user?.firstName || "User";
+  const displayName = user?.firstName && user?.lastName 
+    ? `${user.firstName} ${user.lastName}` 
+    : user?.firstName || "User";
   const initials = firstName.charAt(0).toUpperCase();
 
   return (
@@ -64,18 +67,18 @@ export function TopBar({ onMenuClick }: TopBarProps) {
                 <div className={styles.profileMenuHeader}>
                   <div className={styles.avatar}>{initials}</div>
                   <div>
-                    <div className={styles.profileName}>{user?.name || "User"}</div>
+                    <div className={styles.profileName}>{displayName}</div>
                     <div className={styles.profileEmail}>{user?.email}</div>
                   </div>
                 </div>
                 <div className={styles.profileMenuDivider} />
                 <Link
-                  href="/settings"
+                  href="/profile"
                   className={styles.profileMenuItem}
                   onClick={() => setShowProfileMenu(false)}
                 >
-                  <SettingsIcon />
-                  <span>Account</span>
+                  <ProfileIcon />
+                  <span>Profile</span>
                 </Link>
                 <Link
                   href="/settings"
@@ -109,6 +112,20 @@ function MenuIcon() {
   return (
     <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
       <path d="M3 5h14M3 10h14M3 15h14" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+function ProfileIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+      <circle cx="8" cy="6" r="3" stroke="currentColor" strokeWidth="1.5" fill="none" />
+      <path
+        d="M3 14c0-2.761 2.239-5 5-5s5 2.239 5 5"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+      />
     </svg>
   );
 }
