@@ -259,7 +259,7 @@ export function SettingsPageContent() {
                         Change password
                       </button>
                       <span className={styles.helperText}>
-                        {hasGoogle 
+                        {hasGoogle
                           ? "Password not set for Google-only accounts"
                           : "Password not set"}
                       </span>
@@ -289,7 +289,10 @@ export function SettingsPageContent() {
                     id="units-depth"
                     value={units.depth}
                     onChange={(e) =>
-                      setUnits({ ...units, depth: e.target.value as "meters" | "feet" })
+                      setUnits({
+                        ...units,
+                        depth: e.target.value as "meters" | "feet",
+                      })
                     }
                     className={formStyles.select}
                     disabled
@@ -387,7 +390,7 @@ export function SettingsPageContent() {
             <div className={styles.settingsList}>
               <div className={styles.settingRow}>
                 <div className={styles.settingLabel}>
-                  <label htmlFor="notif-product">Product updates</label>
+                  <label htmlFor="notif-product">DiveIQ updates</label>
                 </div>
                 <div className={styles.settingControl}>
                   <label className={styles.toggle}>
@@ -410,7 +413,7 @@ export function SettingsPageContent() {
 
               <div className={styles.settingRow}>
                 <div className={styles.settingLabel}>
-                  <label htmlFor="notif-safety">Dive safety tips</label>
+                  <label htmlFor="notif-safety">Dive tips and resources</label>
                 </div>
                 <div className={styles.settingControl}>
                   <label className={styles.toggle}>
@@ -431,7 +434,6 @@ export function SettingsPageContent() {
                 </div>
               </div>
             </div>
-
           </section>
 
           {/* Danger Zone Section */}
@@ -445,8 +447,9 @@ export function SettingsPageContent() {
 
             <div className={styles.dangerContent}>
               <p className={styles.dangerWarning}>
-                <strong>This action cannot be undone.</strong> This will permanently delete your account
-                and remove all of your data from our servers.
+                <strong>This action cannot be undone.</strong> This will
+                permanently delete your account and remove all of your data from
+                our servers.
               </p>
               <div className={styles.dangerAction}>
                 <button
@@ -493,4 +496,3 @@ export function SettingsPageContent() {
     </div>
   );
 }
-
