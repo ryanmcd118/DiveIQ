@@ -2,12 +2,14 @@
 
 import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
+import { useSearchParams, useRouter } from "next/navigation";
 import cardStyles from "@/styles/components/Card.module.css";
 import formStyles from "@/styles/components/Form.module.css";
 import buttonStyles from "@/styles/components/Button.module.css";
 import layoutStyles from "@/styles/components/Layout.module.css";
 import { DeleteAccountModal } from "./DeleteAccountModal";
 import { ChangePasswordModal } from "./ChangePasswordModal";
+import { LinkGoogleModal } from "./LinkGoogleModal";
 import styles from "./SettingsPageContent.module.css";
 
 interface UserAccountInfo {
@@ -17,9 +19,13 @@ interface UserAccountInfo {
 
 export function SettingsPageContent() {
   const { data: session } = useSession();
+  const searchParams = useSearchParams();
+  const router = useRouter();
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [showChangePasswordModal, setShowChangePasswordModal] = useState(false);
+  const [showLinkGoogleModal, setShowLinkGoogleModal] = useState(false);
   const [showToast, setShowToast] = useState(false);
+  const [toastMessage, setToastMessage] = useState("");
   const [accountInfo, setAccountInfo] = useState<UserAccountInfo | null>(null);
   const [isLoadingAccountInfo, setIsLoadingAccountInfo] = useState(true);
 
@@ -37,24 +43,24 @@ export function SettingsPageContent() {
   });
 
   // Fetch account info to check password/Google status
-  useEffect(() => {
-    const fetchAccountInfo = async () => {
-      try {
-        const response = await fetch("/api/me");
-        if (response.ok) {
-          const data = await response.json();
-          setAccountInfo({
-            hasPassword: data.hasPassword || false,
-            hasGoogle: data.hasGoogle || false,
-          });
-        }
-      } catch (error) {
-        console.error("Error fetching account info:", error);
-      } finally {
-        setIsLoadingAccountInfo(false);
+  const fetchAccountInfo = async () => {
+    try {
+      const response = await fetch("/api/me");
+      if (response.ok) {
+        const data = await response.json();
+        setAccountInfo({
+          hasPassword: data.hasPassword || false,
+          hasGoogle: data.hasGoogle || false,
+        });
       }
-    };
+    } catch (error) {
+      console.error("Error fetching account info:", error);
+    } finally {
+      setIsLoadingAccountInfo(false);
+    }
+  };
 
+  useEffect(() => {
     if (session?.user?.id) {
       fetchAccountInfo();
     } else {
@@ -63,6 +69,42 @@ export function SettingsPageContent() {
       setIsLoadingAccountInfo(false);
     }
   }, [session?.user?.id]);
+
+  // Handle OAuth callback success/error
+  useEffect(() => {
+    const linked = searchParams.get("linked");
+    const error = searchParams.get("error");
+
+    if (linked === "google") {
+      // Refresh account info to show updated status
+      fetchAccountInfo();
+      setToastMessage("Google account linked successfully!");
+      setShowToast(true);
+      setTimeout(() => {
+        setShowToast(false);
+        // Remove query params from URL
+        router.replace("/settings");
+      }, 3000);
+    } else if (error) {
+      // Handle NextAuth errors
+      let errorMessage = "Failed to link Google account.";
+      if (error === "OAuthAccountNotLinked") {
+        errorMessage =
+          "This Google account is already linked to another DiveIQ account.";
+      } else if (error === "OAuthSignin") {
+        errorMessage = "Error occurred during Google sign-in.";
+      } else if (error === "OAuthCallback") {
+        errorMessage = "Error occurred during Google callback.";
+      }
+      setToastMessage(errorMessage);
+      setShowToast(true);
+      setTimeout(() => {
+        setShowToast(false);
+        // Remove query params from URL
+        router.replace("/settings");
+      }, 5000);
+    }
+  }, [searchParams, router]);
 
   const hasPassword = accountInfo?.hasPassword ?? false;
   const hasGoogle = accountInfo?.hasGoogle ?? false;
@@ -136,13 +178,43 @@ export function SettingsPageContent() {
                   <label>Link Google account</label>
                 </div>
                 <div className={styles.settingControl}>
-                  <button
-                    type="button"
-                    className={buttonStyles.disabled}
-                    disabled
-                  >
-                    Coming soon
-                  </button>
+                  {isLoadingAccountInfo ? (
+                    <span className={styles.helperText}>Loading...</span>
+                  ) : hasGoogle ? (
+                    <div className={styles.settingControlColumn}>
+                      <button
+                        type="button"
+                        className={buttonStyles.disabled}
+                        disabled
+                      >
+                        Link Google account
+                      </button>
+                      <span className={styles.helperText}>
+                        Google account is already linked
+                      </span>
+                    </div>
+                  ) : hasPassword ? (
+                    <button
+                      type="button"
+                      onClick={() => setShowLinkGoogleModal(true)}
+                      className={buttonStyles.primary}
+                    >
+                      Link Google account
+                    </button>
+                  ) : (
+                    <div className={styles.settingControlColumn}>
+                      <button
+                        type="button"
+                        className={buttonStyles.disabled}
+                        disabled
+                      >
+                        Link Google account
+                      </button>
+                      <span className={styles.helperText}>
+                        Create a password first to link Google
+                      </span>
+                    </div>
+                  )}
                 </div>
               </div>
 
@@ -387,11 +459,18 @@ export function SettingsPageContent() {
         />
       )}
 
+      <LinkGoogleModal
+        isOpen={showLinkGoogleModal}
+        onClose={() => setShowLinkGoogleModal(false)}
+      />
+
       {showToast && (
         <div className={styles.toast}>
           <div className={styles.toastContent}>
-            <span style={{ fontSize: "var(--font-size-lg)" }}>✅</span>
-            <span>Password updated</span>
+            <span style={{ fontSize: "var(--font-size-lg)" }}>
+              {toastMessage.includes("successfully") ? "✅" : "❌"}
+            </span>
+            <span>{toastMessage}</span>
           </div>
         </div>
       )}
