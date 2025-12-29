@@ -98,13 +98,73 @@
 .badge {
   display: inline-flex;
   align-items: center;
+  gap: var(--space-2);
   padding: var(--space-1) var(--space-3);
   font-size: var(--font-size-xs);
   font-weight: var(--font-weight-medium);
   color: var(--color-text-primary);
   background-color: var(--color-surface-alt);
   border: 1px solid var(--color-border-default);
-  border-radius: var(--radius-md);
+  border-radius: 9999px; /* Pill shape */
+}
+
+.badgeSuccess {
+  composes: badge;
+  /* Removed green styling - now matches neutral badge appearance */
+}
+
+.badgeIcon {
+  flex-shrink: 0;
+  width: 14px;
+  height: 14px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Google-branded button for linking account */
+.googleLinkButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-3);
+  padding: var(--space-2) var(--space-4);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-primary);
+  background-color: var(--color-bg-secondary);
+  border: 1px solid var(--color-border-default);
+  border-radius: var(--radius-lg);
+  transition: all var(--transition-base);
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.googleLinkButton:hover:not(:disabled) {
+  background-color: var(--color-bg-elevated);
+  border-color: var(--color-border-focus);
+  box-shadow: 0 0 0 3px rgba(6, 182, 212, 0.1);
+}
+
+.googleLinkButton:focus {
+  outline: none;
+  border-color: var(--color-accent-primary);
+  box-shadow: 0 0 0 3px rgba(6, 182, 212, 0.15);
+}
+
+.googleLinkButton:active:not(:disabled) {
+  background-color: var(--color-bg-tertiary);
+}
+
+.googleLinkButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.googleLinkIcon {
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
 }
 
 .badgePlaceholder {
