@@ -374,7 +374,8 @@ export function SettingsPageContent() {
             </div>
 
             <p className={styles.helperTextNote}>
-              These preferences will apply across DiveIQ when saved.
+              These preferences will apply across your account when saved. You
+              can always change them later.
             </p>
           </section>
 
@@ -383,7 +384,7 @@ export function SettingsPageContent() {
             <div className={styles.sectionHeader}>
               <h2 className={styles.sectionTitle}>Notifications</h2>
               <p className={styles.sectionDescription}>
-                Choose which notifications you want to receive.
+                Choose which email notifications you want to receive.
               </p>
             </div>
 
@@ -404,7 +405,6 @@ export function SettingsPageContent() {
                           productUpdates: e.target.checked,
                         })
                       }
-                      disabled
                     />
                     <span className={styles.toggleSlider}></span>
                   </label>
@@ -427,7 +427,6 @@ export function SettingsPageContent() {
                           diveSafetyTips: e.target.checked,
                         })
                       }
-                      disabled
                     />
                     <span className={styles.toggleSlider}></span>
                   </label>
