@@ -1,17 +1,27 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import cardStyles from "@/styles/components/Card.module.css";
 import formStyles from "@/styles/components/Form.module.css";
 import buttonStyles from "@/styles/components/Button.module.css";
 import layoutStyles from "@/styles/components/Layout.module.css";
 import { DeleteAccountModal } from "./DeleteAccountModal";
+import { ChangePasswordModal } from "./ChangePasswordModal";
 import styles from "./SettingsPageContent.module.css";
+
+interface UserAccountInfo {
+  hasPassword: boolean;
+  hasGoogle: boolean;
+}
 
 export function SettingsPageContent() {
   const { data: session } = useSession();
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [showChangePasswordModal, setShowChangePasswordModal] = useState(false);
+  const [showToast, setShowToast] = useState(false);
+  const [accountInfo, setAccountInfo] = useState<UserAccountInfo | null>(null);
+  const [isLoadingAccountInfo, setIsLoadingAccountInfo] = useState(true);
 
   // Local state for settings (not persisted yet)
   const [units, setUnits] = useState({
@@ -26,11 +36,39 @@ export function SettingsPageContent() {
     diveSafetyTips: false,
   });
 
-  // Account provider detection will be wired in a future update
-  const hasPassword = true;
-  const hasGoogle = false;
+  // Fetch account info to check password/Google status
+  useEffect(() => {
+    const fetchAccountInfo = async () => {
+      try {
+        const response = await fetch("/api/me");
+        if (response.ok) {
+          const data = await response.json();
+          setAccountInfo({
+            hasPassword: data.hasPassword || false,
+            hasGoogle: data.hasGoogle || false,
+          });
+        }
+      } catch (error) {
+        console.error("Error fetching account info:", error);
+      } finally {
+        setIsLoadingAccountInfo(false);
+      }
+    };
+
+    if (session?.user) {
+      fetchAccountInfo();
+    }
+  }, [session]);
+
+  const hasPassword = accountInfo?.hasPassword ?? false;
+  const hasGoogle = accountInfo?.hasGoogle ?? false;
 
   const email = session?.user?.email || "";
+
+  const handlePasswordChangeSuccess = () => {
+    setShowToast(true);
+    setTimeout(() => setShowToast(false), 3000);
+  };
 
   return (
     <div className={layoutStyles.page}>
@@ -69,19 +107,23 @@ export function SettingsPageContent() {
                   <label>Sign-in methods</label>
                 </div>
                 <div className={styles.settingControl}>
-                  <div className={styles.badgeContainer}>
-                    {hasPassword && (
-                      <span className={styles.badge}>Password</span>
-                    )}
-                    {hasGoogle && (
-                      <span className={styles.badge}>Google</span>
-                    )}
-                    {!hasPassword && !hasGoogle && (
-                      <span className={styles.badgePlaceholder}>
-                        No methods configured
-                      </span>
-                    )}
-                  </div>
+                  {isLoadingAccountInfo ? (
+                    <span className={styles.helperText}>Loading...</span>
+                  ) : (
+                    <div className={styles.badgeContainer}>
+                      {hasPassword && (
+                        <span className={styles.badge}>Password</span>
+                      )}
+                      {hasGoogle && (
+                        <span className={styles.badge}>Google</span>
+                      )}
+                      {!hasPassword && !hasGoogle && (
+                        <span className={styles.badgePlaceholder}>
+                          No methods configured
+                        </span>
+                      )}
+                    </div>
+                  )}
                 </div>
               </div>
 
@@ -105,18 +147,31 @@ export function SettingsPageContent() {
                   <label>Change password</label>
                 </div>
                 <div className={styles.settingControl}>
-                  {hasPassword ? (
+                  {isLoadingAccountInfo ? (
+                    <span className={styles.helperText}>Loading...</span>
+                  ) : hasPassword ? (
                     <button
                       type="button"
-                      className={buttonStyles.disabled}
-                      disabled
+                      onClick={() => setShowChangePasswordModal(true)}
+                      className={buttonStyles.primary}
                     >
-                      Coming soon
+                      Change password
                     </button>
                   ) : (
-                    <span className={styles.helperText}>
-                      Password not set
-                    </span>
+                    <div className={styles.settingControlColumn}>
+                      <button
+                        type="button"
+                        className={buttonStyles.disabled}
+                        disabled
+                      >
+                        Change password
+                      </button>
+                      <span className={styles.helperText}>
+                        {hasGoogle 
+                          ? "Signed in with Google — no password to change."
+                          : "Password not set"}
+                      </span>
+                    </div>
                   )}
                 </div>
               </div>
@@ -319,6 +374,21 @@ export function SettingsPageContent() {
         isOpen={showDeleteModal}
         onClose={() => setShowDeleteModal(false)}
       />
+
+      <ChangePasswordModal
+        isOpen={showChangePasswordModal}
+        onClose={() => setShowChangePasswordModal(false)}
+        onSuccess={handlePasswordChangeSuccess}
+      />
+
+      {showToast && (
+        <div className={styles.toast}>
+          <div className={styles.toastContent}>
+            <span style={{ fontSize: "var(--font-size-lg)" }}>✅</span>
+            <span>Password updated</span>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
