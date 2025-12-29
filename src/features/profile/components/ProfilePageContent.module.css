@@ -251,6 +251,13 @@
   font-style: italic;
 }
 
+.emptyState {
+  padding: var(--space-4);
+  color: var(--color-text-secondary);
+  font-style: italic;
+  margin: 0;
+}
+
 .previewTiles {
   display: grid;
   grid-template-columns: repeat(2, 1fr);

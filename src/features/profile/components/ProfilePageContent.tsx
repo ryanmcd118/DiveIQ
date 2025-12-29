@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useMemo, useRef } from "react";
 import Link from "next/link";
-import { ChevronDown, Calendar, Link as LinkIcon } from "lucide-react";
 import { useAuth } from "@/features/auth/hooks/useAuth";
 import cardStyles from "@/styles/components/Card.module.css";
 import formStyles from "@/styles/components/Form.module.css";
@@ -32,7 +31,6 @@ interface ProfileData {
   certifyingAgency: string | null;
   typicalDivingEnvironment: string[] | null;
   lookingFor: string[] | null;
-  favoriteDiveType: string | null;
   favoriteDiveLocation: string | null;
   birthday: string | null;
 }
@@ -75,7 +73,7 @@ function normalizeDate(dateString: string | null): string | null {
   }
 }
 
-type EditMode = "edit" | "preview";
+type ViewMode = "view" | "edit";
 
 export function ProfilePageContent() {
   const { isAuthenticated } = useAuth();
@@ -84,8 +82,7 @@ export function ProfilePageContent() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
-  const [mode, setMode] = useState<EditMode>("edit");
-  const [showAdditionalDetails, setShowAdditionalDetails] = useState(false);
+  const [mode, setMode] = useState<ViewMode>("view");
 
   const [draftProfile, setDraftProfile] = useState<ProfileData>({
     firstName: null,
@@ -102,14 +99,17 @@ export function ProfilePageContent() {
     certifyingAgency: null,
     typicalDivingEnvironment: null,
     lookingFor: null,
-    favoriteDiveType: null,
     favoriteDiveLocation: null,
     birthday: null,
   });
-  const [originalProfile, setOriginalProfile] = useState<ProfileData | null>(null);
+  const [originalProfile, setOriginalProfile] = useState<ProfileData | null>(
+    null
+  );
 
   const [editingField, setEditingField] = useState<string | null>(null);
-  const inputRefs = useRef<{ [key: string]: HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement }>({});
+  const inputRefs = useRef<{
+    [key: string]: HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement;
+  }>({});
 
   const normalizeValue = (val: string | null): string | null => {
     if (!val) return null;
@@ -119,7 +119,7 @@ export function ProfilePageContent() {
 
   const isDirty = useMemo(() => {
     if (!originalProfile) return false;
-    const norm = (v: any) => {
+    const norm = (v: string | string[] | number | null) => {
       if (Array.isArray(v)) return stringifyJsonArray(v);
       if (typeof v === "number") return v;
       return normalizeValue(v);
@@ -129,18 +129,24 @@ export function ProfilePageContent() {
       norm(draftProfile.lastName) !== norm(originalProfile.lastName) ||
       norm(draftProfile.location) !== norm(originalProfile.location) ||
       norm(draftProfile.pronouns) !== norm(originalProfile.pronouns) ||
-      norm(draftProfile.homeDiveRegion) !== norm(originalProfile.homeDiveRegion) ||
+      norm(draftProfile.homeDiveRegion) !==
+        norm(originalProfile.homeDiveRegion) ||
       norm(draftProfile.website) !== norm(originalProfile.website) ||
       norm(draftProfile.languages) !== norm(originalProfile.languages) ||
       norm(draftProfile.bio) !== norm(originalProfile.bio) ||
-      JSON.stringify(draftProfile.primaryDiveTypes || []) !== JSON.stringify(originalProfile.primaryDiveTypes || []) ||
-      norm(draftProfile.experienceLevel) !== norm(originalProfile.experienceLevel) ||
+      JSON.stringify(draftProfile.primaryDiveTypes || []) !==
+        JSON.stringify(originalProfile.primaryDiveTypes || []) ||
+      norm(draftProfile.experienceLevel) !==
+        norm(originalProfile.experienceLevel) ||
       draftProfile.yearsDiving !== originalProfile.yearsDiving ||
-      norm(draftProfile.certifyingAgency) !== norm(originalProfile.certifyingAgency) ||
-      JSON.stringify(draftProfile.typicalDivingEnvironment || []) !== JSON.stringify(originalProfile.typicalDivingEnvironment || []) ||
-      JSON.stringify(draftProfile.lookingFor || []) !== JSON.stringify(originalProfile.lookingFor || []) ||
-      norm(draftProfile.favoriteDiveType) !== norm(originalProfile.favoriteDiveType) ||
-      norm(draftProfile.favoriteDiveLocation) !== norm(originalProfile.favoriteDiveLocation) ||
+      norm(draftProfile.certifyingAgency) !==
+        norm(originalProfile.certifyingAgency) ||
+      JSON.stringify(draftProfile.typicalDivingEnvironment || []) !==
+        JSON.stringify(originalProfile.typicalDivingEnvironment || []) ||
+      JSON.stringify(draftProfile.lookingFor || []) !==
+        JSON.stringify(originalProfile.lookingFor || []) ||
+      norm(draftProfile.favoriteDiveLocation) !==
+        norm(originalProfile.favoriteDiveLocation) ||
       norm(draftProfile.birthday) !== norm(originalProfile.birthday)
     );
   }, [draftProfile, originalProfile]);
@@ -150,7 +156,9 @@ export function ProfilePageContent() {
     setError(null);
     try {
       const response = await fetch("/api/profile");
-      const data = await response.json().catch(() => ({ error: "Failed to parse response" }));
+      const data = await response
+        .json()
+        .catch(() => ({ error: "Failed to parse response" }));
       if (!response.ok) {
         setError(data.error || `Failed to fetch profile (${response.status})`);
         setLoading(false);
@@ -172,13 +180,21 @@ export function ProfilePageContent() {
         bio: data.user.bio || null,
         primaryDiveTypes: parseJsonArray<string>(data.user.primaryDiveTypes),
         experienceLevel: (data.user.experienceLevel as ExperienceLevel) || null,
-        yearsDiving: data.user.yearsDiving !== null && data.user.yearsDiving !== undefined ? Number(data.user.yearsDiving) : null,
+        yearsDiving:
+          data.user.yearsDiving !== null && data.user.yearsDiving !== undefined
+            ? Number(data.user.yearsDiving)
+            : null,
         certifyingAgency: data.user.certifyingAgency || null,
-        typicalDivingEnvironment: parseJsonArray<string>(data.user.typicalDivingEnvironment),
+        typicalDivingEnvironment: parseJsonArray<string>(
+          data.user.typicalDivingEnvironment
+        ),
         lookingFor: parseJsonArray<string>(data.user.lookingFor),
-        favoriteDiveType: data.user.favoriteDiveType || null,
         favoriteDiveLocation: data.user.favoriteDiveLocation || null,
-        birthday: normalizeDate(data.user.birthday ? new Date(data.user.birthday).toISOString().split("T")[0] : null),
+        birthday: normalizeDate(
+          data.user.birthday
+            ? new Date(data.user.birthday).toISOString().split("T")[0]
+            : null
+        ),
       };
       setDraftProfile(profileData);
       setOriginalProfile(profileData);
@@ -199,7 +215,7 @@ export function ProfilePageContent() {
   }, [isAuthenticated]);
 
   const handleFieldClick = (field: string) => {
-    if (mode === "preview") return;
+    if (mode === "view") return;
     setEditingField(field);
     setTimeout(() => {
       const input = inputRefs.current[field];
@@ -212,7 +228,10 @@ export function ProfilePageContent() {
     }, 0);
   };
 
-  const handleFieldChange = (field: keyof ProfileData, value: any) => {
+  const handleFieldChange = (
+    field: keyof ProfileData,
+    value: string | string[] | number | null
+  ) => {
     setDraftProfile((prev) => ({ ...prev, [field]: value }));
     if (success) setSuccess(false);
     if (error) setError(null);
@@ -225,6 +244,7 @@ export function ProfilePageContent() {
     setEditingField(null);
     setError(null);
     setSuccess(false);
+    setMode("view");
   };
 
   const handleSave = async () => {
@@ -232,7 +252,7 @@ export function ProfilePageContent() {
     setError(null);
     setSuccess(false);
     try {
-      const normalizedData: any = {
+      const normalizedData: Record<string, string | number | null> = {
         firstName: normalizeValue(draftProfile.firstName),
         lastName: normalizeValue(draftProfile.lastName),
         location: normalizeValue(draftProfile.location),
@@ -245,29 +265,45 @@ export function ProfilePageContent() {
         experienceLevel: normalizeValue(draftProfile.experienceLevel),
         yearsDiving: draftProfile.yearsDiving,
         certifyingAgency: normalizeValue(draftProfile.certifyingAgency),
-        typicalDivingEnvironment: stringifyJsonArray(draftProfile.typicalDivingEnvironment),
+        typicalDivingEnvironment: stringifyJsonArray(
+          draftProfile.typicalDivingEnvironment
+        ),
         lookingFor: stringifyJsonArray(draftProfile.lookingFor),
-        favoriteDiveType: normalizeValue(draftProfile.favoriteDiveType),
         favoriteDiveLocation: normalizeValue(draftProfile.favoriteDiveLocation),
         birthday: normalizeValue(draftProfile.birthday),
       };
 
-      if (normalizedData.firstName && normalizedData.firstName.length > 50) {
+      if (
+        normalizedData.firstName &&
+        typeof normalizedData.firstName === "string" &&
+        normalizedData.firstName.length > 50
+      ) {
         setError("First name must be 50 characters or less");
         setSaving(false);
         return;
       }
-      if (normalizedData.lastName && normalizedData.lastName.length > 50) {
+      if (
+        normalizedData.lastName &&
+        typeof normalizedData.lastName === "string" &&
+        normalizedData.lastName.length > 50
+      ) {
         setError("Last name must be 50 characters or less");
         setSaving(false);
         return;
       }
-      if (normalizedData.bio && normalizedData.bio.length > 500) {
+      if (
+        normalizedData.bio &&
+        typeof normalizedData.bio === "string" &&
+        normalizedData.bio.length > 500
+      ) {
         setError("Bio must be 500 characters or less");
         setSaving(false);
         return;
       }
-      if (normalizedData.website) {
+      if (
+        normalizedData.website &&
+        typeof normalizedData.website === "string"
+      ) {
         try {
           new URL(normalizedData.website);
         } catch {
@@ -284,7 +320,8 @@ export function ProfilePageContent() {
       });
 
       const data = await response.json();
-      if (!response.ok) throw new Error(data.error || "Failed to update profile");
+      if (!response.ok)
+        throw new Error(data.error || "Failed to update profile");
 
       setUser({
         firstName: data.user.firstName || null,
@@ -303,19 +340,28 @@ export function ProfilePageContent() {
         bio: data.user.bio || null,
         primaryDiveTypes: parseJsonArray<string>(data.user.primaryDiveTypes),
         experienceLevel: (data.user.experienceLevel as ExperienceLevel) || null,
-        yearsDiving: data.user.yearsDiving !== null && data.user.yearsDiving !== undefined ? Number(data.user.yearsDiving) : null,
+        yearsDiving:
+          data.user.yearsDiving !== null && data.user.yearsDiving !== undefined
+            ? Number(data.user.yearsDiving)
+            : null,
         certifyingAgency: data.user.certifyingAgency || null,
-        typicalDivingEnvironment: parseJsonArray<string>(data.user.typicalDivingEnvironment),
+        typicalDivingEnvironment: parseJsonArray<string>(
+          data.user.typicalDivingEnvironment
+        ),
         lookingFor: parseJsonArray<string>(data.user.lookingFor),
-        favoriteDiveType: data.user.favoriteDiveType || null,
         favoriteDiveLocation: data.user.favoriteDiveLocation || null,
-        birthday: normalizeDate(data.user.birthday ? new Date(data.user.birthday).toISOString().split("T")[0] : null),
+        birthday: normalizeDate(
+          data.user.birthday
+            ? new Date(data.user.birthday).toISOString().split("T")[0]
+            : null
+        ),
       };
 
       setDraftProfile(updatedProfile);
       setOriginalProfile(updatedProfile);
       setEditingField(null);
       setSuccess(true);
+      setMode("view"); // Switch back to view mode after successful save
       setTimeout(() => setSuccess(false), 3000);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to update profile");
@@ -334,7 +380,10 @@ export function ProfilePageContent() {
       if (domain.startsWith("www.")) domain = domain.slice(4);
       return domain;
     } catch {
-      let cleaned = url.trim().replace(/^https?:\/\//, "").replace(/\/$/, "");
+      let cleaned = url
+        .trim()
+        .replace(/^https?:\/\//, "")
+        .replace(/\/$/, "");
       if (cleaned.startsWith("www.")) cleaned = cleaned.slice(4);
       return cleaned.split("/")[0];
     }
@@ -386,7 +435,6 @@ export function ProfilePageContent() {
     placeholder: string
   ) => {
     const value = draftProfile[field] || "";
-    const isEmpty = !value;
 
     return (
       <div className={styles.fieldRow}>
@@ -451,7 +499,16 @@ export function ProfilePageContent() {
                 }}
                 type={type}
                 value={value as string | number}
-                onChange={(e) => handleFieldChange(field, type === "number" ? (e.target.value === "" ? null : Number(e.target.value)) : e.target.value)}
+                onChange={(e) =>
+                  handleFieldChange(
+                    field,
+                    type === "number"
+                      ? e.target.value === ""
+                        ? null
+                        : Number(e.target.value)
+                      : e.target.value
+                  )
+                }
                 onBlur={handleFieldBlur}
                 className={styles.fieldInput}
                 placeholder={placeholder}
@@ -476,62 +533,71 @@ export function ProfilePageContent() {
     );
   };
 
-  // Render public profile preview
-  const renderPublicPreview = () => {
-    const fullName = [draftProfile.firstName, draftProfile.lastName]
-      .filter(Boolean)
-      .join(" ") || displayName;
+  // Format birthday for display
+  const formatBirthday = (dateString: string | null): string | null => {
+    if (!dateString) return null;
+    try {
+      const date = new Date(dateString);
+      return date.toLocaleDateString("en-US", {
+        month: "long",
+        day: "numeric",
+        year: "numeric",
+      });
+    } catch {
+      return dateString;
+    }
+  };
 
-    // Build metadata line: Location, Home Dive Region, Experience Level (pronouns appear next to name, not here)
+  // Render public profile view
+  const renderPublicProfile = () => {
+    const fullName =
+      [draftProfile.firstName, draftProfile.lastName]
+        .filter(Boolean)
+        .join(" ") || displayName;
+
+    // Build metadata line: Location, Home Dive Region, Experience Level
     const metadataParts: string[] = [];
     if (draftProfile.location) metadataParts.push(draftProfile.location);
-    if (draftProfile.homeDiveRegion) metadataParts.push(draftProfile.homeDiveRegion);
-    if (draftProfile.experienceLevel) metadataParts.push(draftProfile.experienceLevel);
+    if (draftProfile.homeDiveRegion)
+      metadataParts.push(draftProfile.homeDiveRegion);
+    if (draftProfile.experienceLevel)
+      metadataParts.push(draftProfile.experienceLevel);
     const metadata = metadataParts.join(" · ");
 
     const primaryDiveTypes = draftProfile.primaryDiveTypes || [];
 
-    const tiles: Array<{ label: string; value: string | JSX.Element }> = [];
-    if (draftProfile.yearsDiving !== null && draftProfile.yearsDiving !== undefined) {
-      tiles.push({ label: "Years Diving", value: `${draftProfile.yearsDiving} ${draftProfile.yearsDiving === 1 ? "year" : "years"}` });
-    }
-    if (draftProfile.certifyingAgency) {
-      tiles.push({ label: "Certifying Agency", value: draftProfile.certifyingAgency });
-    }
-    if (draftProfile.typicalDivingEnvironment && draftProfile.typicalDivingEnvironment.length > 0) {
-      tiles.push({ label: "Typical Diving Environment", value: draftProfile.typicalDivingEnvironment.join(", ") });
-    }
-    if (draftProfile.lookingFor && draftProfile.lookingFor.length > 0) {
-      tiles.push({ label: "Looking For", value: draftProfile.lookingFor.join(", ") });
-    }
-    if (draftProfile.languages) {
-      tiles.push({ label: "Languages", value: draftProfile.languages });
-    }
-    if (draftProfile.website) {
-      const websiteDisplay = displayWebsiteUrl(draftProfile.website);
-      tiles.push({
-        label: "Website",
-        value: (
-          <a href={draftProfile.website} target="_blank" rel="noopener noreferrer" className={styles.previewWebsiteLink}>
-            {websiteDisplay}
-            <span className={styles.previewExternalIcon}>↗</span>
-          </a>
-        ),
-      });
-    }
-
-    const hasBio = draftProfile.bio && draftProfile.bio.trim();
-    const hasAnyFields = tiles.length > 0 || hasBio;
+    // Check if sections have content
+    const hasBasicInfo = !!(
+      draftProfile.bio ||
+      draftProfile.birthday ||
+      draftProfile.languages ||
+      draftProfile.website
+    );
+    const hasDivingProfile =
+      !!(
+        draftProfile.yearsDiving !== null &&
+        draftProfile.yearsDiving !== undefined
+      ) ||
+      !!draftProfile.certifyingAgency ||
+      (draftProfile.typicalDivingEnvironment &&
+        draftProfile.typicalDivingEnvironment.length > 0) ||
+      !!draftProfile.favoriteDiveLocation ||
+      (draftProfile.lookingFor && draftProfile.lookingFor.length > 0);
+    const hasCertifications = false; // Placeholder - no certifications model yet
+    const hasGear = false; // Placeholder - gear exists but not shown in profile yet
 
     return (
       <>
+        {/* Header / Overview */}
         <div className={styles.previewHeader}>
           <div className={styles.avatar}>{initials}</div>
           <div className={styles.previewInfo}>
             <div className={styles.nameRow}>
               <h2 className={styles.fullName}>{fullName}</h2>
               {draftProfile.pronouns && (
-                <span className={styles.previewPronouns}>{draftProfile.pronouns}</span>
+                <span className={styles.previewPronouns}>
+                  {draftProfile.pronouns}
+                </span>
               )}
             </div>
             {metadata && <p className={styles.previewSubtitle}>{metadata}</p>}
@@ -549,54 +615,214 @@ export function ProfilePageContent() {
 
         <div className={styles.previewDivider}></div>
 
-        {!hasAnyFields && (
-          <div className={styles.previewEmpty}>
-            <p>This diver hasn&apos;t shared any profile details yet.</p>
-          </div>
-        )}
-
-        {hasAnyFields && (
-          <>
-            {tiles.length > 0 && (
-              <div className={styles.previewTiles}>
-                {tiles.map((tile) => (
-                  <div key={tile.label} className={styles.previewTile}>
-                    <div className={styles.previewTileLabel}>{tile.label}</div>
-                    <div className={styles.previewTileValue}>{tile.value}</div>
+        {/* Section: Basic Info */}
+        <div className={styles.section}>
+          <h3 className={styles.sectionTitle}>Basic Info</h3>
+          {!hasBasicInfo ? (
+            <p className={styles.emptyState}>
+              This user hasn&apos;t shared basic personal details yet.
+            </p>
+          ) : (
+            <div className={styles.previewTiles}>
+              {draftProfile.bio && (
+                <div
+                  className={styles.previewTile}
+                  style={{ gridColumn: "1 / -1" }}
+                >
+                  <div className={styles.previewTileLabel}>About</div>
+                  <div className={styles.previewBioText}>
+                    {draftProfile.bio}
                   </div>
-                ))}
-              </div>
-            )}
+                </div>
+              )}
+              {draftProfile.birthday && (
+                <div className={styles.previewTile}>
+                  <div className={styles.previewTileLabel}>Birthday</div>
+                  <div className={styles.previewTileValue}>
+                    {formatBirthday(draftProfile.birthday)}
+                  </div>
+                </div>
+              )}
+              {draftProfile.languages && (
+                <div className={styles.previewTile}>
+                  <div className={styles.previewTileLabel}>Languages</div>
+                  <div className={styles.previewTileValue}>
+                    {draftProfile.languages}
+                  </div>
+                </div>
+              )}
+              {draftProfile.website && (
+                <div className={styles.previewTile}>
+                  <div className={styles.previewTileLabel}>Website</div>
+                  <div className={styles.previewTileValue}>
+                    <a
+                      href={draftProfile.website}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className={styles.previewWebsiteLink}
+                    >
+                      {displayWebsiteUrl(draftProfile.website)}
+                      <span className={styles.previewExternalIcon}>↗</span>
+                    </a>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
 
-            {hasBio && (
-              <div className={styles.previewBioSection}>
-                <div className={styles.previewTileLabel}>About</div>
-                <div className={styles.previewBioText}>{draftProfile.bio}</div>
-              </div>
-            )}
-          </>
-        )}
+        {/* Section: Diving Profile */}
+        <div className={styles.section}>
+          <h3 className={styles.sectionTitle}>Diving Profile</h3>
+          {!hasDivingProfile ? (
+            <p className={styles.emptyState}>
+              This user hasn&apos;t shared their diving preferences yet.
+            </p>
+          ) : (
+            <div className={styles.previewTiles}>
+              {draftProfile.yearsDiving !== null &&
+                draftProfile.yearsDiving !== undefined && (
+                  <div className={styles.previewTile}>
+                    <div className={styles.previewTileLabel}>Years Diving</div>
+                    <div className={styles.previewTileValue}>
+                      {draftProfile.yearsDiving}{" "}
+                      {draftProfile.yearsDiving === 1 ? "year" : "years"}
+                    </div>
+                  </div>
+                )}
+              {draftProfile.certifyingAgency && (
+                <div className={styles.previewTile}>
+                  <div className={styles.previewTileLabel}>
+                    Certifying Agency
+                  </div>
+                  <div className={styles.previewTileValue}>
+                    {draftProfile.certifyingAgency}
+                  </div>
+                </div>
+              )}
+              {draftProfile.typicalDivingEnvironment &&
+                draftProfile.typicalDivingEnvironment.length > 0 && (
+                  <div className={styles.previewTile}>
+                    <div className={styles.previewTileLabel}>
+                      Typical Diving Environment
+                    </div>
+                    <div className={styles.previewTileValue}>
+                      {draftProfile.typicalDivingEnvironment.join(", ")}
+                    </div>
+                  </div>
+                )}
+              {draftProfile.favoriteDiveLocation && (
+                <div className={styles.previewTile}>
+                  <div className={styles.previewTileLabel}>
+                    Favorite Dive Location
+                  </div>
+                  <div className={styles.previewTileValue}>
+                    {draftProfile.favoriteDiveLocation}
+                  </div>
+                </div>
+              )}
+              {draftProfile.lookingFor &&
+                draftProfile.lookingFor.length > 0 && (
+                  <div className={styles.previewTile}>
+                    <div className={styles.previewTileLabel}>Looking For</div>
+                    <div className={styles.previewTileValue}>
+                      {draftProfile.lookingFor.join(", ")}
+                    </div>
+                  </div>
+                )}
+            </div>
+          )}
+        </div>
+
+        {/* Section: Certifications */}
+        <div className={styles.section}>
+          <h3 className={styles.sectionTitle}>Certifications</h3>
+          {!hasCertifications ? (
+            <p className={styles.emptyState}>
+              This user hasn&apos;t added any certifications yet.
+            </p>
+          ) : (
+            <div className={styles.previewTiles}>
+              {/* Placeholder for certifications */}
+            </div>
+          )}
+        </div>
+
+        {/* Section: Gear */}
+        <div className={styles.section}>
+          <h3 className={styles.sectionTitle}>Gear</h3>
+          {!hasGear ? (
+            <p className={styles.emptyState}>
+              This user hasn&apos;t shared any gear yet.
+            </p>
+          ) : (
+            <div className={styles.previewTiles}>
+              {/* Placeholder for gear */}
+            </div>
+          )}
+        </div>
       </>
     );
   };
+
+  // Render save buttons (used at top and bottom of edit form)
+  const renderSaveButtons = () => (
+    <div className={styles.footer}>
+      {error && <div className={styles.footerError}>{error}</div>}
+      {success && <div className={styles.footerSuccess}>Profile updated</div>}
+      <div className={styles.footerActions}>
+        <button
+          onClick={handleCancel}
+          className={buttonStyles.secondary}
+          type="button"
+          disabled={saving}
+        >
+          Cancel
+        </button>
+        <button
+          onClick={handleSave}
+          className={buttonStyles.primary}
+          type="button"
+          disabled={saving}
+        >
+          {saving ? "Saving..." : "Save"}
+        </button>
+      </div>
+    </div>
+  );
 
   return (
     <div className={styles.container}>
       <div className={styles.header}>
         <h1 className={styles.title}>Profile</h1>
         <div className={styles.headerActions}>
-          {mode === "edit" ? (
-            <button onClick={() => setMode("preview")} className={buttonStyles.secondary} type="button">
-              Preview public profile
-            </button>
+          {mode === "view" ? (
+            <>
+              <button
+                onClick={() => setMode("edit")}
+                className={buttonStyles.primary}
+                type="button"
+              >
+                Edit Profile
+              </button>
+              <Link href="/settings" className={buttonStyles.secondary}>
+                Settings
+              </Link>
+            </>
           ) : (
-            <button onClick={() => setMode("edit")} className={buttonStyles.secondary} type="button">
-              Back to editing
-            </button>
+            <>
+              <button
+                onClick={handleCancel}
+                className={buttonStyles.secondary}
+                type="button"
+              >
+                Cancel
+              </button>
+              <Link href="/settings" className={buttonStyles.secondary}>
+                Settings
+              </Link>
+            </>
           )}
-          <Link href="/settings" className={buttonStyles.secondary}>
-            Settings
-          </Link>
         </div>
       </div>
 
@@ -604,8 +830,14 @@ export function ProfilePageContent() {
         {loading && <p>Loading profile...</p>}
         {error && !loading && (
           <div className={styles.errorContainer}>
-            <p className={formStyles.error}>We couldn&apos;t load your profile. Please try again.</p>
-            <button onClick={fetchProfile} className={buttonStyles.primary} type="button">
+            <p className={formStyles.error}>
+              We couldn&apos;t load your profile. Please try again.
+            </p>
+            <button
+              onClick={fetchProfile}
+              className={buttonStyles.primary}
+              type="button"
+            >
               Retry
             </button>
           </div>
@@ -613,87 +845,154 @@ export function ProfilePageContent() {
 
         {!loading && !error && (
           <>
-            {mode === "preview" ? (
-              renderPublicPreview()
+            {mode === "view" ? (
+              renderPublicProfile()
             ) : (
               <>
-                <div className={styles.profileHeader}>
-                  <div className={styles.avatar}>{initials}</div>
-                  <div className={styles.profileInfo}>
-                    <h2 className={styles.nameLarge}>{displayName}</h2>
-                    <p className={styles.email}>{user?.email}</p>
-                  </div>
-                </div>
+                {/* Save buttons at top */}
+                {isDirty && renderSaveButtons()}
 
-                {/* Section 1: Basic Information */}
+                {/* Section: Basic Info */}
                 <div className={styles.section}>
-                  <h3 className={styles.sectionTitle}>Basic Information</h3>
+                  <h3 className={styles.sectionTitle}>Basic Info</h3>
                   <div className={styles.twoColumnGrid}>
-                    {renderEditableField("firstName", "First Name", "Add your first name", "text", 50)}
-                    {renderEditableField("lastName", "Last Name", "Add your last name", "text", 50)}
-                    {renderEditableField("location", "Location (City, Country)", "Add your location", "text")}
-                    {renderEditableField("pronouns", "Pronouns", "e.g. he/him, she/her, they/them", "text")}
-                    {renderEditableField("homeDiveRegion", "Home Dive Region", "Add your home dive region", "text")}
-                    {renderEditableField("website", "Website", "Add your website", "url")}
-                    {renderEditableField("languages", "Languages", "Add languages (comma-separated)", "text")}
+                    {/* First Name and Last Name on same row */}
+                    <div
+                      style={{
+                        display: "grid",
+                        gridTemplateColumns: "1fr 1fr",
+                        gap: "var(--space-4)",
+                        gridColumn: "1 / -1",
+                      }}
+                    >
+                      {renderEditableField(
+                        "firstName",
+                        "First Name",
+                        "Add your first name",
+                        "text",
+                        50
+                      )}
+                      {renderEditableField(
+                        "lastName",
+                        "Last Name",
+                        "Add your last name",
+                        "text",
+                        50
+                      )}
+                    </div>
+                    {renderEditableField(
+                      "pronouns",
+                      "Pronouns",
+                      "e.g. he/him, she/her, they/them",
+                      "text"
+                    )}
+                    {/* Bio is full width */}
+                    <div style={{ gridColumn: "1 / -1" }}>
+                      {renderEditableField(
+                        "bio",
+                        "About",
+                        "Add a short personal and/or diving bio",
+                        "textarea",
+                        500
+                      )}
+                    </div>
+                    {renderEditableField(
+                      "birthday",
+                      "Birthday",
+                      "Add your birthday",
+                      "date"
+                    )}
+                    {renderEditableField(
+                      "languages",
+                      "Languages",
+                      "Add languages (comma-separated)",
+                      "text"
+                    )}
+                    {renderEditableField(
+                      "website",
+                      "Website",
+                      "Add your website",
+                      "url"
+                    )}
                   </div>
                 </div>
 
-                {/* Section 2: About You */}
-                <div className={styles.section}>
-                  <h3 className={styles.sectionTitle}>About You</h3>
-                  {renderEditableField("bio", "About", "Add a short personal and/or diving bio", "textarea", 500)}
-                </div>
-
-                {/* Section 3: Diving Profile */}
+                {/* Section: Diving Profile */}
                 <div className={styles.section}>
                   <h3 className={styles.sectionTitle}>Diving Profile</h3>
                   <div className={styles.twoColumnGrid}>
-                    {renderMultiSelect("primaryDiveTypes", "Primary Dive Types", DIVE_TYPES)}
-                    {renderSelect("experienceLevel", "Experience Level", ["Beginner", "Intermediate", "Advanced"] as const, "Select experience level")}
-                    {renderEditableField("yearsDiving", "Years Diving", "Add years of experience", "number")}
-                    {renderSelect("certifyingAgency", "Certifying Agency", CERTIFYING_AGENCIES, "Select certifying agency")}
-                    {renderMultiSelect("typicalDivingEnvironment", "Typical Diving Environment", DIVING_ENVIRONMENTS)}
-                    {renderMultiSelect("lookingFor", "Looking For", LOOKING_FOR_OPTIONS)}
+                    {renderMultiSelect(
+                      "primaryDiveTypes",
+                      "Primary Dive Types",
+                      DIVE_TYPES
+                    )}
+                    {renderEditableField(
+                      "yearsDiving",
+                      "Years Diving",
+                      "Add years of experience",
+                      "number"
+                    )}
+                    {renderSelect(
+                      "certifyingAgency",
+                      "Certifying Agency",
+                      CERTIFYING_AGENCIES,
+                      "Select certifying agency"
+                    )}
+                    {renderSelect(
+                      "experienceLevel",
+                      "Experience Level",
+                      ["Beginner", "Intermediate", "Advanced"] as const,
+                      "Select experience level"
+                    )}
+                    {renderMultiSelect(
+                      "typicalDivingEnvironment",
+                      "Typical Diving Environment",
+                      DIVING_ENVIRONMENTS
+                    )}
+                    {renderEditableField(
+                      "favoriteDiveLocation",
+                      "Favorite Dive Location",
+                      "Add your favorite dive location",
+                      "text"
+                    )}
+                    {renderMultiSelect(
+                      "lookingFor",
+                      "Looking For",
+                      LOOKING_FOR_OPTIONS
+                    )}
                   </div>
                 </div>
 
-                {/* Section 4: Additional Details (Collapsible) */}
+                {/* Section: Certifications */}
                 <div className={styles.section}>
-                  <button
-                    type="button"
-                    className={styles.sectionToggle}
-                    onClick={() => setShowAdditionalDetails(!showAdditionalDetails)}
+                  <h3 className={styles.sectionTitle}>Certifications</h3>
+                  <p
+                    className={styles.emptyState}
+                    style={{
+                      fontStyle: "italic",
+                      color: "var(--color-text-secondary)",
+                    }}
                   >
-                    <h3 className={styles.sectionTitle}>Additional Details</h3>
-                    <ChevronDown
-                      className={`${styles.chevron} ${showAdditionalDetails ? styles.chevronOpen : ""}`}
-                    />
-                  </button>
-                  {showAdditionalDetails && (
-                    <div className={styles.twoColumnGrid}>
-                      {renderEditableField("favoriteDiveType", "Favorite Dive Type", "Add your favorite dive type", "text")}
-                      {renderEditableField("favoriteDiveLocation", "Favorite Dive Location", "Add your favorite dive location", "text")}
-                      {renderEditableField("birthday", "Birthday", "Add your birthday", "date")}
-                    </div>
-                  )}
+                    Certification management coming soon.
+                  </p>
                 </div>
 
-                {/* Save/Cancel Footer */}
-                {isDirty && (
-                  <div className={styles.footer}>
-                    {error && <div className={styles.footerError}>{error}</div>}
-                    {success && <div className={styles.footerSuccess}>Profile updated</div>}
-                    <div className={styles.footerActions}>
-                      <button onClick={handleCancel} className={buttonStyles.secondary} type="button" disabled={saving}>
-                        Cancel
-                      </button>
-                      <button onClick={handleSave} className={buttonStyles.primary} type="button" disabled={saving}>
-                        {saving ? "Saving..." : "Save"}
-                      </button>
-                    </div>
-                  </div>
-                )}
+                {/* Section: Gear */}
+                <div className={styles.section}>
+                  <h3 className={styles.sectionTitle}>Gear</h3>
+                  <p
+                    className={styles.emptyState}
+                    style={{
+                      fontStyle: "italic",
+                      color: "var(--color-text-secondary)",
+                    }}
+                  >
+                    Gear management coming soon.
+                  </p>
+                </div>
+
+                {/* Save buttons at bottom */}
+                {isDirty && renderSaveButtons()}
               </>
             )}
           </>
@@ -702,4 +1001,3 @@ export function ProfilePageContent() {
     </div>
   );
 }
-

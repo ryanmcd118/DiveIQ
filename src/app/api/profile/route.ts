@@ -74,7 +74,6 @@ export async function GET() {
         certifyingAgency: true,
         typicalDivingEnvironment: true,
         lookingFor: true,
-        favoriteDiveType: true,
         favoriteDiveLocation: true,
       },
     });
@@ -215,7 +214,6 @@ export async function PATCH(req: NextRequest) {
       certifyingAgency,
       typicalDivingEnvironment,
       lookingFor,
-      favoriteDiveType,
       favoriteDiveLocation,
     } = body;
 
@@ -240,7 +238,6 @@ export async function PATCH(req: NextRequest) {
     const normalizedCertifyingAgency = normalizeString(certifyingAgency);
     const normalizedTypicalDivingEnvironment = normalizeString(typicalDivingEnvironment);
     const normalizedLookingFor = normalizeString(lookingFor);
-    const normalizedFavoriteDiveType = normalizeString(favoriteDiveType);
     const normalizedFavoriteDiveLocation = normalizeString(favoriteDiveLocation);
 
     // Validate firstName/lastName max length (if provided)
@@ -339,7 +336,6 @@ export async function PATCH(req: NextRequest) {
         ...(certifyingAgency !== undefined && { certifyingAgency: normalizedCertifyingAgency }),
         ...(typicalDivingEnvironment !== undefined && { typicalDivingEnvironment: normalizedTypicalDivingEnvironment }),
         ...(lookingFor !== undefined && { lookingFor: normalizedLookingFor }),
-        ...(favoriteDiveType !== undefined && { favoriteDiveType: normalizedFavoriteDiveType }),
         ...(favoriteDiveLocation !== undefined && { favoriteDiveLocation: normalizedFavoriteDiveLocation }),
       },
       select: {
@@ -361,7 +357,6 @@ export async function PATCH(req: NextRequest) {
         certifyingAgency: true,
         typicalDivingEnvironment: true,
         lookingFor: true,
-        favoriteDiveType: true,
         favoriteDiveLocation: true,
       },
     });
