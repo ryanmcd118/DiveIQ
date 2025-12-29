@@ -186,15 +186,6 @@
 }
 
 /* Danger Zone */
-.dangerZone {
-  border-color: rgba(239, 68, 68, 0.2);
-  background: linear-gradient(
-    180deg,
-    rgba(239, 68, 68, 0.03) 0%,
-    rgba(239, 68, 68, 0.01) 100%
-  );
-}
-
 .dangerContent {
   display: flex;
   flex-direction: column;
@@ -203,12 +194,25 @@
 
 .dangerWarning {
   font-size: var(--font-size-sm);
-  color: var(--color-danger-text);
+  color: var(--color-text-muted);
   line-height: 1.5;
-  padding: var(--space-3);
-  background-color: rgba(239, 68, 68, 0.1);
-  border: 1px solid rgba(239, 68, 68, 0.2);
-  border-radius: var(--radius-md);
+}
+
+.dangerWarning strong {
+  color: var(--color-danger-text);
+  font-weight: var(--font-weight-medium);
+}
+
+.dangerAction {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+}
+
+@media (max-width: 640px) {
+  .dangerAction {
+    justify-content: flex-start;
+  }
 }
 
 /* Responsive adjustments */

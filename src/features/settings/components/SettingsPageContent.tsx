@@ -26,19 +26,9 @@ export function SettingsPageContent() {
     diveSafetyTips: false,
   });
 
-  const [safety, setSafety] = useState({
-    emergencyContactName: "",
-    emergencyContactPhone: "",
-    medicalNotes: "",
-  });
-
-  // TODO: Fetch account providers from API in Prompt 2/3
-  // For now, we infer from session data
-  // If user has email, assume they can have password (even if not set)
-  // Check session for Google OAuth indicator if available
-  // Need to query Account model to determine which providers are linked
-  const hasPassword = true; // TODO: Check if user has password set via /api/user/accounts or similar endpoint
-  const hasGoogle = false; // TODO: Check if user has Google account linked via /api/user/accounts or similar endpoint
+  // Account provider detection will be wired in a future update
+  const hasPassword = true;
+  const hasGoogle = false;
 
   const email = session?.user?.email || "";
 
@@ -233,11 +223,8 @@ export function SettingsPageContent() {
               </div>
             </div>
 
-            <p className={styles.helperText}>
-              These preferences will apply across DiveIQ.
-            </p>
             <p className={styles.helperTextNote}>
-              Note: Settings are not yet saved. TODO: Implement unit preferences API in Prompt 2/3.
+              These preferences will apply across DiveIQ when saved.
             </p>
           </section>
 
@@ -298,83 +285,10 @@ export function SettingsPageContent() {
               </div>
             </div>
 
-            <p className={styles.helperTextNote}>
-              TODO: Implement notification preferences API in Prompt 2/3.
-            </p>
-          </section>
-
-          {/* Safety & Emergency Section */}
-          <section className={cardStyles.card}>
-            <div className={styles.sectionHeader}>
-              <h2 className={styles.sectionTitle}>Safety & Emergency</h2>
-              <p className={styles.sectionDescription}>
-                Emergency contact information and medical notes.
-              </p>
-            </div>
-
-            <div className={styles.settingsList}>
-              <div className={styles.settingRow}>
-                <div className={formStyles.field}>
-                  <label htmlFor="safety-contact-name" className={formStyles.label}>
-                    Emergency contact name
-                  </label>
-                  <input
-                    id="safety-contact-name"
-                    type="text"
-                    value={safety.emergencyContactName}
-                    onChange={(e) =>
-                      setSafety({ ...safety, emergencyContactName: e.target.value })
-                    }
-                    className={formStyles.input}
-                    disabled
-                  />
-                </div>
-              </div>
-
-              <div className={styles.settingRow}>
-                <div className={formStyles.field}>
-                  <label htmlFor="safety-contact-phone" className={formStyles.label}>
-                    Emergency contact phone
-                  </label>
-                  <input
-                    id="safety-contact-phone"
-                    type="tel"
-                    value={safety.emergencyContactPhone}
-                    onChange={(e) =>
-                      setSafety({ ...safety, emergencyContactPhone: e.target.value })
-                    }
-                    className={formStyles.input}
-                    disabled
-                  />
-                </div>
-              </div>
-
-              <div className={styles.settingRow}>
-                <div className={formStyles.field}>
-                  <label htmlFor="safety-medical-notes" className={formStyles.label}>
-                    Medical notes
-                  </label>
-                  <textarea
-                    id="safety-medical-notes"
-                    value={safety.medicalNotes}
-                    onChange={(e) =>
-                      setSafety({ ...safety, medicalNotes: e.target.value })
-                    }
-                    className={formStyles.textarea}
-                    rows={4}
-                    disabled
-                  />
-                </div>
-              </div>
-            </div>
-
-            <p className={styles.helperTextNote}>
-              TODO: Implement safety & emergency contact API in Prompt 2/3.
-            </p>
           </section>
 
           {/* Danger Zone Section */}
-          <section className={`${cardStyles.card} ${styles.dangerZone}`}>
+          <section className={cardStyles.card}>
             <div className={styles.sectionHeader}>
               <h2 className={styles.sectionTitle}>Danger Zone</h2>
               <p className={styles.sectionDescription}>
@@ -384,16 +298,18 @@ export function SettingsPageContent() {
 
             <div className={styles.dangerContent}>
               <p className={styles.dangerWarning}>
-                Warning: This action cannot be undone. This will permanently delete your
-                account and remove all of your data from our servers.
+                <strong>This action cannot be undone.</strong> This will permanently delete your account
+                and remove all of your data from our servers.
               </p>
-              <button
-                type="button"
-                onClick={() => setShowDeleteModal(true)}
-                className={buttonStyles.danger}
-              >
-                Delete account
-              </button>
+              <div className={styles.dangerAction}>
+                <button
+                  type="button"
+                  onClick={() => setShowDeleteModal(true)}
+                  className={buttonStyles.danger}
+                >
+                  Delete account
+                </button>
+              </div>
             </div>
           </section>
         </div>
