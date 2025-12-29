@@ -3,6 +3,7 @@
 import { useState, useEffect, useMemo, useRef } from "react";
 import Link from "next/link";
 import { useAuth } from "@/features/auth/hooks/useAuth";
+import { Avatar } from "@/components/Avatar/Avatar";
 import cardStyles from "@/styles/components/Card.module.css";
 import formStyles from "@/styles/components/Form.module.css";
 import buttonStyles from "@/styles/components/Button.module.css";
@@ -33,12 +34,14 @@ interface ProfileData {
   lookingFor: string[] | null;
   favoriteDiveLocation: string | null;
   birthday: string | null;
+  avatarUrl: string | null;
 }
 
 interface UserData {
   firstName: string | null;
   lastName: string | null;
   email: string;
+  avatarUrl: string | null;
 }
 
 function formatUserName(user: UserData | null): string {
@@ -76,7 +79,7 @@ function normalizeDate(dateString: string | null): string | null {
 type ViewMode = "view" | "edit";
 
 export function ProfilePageContent() {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user: authUser } = useAuth();
   const [user, setUser] = useState<UserData | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -101,6 +104,7 @@ export function ProfilePageContent() {
     lookingFor: null,
     favoriteDiveLocation: null,
     birthday: null,
+    avatarUrl: null,
   });
   const [originalProfile, setOriginalProfile] = useState<ProfileData | null>(
     null
@@ -168,6 +172,7 @@ export function ProfilePageContent() {
         firstName: data.user.firstName || null,
         lastName: data.user.lastName || null,
         email: data.user.email || "",
+        avatarUrl: data.user.avatarUrl || null,
       });
       const profileData: ProfileData = {
         firstName: data.user.firstName || null,
@@ -195,6 +200,7 @@ export function ProfilePageContent() {
             ? new Date(data.user.birthday).toISOString().split("T")[0]
             : null
         ),
+        avatarUrl: data.user.avatarUrl || null,
       };
       setDraftProfile(profileData);
       setOriginalProfile(profileData);
@@ -327,6 +333,7 @@ export function ProfilePageContent() {
         firstName: data.user.firstName || null,
         lastName: data.user.lastName || null,
         email: data.user.email || "",
+        avatarUrl: data.user.avatarUrl || null,
       });
 
       const updatedProfile: ProfileData = {
@@ -355,6 +362,7 @@ export function ProfilePageContent() {
             ? new Date(data.user.birthday).toISOString().split("T")[0]
             : null
         ),
+        avatarUrl: data.user.avatarUrl || null,
       };
 
       setDraftProfile(updatedProfile);
@@ -590,7 +598,14 @@ export function ProfilePageContent() {
       <>
         {/* Header / Overview */}
         <div className={styles.previewHeader}>
-          <div className={styles.avatar}>{initials}</div>
+          <Avatar
+            firstName={draftProfile.firstName}
+            lastName={draftProfile.lastName}
+            avatarUrl={draftProfile.avatarUrl}
+            fallbackImageUrl={authUser?.image ?? null}
+            size="md"
+            editable={false}
+          />
           <div className={styles.previewInfo}>
             <div className={styles.nameRow}>
               <h2 className={styles.fullName}>{fullName}</h2>
@@ -851,6 +866,37 @@ export function ProfilePageContent() {
               <>
                 {/* Save buttons at top */}
                 {isDirty && renderSaveButtons()}
+
+                {/* Edit Mode Header with Avatar */}
+                <div className={styles.previewHeader}>
+                  <Avatar
+                    firstName={draftProfile.firstName}
+                    lastName={draftProfile.lastName}
+                    avatarUrl={draftProfile.avatarUrl}
+                    fallbackImageUrl={authUser?.image ?? null}
+                    size="md"
+                    editable={true}
+                    onAvatarUpdated={async (newUrl) => {
+                      // Update local state
+                      setDraftProfile((prev) => ({ ...prev, avatarUrl: newUrl }));
+                      setUser((prev) => prev ? { ...prev, avatarUrl: newUrl } : null);
+                      // Refresh profile data
+                      await fetchProfile();
+                    }}
+                  />
+                  <div className={styles.previewInfo}>
+                    <div className={styles.nameRow}>
+                      <h2 className={styles.fullName}>
+                        {[draftProfile.firstName, draftProfile.lastName]
+                          .filter(Boolean)
+                          .join(" ") || displayName}
+                      </h2>
+                    </div>
+                    <p className={styles.previewSubtitle}>Edit your profile</p>
+                  </div>
+                </div>
+
+                <div className={styles.previewDivider}></div>
 
                 {/* Section: Basic Info */}
                 <div className={styles.section}>

@@ -16,6 +16,7 @@ model User {
   firstName     String?   // User's first name
   lastName      String?   // User's last name (nullable for Google OAuth users)
   image         String?
+  avatarUrl     String?   // Canonical avatar URL (preferred over image)
   birthday      DateTime? // User's birthday (private, not displayed publicly)
   location      String?   // User's location (city, country)
   bio           String?   // User's bio/about

@@ -3,7 +3,10 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useSession } from "next-auth/react";
 import { useAuth } from "@/features/auth/hooks/useAuth";
+import { useMe } from "@/features/auth/hooks/useMe";
+import { Avatar } from "@/components/Avatar/Avatar";
 import { NavbarUnitToggle } from "@/components/NavbarUnitToggle";
 import styles from "./TopBar.module.css";
 
@@ -14,7 +17,9 @@ interface TopBarProps {
 const ALLOWED_UNITS_TOGGLE_PATHS = ["/dashboard", "/plan", "/dive-logs"];
 
 export function TopBar({ onMenuClick }: TopBarProps) {
+  const { data: session } = useSession();
   const { user, signOutUser } = useAuth();
+  const { me } = useMe();
   const pathname = usePathname();
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
@@ -27,11 +32,14 @@ export function TopBar({ onMenuClick }: TopBarProps) {
   }, []);
 
   const showUnitsToggle = ALLOWED_UNITS_TOGGLE_PATHS.includes(pathname);
-  const firstName = user?.firstName || "User";
-  const displayName = user?.firstName && user?.lastName 
-    ? `${user.firstName} ${user.lastName}` 
-    : user?.firstName || "User";
-  const initials = firstName.charAt(0).toUpperCase();
+  const firstName = me?.firstName ?? user?.firstName ?? "User";
+  const displayName = (me?.firstName && me?.lastName)
+    ? `${me.firstName} ${me.lastName}`
+    : me?.firstName ?? user?.firstName ?? "User";
+  
+  // Use DB-fresh avatarUrl from /api/me, fallback to session.user.image for OAuth users
+  const avatarUrl = me?.avatarUrl ?? null;
+  const fallbackImageUrl = session?.user?.image ?? me?.image ?? null;
 
   return (
     <header className={styles.topBar}>
@@ -55,7 +63,14 @@ export function TopBar({ onMenuClick }: TopBarProps) {
             onClick={() => setShowProfileMenu(!showProfileMenu)}
             aria-label="Profile menu"
           >
-            <div className={styles.avatar}>{initials}</div>
+            <Avatar
+              firstName={me?.firstName ?? user?.firstName ?? null}
+              lastName={me?.lastName ?? user?.lastName ?? null}
+              avatarUrl={avatarUrl}
+              fallbackImageUrl={fallbackImageUrl}
+              size="sm"
+              editable={false}
+            />
           </button>
           {showProfileMenu && (
             <>
@@ -65,10 +80,17 @@ export function TopBar({ onMenuClick }: TopBarProps) {
               />
               <div className={styles.profileMenu}>
                 <div className={styles.profileMenuHeader}>
-                  <div className={styles.avatar}>{initials}</div>
+                  <Avatar
+                    firstName={me?.firstName ?? user?.firstName ?? null}
+                    lastName={me?.lastName ?? user?.lastName ?? null}
+                    avatarUrl={avatarUrl}
+                    fallbackImageUrl={fallbackImageUrl}
+                    size="md"
+                    editable={false}
+                  />
                   <div>
                     <div className={styles.profileName}>{displayName}</div>
-                    <div className={styles.profileEmail}>{user?.email}</div>
+                    <div className={styles.profileEmail}>{me?.email ?? user?.email}</div>
                   </div>
                 </div>
                 <div className={styles.profileMenuDivider} />
