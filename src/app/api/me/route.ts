@@ -29,6 +29,12 @@ export async function GET(req: NextRequest) {
         lastName: true,
         avatarUrl: true,
         image: true,
+        password: true, // Include password to check if credentials account exists
+        accounts: {
+          select: {
+            provider: true,
+          },
+        },
       },
     });
 
@@ -39,6 +45,10 @@ export async function GET(req: NextRequest) {
       );
     }
 
+    // Check sign-in methods
+    const hasPassword = !!user.password;
+    const hasGoogle = user.accounts.some((acc) => acc.provider === "google");
+
     return NextResponse.json({
       id: user.id,
       email: user.email,
@@ -46,6 +56,8 @@ export async function GET(req: NextRequest) {
       lastName: user.lastName,
       avatarUrl: user.avatarUrl,
       image: user.image,
+      hasPassword,
+      hasGoogle,
     });
   } catch (error) {
     if (process.env.NODE_ENV === 'development') {

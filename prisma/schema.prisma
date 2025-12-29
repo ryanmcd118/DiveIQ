@@ -13,6 +13,7 @@ model User {
   email         String    @unique
   emailVerified DateTime?
   password      String?   // hashed password for credentials provider
+  sessionVersion Int      @default(0) // Incremented to invalidate all JWT sessions except current
   firstName     String?   // User's first name
   lastName      String?   // User's last name (nullable for Google OAuth users)
   image         String?

@@ -9,6 +9,7 @@ declare module "next-auth" {
       lastName: string | null;
       image?: string;
       avatarUrl?: string | null;
+      sessionVersion?: number;
     };
   }
 
@@ -29,6 +30,8 @@ declare module "next-auth/jwt" {
     firstName: string | null;
     lastName: string | null;
     avatarUrl?: string | null;
+    sessionVersion?: number;
+    invalidated?: boolean;
   }
 }
 

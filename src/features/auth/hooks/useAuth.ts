@@ -84,7 +84,7 @@ export function useAuth() {
   };
 
   return {
-    user: session?.user,
+    user: session?.user ?? null,
     isAuthenticated: status === "authenticated",
     isLoading: status === "loading" || isLoading,
     signInUser,

@@ -31,8 +31,8 @@ export function PlanForm({
   onCancelEdit,
   onDeletePlan,
 }: PlanFormProps) {
-  const { data: session } = useSession();
-  const isAuthenticated = !!session;
+  const { data: session, status } = useSession();
+  const isAuthenticated = status === "authenticated";
   const { unitSystem } = useUnitSystemOrLocal();
   
   // Helper to convert metric to UI units for display
