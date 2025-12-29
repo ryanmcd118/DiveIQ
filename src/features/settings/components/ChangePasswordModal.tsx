@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, FormEvent } from "react";
+import { useState, useEffect, FormEvent, useCallback } from "react";
 import buttonStyles from "@/styles/components/Button.module.css";
 import formStyles from "@/styles/components/Form.module.css";
 import styles from "./ChangePasswordModal.module.css";
@@ -21,29 +21,41 @@ export function ChangePasswordModal({ isOpen, onClose, onSuccess }: ChangePasswo
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Reset form when modal opens/closes
+  // Reset all modal state
+  const resetState = useCallback(() => {
+    setCurrentPassword("");
+    setNewPassword("");
+    setConfirmPassword("");
+    setShowCurrentPassword(false);
+    setShowNewPassword(false);
+    setShowConfirmPassword(false);
+    setError(null);
+    setIsSubmitting(false);
+  }, []);
+
+  // Handle close with state reset
+  const handleClose = useCallback(() => {
+    resetState();
+    onClose();
+  }, [resetState, onClose]);
+
+  // Reset form when modal opens
   useEffect(() => {
     if (isOpen) {
-      setCurrentPassword("");
-      setNewPassword("");
-      setConfirmPassword("");
-      setError(null);
-      setShowCurrentPassword(false);
-      setShowNewPassword(false);
-      setShowConfirmPassword(false);
+      resetState();
     }
-  }, [isOpen]);
+  }, [isOpen, resetState]);
 
   // Handle escape key
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
       if (e.key === "Escape" && isOpen && !isSubmitting) {
-        onClose();
+        handleClose();
       }
     };
     document.addEventListener("keydown", handleEscape);
     return () => document.removeEventListener("keydown", handleEscape);
-  }, [isOpen, onClose, isSubmitting]);
+  }, [isOpen, isSubmitting, handleClose]);
 
   // Prevent body scroll when modal is open
   useEffect(() => {
@@ -106,18 +118,17 @@ export function ChangePasswordModal({ isOpen, onClose, onSuccess }: ChangePasswo
       if (!response.ok) {
         if (response.status === 401) {
           setError("You need to be signed in.");
-          setIsSubmitting(false);
           return;
         }
         if (response.status === 400) {
           setError(data.error || "Invalid request. Please check your current password.");
-          setIsSubmitting(false);
           return;
         }
         throw new Error(data.error || `Failed to change password (${response.status})`);
       }
 
       // Success - close modal and show toast
+      // State will be reset when modal closes (via handleClose) or when it reopens (via useEffect)
       onClose();
       if (onSuccess) {
         onSuccess();
@@ -129,6 +140,8 @@ export function ChangePasswordModal({ isOpen, onClose, onSuccess }: ChangePasswo
           ? err.message
           : "Something went wrong changing your password. Please try again."
       );
+    } finally {
+      // Always reset submitting state, even on success or error
       setIsSubmitting(false);
     }
   };
@@ -136,12 +149,12 @@ export function ChangePasswordModal({ isOpen, onClose, onSuccess }: ChangePasswo
   if (!isOpen) return null;
 
   return (
-    <div className={styles.overlay} onClick={isSubmitting ? undefined : onClose}>
+    <div className={styles.overlay} onClick={isSubmitting ? undefined : handleClose}>
       <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
         {!isSubmitting && (
           <button
             className={styles.closeButton}
-            onClick={onClose}
+            onClick={handleClose}
             aria-label="Close modal"
           >
             ×
@@ -269,7 +282,7 @@ export function ChangePasswordModal({ isOpen, onClose, onSuccess }: ChangePasswo
           <div className={styles.actions}>
             <button
               type="button"
-              onClick={onClose}
+              onClick={handleClose}
               className={buttonStyles.secondary}
               disabled={isSubmitting}
             >

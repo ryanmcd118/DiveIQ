@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
+import { getToken } from "next-auth/jwt";
+import { encode } from "next-auth/jwt";
 import { authOptions } from "@/features/auth/lib/auth";
 import { prisma } from "@/lib/prisma";
 import bcrypt from "bcryptjs";
@@ -89,39 +91,67 @@ export async function PUT(req: NextRequest) {
     // Hash new password
     const hashedNewPassword = await bcrypt.hash(newPassword, 10);
 
-    // Get current session token from cookies
-    const cookieStore = await cookies();
-    const sessionToken = 
-      cookieStore.get("next-auth.session-token")?.value ||
-      cookieStore.get("__Secure-next-auth.session-token")?.value ||
-      null;
-
-    // Update password and delete other sessions in a transaction
-    await prisma.$transaction(async (tx) => {
-      // Update password
-      await tx.user.update({
-        where: { id: userId },
-        data: { password: hashedNewPassword },
-      });
-
-      // Delete all other sessions (keep current one if we found it)
-      if (sessionToken) {
-        await tx.session.deleteMany({
-          where: {
-            userId,
-            sessionToken: { not: sessionToken },
-          },
-        });
-      } else {
-        // If we can't find the current session token, delete all sessions
-        // This is safe but may sign the user out
-        await tx.session.deleteMany({
-          where: { userId },
-        });
-      }
+    // Get current JWT token to preserve its data
+    const currentToken = await getToken({
+      req: req as any,
+      secret: process.env.NEXTAUTH_SECRET,
     });
 
-    return NextResponse.json({ success: true });
+    if (!currentToken || !currentToken.id) {
+      return NextResponse.json(
+        { error: "Session token not found" },
+        { status: 401 }
+      );
+    }
+
+    // Update password and increment sessionVersion in a transaction
+    const updatedUser = await prisma.$transaction(async (tx) => {
+      // Update password and increment sessionVersion atomically
+      return await tx.user.update({
+        where: { id: userId },
+        data: {
+          password: hashedNewPassword,
+          sessionVersion: { increment: 1 } as any,
+        },
+        select: {
+          sessionVersion: true,
+        },
+      });
+    });
+
+    // Create a new JWT token with updated sessionVersion to keep current session alive
+    const newTokenPayload = {
+      ...currentToken,
+      sessionVersion: (updatedUser as any).sessionVersion ?? 0,
+    };
+
+    // Encode the new token
+    const newToken = await encode({
+      token: newTokenPayload,
+      secret: process.env.NEXTAUTH_SECRET!,
+      maxAge: 30 * 24 * 60 * 60, // 30 days (NextAuth default)
+    });
+
+    // Determine cookie name based on environment
+    const isProduction = process.env.NODE_ENV === "production";
+    const cookieName = isProduction
+      ? "__Secure-next-auth.session-token"
+      : "next-auth.session-token";
+
+    // Create response with success
+    const response = NextResponse.json({ success: true });
+
+    // Set the new JWT cookie with updated sessionVersion
+    // This keeps the current session alive while invalidating all others
+    response.cookies.set(cookieName, newToken, {
+      httpOnly: true,
+      secure: isProduction,
+      sameSite: "lax",
+      path: "/",
+      maxAge: 30 * 24 * 60 * 60, // 30 days
+    });
+
+    return response;
   } catch (err) {
     console.error("Error changing password:", err);
     return NextResponse.json(

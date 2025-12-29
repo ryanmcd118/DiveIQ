@@ -55,10 +55,14 @@ export function SettingsPageContent() {
       }
     };
 
-    if (session?.user) {
+    if (session?.user?.id) {
       fetchAccountInfo();
+    } else {
+      // Reset account info when logged out
+      setAccountInfo(null);
+      setIsLoadingAccountInfo(false);
     }
-  }, [session]);
+  }, [session?.user?.id]);
 
   const hasPassword = accountInfo?.hasPassword ?? false;
   const hasGoogle = accountInfo?.hasGoogle ?? false;
@@ -375,11 +379,13 @@ export function SettingsPageContent() {
         onClose={() => setShowDeleteModal(false)}
       />
 
-      <ChangePasswordModal
-        isOpen={showChangePasswordModal}
-        onClose={() => setShowChangePasswordModal(false)}
-        onSuccess={handlePasswordChangeSuccess}
-      />
+      {showChangePasswordModal && (
+        <ChangePasswordModal
+          isOpen={showChangePasswordModal}
+          onClose={() => setShowChangePasswordModal(false)}
+          onSuccess={handlePasswordChangeSuccess}
+        />
+      )}
 
       {showToast && (
         <div className={styles.toast}>
