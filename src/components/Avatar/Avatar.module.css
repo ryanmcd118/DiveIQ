@@ -64,8 +64,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background-color: var(--color-surface);
-  border: 2px solid var(--color-bg-primary);
+  background-color: #0b1220;
+  border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: var(--radius-full);
   padding: var(--space-1);
   cursor: pointer;
@@ -74,6 +74,9 @@
   pointer-events: auto;
   width: 28px;
   height: 28px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  opacity: 1;
+  color: #ffffff;
 }
 
 .sizeSm .editOverlay {
@@ -93,8 +96,19 @@
 }
 
 .editOverlay:hover {
-  background-color: var(--color-surface-hover);
+  background-color: #1a2332;
+  border-color: rgba(255, 255, 255, 0.2);
   transform: scale(1.05);
+}
+
+.editOverlay:focus {
+  outline: 2px solid var(--color-accent-primary);
+  outline-offset: 2px;
+}
+
+.editOverlay:focus-visible {
+  outline: 2px solid var(--color-accent-primary);
+  outline-offset: 2px;
 }
 
 .hiddenFileInput {

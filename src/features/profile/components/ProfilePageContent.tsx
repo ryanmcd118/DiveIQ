@@ -604,14 +604,7 @@ export function ProfilePageContent() {
             avatarUrl={draftProfile.avatarUrl}
             fallbackImageUrl={authUser?.image ?? null}
             size="md"
-            editable={true}
-            onAvatarUpdated={async (newUrl) => {
-              // Update local state
-              setDraftProfile((prev) => ({ ...prev, avatarUrl: newUrl }));
-              setUser((prev) => prev ? { ...prev, avatarUrl: newUrl } : null);
-              // Refresh profile data
-              await fetchProfile();
-            }}
+            editable={false}
           />
           <div className={styles.previewInfo}>
             <div className={styles.nameRow}>
@@ -873,6 +866,37 @@ export function ProfilePageContent() {
               <>
                 {/* Save buttons at top */}
                 {isDirty && renderSaveButtons()}
+
+                {/* Edit Mode Header with Avatar */}
+                <div className={styles.previewHeader}>
+                  <Avatar
+                    firstName={draftProfile.firstName}
+                    lastName={draftProfile.lastName}
+                    avatarUrl={draftProfile.avatarUrl}
+                    fallbackImageUrl={authUser?.image ?? null}
+                    size="md"
+                    editable={true}
+                    onAvatarUpdated={async (newUrl) => {
+                      // Update local state
+                      setDraftProfile((prev) => ({ ...prev, avatarUrl: newUrl }));
+                      setUser((prev) => prev ? { ...prev, avatarUrl: newUrl } : null);
+                      // Refresh profile data
+                      await fetchProfile();
+                    }}
+                  />
+                  <div className={styles.previewInfo}>
+                    <div className={styles.nameRow}>
+                      <h2 className={styles.fullName}>
+                        {[draftProfile.firstName, draftProfile.lastName]
+                          .filter(Boolean)
+                          .join(" ") || displayName}
+                      </h2>
+                    </div>
+                    <p className={styles.previewSubtitle}>Edit your profile</p>
+                  </div>
+                </div>
+
+                <div className={styles.previewDivider}></div>
 
                 {/* Section: Basic Info */}
                 <div className={styles.section}>

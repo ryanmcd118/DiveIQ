@@ -164,7 +164,10 @@ export function Avatar({
           aria-label="Edit avatar"
           title="Upload avatar"
         >
-          <Pencil size={16} />
+          <Pencil 
+            size={size === "sm" ? 12 : size === "md" ? 16 : 20} 
+            color="#ffffff" 
+          />
         </button>
       )}
 
