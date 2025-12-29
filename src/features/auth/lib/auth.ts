@@ -270,7 +270,7 @@ export const authOptions: NextAuthOptions = {
       // For credentials provider, allow sign-in
       return true;
     },
-    async jwt({ token, user, account }) {
+    async jwt({ token, user, account, trigger }) {
       if (user) {
         // Always set token.id from user.id (this is critical)
         token.id = user.id;
@@ -294,6 +294,45 @@ export const authOptions: NextAuthOptions = {
           }
         }
       }
+
+      // When session is updated (e.g., after avatar upload)
+      if (trigger === "update") {
+        // Check for avatarUrl in multiple possible shapes from update() call
+        let newAvatarUrl: string | null | undefined = undefined;
+        
+        // Shape 1: update({ avatarUrl: "..." })
+        if ((user as any)?.avatarUrl !== undefined) {
+          newAvatarUrl = (user as any).avatarUrl as string | null | undefined;
+        }
+        // Shape 2: update({ user: { avatarUrl: "..." } })
+        else if ((user as any)?.user?.avatarUrl !== undefined) {
+          newAvatarUrl = (user as any).user.avatarUrl as string | null | undefined;
+        }
+        // Shape 3: update({ session: { avatarUrl: "..." } })
+        else if ((user as any)?.session?.avatarUrl !== undefined) {
+          newAvatarUrl = (user as any).session.avatarUrl as string | null | undefined;
+        }
+        
+        if (newAvatarUrl !== undefined) {
+          token.avatarUrl = newAvatarUrl;
+          if (process.env.NODE_ENV === 'development') {
+            console.log('[NextAuth JWT] Updated avatarUrl from update() call:', newAvatarUrl);
+          }
+        } else if (token.id) {
+          // Fallback: re-fetch avatarUrl from DB to ensure it's up to date
+          const dbUser = await prisma.user.findUnique({
+            where: { id: token.id as string },
+            select: { avatarUrl: true },
+          });
+          if (dbUser) {
+            token.avatarUrl = dbUser.avatarUrl;
+            if (process.env.NODE_ENV === 'development') {
+              console.log('[NextAuth JWT] Fetched avatarUrl from DB:', dbUser.avatarUrl);
+            }
+          }
+        }
+      }
+
       return token;
     },
     async session({ session, token }) {
@@ -304,6 +343,11 @@ export const authOptions: NextAuthOptions = {
         session.user.firstName = token.firstName as string | null;
         session.user.lastName = token.lastName as string | null;
         session.user.avatarUrl = (token.avatarUrl as string | null | undefined) || null;
+        
+        if (process.env.NODE_ENV === 'development') {
+          console.log('[NextAuth Session] token.avatarUrl:', token.avatarUrl);
+          console.log('[NextAuth Session] session.user.avatarUrl:', session.user.avatarUrl);
+        }
       }
       return session;
     },

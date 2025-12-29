@@ -87,10 +87,14 @@ export function Avatar({
         throw new Error(data.error || "Failed to update avatar");
       }
 
-      // Update session
-      await update();
+      // Update session with new avatarUrl
+      // This triggers the JWT callback with trigger === "update"
+      // The session will automatically update in all useSession() hooks
+      await update({
+        avatarUrl: url,
+      });
 
-      // Refresh router to update UI
+      // Refresh router to update UI (for server components)
       router.refresh();
 
       // Call callback if provided
