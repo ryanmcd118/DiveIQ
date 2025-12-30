@@ -1,0 +1,202 @@
+[
+  {
+    "agency": "PADI",
+    "name": "Open Water Diver",
+    "slug": "open-water-diver",
+    "levelRank": 1,
+    "category": "core",
+    "badgeImageUrl": null
+  },
+  {
+    "agency": "PADI",
+    "name": "Advanced Open Water Diver",
+    "slug": "advanced-open-water-diver",
+    "levelRank": 2,
+    "category": "core",
+    "badgeImageUrl": null
+  },
+  {
+    "agency": "PADI",
+    "name": "Rescue Diver",
+    "slug": "rescue-diver",
+    "levelRank": 3,
+    "category": "core",
+    "badgeImageUrl": null
+  },
+  {
+    "agency": "PADI",
+    "name": "Divemaster",
+    "slug": "divemaster",
+    "levelRank": 4,
+    "category": "core",
+    "badgeImageUrl": null
+  },
+  {
+    "agency": "PADI",
+    "name": "Instructor (OWSI)",
+    "slug": "instructor-owsi",
+    "levelRank": 5,
+    "category": "core",
+    "badgeImageUrl": null
+  },
+  {
+    "agency": "PADI",
+    "name": "Enriched Air (Nitrox)",
+    "slug": "enriched-air-nitrox",
+    "levelRank": 10,
+    "category": "specialty",
+    "badgeImageUrl": null
+  },
+  {
+    "agency": "PADI",
+    "name": "Deep Diver",
+    "slug": "deep-diver",
+    "levelRank": 11,
+    "category": "specialty",
+    "badgeImageUrl": null
+  },
+  {
+    "agency": "PADI",
+    "name": "Wreck Diver",
+    "slug": "wreck-diver",
+    "levelRank": 12,
+    "category": "specialty",
+    "badgeImageUrl": null
+  },
+  {
+    "agency": "PADI",
+    "name": "Dry Suit Diver",
+    "slug": "dry-suit-diver",
+    "levelRank": 13,
+    "category": "specialty",
+    "badgeImageUrl": null
+  },
+  {
+    "agency": "PADI",
+    "name": "Peak Performance Buoyancy",
+    "slug": "peak-performance-buoyancy",
+    "levelRank": 14,
+    "category": "specialty",
+    "badgeImageUrl": null
+  },
+  {
+    "agency": "PADI",
+    "name": "Night Diver",
+    "slug": "night-diver",
+    "levelRank": 15,
+    "category": "specialty",
+    "badgeImageUrl": null
+  },
+  {
+    "agency": "PADI",
+    "name": "Underwater Navigator",
+    "slug": "underwater-navigator",
+    "levelRank": 16,
+    "category": "specialty",
+    "badgeImageUrl": null
+  },
+  {
+    "agency": "PADI",
+    "name": "Search & Recovery",
+    "slug": "search-recovery",
+    "levelRank": 17,
+    "category": "specialty",
+    "badgeImageUrl": null
+  },
+  {
+    "agency": "SSI",
+    "name": "Open Water Diver",
+    "slug": "open-water-diver",
+    "levelRank": 1,
+    "category": "core",
+    "badgeImageUrl": null
+  },
+  {
+    "agency": "SSI",
+    "name": "Advanced Adventurer",
+    "slug": "advanced-adventurer",
+    "levelRank": 2,
+    "category": "core",
+    "badgeImageUrl": null
+  },
+  {
+    "agency": "SSI",
+    "name": "Stress & Rescue",
+    "slug": "stress-rescue",
+    "levelRank": 3,
+    "category": "core",
+    "badgeImageUrl": null
+  },
+  {
+    "agency": "SSI",
+    "name": "Divemaster",
+    "slug": "divemaster",
+    "levelRank": 4,
+    "category": "core",
+    "badgeImageUrl": null
+  },
+  {
+    "agency": "SSI",
+    "name": "Instructor",
+    "slug": "instructor",
+    "levelRank": 5,
+    "category": "core",
+    "badgeImageUrl": null
+  },
+  {
+    "agency": "SSI",
+    "name": "Enriched Air Nitrox",
+    "slug": "enriched-air-nitrox",
+    "levelRank": 10,
+    "category": "specialty",
+    "badgeImageUrl": null
+  },
+  {
+    "agency": "SSI",
+    "name": "Deep Diving",
+    "slug": "deep-diving",
+    "levelRank": 11,
+    "category": "specialty",
+    "badgeImageUrl": null
+  },
+  {
+    "agency": "SSI",
+    "name": "Wreck Diving",
+    "slug": "wreck-diving",
+    "levelRank": 12,
+    "category": "specialty",
+    "badgeImageUrl": null
+  },
+  {
+    "agency": "SSI",
+    "name": "Dry Suit Diving",
+    "slug": "dry-suit-diving",
+    "levelRank": 13,
+    "category": "specialty",
+    "badgeImageUrl": null
+  },
+  {
+    "agency": "SSI",
+    "name": "Perfect Buoyancy",
+    "slug": "perfect-buoyancy",
+    "levelRank": 14,
+    "category": "specialty",
+    "badgeImageUrl": null
+  },
+  {
+    "agency": "SSI",
+    "name": "Night Diving",
+    "slug": "night-diving",
+    "levelRank": 15,
+    "category": "specialty",
+    "badgeImageUrl": null
+  },
+  {
+    "agency": "SSI",
+    "name": "Navigation",
+    "slug": "navigation",
+    "levelRank": 16,
+    "category": "specialty",
+    "badgeImageUrl": null
+  }
+]
