@@ -7,6 +7,7 @@ import { Avatar } from "@/components/Avatar/Avatar";
 import cardStyles from "@/styles/components/Card.module.css";
 import formStyles from "@/styles/components/Form.module.css";
 import buttonStyles from "@/styles/components/Button.module.css";
+import settingsStyles from "@/features/settings/components/SettingsPageContent.module.css";
 import styles from "./ProfilePageContent.module.css";
 import { parseJsonArray, stringifyJsonArray } from "../utils/parseJsonArray";
 import {
@@ -16,6 +17,9 @@ import {
   CERTIFYING_AGENCIES,
   type ExperienceLevel,
 } from "../types";
+import { ProfileCertifications } from "./ProfileCertifications";
+import { ProfileGear } from "./ProfileGear";
+import { GearKitWithItems } from "@/services/database/repositories/gearRepository";
 
 interface ProfileData {
   firstName: string | null;
@@ -35,6 +39,8 @@ interface ProfileData {
   favoriteDiveLocation: string | null;
   birthday: string | null;
   avatarUrl: string | null;
+  showCertificationsOnProfile: boolean;
+  showGearOnProfile: boolean;
 }
 
 interface UserData {
@@ -105,10 +111,18 @@ export function ProfilePageContent() {
     favoriteDiveLocation: null,
     birthday: null,
     avatarUrl: null,
+    showCertificationsOnProfile: true,
+    showGearOnProfile: true,
   });
   const [originalProfile, setOriginalProfile] = useState<ProfileData | null>(
     null
   );
+
+  // Kit selection state
+  const [kits, setKits] = useState<GearKitWithItems[]>([]);
+  const [profileKitIds, setProfileKitIds] = useState<string[]>([]);
+  const [originalProfileKitIds, setOriginalProfileKitIds] = useState<string[]>([]);
+  const [kitsLoading, setKitsLoading] = useState(false);
 
   const [editingField, setEditingField] = useState<string | null>(null);
   const inputRefs = useRef<{
@@ -151,9 +165,12 @@ export function ProfilePageContent() {
         JSON.stringify(originalProfile.lookingFor || []) ||
       norm(draftProfile.favoriteDiveLocation) !==
         norm(originalProfile.favoriteDiveLocation) ||
-      norm(draftProfile.birthday) !== norm(originalProfile.birthday)
+      norm(draftProfile.birthday) !== norm(originalProfile.birthday) ||
+      draftProfile.showCertificationsOnProfile !== originalProfile.showCertificationsOnProfile ||
+      draftProfile.showGearOnProfile !== originalProfile.showGearOnProfile ||
+      JSON.stringify(profileKitIds.sort()) !== JSON.stringify(originalProfileKitIds.sort())
     );
-  }, [draftProfile, originalProfile]);
+  }, [draftProfile, originalProfile, profileKitIds, originalProfileKitIds]);
 
   const fetchProfile = async () => {
     setLoading(true);
@@ -201,14 +218,42 @@ export function ProfilePageContent() {
             : null
         ),
         avatarUrl: data.user.avatarUrl || null,
+        showCertificationsOnProfile: data.user.showCertificationsOnProfile !== undefined 
+          ? Boolean(data.user.showCertificationsOnProfile)
+          : true,
+        showGearOnProfile: data.user.showGearOnProfile !== undefined 
+          ? Boolean(data.user.showGearOnProfile)
+          : true,
       };
       setDraftProfile(profileData);
       setOriginalProfile(profileData);
+      
+      // Extract profile kit IDs
+      const kitIds = data.user.profileKitIds || [];
+      setProfileKitIds(kitIds);
+      setOriginalProfileKitIds(kitIds);
+      
       setError(null);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to load profile");
     } finally {
       setLoading(false);
+    }
+  };
+
+  // Fetch kits
+  const fetchKits = async () => {
+    setKitsLoading(true);
+    try {
+      const response = await fetch("/api/gear-kits");
+      if (response.ok) {
+        const data = await response.json();
+        setKits(data.kits || []);
+      }
+    } catch (err) {
+      console.error("Failed to fetch kits:", err);
+    } finally {
+      setKitsLoading(false);
     }
   };
 
@@ -218,6 +263,7 @@ export function ProfilePageContent() {
       return;
     }
     fetchProfile();
+    fetchKits();
   }, [isAuthenticated]);
 
   const handleFieldClick = (field: string) => {
@@ -258,7 +304,7 @@ export function ProfilePageContent() {
     setError(null);
     setSuccess(false);
     try {
-      const normalizedData: Record<string, string | number | null> = {
+      const normalizedData: Record<string, string | number | boolean | null> = {
         firstName: normalizeValue(draftProfile.firstName),
         lastName: normalizeValue(draftProfile.lastName),
         location: normalizeValue(draftProfile.location),
@@ -277,6 +323,9 @@ export function ProfilePageContent() {
         lookingFor: stringifyJsonArray(draftProfile.lookingFor),
         favoriteDiveLocation: normalizeValue(draftProfile.favoriteDiveLocation),
         birthday: normalizeValue(draftProfile.birthday),
+        showCertificationsOnProfile: draftProfile.showCertificationsOnProfile,
+        showGearOnProfile: draftProfile.showGearOnProfile,
+        profileKitIds: profileKitIds,
       };
 
       if (
@@ -363,10 +412,21 @@ export function ProfilePageContent() {
             : null
         ),
         avatarUrl: data.user.avatarUrl || null,
+        showCertificationsOnProfile: data.user.showCertificationsOnProfile !== undefined 
+          ? Boolean(data.user.showCertificationsOnProfile)
+          : true,
+        showGearOnProfile: data.user.showGearOnProfile !== undefined 
+          ? Boolean(data.user.showGearOnProfile)
+          : true,
       };
 
       setDraftProfile(updatedProfile);
       setOriginalProfile(updatedProfile);
+      
+      // Update profile kit IDs
+      const updatedKitIds = data.user.profileKitIds || [];
+      setProfileKitIds(updatedKitIds);
+      setOriginalProfileKitIds(updatedKitIds);
       setEditingField(null);
       setSuccess(true);
       setMode("view"); // Switch back to view mode after successful save
@@ -591,7 +651,8 @@ export function ProfilePageContent() {
         draftProfile.typicalDivingEnvironment.length > 0) ||
       !!draftProfile.favoriteDiveLocation ||
       (draftProfile.lookingFor && draftProfile.lookingFor.length > 0);
-    const hasCertifications = false; // Placeholder - no certifications model yet
+    // Certifications will be loaded by ProfileCertifications component
+    const hasCertifications = true; // Always show section, component handles empty state
     const hasGear = false; // Placeholder - gear exists but not shown in profile yet
 
     return (
@@ -750,32 +811,20 @@ export function ProfilePageContent() {
         </div>
 
         {/* Section: Certifications */}
-        <div className={styles.section}>
-          <h3 className={styles.sectionTitle}>Certifications</h3>
-          {!hasCertifications ? (
-            <p className={styles.emptyState}>
-              This user hasn&apos;t added any certifications yet.
-            </p>
-          ) : (
-            <div className={styles.previewTiles}>
-              {/* Placeholder for certifications */}
-            </div>
-          )}
-        </div>
+        {draftProfile.showCertificationsOnProfile && (
+          <div className={styles.section}>
+            <h3 className={styles.sectionTitle}>Certifications</h3>
+            <ProfileCertifications isOwner={true} />
+          </div>
+        )}
 
         {/* Section: Gear */}
-        <div className={styles.section}>
-          <h3 className={styles.sectionTitle}>Gear</h3>
-          {!hasGear ? (
-            <p className={styles.emptyState}>
-              This user hasn&apos;t shared any gear yet.
-            </p>
-          ) : (
-            <div className={styles.previewTiles}>
-              {/* Placeholder for gear */}
-            </div>
-          )}
-        </div>
+        {draftProfile.showGearOnProfile && (
+          <div className={styles.section}>
+            <h3 className={styles.sectionTitle}>Gear</h3>
+            <ProfileGear />
+          </div>
+        )}
       </>
     );
   };
@@ -1009,32 +1058,169 @@ export function ProfilePageContent() {
                   </div>
                 </div>
 
-                {/* Section: Certifications */}
-                <div className={styles.section}>
-                  <h3 className={styles.sectionTitle}>Certifications</h3>
-                  <p
-                    className={styles.emptyState}
-                    style={{
-                      fontStyle: "italic",
-                      color: "var(--color-text-secondary)",
-                    }}
-                  >
-                    Certification management coming soon.
-                  </p>
-                </div>
+                {/* Section: Profile Visibility */}
+                <div className={`${cardStyles.card} ${styles.section}`}>
+                  <div className={settingsStyles.sectionHeader}>
+                    <h3 className={settingsStyles.sectionTitle}>Profile visibility</h3>
+                    <p className={settingsStyles.sectionDescription}>
+                      Choose what&apos;s shown on your public profile.
+                    </p>
+                  </div>
 
-                {/* Section: Gear */}
-                <div className={styles.section}>
-                  <h3 className={styles.sectionTitle}>Gear</h3>
-                  <p
-                    className={styles.emptyState}
-                    style={{
-                      fontStyle: "italic",
-                      color: "var(--color-text-secondary)",
-                    }}
-                  >
-                    Gear management coming soon.
-                  </p>
+                  <div className={settingsStyles.settingsList}>
+                    {/* Certifications Toggle */}
+                    <div className={settingsStyles.settingRow}>
+                      <div className={settingsStyles.settingLabel}>
+                        <label htmlFor="profile-visibility-certs">
+                          Show certifications on profile
+                        </label>
+                      </div>
+                      <div className={settingsStyles.settingControl}>
+                        <label className={settingsStyles.toggle}>
+                          <input
+                            id="profile-visibility-certs"
+                            type="checkbox"
+                            checked={draftProfile.showCertificationsOnProfile}
+                            onChange={(e) =>
+                              handleFieldChange("showCertificationsOnProfile", e.target.checked)
+                            }
+                          />
+                          <span className={settingsStyles.toggleSlider}></span>
+                        </label>
+                      </div>
+                    </div>
+                    <div style={{ marginTop: "var(--space-1)", marginLeft: "0" }}>
+                      <p className={settingsStyles.helperText}>
+                        Displays your certifications section on your profile.
+                      </p>
+                    </div>
+
+                    {/* Gear Toggle */}
+                    <div className={settingsStyles.settingRow}>
+                      <div className={settingsStyles.settingLabel}>
+                        <label htmlFor="profile-visibility-gear">
+                          Show gear on profile
+                        </label>
+                      </div>
+                      <div className={settingsStyles.settingControl}>
+                        <label className={settingsStyles.toggle}>
+                          <input
+                            id="profile-visibility-gear"
+                            type="checkbox"
+                            checked={draftProfile.showGearOnProfile}
+                            onChange={(e) =>
+                              handleFieldChange("showGearOnProfile", e.target.checked)
+                            }
+                          />
+                          <span className={settingsStyles.toggleSlider}></span>
+                        </label>
+                      </div>
+                    </div>
+                    <div style={{ marginTop: "var(--space-1)", marginLeft: "0" }}>
+                      <p className={settingsStyles.helperText}>
+                        Displays your gear section on your profile.
+                      </p>
+                    </div>
+
+                    {/* Kit selection checklist - only show when toggle is ON */}
+                    {draftProfile.showGearOnProfile && (
+                      <div style={{ marginTop: "var(--space-4)", marginLeft: "0" }}>
+                        <h4 style={{ 
+                          fontSize: "var(--font-size-sm)",
+                          fontWeight: "var(--font-weight-medium)",
+                          marginBottom: "var(--space-2)",
+                          color: "var(--color-text-primary)"
+                        }}>
+                          Choose kits to display
+                        </h4>
+                        
+                        {kitsLoading ? (
+                          <p className={settingsStyles.helperText}>Loading kits...</p>
+                        ) : kits.length === 0 ? (
+                          <p className={settingsStyles.helperText}>
+                            <Link href="/gear" style={{ color: "var(--color-primary)", textDecoration: "underline" }}>
+                              Add a kit
+                            </Link> to get started.
+                          </p>
+                        ) : (
+                          <div style={{ 
+                            display: "flex",
+                            flexDirection: "column",
+                            gap: "var(--space-2)"
+                          }}>
+                            {kits.map((kit) => {
+                              const itemCount = kit.kitItems?.length || 0;
+                              const isChecked = profileKitIds.includes(kit.id);
+                              
+                              return (
+                                <label
+                                  key={kit.id}
+                                  style={{
+                                    display: "flex",
+                                    alignItems: "flex-start",
+                                    gap: "var(--space-2)",
+                                    cursor: "pointer",
+                                    padding: "var(--space-2)",
+                                    borderRadius: "var(--radius-sm)",
+                                    transition: "background-color 0.15s",
+                                  }}
+                                  onMouseEnter={(e) => {
+                                    e.currentTarget.style.backgroundColor = "var(--color-surface-hover)";
+                                  }}
+                                  onMouseLeave={(e) => {
+                                    e.currentTarget.style.backgroundColor = "transparent";
+                                  }}
+                                >
+                                  <input
+                                    type="checkbox"
+                                    checked={isChecked}
+                                    onChange={(e) => {
+                                      if (e.target.checked) {
+                                        setProfileKitIds([...profileKitIds, kit.id]);
+                                      } else {
+                                        setProfileKitIds(profileKitIds.filter((id) => id !== kit.id));
+                                      }
+                                    }}
+                                    style={{
+                                      marginTop: "2px",
+                                      cursor: "pointer",
+                                    }}
+                                  />
+                                  <div style={{ flex: 1 }}>
+                                    <div style={{
+                                      fontSize: "var(--font-size-sm)",
+                                      color: "var(--color-text-primary)",
+                                      fontWeight: "var(--font-weight-medium)",
+                                    }}>
+                                      {kit.name}
+                                    </div>
+                                    <div style={{
+                                      fontSize: "var(--font-size-xs)",
+                                      color: "var(--color-text-secondary)",
+                                      marginTop: "2px",
+                                    }}>
+                                      {itemCount} {itemCount === 1 ? "item" : "items"}
+                                    </div>
+                                  </div>
+                                </label>
+                              );
+                            })}
+                          </div>
+                        )}
+                        
+                        {draftProfile.showGearOnProfile && profileKitIds.length === 0 && kits.length > 0 && (
+                          <p style={{
+                            marginTop: "var(--space-2)",
+                            fontSize: "var(--font-size-xs)",
+                            color: "var(--color-text-secondary)",
+                            fontStyle: "italic",
+                          }}>
+                            No kits selected — your gear section won&apos;t appear yet.
+                          </p>
+                        )}
+                      </div>
+                    )}
+                  </div>
                 </div>
 
                 {/* Save buttons at bottom */}
