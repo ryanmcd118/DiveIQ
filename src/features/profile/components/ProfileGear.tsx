@@ -87,8 +87,31 @@ export function ProfileGear() {
     return null;
   }
 
-  // Format gear type for display (e.g., "DIVE_COMPUTER" -> "Dive Computer")
+  // Format gear type for display with standardized capitalization
   const formatGearType = (type: string): string => {
+    // Normalize to uppercase for consistent matching
+    const normalized = type.toUpperCase();
+    
+    // Map to standardized display names
+    const typeMap: Record<string, string> = {
+      "BCD": "BCD",
+      "REGULATOR": "Regulator",
+      "WETSUIT": "Wetsuit",
+      "DIVE_COMPUTER": "Dive Computer",
+      "FINS": "Fins",
+      "MASK": "Mask",
+      "SNORKEL": "Snorkel",
+      "TANK": "Tank",
+      "WEIGHTS": "Weights",
+      "OTHER": "Other",
+    };
+    
+    // Return mapped value or format as fallback
+    if (typeMap[normalized]) {
+      return typeMap[normalized];
+    }
+    
+    // Fallback: format underscore-separated types
     return type
       .split("_")
       .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
