@@ -1,7 +1,7 @@
 .container {
   display: flex;
   flex-direction: column;
-  gap: var(--space-3);
+  gap: var(--space-4);
 }
 
 .loading {
@@ -15,43 +15,67 @@
   font-size: var(--font-size-sm);
   color: var(--color-text-muted);
   margin: 0;
+  padding: var(--space-4);
+  text-align: center;
 }
 
-.certList {
+/* Highlights Section */
+.highlightsSection {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.highlightsLabel {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.highlightsGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-3);
+}
+
+.highlightCard {
   display: flex;
   flex-direction: column;
   gap: var(--space-2);
+  padding: var(--space-3);
+  background: rgba(6, 182, 212, 0.05);
+  border: 1px solid rgba(6, 182, 212, 0.15);
+  border-radius: var(--radius-md);
+  transition: all var(--transition-base);
 }
 
-.certItem {
-  display: flex;
-  align-items: center;
-  padding: var(--space-2) 0;
-  border-bottom: 1px solid rgba(148, 163, 184, 0.1);
+.highlightCard:hover {
+  background: rgba(6, 182, 212, 0.08);
+  border-color: rgba(6, 182, 212, 0.25);
+  transform: translateY(-2px);
 }
 
-.certItem:last-child {
-  border-bottom: none;
+.highlightName {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-primary);
+  line-height: 1.4;
 }
 
-.certInfo {
+.highlightMeta {
   display: flex;
   align-items: center;
   gap: var(--space-2);
-  flex: 1;
+  flex-wrap: wrap;
 }
 
-.certName {
-  font-size: var(--font-size-sm);
-  font-weight: var(--font-weight-medium);
-  color: var(--color-text-primary);
-}
-
-.agencyTag {
+.highlightAgencyTag {
   display: inline-block;
   padding: 2px var(--space-2);
-  background: rgba(6, 182, 212, 0.1);
-  border: 1px solid rgba(6, 182, 212, 0.2);
+  background: rgba(6, 182, 212, 0.15);
+  border: 1px solid rgba(6, 182, 212, 0.25);
   border-radius: var(--radius-full);
   font-size: var(--font-size-xs);
   font-weight: var(--font-weight-medium);
@@ -60,6 +84,88 @@
   letter-spacing: 0.05em;
 }
 
+.highlightYear {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+}
+
+/* Other Certs Section */
+.otherCertsSection {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding-top: var(--space-4);
+  border-top: 1px solid rgba(148, 163, 184, 0.1);
+}
+
+.otherCertsLabel {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: var(--space-1);
+}
+
+.otherCertsList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.otherCertsItem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  padding: var(--space-2) 0;
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  border-bottom: 1px solid rgba(148, 163, 184, 0.05);
+}
+
+.otherCertsItem:last-child {
+  border-bottom: none;
+}
+
+.otherCertsName {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--color-text-secondary);
+}
+
+.otherCertsMeta {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-shrink: 0;
+}
+
+.otherCertsAgencyTag {
+  display: inline-block;
+  padding: 1px var(--space-1);
+  background: rgba(148, 163, 184, 0.1);
+  border: 1px solid rgba(148, 163, 184, 0.15);
+  border-radius: var(--radius-full);
+  font-size: 10px;
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.otherCertsYear {
+  font-size: 10px;
+  color: var(--color-text-disabled);
+}
+
+/* View All Link */
 .viewAll {
   margin-top: var(--space-2);
   padding-top: var(--space-3);
@@ -77,5 +183,18 @@
 .viewAllLink:hover {
   color: var(--accent-light);
   text-decoration: underline;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .highlightsGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 480px) {
+  .highlightsGrid {
+    grid-template-columns: 1fr;
+  }
 }
 
