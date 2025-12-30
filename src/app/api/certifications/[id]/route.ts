@@ -14,7 +14,7 @@ import { updateUserCertificationSchema } from "@/features/certifications/types";
  */
 export async function PATCH(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> | { id: string } }
 ) {
   const session = await getServerSession(authOptions);
 
@@ -24,12 +24,14 @@ export async function PATCH(
 
   try {
     const body = await req.json();
+    const resolvedParams = await Promise.resolve(params);
+    const certId = resolvedParams.id;
 
     // Validate input
     const validationResult = updateUserCertificationSchema.safeParse(body);
     if (!validationResult.success) {
       return NextResponse.json(
-        { error: "Invalid input", details: validationResult.error.errors },
+        { error: "Invalid input", details: validationResult.error.issues },
         { status: 400 }
       );
     }
@@ -38,7 +40,7 @@ export async function PATCH(
 
     // Verify the certification exists and belongs to the user
     const existing = await prisma.userCertification.findUnique({
-      where: { id: params.id },
+      where: { id: certId },
     });
 
     if (!existing) {
@@ -78,9 +80,19 @@ export async function PATCH(
     */
 
     // Build update data
-    const updateData: any = {};
+    const updateData: {
+      earnedDate?: Date | null;
+      certNumber?: string | null;
+      diveShop?: string | null;
+      location?: string | null;
+      instructor?: string | null;
+      notes?: string | null;
+      isFeatured?: boolean;
+    } = {};
     if (data.earnedDate !== undefined) {
-      updateData.earnedDate = data.earnedDate ? new Date(data.earnedDate) : null;
+      updateData.earnedDate = data.earnedDate
+        ? new Date(data.earnedDate)
+        : null;
     }
     if (data.certNumber !== undefined) {
       updateData.certNumber = data.certNumber || null;
@@ -103,7 +115,7 @@ export async function PATCH(
 
     // Update the certification
     const updated = await prisma.userCertification.update({
-      where: { id: params.id },
+      where: { id: certId },
       data: updateData,
       include: {
         certificationDefinition: {
@@ -123,7 +135,10 @@ export async function PATCH(
     return NextResponse.json({ certification: updated });
   } catch (err) {
     console.error("PATCH /api/certifications/[id] error", err);
-    if (err instanceof Error && err.message.includes("Record to update not found")) {
+    if (
+      err instanceof Error &&
+      err.message.includes("Record to update not found")
+    ) {
       return NextResponse.json(
         { error: "Certification not found" },
         { status: 404 }
@@ -144,7 +159,7 @@ export async function PATCH(
  */
 export async function DELETE(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> | { id: string } }
 ) {
   const session = await getServerSession(authOptions);
 
@@ -153,9 +168,12 @@ export async function DELETE(
   }
 
   try {
+    const resolvedParams = await Promise.resolve(params);
+    const certId = resolvedParams.id;
+
     // Verify the certification exists and belongs to the user
     const existing = await prisma.userCertification.findUnique({
-      where: { id: params.id },
+      where: { id: certId },
     });
 
     if (!existing) {
@@ -174,13 +192,16 @@ export async function DELETE(
 
     // Delete the certification
     await prisma.userCertification.delete({
-      where: { id: params.id },
+      where: { id: certId },
     });
 
     return NextResponse.json({ ok: true });
   } catch (err) {
     console.error("DELETE /api/certifications/[id] error", err);
-    if (err instanceof Error && err.message.includes("Record to delete does not exist")) {
+    if (
+      err instanceof Error &&
+      err.message.includes("Record to delete does not exist")
+    ) {
       return NextResponse.json(
         { error: "Certification not found" },
         { status: 404 }
@@ -192,4 +213,3 @@ export async function DELETE(
     );
   }
 }
-

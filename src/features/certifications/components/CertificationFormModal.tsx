@@ -9,7 +9,7 @@ import styles from "./CertificationFormModal.module.css";
 interface Props {
   isOpen: boolean;
   onClose: () => void;
-  onSave: () => void;
+  onSave: (success: boolean, errorMessage?: string) => void;
   editingCert: UserCertification | null;
   definitions: CertificationDefinition[];
 }
@@ -175,10 +175,12 @@ export function CertificationFormModal({
         }
       }
 
-      onSave();
+      onSave(true);
     } catch (err) {
       console.error(err);
-      setError(err instanceof Error ? err.message : "Failed to save certification");
+      const errorMessage = err instanceof Error ? err.message : "Failed to save certification";
+      setError(errorMessage);
+      onSave(false, errorMessage);
     } finally {
       setLoading(false);
     }

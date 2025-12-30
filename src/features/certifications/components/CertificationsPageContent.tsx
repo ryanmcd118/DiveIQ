@@ -146,16 +146,23 @@ export function CertificationsPageContent() {
       });
 
       if (!res.ok) {
-        throw new Error("Failed to delete");
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || "Failed to delete certification");
       }
 
+      // Optimistically remove from UI
+      setCertifications((prev) => prev.filter((c) => c.id !== deleteConfirm));
+      
       setDeleteConfirm(null);
       setToast({ message: "Certification deleted" });
+      
+      // Refetch to ensure consistency
       void loadData();
     } catch (err) {
       console.error(err);
+      const errorMessage = err instanceof Error ? err.message : "Failed to delete certification";
       setDeleteConfirm(null);
-      alert("Failed to delete certification");
+      setToast({ message: errorMessage });
     }
   };
 
@@ -191,11 +198,18 @@ export function CertificationsPageContent() {
     }
   };
 
-  const handleSave = () => {
-    setShowForm(false);
-    setEditingCert(null);
-    setToast({ message: editingCert ? "Certification updated" : "Certification added" });
-    void loadData();
+  const handleSave = (success: boolean = true, errorMessage?: string) => {
+    if (success) {
+      setShowForm(false);
+      setEditingCert(null);
+      setToast({ message: editingCert ? "Certification updated" : "Certification added" });
+      void loadData();
+    } else {
+      // Error is already shown in the modal, just keep it open
+      if (errorMessage) {
+        setToast({ message: errorMessage });
+      }
+    }
   };
 
   const toggleCard = (id: string) => {

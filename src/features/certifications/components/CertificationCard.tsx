@@ -161,7 +161,10 @@ export function CertificationCard({
           <div className={styles.cardActions}>
             <button
               type="button"
-              onClick={onEdit}
+              onClick={(e) => {
+                e.stopPropagation();
+                onEdit();
+              }}
               className={buttonStyles.secondary}
             >
               <Edit size={16} />
@@ -169,7 +172,10 @@ export function CertificationCard({
             </button>
             <button
               type="button"
-              onClick={onDelete}
+              onClick={(e) => {
+                e.stopPropagation();
+                onDelete();
+              }}
               className={buttonStyles.danger}
             >
               <Trash2 size={16} />
