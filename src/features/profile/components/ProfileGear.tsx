@@ -86,16 +86,6 @@ export function ProfileGear() {
     return null;
   }
 
-  const formatPurchaseDate = (dateString: string | null): string | null => {
-    if (!dateString) return null;
-    try {
-      const date = new Date(dateString);
-      return date.getFullYear().toString();
-    } catch {
-      return null;
-    }
-  };
-
   return (
     <div className={styles.container}>
       <div className={styles.subheader}>Shared kits</div>
@@ -103,8 +93,7 @@ export function ProfileGear() {
       <div className={styles.kitsGrid}>
         {selectedKits.map((kit) => {
           const itemCount = kit.items?.length || 0;
-          const visibleItems = kit.items?.slice(0, 6) || [];
-          const remainingCount = itemCount - visibleItems.length;
+          const allItems = kit.items || [];
 
           return (
             <div key={kit.id} className={styles.kitCard}>
@@ -119,35 +108,19 @@ export function ProfileGear() {
                 <>
                   <div className={styles.divider}></div>
                   <ul className={styles.itemsList}>
-                    {visibleItems.map((item) => {
-                      const purchaseYear = item.purchaseDate
-                        ? formatPurchaseDate(item.purchaseDate)
-                        : null;
-
-                      return (
-                        <li key={item.id} className={styles.itemRow}>
-                          <div className={styles.itemName}>
-                            <span className={styles.itemManufacturer}>
-                              {item.manufacturer}
-                            </span>
-                            <span className={styles.itemSeparator}>·</span>
-                            <span className={styles.itemModel}>
-                              {item.model}
-                            </span>
-                            {purchaseYear && (
-                              <span className={styles.itemYear}>
-                                {" "}({purchaseYear})
-                              </span>
-                            )}
-                          </div>
-                        </li>
-                      );
-                    })}
-                    {remainingCount > 0 && (
-                      <li className={styles.moreItems}>
-                        +{remainingCount} more items
+                    {allItems.map((item) => (
+                      <li key={item.id} className={styles.itemRow}>
+                        <div className={styles.itemName}>
+                          <span className={styles.itemManufacturer}>
+                            {item.manufacturer}
+                          </span>
+                          <span className={styles.itemSeparator}>·</span>
+                          <span className={styles.itemModel}>
+                            {item.model}
+                          </span>
+                        </div>
                       </li>
-                    )}
+                    ))}
                   </ul>
                 </>
               )}
