@@ -31,3 +31,34 @@ export const updateUserCertificationSchema = z.object({
 
 export type UpdateUserCertificationInput = z.infer<typeof updateUserCertificationSchema>;
 
+/**
+ * API response types
+ */
+export interface CertificationDefinition {
+  id: string;
+  agency: "PADI" | "SSI";
+  name: string;
+  slug: string;
+  levelRank: number;
+  category: "core" | "specialty" | "professional";
+  badgeImageUrl: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface UserCertification {
+  id: string;
+  userId: string;
+  certificationDefinitionId: string;
+  earnedDate: string | null;
+  certNumber: string | null;
+  diveShop: string | null;
+  location: string | null;
+  instructor: string | null;
+  notes: string | null;
+  isFeatured: boolean;
+  sortOrder: number | null;
+  createdAt: string;
+  updatedAt: string;
+  certificationDefinition: CertificationDefinition;
+}
