@@ -12,7 +12,13 @@ import layoutStyles from "@/styles/components/Layout.module.css";
 import gridStyles from "@/styles/components/PageGrid.module.css";
 import backgroundStyles from "@/styles/components/Background.module.css";
 
-export function PlanPageContent() {
+type PlanPageMode = "public" | "authed";
+
+interface PlanPageContentProps {
+  mode?: PlanPageMode;
+}
+
+export function PlanPageContent({ mode = "authed" }: PlanPageContentProps) {
   const router = useRouter();
   const {
     submittedPlan,
@@ -117,6 +123,7 @@ export function PlanPageContent() {
           {/* Left column: Form */}
           <section className={gridStyles.planFormColumn}>
             <PlanForm
+              mode={mode}
               formKey={formKey}
               submittedPlan={submittedPlan}
               editingPlanId={editingPlanId}
@@ -134,6 +141,7 @@ export function PlanPageContent() {
             {loading || aiBriefing || submittedPlan ? (
               <div className={gridStyles.aiBriefingScrollWrapper}>
                 <AIDiveBriefing
+                  mode={mode}
                   briefing={aiBriefing}
                   loading={loading}
                   compact={false}

@@ -13,6 +13,6 @@ export const dynamic = "force-dynamic";
 
 export default function PlanPage() {
   // This route is in (app) route group, so it automatically gets AppShell (sidebar + logged-in navbar)
-  return <PlanPageContent />;
+  return <PlanPageContent mode="authed" />;
 }
 

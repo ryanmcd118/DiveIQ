@@ -13,15 +13,27 @@ import {
 
 const STORAGE_KEY = 'diveiq:unitSystem';
 
+type UnitPreferencesMode = 'auto' | 'guest' | 'authed';
+
+interface UseUnitPreferencesOptions {
+  mode?: UnitPreferencesMode;
+}
+
 /**
  * Hook that provides unified unit preferences for both authenticated and guest users
  * - Authenticated: loads from API, persists to DB
  * - Guest: loads from localStorage, persists to localStorage
+ * 
+ * @param options.mode - 'auto' (default): detect from session, 'guest': force guest mode, 'authed': force authenticated mode
  */
-export function useUnitPreferences() {
+export function useUnitPreferences(options?: UseUnitPreferencesOptions) {
+  const mode = options?.mode ?? 'auto';
   const { data: session, status } = useSession();
-  const isAuthenticated = status === 'authenticated';
   const { me, isLoading: meLoading } = useMe();
+  
+  // Determine if we should use authenticated mode
+  const isAuthenticated = mode === 'authed' || (mode === 'auto' && status === 'authenticated');
+  const isGuestMode = mode === 'guest' || (mode === 'auto' && status !== 'authenticated' && status !== 'loading');
 
   // State for preferences
   const [preferences, setPreferencesState] = useState<UnitPreferences>(DEFAULT_UNIT_PREFERENCES);
@@ -30,7 +42,7 @@ export function useUnitPreferences() {
   // Load preferences for authenticated users
   useEffect(() => {
     if (!isAuthenticated || meLoading) {
-      if (!isAuthenticated) {
+      if (!isAuthenticated && mode !== 'auto') {
         setIsLoading(false);
       }
       return;
@@ -55,11 +67,11 @@ export function useUnitPreferences() {
     };
 
     void loadPreferences();
-  }, [isAuthenticated, meLoading]);
+  }, [isAuthenticated, meLoading, mode]);
 
   // Load preferences for guest users from localStorage
   useEffect(() => {
-    if (isAuthenticated || status === 'loading') return;
+    if (!isGuestMode) return;
 
     const loadGuestPreferences = () => {
       if (typeof window === 'undefined') return;
@@ -85,7 +97,7 @@ export function useUnitPreferences() {
     return () => {
       window.removeEventListener('unitSystemChanged', handleUnitSystemChange as EventListener);
     };
-  }, [isAuthenticated, status]);
+  }, [isGuestMode]);
 
   // Update preferences (different behavior for authenticated vs guest)
   const setPrefs = useCallback(async (partial: Partial<UnitPreferences>) => {
@@ -113,7 +125,7 @@ export function useUnitPreferences() {
         // Revert on error
         setPreferencesState(preferences);
       }
-    } else {
+    } else if (isGuestMode) {
       // Persist to localStorage and dispatch event for guest users
       if (typeof window !== 'undefined') {
         const unitSystem = preferencesToUnitSystem(newPrefs);
@@ -122,7 +134,7 @@ export function useUnitPreferences() {
         window.dispatchEvent(event);
       }
     }
-  }, [preferences, isAuthenticated]);
+  }, [preferences, isAuthenticated, isGuestMode]);
 
   return {
     prefs: preferences,

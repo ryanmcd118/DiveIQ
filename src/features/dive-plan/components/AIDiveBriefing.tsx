@@ -2,11 +2,14 @@
 
 import { useState } from "react";
 import type { AIBriefing, SourceTag } from "../types";
-import { useUnitSystemOrLocal } from "@/hooks/useUnitSystemOrLocal";
+import { useUnitPreferences } from "@/hooks/useUnitPreferences";
 import { formatTemperatureRange, formatDistanceRange } from "@/lib/units";
 import styles from "./AIDiveBriefing.module.css";
 
+type AIDiveBriefingMode = "public" | "authed";
+
 type AIDiveBriefingProps = {
+  mode?: AIDiveBriefingMode;
   briefing: AIBriefing | null;
   loading?: boolean;
   /** Compact mode for preview (shows highlights instead of full sections) */
@@ -50,7 +53,8 @@ function getDifficultyChipClass(difficulty: string): string {
   const lowerDiff = difficulty.toLowerCase();
   if (lowerDiff.includes("easy")) return styles.chipDifficultyEasy;
   if (lowerDiff.includes("moderate")) return styles.chipDifficultyModerate;
-  if (lowerDiff.includes("challenging")) return styles.chipDifficultyChallenging;
+  if (lowerDiff.includes("challenging"))
+    return styles.chipDifficultyChallenging;
   if (lowerDiff.includes("advanced")) return styles.chipDifficultyAdvanced;
   return styles.chip;
 }
@@ -64,11 +68,21 @@ function getConfidenceClass(level: string): string {
 }
 
 // Skeleton Loading State
-function BriefingSkeleton({ compact, scrollable }: { compact?: boolean; scrollable?: boolean }) {
+function BriefingSkeleton({
+  compact,
+  scrollable,
+}: {
+  compact?: boolean;
+  scrollable?: boolean;
+}) {
   const containerClass = scrollable
-    ? (compact ? styles.briefingContainerScrollableCompact : styles.briefingContainerScrollable)
-    : (compact ? styles.briefingContainerCompact : styles.briefingContainer);
-  
+    ? compact
+      ? styles.briefingContainerScrollableCompact
+      : styles.briefingContainerScrollable
+    : compact
+      ? styles.briefingContainerCompact
+      : styles.briefingContainer;
+
   return (
     <div className={containerClass}>
       {/* Skeleton snapshot */}
@@ -89,7 +103,13 @@ function BriefingSkeleton({ compact, scrollable }: { compact?: boolean; scrollab
 
       {/* Skeleton sections or highlights */}
       {compact ? (
-        <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-2)" }}>
+        <div
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            gap: "var(--space-2)",
+          }}
+        >
           <div className={styles.skeletonHighlight} style={{ width: "90%" }} />
           <div className={styles.skeletonHighlight} style={{ width: "85%" }} />
           <div className={styles.skeletonHighlight} style={{ width: "75%" }} />
@@ -108,16 +128,27 @@ function BriefingSkeleton({ compact, scrollable }: { compact?: boolean; scrollab
 }
 
 // Quick Look Chips
-function QuickLookChips({ quickLook }: { quickLook: AIBriefing["quickLook"] }) {
-  const { unitSystem } = useUnitSystemOrLocal();
+function QuickLookChips({
+  quickLook,
+  mode = "authed",
+}: {
+  quickLook: AIBriefing["quickLook"];
+  mode?: AIDiveBriefingMode;
+}) {
+  // Use guest mode for public pages so it updates live on toggle changes
+  const unitMode = mode === "public" ? "guest" : "authed";
+  const { prefs } = useUnitPreferences({ mode: unitMode });
 
   // Format temperature and visibility using canonical numeric values if available
   const waterTempDisplay = quickLook.waterTemp.numericValue
-    ? formatTemperatureRange(quickLook.waterTemp.numericValue, unitSystem)
+    ? formatTemperatureRange(
+        quickLook.waterTemp.numericValue,
+        prefs.temperature
+      )
     : quickLook.waterTemp.value; // Fallback to original string if no numeric value
 
   const visibilityDisplay = quickLook.visibility.numericValue
-    ? formatDistanceRange(quickLook.visibility.numericValue, unitSystem)
+    ? formatDistanceRange(quickLook.visibility.numericValue, prefs.depth)
     : quickLook.visibility.value; // Fallback to original string if no numeric value
 
   return (
@@ -127,14 +158,18 @@ function QuickLookChips({ quickLook }: { quickLook: AIBriefing["quickLook"] }) {
         <span className={styles.chipLabel}>Difficulty</span>
         <span className={styles.chipValue}>{quickLook.difficulty.value}</span>
         {quickLook.difficulty.reason && (
-          <span className={styles.chipReason}>{quickLook.difficulty.reason}</span>
+          <span className={styles.chipReason}>
+            {quickLook.difficulty.reason}
+          </span>
         )}
       </div>
 
       {/* Suggested Experience */}
       <div className={styles.chip}>
         <span className={styles.chipLabel}>Experience</span>
-        <span className={styles.chipValue}>{quickLook.suggestedExperience.value}</span>
+        <span className={styles.chipValue}>
+          {quickLook.suggestedExperience.value}
+        </span>
       </div>
 
       {/* Water Temp */}
@@ -173,11 +208,15 @@ function QuickLookChips({ quickLook }: { quickLook: AIBriefing["quickLook"] }) {
       {/* Confidence */}
       <div className={styles.chipConfidence}>
         <span className={styles.chipLabel}>Confidence</span>
-        <span className={`${styles.chipValue} ${getConfidenceClass(quickLook.confidence.level)}`}>
+        <span
+          className={`${styles.chipValue} ${getConfidenceClass(quickLook.confidence.level)}`}
+        >
           {quickLook.confidence.level}
         </span>
         {quickLook.confidence.reason && (
-          <span className={styles.chipReason}>{quickLook.confidence.reason}</span>
+          <span className={styles.chipReason}>
+            {quickLook.confidence.reason}
+          </span>
         )}
       </div>
     </div>
@@ -266,6 +305,7 @@ function HighlightsList({ highlights }: { highlights: string[] }) {
 
 // Main Component
 export function AIDiveBriefing({
+  mode = "authed",
   briefing,
   loading = false,
   compact = false,
@@ -283,22 +323,30 @@ export function AIDiveBriefing({
   }
 
   const containerClass = scrollable
-    ? (compact ? styles.briefingContainerScrollableCompact : styles.briefingContainerScrollable)
-    : (compact ? styles.briefingContainerCompact : styles.briefingContainer);
+    ? compact
+      ? styles.briefingContainerScrollableCompact
+      : styles.briefingContainerScrollable
+    : compact
+      ? styles.briefingContainerCompact
+      : styles.briefingContainer;
 
   return (
     <div className={containerClass}>
       {/* Briefing Header */}
       <div className={styles.briefingHeader}>
         {/* Conditions Snapshot */}
-        <div className={styles.conditionsSnapshot}>{briefing.conditionsSnapshot}</div>
+        <div className={styles.conditionsSnapshot}>
+          {briefing.conditionsSnapshot}
+        </div>
 
         {/* Quick Look Chips */}
-        <QuickLookChips quickLook={briefing.quickLook} />
+        <QuickLookChips quickLook={briefing.quickLook} mode={mode} />
 
         {/* What Matters Most */}
         <div className={styles.whatMattersMost}>
-          <span className={styles.whatMattersLabel}>What matters most on this dive</span>
+          <span className={styles.whatMattersLabel}>
+            What matters most on this dive
+          </span>
           {briefing.whatMattersMost}
         </div>
       </div>
@@ -309,53 +357,56 @@ export function AIDiveBriefing({
       {compact && !expanded && (
         <>
           <HighlightsList highlights={briefing.highlights} />
-          
-          {showExpander && briefing.sections && briefing.sections.length > 0 && (
-            <button
-              type="button"
-              className={styles.expanderButton}
-              onClick={() => setExpanded(true)}
-            >
-              <span>See full briefing</span>
-              <ChevronIcon open={false} />
-            </button>
-          )}
+
+          {showExpander &&
+            briefing.sections &&
+            briefing.sections.length > 0 && (
+              <button
+                type="button"
+                className={styles.expanderButton}
+                onClick={() => setExpanded(true)}
+              >
+                <span>See full briefing</span>
+                <ChevronIcon open={false} />
+              </button>
+            )}
         </>
       )}
 
       {/* Full mode or expanded: show accordion sections */}
-      {(!compact || expanded) && briefing.sections && briefing.sections.length > 0 && (
-        <div className={styles.sectionsContainer}>
-          {briefing.sections.map((section, i) => (
-            <AccordionSection key={i} section={section} />
-          ))}
-          
-          {expanded && (
-            <button
-              type="button"
-              className={styles.expanderButton}
-              onClick={() => setExpanded(false)}
-            >
-              <span>Show less</span>
-              <svg
-                className={styles.expanderIconOpen}
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
+      {(!compact || expanded) &&
+        briefing.sections &&
+        briefing.sections.length > 0 && (
+          <div className={styles.sectionsContainer}>
+            {briefing.sections.map((section, i) => (
+              <AccordionSection key={i} section={section} />
+            ))}
+
+            {expanded && (
+              <button
+                type="button"
+                className={styles.expanderButton}
+                onClick={() => setExpanded(false)}
               >
-                <polyline points="6 9 12 15 18 9" />
-              </svg>
-            </button>
-          )}
-        </div>
-      )}
+                <span>Show less</span>
+                <svg
+                  className={styles.expanderIconOpen}
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <polyline points="6 9 12 15 18 9" />
+                </svg>
+              </button>
+            )}
+          </div>
+        )}
     </div>
   );
 }
 
 // Re-export skeleton for use in loading states
 export { BriefingSkeleton };
-
