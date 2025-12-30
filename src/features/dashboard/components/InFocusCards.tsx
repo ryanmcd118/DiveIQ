@@ -1,9 +1,8 @@
 "use client";
 
-import { useState, useEffect } from "react";
 import Link from "next/link";
 import type { DiveLog, DivePlan } from "@prisma/client";
-import { useUnitSystem } from "@/contexts/UnitSystemContext";
+import { useUnitPreferences } from "@/hooks/useUnitPreferences";
 import { displayDepth, displayTemperature } from "@/lib/units";
 import cardStyles from "@/styles/components/Card.module.css";
 import buttonStyles from "@/styles/components/Button.module.css";
@@ -22,12 +21,7 @@ export function InFocusCards({
   divesThisMonth = 0,
   surfaceInterval,
 }: InFocusCardsProps) {
-  const { unitSystem } = useUnitSystem();
-  const [isMounted, setIsMounted] = useState(false);
-
-  useEffect(() => {
-    setIsMounted(true);
-  }, []);
+  const { prefs } = useUnitPreferences();
 
   return (
     <section className={styles.inFocus}>
@@ -47,8 +41,8 @@ export function InFocusCards({
               <p className={styles.meta}>
                 {(() => {
                   const depth = displayDepth(
-                    nextPlannedDive.maxDepth,
-                    isMounted ? unitSystem : "metric"
+                    nextPlannedDive.maxDepthCm,
+                    prefs.depth
                   );
                   return `${depth.value}${depth.unit} · ${nextPlannedDive.bottomTime}min`;
                 })()}
@@ -80,13 +74,13 @@ export function InFocusCards({
               <p className={styles.meta}>
                 {(() => {
                   const depth = displayDepth(
-                    mostRecentDive.maxDepth,
-                    isMounted ? unitSystem : "metric"
+                    mostRecentDive.maxDepthCm,
+                    prefs.depth
                   );
-                  const temp = mostRecentDive.waterTemp
+                  const temp = mostRecentDive.waterTempCx10
                     ? displayTemperature(
-                        mostRecentDive.waterTemp,
-                        isMounted ? unitSystem : "metric"
+                        mostRecentDive.waterTempCx10,
+                        prefs.temperature
                       )
                     : null;
                   return `${depth.value}${depth.unit} · ${mostRecentDive.bottomTime}min${

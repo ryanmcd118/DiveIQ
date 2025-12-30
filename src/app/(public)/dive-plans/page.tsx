@@ -26,6 +26,5 @@ export default async function PublicPlanPage() {
   }
 
   // If not authenticated, show public version (no sidebar, public navbar)
-  return <PlanPageContent />;
+  return <PlanPageContent mode="public" />;
 }
-

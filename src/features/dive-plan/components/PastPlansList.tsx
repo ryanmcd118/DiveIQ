@@ -1,7 +1,7 @@
 "use client";
 
 import { PastPlan } from "@/features/dive-plan/types";
-import { useUnitSystem } from "@/contexts/UnitSystemContext";
+import { useUnitPreferences } from "@/hooks/useUnitPreferences";
 import { displayDepth } from "@/lib/units";
 import cardStyles from "@/styles/components/Card.module.css";
 import listStyles from "@/styles/components/List.module.css";
@@ -22,7 +22,7 @@ export function PastPlansList({
   onSelectPlan,
   onDeletePlan,
 }: PastPlansListProps) {
-  const { unitSystem } = useUnitSystem();
+  const { prefs } = useUnitPreferences();
   
   return (
     <div className={cardStyles.cardCompact}>
@@ -75,7 +75,7 @@ export function PastPlansList({
 
               <p className={listStyles.planStats}>
                 {(() => {
-                  const depth = displayDepth(plan.maxDepth, unitSystem);
+                  const depth = displayDepth(plan.maxDepthCm, prefs.depth);
                   return `${depth.value}${depth.unit} · ${plan.bottomTime}min · `;
                 })()}
                 <span style={{ textTransform: "capitalize" }}>

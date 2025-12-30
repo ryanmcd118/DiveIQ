@@ -7,19 +7,31 @@ export type PlanData = {
   region: string;
   siteName: string;
   date: string;
-  maxDepth: number;
+  maxDepth: number; // UI value (in user's preferred units, not canonical)
   bottomTime: number;
   experienceLevel: ExperienceLevel;
 };
 
-export type PlanInput = PlanData & {
+export type PlanInput = {
+  date: string;
+  region: string;
+  siteName: string;
+  maxDepthCm: number; // Canonical fixed-point (centimeters)
+  bottomTime: number;
+  experienceLevel: ExperienceLevel;
   riskLevel: RiskLevel;
   aiAdvice?: string | null;
   aiBriefing?: AIBriefing | null;
 };
 
-export type PastPlan = PlanData & {
+export type PastPlan = {
   id: string;
+  date: string;
+  region: string;
+  siteName: string;
+  maxDepthCm: number; // Canonical fixed-point (centimeters)
+  bottomTime: number;
+  experienceLevel: ExperienceLevel;
   riskLevel: RiskLevel | string;
   aiAdvice?: string | null;
   aiBriefing?: AIBriefing | null;

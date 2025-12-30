@@ -6,11 +6,11 @@ import {
   AIBriefing,
   RiskLevel,
 } from "@/features/dive-plan/types";
-import { useUnitSystemOrLocal } from "@/hooks/useUnitSystemOrLocal";
-import { uiToMetric } from "@/lib/units";
+import { useUnitPreferences } from "@/hooks/useUnitPreferences";
+import { depthInputToCm, cmToUI } from "@/lib/units";
 
 export function usePlanPageState() {
-  const { unitSystem } = useUnitSystemOrLocal();
+  const { prefs } = useUnitPreferences();
 
   // Draft state - the current plan being worked on (not yet saved)
   const [draftPlan, setDraftPlan] = useState<PlanData | null>(null);
@@ -96,11 +96,14 @@ export function usePlanPageState() {
     // Convert UI unit values to metric for database storage
     const maxDepthUI = formData.get("maxDepth");
 
+    // Convert UI depth to canonical centimeters
+    const maxDepthCm = depthInputToCm(maxDepthUI, prefs.depth) ?? 0;
+
     const values: PlanData = {
       region: formData.get("region") as string,
       siteName: formData.get("siteName") as string,
       date: formData.get("date") as string,
-      maxDepth: uiToMetric(maxDepthUI, unitSystem, "depth") ?? 0,
+      maxDepth: parseFloat(maxDepthUI as string) || 0, // Keep UI value for PlanData
       bottomTime: Number(formData.get("bottomTime")),
       experienceLevel: formData.get(
         "experienceLevel"
@@ -119,7 +122,8 @@ export function usePlanPageState() {
           body: JSON.stringify({
             id: editingPlanId,
             ...values,
-            unitSystem, // Pass unit system to AI
+            maxDepthCm, // Pass canonical value
+            unitPreferences: prefs, // Pass preferences to AI
           }),
         });
 
@@ -157,7 +161,8 @@ export function usePlanPageState() {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             ...values,
-            unitSystem, // Pass unit system to AI
+            maxDepthCm, // Pass canonical value
+            unitPreferences: prefs, // Pass preferences to AI
           }),
         });
 
@@ -191,12 +196,17 @@ export function usePlanPageState() {
     setApiError(null);
 
     try {
+      // Convert draftPlan maxDepth to canonical
+      const draftMaxDepthCm =
+        depthInputToCm(draftPlan.maxDepth, prefs.depth) ?? 0;
+
       const res = await fetch("/api/dive-plans", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           ...draftPlan,
-          unitSystem, // Pass unit system to AI
+          maxDepthCm: draftMaxDepthCm, // Pass canonical value
+          unitPreferences: prefs, // Pass preferences to AI
         }),
       });
 
@@ -229,7 +239,7 @@ export function usePlanPageState() {
     } finally {
       setSaving(false);
     }
-  }, [draftPlan, isAuthenticated]);
+  }, [draftPlan, isAuthenticated, prefs]);
 
   /**
    * Check if there's a draft plan that can be saved
@@ -255,11 +265,14 @@ export function usePlanPageState() {
       ...rest
     } = plan;
 
+    // Convert canonical maxDepthCm to UI value
+    const maxDepthUI = cmToUI(rest.maxDepthCm, prefs.depth) ?? 0;
+
     const planData: PlanData = {
       region: rest.region,
       siteName: rest.siteName,
       date: rest.date,
-      maxDepth: rest.maxDepth,
+      maxDepth: maxDepthUI, // UI value for form
       bottomTime: rest.bottomTime,
       experienceLevel: rest.experienceLevel,
     };

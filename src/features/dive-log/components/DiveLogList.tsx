@@ -1,7 +1,7 @@
 "use client";
 
 import { DiveLogEntry } from "@/features/dive-log/types";
-import { useUnitSystem } from "@/contexts/UnitSystemContext";
+import { useUnitPreferences } from "@/hooks/useUnitPreferences";
 import { displayDepth, displayTemperature, displayDistance } from "@/lib/units";
 import cardStyles from "@/styles/components/Card.module.css";
 import listStyles from "@/styles/components/List.module.css";
@@ -14,7 +14,7 @@ type Props = {
 };
 
 function DiveLogList({ entries, onSelect, onDelete }: Props) {
-  const { unitSystem } = useUnitSystem();
+  const { prefs } = useUnitPreferences();
 
   if (entries.length === 0) {
     return (
@@ -28,12 +28,12 @@ function DiveLogList({ entries, onSelect, onDelete }: Props) {
   return (
     <ul className={listStyles.list}>
       {entries.map((entry) => {
-        const depth = displayDepth(entry.maxDepth, unitSystem);
-        const visibility = entry.visibility != null 
-          ? displayDistance(entry.visibility, unitSystem)
+        const depth = displayDepth(entry.maxDepthCm, prefs.depth);
+        const visibility = entry.visibilityCm != null 
+          ? displayDistance(entry.visibilityCm, prefs.depth)
           : null;
-        const waterTemp = entry.waterTemp != null
-          ? displayTemperature(entry.waterTemp, unitSystem)
+        const waterTemp = entry.waterTempCx10 != null
+          ? displayTemperature(entry.waterTempCx10, prefs.temperature)
           : null;
 
         return (

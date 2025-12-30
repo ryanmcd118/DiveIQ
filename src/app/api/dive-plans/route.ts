@@ -5,7 +5,8 @@ import { generateDivePlanBriefing, generateUpdatedDivePlanBriefing } from "@/ser
 import { calculateRiskLevel } from "@/features/dive-plan/services/riskCalculator";
 import { divePlanRepository } from "@/services/database/repositories/divePlanRepository";
 import type { PlanInput } from "@/features/dive-plan/types";
-import type { UnitSystem } from "@/lib/units";
+import type { UnitSystem, UnitPreferences } from "@/lib/units";
+import { cmToMeters } from "@/lib/units";
 
 /**
  * POST /api/dive-plans
@@ -27,31 +28,42 @@ export async function POST(req: NextRequest) {
       region: string;
       siteName: string;
       date: string;
-      maxDepth: number; // Always in meters (canonical)
+      maxDepthCm: number; // Depth in centimeters (canonical fixed-point)
       bottomTime: number;
       experienceLevel: "Beginner" | "Intermediate" | "Advanced";
-      unitSystem?: UnitSystem; // Optional, defaults to 'metric'
+      unitPreferences?: UnitPreferences; // User's unit preferences for AI formatting
     };
 
-    // Calculate risk level
-    const riskLevel = calculateRiskLevel(body.maxDepth, body.bottomTime);
+    // Convert to meters for risk calculation
+    const maxDepthMeters = cmToMeters(body.maxDepthCm);
+    const riskLevel = calculateRiskLevel(maxDepthMeters, body.bottomTime);
+
+    // Get user preferences for AI formatting (default to metric if not provided)
+    const unitSystem: UnitSystem = body.unitPreferences
+      ? (body.unitPreferences.depth === 'm' && body.unitPreferences.temperature === 'c' && body.unitPreferences.pressure === 'bar' && body.unitPreferences.weight === 'kg' ? 'metric' : 'imperial')
+      : 'metric';
 
     // Generate AI structured briefing with unit system
     const aiBriefing = await generateDivePlanBriefing({
-      ...body,
+      region: body.region,
+      siteName: body.siteName,
+      date: body.date,
+      maxDepth: maxDepthMeters, // Pass meters to AI service (it expects meters)
+      bottomTime: body.bottomTime,
+      experienceLevel: body.experienceLevel,
       riskLevel,
-      unitSystem: body.unitSystem || 'metric',
+      unitSystem,
     });
 
     // Extract a summary for legacy aiAdvice field
     const aiAdvice = aiBriefing.whatMattersMost;
 
-    // Save to database with user ID
+    // Save to database with user ID (using canonical centimeters)
     const planInput: PlanInput = {
       date: body.date,
       region: body.region,
       siteName: body.siteName,
-      maxDepth: body.maxDepth,
+      maxDepthCm: body.maxDepthCm,
       bottomTime: body.bottomTime,
       experienceLevel: body.experienceLevel,
       riskLevel,
@@ -98,10 +110,10 @@ export async function PUT(req: NextRequest) {
       region: string;
       siteName: string;
       date: string;
-      maxDepth: number; // Always in meters (canonical)
+      maxDepthCm: number; // Depth in centimeters (canonical fixed-point)
       bottomTime: number;
       experienceLevel: "Beginner" | "Intermediate" | "Advanced";
-      unitSystem?: UnitSystem; // Optional, defaults to 'metric'
+      unitPreferences?: UnitPreferences; // User's unit preferences for AI formatting
     };
 
     if (!body.id) {
@@ -111,30 +123,36 @@ export async function PUT(req: NextRequest) {
       );
     }
 
-    // Calculate risk level
-    const riskLevel = calculateRiskLevel(body.maxDepth, body.bottomTime);
+    // Convert to meters for risk calculation
+    const maxDepthMeters = cmToMeters(body.maxDepthCm);
+    const riskLevel = calculateRiskLevel(maxDepthMeters, body.bottomTime);
+
+    // Get user preferences for AI formatting (default to metric if not provided)
+    const unitSystem: UnitSystem = body.unitPreferences
+      ? (body.unitPreferences.depth === 'm' && body.unitPreferences.temperature === 'c' && body.unitPreferences.pressure === 'bar' && body.unitPreferences.weight === 'kg' ? 'metric' : 'imperial')
+      : 'metric';
 
     // Generate updated AI structured briefing with unit system
     const aiBriefing = await generateUpdatedDivePlanBriefing({
       region: body.region,
       siteName: body.siteName,
       date: body.date,
-      maxDepth: body.maxDepth,
+      maxDepth: maxDepthMeters, // Pass meters to AI service
       bottomTime: body.bottomTime,
       experienceLevel: body.experienceLevel,
       riskLevel,
-      unitSystem: body.unitSystem || 'metric',
+      unitSystem,
     });
 
     // Extract a summary for legacy aiAdvice field
     const aiAdvice = aiBriefing.whatMattersMost;
 
-    // Update in database
+    // Update in database (using canonical centimeters)
     const planInput: PlanInput = {
       date: body.date,
       region: body.region,
       siteName: body.siteName,
-      maxDepth: body.maxDepth,
+      maxDepthCm: body.maxDepthCm,
       bottomTime: body.bottomTime,
       experienceLevel: body.experienceLevel,
       riskLevel,

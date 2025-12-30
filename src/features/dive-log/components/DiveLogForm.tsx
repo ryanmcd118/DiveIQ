@@ -2,8 +2,13 @@
 
 import { FormEvent, useState, useEffect } from "react";
 import { DiveLogEntry } from "@/features/dive-log/types";
-import { useUnitSystem } from "@/contexts/UnitSystemContext";
-import { metricToUI, getUnitLabel } from "@/lib/units";
+import { useUnitPreferences } from "@/hooks/useUnitPreferences";
+import {
+  displayDepth,
+  displayTemperature,
+  displayDistance,
+  getUnitLabel,
+} from "@/lib/units";
 import { GearSelection } from "./GearSelection";
 import cardStyles from "@/styles/components/Card.module.css";
 import formStyles from "@/styles/components/Form.module.css";
@@ -34,7 +39,7 @@ export function DiveLogForm({
   onCancelEdit,
   onDeleteFromForm,
 }: DiveLogFormProps) {
-  const { unitSystem } = useUnitSystem();
+  const { prefs } = useUnitPreferences();
 
   // Ensure onGearSelectionChange is always a function (defensive check)
   const handleGearSelectionChange =
@@ -44,47 +49,52 @@ export function DiveLogForm({
           console.error("DiveLogForm: onGearSelectionChange is not a function");
         };
 
-  // Helper to convert metric to UI units for display
-  const metricToUIString = (
-    metricValue: number | null | undefined,
-    type: "depth" | "temperature" | "distance"
-  ) => {
-    if (metricValue == null) return "";
-    const ui = metricToUI(metricValue, unitSystem, type);
-    return ui != null ? String(Math.round(ui)) : "";
-  };
-
   // Controlled state for unit-bearing fields (in UI units)
-  // Initialize from activeEntry if it exists
+  // Initialize from activeEntry if it exists (convert from canonical)
   const [maxDepth, setMaxDepth] = useState<string>(() => {
-    if (!activeEntry?.maxDepth) return "";
-    const ui = metricToUI(activeEntry.maxDepth, unitSystem, "depth");
-    return ui != null ? String(Math.round(ui)) : "";
+    if (!activeEntry?.maxDepthCm) return "";
+    const display = displayDepth(activeEntry.maxDepthCm, prefs.depth);
+    return display.value;
   });
   const [waterTemp, setWaterTemp] = useState<string>(() => {
-    if (!activeEntry?.waterTemp) return "";
-    const ui = metricToUI(activeEntry.waterTemp, unitSystem, "temperature");
-    return ui != null ? String(Math.round(ui)) : "";
+    if (!activeEntry?.waterTempCx10) return "";
+    const display = displayTemperature(
+      activeEntry.waterTempCx10,
+      prefs.temperature
+    );
+    return display.value;
   });
   const [visibility, setVisibility] = useState<string>(() => {
-    if (!activeEntry?.visibility) return "";
-    const ui = metricToUI(activeEntry.visibility, unitSystem, "distance");
-    return ui != null ? String(Math.round(ui)) : "";
+    if (!activeEntry?.visibilityCm) return "";
+    const display = displayDistance(activeEntry.visibilityCm, prefs.depth);
+    return display.value;
   });
-  const [prevUnitSystem, setPrevUnitSystem] =
-    useState<typeof unitSystem>(unitSystem);
+  const [prevPrefs, setPrevPrefs] = useState(prefs);
   const [prevActiveEntry, setPrevActiveEntry] = useState<DiveLogEntry | null>(
     activeEntry
   );
 
-  // Convert metric values to UI units when entry loads or changes
+  // Convert canonical values to UI units when entry loads or changes
   useEffect(() => {
     if (activeEntry !== prevActiveEntry) {
       setPrevActiveEntry(activeEntry);
       if (activeEntry) {
-        setMaxDepth(metricToUIString(activeEntry.maxDepth, "depth"));
-        setWaterTemp(metricToUIString(activeEntry.waterTemp, "temperature"));
-        setVisibility(metricToUIString(activeEntry.visibility, "distance"));
+        setMaxDepth(
+          activeEntry.maxDepthCm
+            ? displayDepth(activeEntry.maxDepthCm, prefs.depth).value
+            : ""
+        );
+        setWaterTemp(
+          activeEntry.waterTempCx10
+            ? displayTemperature(activeEntry.waterTempCx10, prefs.temperature)
+                .value
+            : ""
+        );
+        setVisibility(
+          activeEntry.visibilityCm
+            ? displayDistance(activeEntry.visibilityCm, prefs.depth).value
+            : ""
+        );
       } else {
         // Reset form
         setMaxDepth("");
@@ -92,44 +102,35 @@ export function DiveLogForm({
         setVisibility("");
       }
     }
-  }, [activeEntry, prevActiveEntry, unitSystem]);
+  }, [activeEntry, prevActiveEntry, prefs]);
 
-  // Handle unit system change - convert current values
+  // Handle unit preferences change - convert current values from canonical
+  // This ensures we don't lose precision by converting UI->canonical->UI
   useEffect(() => {
-    if (prevUnitSystem !== unitSystem) {
-      // Convert current UI values to the other unit system
-      if (maxDepth) {
-        const numValue = parseFloat(maxDepth);
-        if (!isNaN(numValue)) {
-          // Convert: current UI unit -> metric -> new UI unit
-          const metric =
-            prevUnitSystem === "metric" ? numValue : numValue / 3.28084;
-          const newUI = unitSystem === "metric" ? metric : metric * 3.28084;
-          setMaxDepth(String(Math.round(newUI)));
+    if (
+      prevPrefs.depth !== prefs.depth ||
+      prevPrefs.temperature !== prefs.temperature
+    ) {
+      // Re-read from activeEntry if available to avoid precision loss
+      if (activeEntry) {
+        if (activeEntry.maxDepthCm) {
+          setMaxDepth(displayDepth(activeEntry.maxDepthCm, prefs.depth).value);
+        }
+        if (activeEntry.waterTempCx10) {
+          setWaterTemp(
+            displayTemperature(activeEntry.waterTempCx10, prefs.temperature)
+              .value
+          );
+        }
+        if (activeEntry.visibilityCm) {
+          setVisibility(
+            displayDistance(activeEntry.visibilityCm, prefs.depth).value
+          );
         }
       }
-      if (waterTemp) {
-        const numValue = parseFloat(waterTemp);
-        if (!isNaN(numValue)) {
-          const metric =
-            prevUnitSystem === "metric" ? numValue : ((numValue - 32) * 5) / 9;
-          const newUI =
-            unitSystem === "metric" ? metric : (metric * 9) / 5 + 32;
-          setWaterTemp(String(Math.round(newUI)));
-        }
-      }
-      if (visibility) {
-        const numValue = parseFloat(visibility);
-        if (!isNaN(numValue)) {
-          const metric =
-            prevUnitSystem === "metric" ? numValue : numValue / 3.28084;
-          const newUI = unitSystem === "metric" ? metric : metric * 3.28084;
-          setVisibility(String(Math.round(newUI)));
-        }
-      }
-      setPrevUnitSystem(unitSystem);
+      setPrevPrefs(prefs);
     }
-  }, [unitSystem, prevUnitSystem, maxDepth, waterTemp, visibility]);
+  }, [prefs, prevPrefs, activeEntry]);
 
   // Custom submit handler that sets hidden inputs with UI values
   const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
@@ -190,7 +191,7 @@ export function DiveLogForm({
         <div className={formStyles.formGrid2}>
           <div className={formStyles.field}>
             <label htmlFor="maxDepth" className={formStyles.label}>
-              Max depth ({getUnitLabel("depth", unitSystem)})
+              Max depth ({getUnitLabel("depth", prefs)})
             </label>
             <input
               type="number"
@@ -224,7 +225,7 @@ export function DiveLogForm({
         <div className={formStyles.formGrid2}>
           <div className={formStyles.field}>
             <label htmlFor="waterTemp" className={formStyles.label}>
-              Water temp ({getUnitLabel("temperature", unitSystem)})
+              Water temp ({getUnitLabel("temperature", prefs)})
             </label>
             <input
               type="number"
@@ -237,7 +238,7 @@ export function DiveLogForm({
           </div>
           <div className={formStyles.field}>
             <label htmlFor="visibility" className={formStyles.label}>
-              Visibility ({getUnitLabel("distance", unitSystem)})
+              Visibility ({getUnitLabel("distance", prefs)})
             </label>
             <input
               type="number"
