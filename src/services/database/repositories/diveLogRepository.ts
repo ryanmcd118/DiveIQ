@@ -9,19 +9,16 @@ export const diveLogRepository = {
   /**
    * Create a new dive log entry
    */
-  async create(
-    data: DiveLogInput,
-    userId?: string
-  ): Promise<DiveLogEntry> {
+  async create(data: DiveLogInput, userId?: string): Promise<DiveLogEntry> {
     return prisma.diveLog.create({
       data: {
         date: data.date,
         region: data.region,
         siteName: data.siteName,
-        maxDepth: data.maxDepth,
+        maxDepthCm: data.maxDepthCm,
         bottomTime: data.bottomTime,
-        waterTemp: data.waterTemp ?? null,
-        visibility: data.visibility ?? null,
+        waterTempCx10: data.waterTempCx10 ?? null,
+        visibilityCm: data.visibilityCm ?? null,
         buddyName: data.buddyName ?? null,
         notes: data.notes ?? null,
         userId: userId ?? null,
@@ -79,10 +76,10 @@ export const diveLogRepository = {
         date: data.date,
         region: data.region,
         siteName: data.siteName,
-        maxDepth: data.maxDepth,
+        maxDepthCm: data.maxDepthCm,
         bottomTime: data.bottomTime,
-        waterTemp: data.waterTemp ?? null,
-        visibility: data.visibility ?? null,
+        waterTempCx10: data.waterTempCx10 ?? null,
+        visibilityCm: data.visibilityCm ?? null,
         buddyName: data.buddyName ?? null,
         notes: data.notes ?? null,
       },
@@ -130,15 +127,14 @@ export const diveLogRepository = {
       prisma.diveLog.aggregate({
         where,
         _sum: { bottomTime: true },
-        _max: { maxDepth: true },
+        _max: { maxDepthCm: true },
       }),
     ]);
 
     return {
       totalDives: count,
       totalBottomTime: aggregates._sum.bottomTime ?? 0,
-      deepestDive: aggregates._max.maxDepth ?? 0,
+      deepestDive: aggregates._max.maxDepthCm ?? 0,
     };
   },
 };
-

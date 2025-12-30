@@ -1,9 +1,9 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import type { DiveLog, DivePlan } from "@prisma/client";
-import { useUnitSystem } from "@/contexts/UnitSystemContext";
+import { useUnitPreferences } from "@/hooks/useUnitPreferences";
 import { displayDepth } from "@/lib/units";
 import cardStyles from "@/styles/components/Card.module.css";
 import navStyles from "@/styles/components/Navigation.module.css";
@@ -17,12 +17,7 @@ interface ActivityTabsProps {
 
 export function ActivityTabs({ recentDives, plannedDives }: ActivityTabsProps) {
   const [activeTab, setActiveTab] = useState<"recent" | "planned">("recent");
-  const { unitSystem } = useUnitSystem();
-  const [isMounted, setIsMounted] = useState(false);
-
-  useEffect(() => {
-    setIsMounted(true);
-  }, []);
+  const { prefs } = useUnitPreferences();
 
   return (
     <section className={styles.activitySection}>
@@ -55,7 +50,7 @@ export function ActivityTabs({ recentDives, plannedDives }: ActivityTabsProps) {
             ) : (
               <ul className={listStyles.listCompact}>
                 {recentDives.map((dive) => {
-                  const depth = displayDepth(dive.maxDepth, isMounted ? unitSystem : "metric");
+                  const depth = displayDepth(dive.maxDepthCm, prefs.depth);
                   return (
                     <li key={dive.id} className={cardStyles.listItem}>
                       <div className={styles.row}>
@@ -91,7 +86,7 @@ export function ActivityTabs({ recentDives, plannedDives }: ActivityTabsProps) {
             ) : (
               <ul className={listStyles.listCompact}>
                 {plannedDives.map((plan) => {
-                  const depth = displayDepth(plan.maxDepth, isMounted ? unitSystem : "metric");
+                  const depth = displayDepth(plan.maxDepthCm, prefs.depth);
                   return (
                     <li key={plan.id} className={cardStyles.listItem}>
                       <div className={styles.row}>

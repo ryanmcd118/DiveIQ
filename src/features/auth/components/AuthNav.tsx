@@ -6,7 +6,6 @@ import { useAuth } from "../hooks/useAuth";
 import { useMe } from "../hooks/useMe";
 import Link from "next/link";
 import { Avatar } from "@/components/Avatar/Avatar";
-import { NavbarUnitToggle } from "@/components/NavbarUnitToggle";
 import { NavbarUnitToggleLocal } from "@/components/NavbarUnitToggleLocal";
 import navStyles from "@/styles/components/Navigation.module.css";
 import styles from "./AuthNav.module.css";
@@ -34,7 +33,6 @@ export default function AuthNav() {
 
     return (
       <div className={styles.authSection}>
-        <NavbarUnitToggle />
         <Avatar
           firstName={me?.firstName ?? user.firstName ?? null}
           lastName={me?.lastName ?? user.lastName ?? null}

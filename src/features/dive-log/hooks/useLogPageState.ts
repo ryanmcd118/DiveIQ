@@ -1,10 +1,10 @@
 import { FormEvent, useEffect, useState } from "react";
 import { DiveLogEntry, DiveLogInput } from "@/features/dive-log/types";
-import { useUnitSystem } from "@/contexts/UnitSystemContext";
-import { uiToMetric } from "@/lib/units";
+import { useUnitPreferences } from "@/hooks/useUnitPreferences";
+import { depthInputToCm, tempInputToCx10, distanceInputToCm } from "@/lib/units";
 
 export function useLogPageState() {
-  const { unitSystem } = useUnitSystem();
+  const { prefs } = useUnitPreferences();
   const [entries, setEntries] = useState<DiveLogEntry[]>([]);
   const [saving, setSaving] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -77,14 +77,19 @@ export function useLogPageState() {
     const waterTempUI = formData.get("waterTemp");
     const visibilityUI = formData.get("visibility");
 
+    // Convert UI values to canonical fixed-point
+    const maxDepthCm = depthInputToCm(maxDepthUI, prefs.depth) ?? 0;
+    const waterTempCx10 = tempInputToCx10(waterTempUI, prefs.temperature);
+    const visibilityCm = distanceInputToCm(visibilityUI, prefs.depth);
+
     const payload: DiveLogInput = {
       date: formData.get("date") as string,
       region: (formData.get("region") as string) ?? "",
       siteName: (formData.get("siteName") as string) ?? "",
-      maxDepth: uiToMetric(maxDepthUI, unitSystem, 'depth') ?? 0,
+      maxDepthCm,
       bottomTime: Number(formData.get("bottomTime")),
-      waterTemp: uiToMetric(waterTempUI, unitSystem, 'temperature'),
-      visibility: uiToMetric(visibilityUI, unitSystem, 'distance'),
+      waterTempCx10,
+      visibilityCm,
       buddyName: (formData.get("buddyName") as string) || null,
       notes: (formData.get("notes") as string) || null,
       gearItemIds: selectedGearIds,

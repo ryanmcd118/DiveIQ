@@ -1,14 +1,138 @@
 /**
- * Unit system type
+ * Per-measurement unit types
  */
-export type UnitSystem = 'metric' | 'imperial';
+export type DepthUnit = "ft" | "m";
+export type TempUnit = "f" | "c";
+export type PressureUnit = "psi" | "bar";
+export type WeightUnit = "lb" | "kg";
 
 /**
- * Conversion utilities for metric <-> imperial
- * All database values are stored in metric units
+ * Unit preferences interface
  */
+export interface UnitPreferences {
+  depth: DepthUnit;
+  temperature: TempUnit;
+  pressure: PressureUnit;
+  weight: WeightUnit;
+}
 
-// === Depth conversions (meters <-> feet) ===
+/**
+ * Default unit preferences (imperial-ish)
+ */
+export const DEFAULT_UNIT_PREFERENCES: UnitPreferences = {
+  depth: "ft",
+  temperature: "f",
+  pressure: "psi",
+  weight: "lb",
+};
+
+/**
+ * Legacy UnitSystem type (kept for backward compatibility with guest toggles)
+ */
+export type UnitSystem = "metric" | "imperial";
+
+/**
+ * Convert UnitSystem to UnitPreferences (for guest toggles)
+ */
+export function unitSystemToPreferences(
+  unitSystem: UnitSystem
+): UnitPreferences {
+  if (unitSystem === "metric") {
+    return {
+      depth: "m",
+      temperature: "c",
+      pressure: "bar",
+      weight: "kg",
+    };
+  }
+  return DEFAULT_UNIT_PREFERENCES;
+}
+
+/**
+ * Convert UnitPreferences to UnitSystem (for guest toggles)
+ */
+export function preferencesToUnitSystem(prefs: UnitPreferences): UnitSystem {
+  // If all are metric, return 'metric', otherwise 'imperial'
+  if (
+    prefs.depth === "m" &&
+    prefs.temperature === "c" &&
+    prefs.pressure === "bar" &&
+    prefs.weight === "kg"
+  ) {
+    return "metric";
+  }
+  return "imperial";
+}
+
+// === Fixed-point conversion constants ===
+const FEET_TO_CM = 30.48; // 1 ft = 30.48 cm
+const METERS_TO_CM = 100; // 1 m = 100 cm
+const CELSIUS_TO_CX10 = 10; // 1°C = 10 Cx10 units
+
+// === Depth/Distance conversions (canonical: centimeters) ===
+
+/**
+ * Convert feet to centimeters (fixed-point canonical)
+ */
+export function feetToCm(feet: number): number {
+  return Math.round(feet * FEET_TO_CM);
+}
+
+/**
+ * Convert centimeters to feet
+ */
+export function cmToFeet(cm: number): number {
+  return cm / FEET_TO_CM;
+}
+
+/**
+ * Convert meters to centimeters (fixed-point canonical)
+ */
+export function metersToCm(meters: number): number {
+  return Math.round(meters * METERS_TO_CM);
+}
+
+/**
+ * Convert centimeters to meters
+ */
+export function cmToMeters(cm: number): number {
+  return cm / METERS_TO_CM;
+}
+
+// === Temperature conversions (canonical: Cx10 - tenths of Celsius) ===
+
+/**
+ * Convert Fahrenheit to Cx10 (fixed-point canonical)
+ */
+export function fToCx10(fahrenheit: number): number {
+  const celsius = ((fahrenheit - 32) * 5) / 9;
+  return Math.round(celsius * CELSIUS_TO_CX10);
+}
+
+/**
+ * Convert Cx10 to Fahrenheit
+ */
+export function cx10ToF(cx10: number): number {
+  const celsius = cx10 / CELSIUS_TO_CX10;
+  return (celsius * 9) / 5 + 32;
+}
+
+/**
+ * Convert Celsius to Cx10 (fixed-point canonical)
+ */
+export function cToCx10(celsius: number): number {
+  return Math.round(celsius * CELSIUS_TO_CX10);
+}
+
+/**
+ * Convert Cx10 to Celsius
+ */
+export function cx10ToC(cx10: number): number {
+  return cx10 / CELSIUS_TO_CX10;
+}
+
+// === Legacy conversion helpers (for backward compatibility) ===
+
 export function mToFt(meters: number): number {
   return meters * 3.28084;
 }
@@ -17,7 +141,6 @@ export function ftToM(feet: number): number {
   return feet / 3.28084;
 }
 
-// === Temperature conversions (°C <-> °F) ===
 export function cToF(celsius: number): number {
   return (celsius * 9) / 5 + 32;
 }
@@ -26,194 +149,289 @@ export function fToC(fahrenheit: number): number {
   return ((fahrenheit - 32) * 5) / 9;
 }
 
-// === Distance conversions (meters <-> feet, same as depth) ===
-// Visibility and other distances use the same conversion as depth
 export const metersToFeet = mToFt;
 export const feetToMeters = ftToM;
 
 // === Formatting helpers ===
+
 export function formatValue(value: number, decimals: number = 1): string {
-  if (isNaN(value) || !isFinite(value)) return '';
+  if (isNaN(value) || !isFinite(value)) return "";
   return value.toFixed(decimals);
 }
 
 export function formatInteger(value: number): string {
-  if (isNaN(value) || !isFinite(value)) return '';
+  if (isNaN(value) || !isFinite(value)) return "";
   return Math.round(value).toString();
 }
 
-// === Display helpers ===
+// === Display helpers (fixed-point canonical -> display) ===
 
 /**
- * Format depth for display
- * @param valueMeters - Depth in meters (from database)
- * @param unitSystem - Target unit system
+ * Format depth for display from canonical centimeters
+ * @param depthCm - Depth in centimeters (canonical fixed-point)
+ * @param depthUnit - Target unit ('ft' or 'm')
  * @returns Object with formatted value and unit label
  */
 export function displayDepth(
-  valueMeters: number | null | undefined,
-  unitSystem: UnitSystem
-): { value: string; unit: 'm' | 'ft' } {
-  if (valueMeters == null || isNaN(valueMeters)) {
-    return { value: '', unit: unitSystem === 'metric' ? 'm' : 'ft' };
+  depthCm: number | null | undefined,
+  depthUnit: DepthUnit
+): { value: string; unit: "m" | "ft" } {
+  if (depthCm == null || isNaN(depthCm)) {
+    return { value: "", unit: depthUnit === "m" ? "m" : "ft" };
   }
 
-  if (unitSystem === 'imperial') {
-    const feet = mToFt(valueMeters);
-    return { value: formatInteger(feet), unit: 'ft' };
+  if (depthUnit === "ft") {
+    const feet = cmToFeet(depthCm);
+    return { value: formatInteger(feet), unit: "ft" };
   }
 
-  return { value: formatInteger(valueMeters), unit: 'm' };
+  // Metric (meters)
+  const meters = cmToMeters(depthCm);
+  return { value: formatInteger(meters), unit: "m" };
 }
 
 /**
- * Format temperature for display
- * @param valueCelsius - Temperature in Celsius (from database)
- * @param unitSystem - Target unit system
+ * Format temperature for display from canonical Cx10
+ * @param tempCx10 - Temperature in Cx10 (canonical fixed-point)
+ * @param tempUnit - Target unit ('f' or 'c')
  * @returns Object with formatted value and unit label
  */
 export function displayTemperature(
-  valueCelsius: number | null | undefined,
-  unitSystem: UnitSystem
-): { value: string; unit: '°C' | '°F' } {
-  if (valueCelsius == null || isNaN(valueCelsius)) {
-    return { value: '', unit: unitSystem === 'metric' ? '°C' : '°F' };
+  tempCx10: number | null | undefined,
+  tempUnit: TempUnit
+): { value: string; unit: "°C" | "°F" } {
+  if (tempCx10 == null || isNaN(tempCx10)) {
+    return { value: "", unit: tempUnit === "c" ? "°C" : "°F" };
   }
 
-  if (unitSystem === 'imperial') {
-    const fahrenheit = cToF(valueCelsius);
-    return { value: formatInteger(fahrenheit), unit: '°F' };
+  if (tempUnit === "f") {
+    const fahrenheit = cx10ToF(tempCx10);
+    return { value: formatInteger(fahrenheit), unit: "°F" };
   }
 
-  return { value: formatInteger(valueCelsius), unit: '°C' };
+  // Celsius
+  const celsius = cx10ToC(tempCx10);
+  return { value: formatInteger(celsius), unit: "°C" };
 }
 
 /**
- * Format distance/visibility for display
- * @param valueMeters - Distance in meters (from database)
- * @param unitSystem - Target unit system
+ * Format distance/visibility for display from canonical centimeters
+ * @param distanceCm - Distance in centimeters (canonical fixed-point)
+ * @param depthUnit - Target unit ('ft' or 'm') - uses depth unit preference
  * @returns Object with formatted value and unit label
  */
 export function displayDistance(
-  valueMeters: number | null | undefined,
-  unitSystem: UnitSystem
-): { value: string; unit: 'm' | 'ft' } {
+  distanceCm: number | null | undefined,
+  depthUnit: DepthUnit
+): { value: string; unit: "m" | "ft" } {
   // Same as depth
-  return displayDepth(valueMeters, unitSystem);
+  return displayDepth(distanceCm, depthUnit);
 }
 
+// === Input helpers (UI -> canonical fixed-point) ===
+
 /**
- * Convert UI input value to metric for database storage
- * @param uiValue - Value entered by user in UI units
- * @param unitSystem - Unit system the user entered the value in
- * @param type - Type of measurement (depth, temperature, distance)
- * @returns Value in metric units for database
+ * Convert UI depth input to canonical centimeters
+ * @param value - Value entered by user
+ * @param unit - Unit the user entered ('ft' or 'm')
+ * @returns Depth in centimeters (fixed-point canonical)
  */
-export function uiToMetric(
-  uiValue: number | string | null | undefined,
-  unitSystem: UnitSystem,
-  type: 'depth' | 'temperature' | 'distance'
+export function depthInputToCm(
+  value: number | string | null | undefined,
+  unit: DepthUnit
 ): number | null {
-  if (uiValue == null || uiValue === '') return null;
-  
-  const numValue = typeof uiValue === 'string' ? parseFloat(uiValue) : uiValue;
+  if (value == null || value === "") return null;
+
+  const numValue = typeof value === "string" ? parseFloat(value) : value;
   if (isNaN(numValue)) return null;
 
-  if (unitSystem === 'metric') {
-    return numValue;
+  if (unit === "ft") {
+    return feetToCm(numValue);
   }
-
-  // Convert from imperial to metric
-  switch (type) {
-    case 'depth':
-    case 'distance':
-      return ftToM(numValue);
-    case 'temperature':
-      return fToC(numValue);
-    default:
-      return numValue;
-  }
+  // Metric (meters)
+  return metersToCm(numValue);
 }
 
 /**
- * Convert metric database value to UI display value
- * @param metricValue - Value from database in metric units
- * @param unitSystem - Target unit system for display
- * @param type - Type of measurement (depth, temperature, distance)
+ * Convert UI temperature input to canonical Cx10
+ * @param value - Value entered by user
+ * @param unit - Unit the user entered ('f' or 'c')
+ * @returns Temperature in Cx10 (fixed-point canonical)
+ */
+export function tempInputToCx10(
+  value: number | string | null | undefined,
+  unit: TempUnit
+): number | null {
+  if (value == null || value === "") return null;
+
+  const numValue = typeof value === "string" ? parseFloat(value) : value;
+  if (isNaN(numValue)) return null;
+
+  if (unit === "f") {
+    return fToCx10(numValue);
+  }
+  // Celsius
+  return cToCx10(numValue);
+}
+
+/**
+ * Convert UI distance input to canonical centimeters
+ * @param value - Value entered by user
+ * @param unit - Unit the user entered ('ft' or 'm')
+ * @returns Distance in centimeters (fixed-point canonical)
+ */
+export function distanceInputToCm(
+  value: number | string | null | undefined,
+  unit: DepthUnit
+): number | null {
+  // Same as depth
+  return depthInputToCm(value, unit);
+}
+
+/**
+ * Convert canonical centimeters to UI display value
+ * @param depthCm - Depth in centimeters (canonical)
+ * @param depthUnit - Target unit for display
  * @returns Value in UI units for display/editing
  */
-export function metricToUI(
-  metricValue: number | null | undefined,
-  unitSystem: UnitSystem,
-  type: 'depth' | 'temperature' | 'distance'
+export function cmToUI(
+  depthCm: number | null | undefined,
+  depthUnit: DepthUnit
 ): number | null {
-  if (metricValue == null || isNaN(metricValue)) return null;
+  if (depthCm == null || isNaN(depthCm)) return null;
 
-  if (unitSystem === 'metric') {
-    return metricValue;
+  if (depthUnit === "ft") {
+    return cmToFeet(depthCm);
   }
+  return cmToMeters(depthCm);
+}
 
-  // Convert from metric to imperial
-  switch (type) {
-    case 'depth':
-    case 'distance':
-      return mToFt(metricValue);
-    case 'temperature':
-      return cToF(metricValue);
-    default:
-      return metricValue;
+/**
+ * Convert canonical Cx10 to UI display value
+ * @param tempCx10 - Temperature in Cx10 (canonical)
+ * @param tempUnit - Target unit for display
+ * @returns Value in UI units for display/editing
+ */
+export function cx10ToUI(
+  tempCx10: number | null | undefined,
+  tempUnit: TempUnit
+): number | null {
+  if (tempCx10 == null || isNaN(tempCx10)) return null;
+
+  if (tempUnit === "f") {
+    return cx10ToF(tempCx10);
   }
+  return cx10ToC(tempCx10);
 }
 
 /**
  * Get unit label for a measurement type
  */
 export function getUnitLabel(
-  type: 'depth' | 'temperature' | 'distance',
-  unitSystem: UnitSystem
+  type: "depth" | "temperature" | "distance",
+  prefs: UnitPreferences
 ): string {
   switch (type) {
-    case 'depth':
-    case 'distance':
-      return unitSystem === 'metric' ? 'm' : 'ft';
-    case 'temperature':
-      return unitSystem === 'metric' ? '°C' : '°F';
+    case "depth":
+    case "distance":
+      return prefs.depth === "m" ? "m" : "ft";
+    case "temperature":
+      return prefs.temperature === "c" ? "°C" : "°F";
     default:
-      return '';
+      return "";
+  }
+}
+
+// === Legacy helpers (for backward compatibility with existing code) ===
+
+/**
+ * Legacy: Convert UI input value to metric for database storage
+ * @deprecated Use depthInputToCm, tempInputToCx10, etc. instead
+ */
+export function uiToMetric(
+  uiValue: number | string | null | undefined,
+  unitSystem: UnitSystem,
+  type: "depth" | "temperature" | "distance"
+): number | null {
+  if (uiValue == null || uiValue === "") return null;
+
+  const numValue = typeof uiValue === "string" ? parseFloat(uiValue) : uiValue;
+  if (isNaN(numValue)) return null;
+
+  const prefs = unitSystemToPreferences(unitSystem);
+
+  switch (type) {
+    case "depth":
+    case "distance":
+      return depthInputToCm(numValue, prefs.depth)
+        ? cmToMeters(depthInputToCm(numValue, prefs.depth)!)
+        : null;
+    case "temperature":
+      return tempInputToCx10(numValue, prefs.temperature)
+        ? cx10ToC(tempInputToCx10(numValue, prefs.temperature)!)
+        : null;
+    default:
+      return numValue;
+  }
+}
+
+/**
+ * Legacy: Convert metric database value to UI display value
+ * @deprecated Use cmToUI, cx10ToUI, etc. instead
+ */
+export function metricToUI(
+  metricValue: number | null | undefined,
+  unitSystem: UnitSystem,
+  type: "depth" | "temperature" | "distance"
+): number | null {
+  if (metricValue == null || isNaN(metricValue)) return null;
+
+  const prefs = unitSystemToPreferences(unitSystem);
+
+  switch (type) {
+    case "depth":
+    case "distance":
+      // Convert meters to cm, then to UI
+      const depthCm = metersToCm(metricValue);
+      return cmToUI(depthCm, prefs.depth);
+    case "temperature":
+      // Convert Celsius to Cx10, then to UI
+      const tempCx10 = cToCx10(metricValue);
+      return cx10ToUI(tempCx10, prefs.temperature);
+    default:
+      return metricValue;
   }
 }
 
 // === Parsing utilities for AI response strings ===
 
 /**
- * Parse a temperature string (e.g., "24-26°C" or "78-82°F") and return canonical Celsius values
+ * Parse a temperature string (e.g., "24-26°C" or "78-82°F") and return canonical Cx10 range
  * Returns null if parsing fails
  */
 export function parseTemperatureString(
   tempString: string
 ): { min: number; max: number } | null {
-  if (!tempString || typeof tempString !== 'string') return null;
+  if (!tempString || typeof tempString !== "string") return null;
 
-  // Remove whitespace
   const cleaned = tempString.trim();
 
-  // Check if it's Fahrenheit (contains °F or F)
   const isFahrenheit = /°?F\b/i.test(cleaned);
-  // Check if it's Celsius (contains °C or C, but not if it's part of a word)
   const isCelsius = /°?C\b/i.test(cleaned) && !isFahrenheit;
 
   // Extract numbers (supports ranges like "24-26" or single values like "25")
-  const numberMatch = cleaned.match(/(\d+(?:\.\d+)?)\s*[-–—]\s*(\d+(?:\.\d+)?)/);
+  const numberMatch = cleaned.match(
+    /(\d+(?:\.\d+)?)\s*[-–—]\s*(\d+(?:\.\d+)?)/
+  );
   if (numberMatch) {
     const min = parseFloat(numberMatch[1]);
     const max = parseFloat(numberMatch[2]);
     if (!isNaN(min) && !isNaN(max)) {
-      // Convert to Celsius if needed
       if (isFahrenheit) {
-        return { min: fToC(min), max: fToC(max) };
+        return { min: fToCx10(min), max: fToCx10(max) };
       }
-      // Assume Celsius if no unit or explicit Celsius
-      return { min, max };
+      // Celsius
+      return { min: cToCx10(min), max: cToCx10(max) };
     }
   }
 
@@ -223,10 +441,11 @@ export function parseTemperatureString(
     const value = parseFloat(singleMatch[1]);
     if (!isNaN(value)) {
       if (isFahrenheit) {
-        const celsius = fToC(value);
-        return { min: celsius, max: celsius };
+        const cx10 = fToCx10(value);
+        return { min: cx10, max: cx10 };
       }
-      return { min: value, max: value };
+      const cx10 = cToCx10(value);
+      return { min: cx10, max: cx10 };
     }
   }
 
@@ -234,34 +453,32 @@ export function parseTemperatureString(
 }
 
 /**
- * Parse a distance/depth string (e.g., "15-25m" or "50-100ft") and return canonical meters
+ * Parse a distance/depth string (e.g., "15-25m" or "50-100ft") and return canonical centimeters
  * Returns null if parsing fails
  */
 export function parseDistanceString(
   distanceString: string
 ): { min: number; max: number } | null {
-  if (!distanceString || typeof distanceString !== 'string') return null;
+  if (!distanceString || typeof distanceString !== "string") return null;
 
-  // Remove whitespace
   const cleaned = distanceString.trim();
 
-  // Check if it's feet (contains ft or feet)
   const isFeet = /\b(ft|feet)\b/i.test(cleaned);
-  // Check if it's meters (contains m, but not if it's part of "ft" or other words)
   const isMeters = /\bm\b/i.test(cleaned) && !isFeet;
 
   // Extract numbers (supports ranges like "15-25" or single values like "20")
-  const numberMatch = cleaned.match(/(\d+(?:\.\d+)?)\s*[-–—]\s*(\d+(?:\.\d+)?)/);
+  const numberMatch = cleaned.match(
+    /(\d+(?:\.\d+)?)\s*[-–—]\s*(\d+(?:\.\d+)?)/
+  );
   if (numberMatch) {
     const min = parseFloat(numberMatch[1]);
     const max = parseFloat(numberMatch[2]);
     if (!isNaN(min) && !isNaN(max)) {
-      // Convert to meters if needed
       if (isFeet) {
-        return { min: ftToM(min), max: ftToM(max) };
+        return { min: feetToCm(min), max: feetToCm(max) };
       }
-      // Assume meters if no unit or explicit meters
-      return { min, max };
+      // Meters
+      return { min: metersToCm(min), max: metersToCm(max) };
     }
   }
 
@@ -271,10 +488,11 @@ export function parseDistanceString(
     const value = parseFloat(singleMatch[1]);
     if (!isNaN(value)) {
       if (isFeet) {
-        const meters = ftToM(value);
-        return { min: meters, max: meters };
+        const cm = feetToCm(value);
+        return { min: cm, max: cm };
       }
-      return { min: value, max: value };
+      const cm = metersToCm(value);
+      return { min: cm, max: cm };
     }
   }
 
@@ -283,28 +501,28 @@ export function parseDistanceString(
 
 /**
  * Format a temperature range for display
- * @param range - Temperature range in Celsius (canonical)
- * @param unitSystem - Target unit system
+ * @param range - Temperature range in Cx10 (canonical fixed-point)
+ * @param tempUnit - Target unit ('f' or 'c')
  * @returns Formatted string like "24-26°C" or "78-82°F"
  */
 export function formatTemperatureRange(
   range: { min: number; max: number } | null,
-  unitSystem: UnitSystem
+  tempUnit: TempUnit
 ): string {
-  if (!range) return 'Data unavailable';
+  if (!range) return "Data unavailable";
 
-  if (unitSystem === 'imperial') {
-    const minF = Math.round(cToF(range.min));
-    const maxF = Math.round(cToF(range.max));
+  if (tempUnit === "f") {
+    const minF = Math.round(cx10ToF(range.min));
+    const maxF = Math.round(cx10ToF(range.max));
     if (minF === maxF) {
       return `${minF}°F`;
     }
     return `${minF}-${maxF}°F`;
   }
 
-  // Metric
-  const minC = Math.round(range.min);
-  const maxC = Math.round(range.max);
+  // Celsius
+  const minC = Math.round(cx10ToC(range.min));
+  const maxC = Math.round(cx10ToC(range.max));
   if (minC === maxC) {
     return `${minC}°C`;
   }
@@ -313,31 +531,30 @@ export function formatTemperatureRange(
 
 /**
  * Format a distance/visibility range for display
- * @param range - Distance range in meters (canonical)
- * @param unitSystem - Target unit system
+ * @param range - Distance range in centimeters (canonical fixed-point)
+ * @param depthUnit - Target unit ('ft' or 'm')
  * @returns Formatted string like "15-25m" or "50-100ft"
  */
 export function formatDistanceRange(
   range: { min: number; max: number } | null,
-  unitSystem: UnitSystem
+  depthUnit: DepthUnit
 ): string {
-  if (!range) return 'Data unavailable';
+  if (!range) return "Data unavailable";
 
-  if (unitSystem === 'imperial') {
-    const minFt = Math.round(mToFt(range.min));
-    const maxFt = Math.round(mToFt(range.max));
+  if (depthUnit === "ft") {
+    const minFt = Math.round(cmToFeet(range.min));
+    const maxFt = Math.round(cmToFeet(range.max));
     if (minFt === maxFt) {
       return `${minFt}ft`;
     }
     return `${minFt}-${maxFt}ft`;
   }
 
-  // Metric
-  const minM = Math.round(range.min);
-  const maxM = Math.round(range.max);
+  // Meters
+  const minM = Math.round(cmToMeters(range.min));
+  const maxM = Math.round(cmToMeters(range.max));
   if (minM === maxM) {
     return `${minM}m`;
   }
   return `${minM}-${maxM}m`;
 }
-

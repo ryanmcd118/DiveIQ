@@ -35,6 +35,7 @@ model User {
   lookingFor              String?  // JSON array (e.g., ["Buddies", "Trips", "Instructors"])
   favoriteDiveType        String?  // Favorite dive type
   favoriteDiveLocation    String?  // Favorite dive location
+  unitPreferences         Json?    // Unit preferences: { depth: "ft"|"m", temperature: "f"|"c", pressure: "psi"|"bar", weight: "lb"|"kg" }
   
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
@@ -90,10 +91,10 @@ model DiveLog {
   date        String
   region      String
   siteName    String
-  maxDepth    Int
+  maxDepthCm  Int      // Depth in centimeters (fixed-point canonical)
   bottomTime  Int
-  waterTemp   Int?
-  visibility  Int?
+  waterTempCx10 Int?   // Temperature in tenths of Celsius (fixed-point canonical)
+  visibilityCm Int?    // Visibility in centimeters (fixed-point canonical)
   buddyName   String?
   notes       String?
   createdAt   DateTime @default(now())
@@ -110,7 +111,7 @@ model DivePlan {
   date            String
   region          String
   siteName        String
-  maxDepth        Int
+  maxDepthCm      Int      // Depth in centimeters (fixed-point canonical)
   bottomTime      Int
   experienceLevel String   // 'Beginner' | 'Intermediate' | 'Advanced'
   riskLevel       String   // 'Low' | 'Moderate' | 'High'

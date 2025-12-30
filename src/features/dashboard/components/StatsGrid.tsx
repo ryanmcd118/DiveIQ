@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useUnitSystem } from "@/contexts/UnitSystemContext";
+import { useUnitPreferences } from "@/hooks/useUnitPreferences";
 import { displayDepth } from "@/lib/units";
 import cardStyles from "@/styles/components/Card.module.css";
 import styles from "./StatsGrid.module.css";
@@ -9,8 +9,8 @@ import styles from "./StatsGrid.module.css";
 interface StatsGridProps {
   totalDives: number;
   totalBottomTime: number;
-  deepestDive: number;
-  avgDepth?: number;
+  deepestDive: number; // In centimeters (canonical)
+  avgDepth?: number; // In centimeters (canonical)
   avgBottomTime?: number;
   divesThisMonth?: number;
 }
@@ -23,16 +23,11 @@ export function StatsGrid({
   avgBottomTime,
   divesThisMonth = 0,
 }: StatsGridProps) {
-  const { unitSystem } = useUnitSystem();
-  const [isMounted, setIsMounted] = useState(false);
+  const { prefs } = useUnitPreferences();
 
-  useEffect(() => {
-    setIsMounted(true);
-  }, []);
-
-  const deepestDiveDisplay = displayDepth(deepestDive, isMounted ? unitSystem : "metric");
+  const deepestDiveDisplay = displayDepth(deepestDive, prefs.depth);
   const avgDepthDisplay = avgDepth
-    ? displayDepth(avgDepth, isMounted ? unitSystem : "metric")
+    ? displayDepth(avgDepth, prefs.depth)
     : null;
 
   return (

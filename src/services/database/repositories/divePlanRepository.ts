@@ -15,7 +15,7 @@ export const divePlanRepository = {
         date: data.date,
         region: data.region,
         siteName: data.siteName,
-        maxDepth: data.maxDepth,
+        maxDepthCm: data.maxDepthCm,
         bottomTime: data.bottomTime,
         experienceLevel: data.experienceLevel,
         riskLevel: data.riskLevel,
@@ -75,7 +75,7 @@ export const divePlanRepository = {
         date: data.date,
         region: data.region,
         siteName: data.siteName,
-        maxDepth: data.maxDepth,
+        maxDepthCm: data.maxDepthCm,
         bottomTime: data.bottomTime,
         experienceLevel: data.experienceLevel,
         riskLevel: data.riskLevel,
@@ -108,4 +108,3 @@ export const divePlanRepository = {
     return prisma.divePlan.count({ where });
   },
 };
-

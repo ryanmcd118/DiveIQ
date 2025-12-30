@@ -1,8 +1,10 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useSession } from "next-auth/react";
 import { useSearchParams, useRouter } from "next/navigation";
+import { useUnitPreferences } from "@/hooks/useUnitPreferences";
+import type { UnitPreferences } from "@/lib/units";
 import cardStyles from "@/styles/components/Card.module.css";
 import formStyles from "@/styles/components/Form.module.css";
 import buttonStyles from "@/styles/components/Button.module.css";
@@ -29,13 +31,55 @@ export function SettingsPageContent() {
   const [accountInfo, setAccountInfo] = useState<UserAccountInfo | null>(null);
   const [isLoadingAccountInfo, setIsLoadingAccountInfo] = useState(true);
 
-  // Local state for settings (not persisted yet)
-  const [units, setUnits] = useState({
-    depth: "meters" as "meters" | "feet",
-    temperature: "celsius" as "celsius" | "fahrenheit",
-    pressure: "bar" as "bar" | "psi",
-    weight: "kg" as "kg" | "lb",
-  });
+  // Use unit preferences hook
+  const { prefs, setPrefs, isLoading: prefsLoading } = useUnitPreferences();
+
+  // Draft state for unit preferences (only for logged-in users)
+  const [draftPrefs, setDraftPrefs] = useState<UnitPreferences | null>(null);
+  const [isSavingPrefs, setIsSavingPrefs] = useState(false);
+
+  // Initialize draft from saved prefs when they load
+  useEffect(() => {
+    if (!prefsLoading && prefs) {
+      setDraftPrefs(prefs);
+    }
+  }, [prefs, prefsLoading]);
+
+  // Check if draft has unsaved changes
+  const hasUnsavedChanges = useMemo(() => {
+    if (!draftPrefs || prefsLoading) return false;
+    return (
+      draftPrefs.depth !== prefs.depth ||
+      draftPrefs.temperature !== prefs.temperature ||
+      draftPrefs.pressure !== prefs.pressure ||
+      draftPrefs.weight !== prefs.weight
+    );
+  }, [draftPrefs, prefs, prefsLoading]);
+
+  // Handle saving unit preferences
+  const handleSavePrefs = async () => {
+    if (!draftPrefs || !hasUnsavedChanges) return;
+
+    setIsSavingPrefs(true);
+    try {
+      await setPrefs(draftPrefs);
+      setToastMessage("Unit preferences saved ✅");
+      setShowToast(true);
+      setTimeout(() => setShowToast(false), 3000);
+    } catch (error) {
+      console.error("Failed to save preferences:", error);
+      setToastMessage("Failed to save preferences");
+      setShowToast(true);
+      setTimeout(() => setShowToast(false), 3000);
+    } finally {
+      setIsSavingPrefs(false);
+    }
+  };
+
+  // Handle canceling unit preference changes
+  const handleCancelPrefs = () => {
+    setDraftPrefs(prefs);
+  };
 
   const [notifications, setNotifications] = useState({
     productUpdates: false,
@@ -287,18 +331,19 @@ export function SettingsPageContent() {
                 <div className={styles.settingControl}>
                   <select
                     id="units-depth"
-                    value={units.depth}
+                    value={draftPrefs?.depth ?? prefs.depth}
                     onChange={(e) =>
-                      setUnits({
-                        ...units,
-                        depth: e.target.value as "meters" | "feet",
-                      })
+                      setDraftPrefs((prev: UnitPreferences | null) =>
+                        prev
+                          ? { ...prev, depth: e.target.value as "ft" | "m" }
+                          : null
+                      )
                     }
                     className={formStyles.select}
-                    disabled
+                    disabled={prefsLoading || !draftPrefs}
                   >
-                    <option value="meters">Meters</option>
-                    <option value="feet">Feet</option>
+                    <option value="m">Meters</option>
+                    <option value="ft">Feet</option>
                   </select>
                 </div>
               </div>
@@ -310,18 +355,22 @@ export function SettingsPageContent() {
                 <div className={styles.settingControl}>
                   <select
                     id="units-temperature"
-                    value={units.temperature}
+                    value={draftPrefs?.temperature ?? prefs.temperature}
                     onChange={(e) =>
-                      setUnits({
-                        ...units,
-                        temperature: e.target.value as "celsius" | "fahrenheit",
-                      })
+                      setDraftPrefs((prev: UnitPreferences | null) =>
+                        prev
+                          ? {
+                              ...prev,
+                              temperature: e.target.value as "f" | "c",
+                            }
+                          : null
+                      )
                     }
                     className={formStyles.select}
-                    disabled
+                    disabled={prefsLoading || !draftPrefs}
                   >
-                    <option value="celsius">°C</option>
-                    <option value="fahrenheit">°F</option>
+                    <option value="c">°C</option>
+                    <option value="f">°F</option>
                   </select>
                 </div>
               </div>
@@ -333,15 +382,19 @@ export function SettingsPageContent() {
                 <div className={styles.settingControl}>
                   <select
                     id="units-pressure"
-                    value={units.pressure}
+                    value={draftPrefs?.pressure ?? prefs.pressure}
                     onChange={(e) =>
-                      setUnits({
-                        ...units,
-                        pressure: e.target.value as "bar" | "psi",
-                      })
+                      setDraftPrefs((prev: UnitPreferences | null) =>
+                        prev
+                          ? {
+                              ...prev,
+                              pressure: e.target.value as "bar" | "psi",
+                            }
+                          : null
+                      )
                     }
                     className={formStyles.select}
-                    disabled
+                    disabled={prefsLoading || !draftPrefs}
                   >
                     <option value="bar">Bar</option>
                     <option value="psi">PSI</option>
@@ -356,21 +409,51 @@ export function SettingsPageContent() {
                 <div className={styles.settingControl}>
                   <select
                     id="units-weight"
-                    value={units.weight}
+                    value={draftPrefs?.weight ?? prefs.weight}
                     onChange={(e) =>
-                      setUnits({
-                        ...units,
-                        weight: e.target.value as "kg" | "lb",
-                      })
+                      setDraftPrefs((prev: UnitPreferences | null) =>
+                        prev
+                          ? { ...prev, weight: e.target.value as "kg" | "lb" }
+                          : null
+                      )
                     }
                     className={formStyles.select}
-                    disabled
+                    disabled={prefsLoading || !draftPrefs}
                   >
                     <option value="kg">kg</option>
                     <option value="lb">lb</option>
                   </select>
                 </div>
               </div>
+            </div>
+
+            {/* Save/Cancel buttons */}
+            <div
+              style={{
+                display: "flex",
+                gap: "var(--space-3)",
+                marginTop: "var(--space-4)",
+                justifyContent: "flex-end",
+              }}
+            >
+              {hasUnsavedChanges && (
+                <button
+                  type="button"
+                  onClick={handleCancelPrefs}
+                  className={buttonStyles.secondary}
+                  disabled={isSavingPrefs}
+                >
+                  Cancel
+                </button>
+              )}
+              <button
+                type="button"
+                onClick={handleSavePrefs}
+                className={buttonStyles.primary}
+                disabled={!hasUnsavedChanges || isSavingPrefs || prefsLoading}
+              >
+                {isSavingPrefs ? "Saving..." : "Save"}
+              </button>
             </div>
 
             <p className={styles.helperTextNote}>
