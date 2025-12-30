@@ -22,7 +22,7 @@
 .kitCard {
   display: flex;
   flex-direction: column;
-  gap: var(--space-3);
+  gap: 0;
   padding: var(--space-3);
   background: rgba(6, 182, 212, 0.05);
   border: 1px solid rgba(6, 182, 212, 0.15);
@@ -40,6 +40,7 @@
   display: flex;
   flex-direction: column;
   gap: var(--space-1);
+  padding-bottom: var(--space-3);
 }
 
 .kitName {
@@ -54,64 +55,79 @@
   color: var(--color-text-muted);
 }
 
+.divider {
+  height: 1px;
+  background: rgba(148, 163, 184, 0.1);
+  margin: 0 calc(-1 * var(--space-3)) var(--space-3);
+}
+
 .itemsList {
   list-style: none;
-  padding: 0;
-  margin: 0;
+  padding: var(--space-2);
+  margin: calc(-1 * var(--space-2));
+  background: rgba(0, 0, 0, 0.02);
+  border-radius: var(--radius-sm);
   display: flex;
   flex-direction: column;
-  gap: var(--space-2);
+  gap: var(--space-1);
 }
 
 .itemRow {
   display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: var(--space-2);
-  padding-bottom: var(--space-2);
+  align-items: center;
+  padding: var(--space-1) 0;
+}
+
+.itemRow:not(:last-child) {
   border-bottom: 1px solid rgba(148, 163, 184, 0.05);
+  padding-bottom: var(--space-1);
 }
 
-.itemRow:last-child {
-  border-bottom: none;
-  padding-bottom: 0;
-}
-
-.itemPrimary {
+.itemName {
   display: flex;
-  flex-direction: column;
-  gap: 2px;
+  align-items: center;
+  gap: 4px;
   flex: 1;
   min-width: 0;
+  font-size: var(--font-size-xs);
+  line-height: 1.4;
 }
 
 .itemManufacturer {
-  font-size: var(--font-size-xs);
-  font-weight: var(--font-weight-medium);
-  color: var(--color-text-primary);
+  color: var(--color-text-secondary);
+  font-weight: var(--font-weight-normal);
+}
+
+.itemSeparator {
+  color: var(--color-text-muted);
+  opacity: 0.5;
+  font-weight: var(--font-weight-normal);
 }
 
 .itemModel {
-  font-size: var(--font-size-xs);
-  color: var(--color-text-secondary);
+  color: var(--color-text-primary);
+  font-weight: var(--font-weight-medium);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.itemSecondary {
-  font-size: 10px;
+.itemYear {
   color: var(--color-text-muted);
+  opacity: 0.6;
+  font-size: 10px;
+  font-weight: var(--font-weight-normal);
   flex-shrink: 0;
 }
 
 .moreItems {
   font-size: var(--font-size-xs);
   color: var(--color-text-muted);
+  opacity: 0.7;
   font-style: italic;
   padding-top: var(--space-1);
-  border-top: 1px solid rgba(148, 163, 184, 0.1);
   margin-top: var(--space-1);
+  border-top: 1px solid rgba(148, 163, 184, 0.1);
 }
 
 /* Responsive */

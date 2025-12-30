@@ -116,28 +116,40 @@ export function ProfileGear() {
               </div>
               
               {itemCount > 0 && (
-                <ul className={styles.itemsList}>
-                  {visibleItems.map((item) => (
-                    <li key={item.id} className={styles.itemRow}>
-                      <div className={styles.itemPrimary}>
-                        <span className={styles.itemManufacturer}>
-                          {item.manufacturer}
-                        </span>
-                        <span className={styles.itemModel}>{item.model}</span>
-                      </div>
-                      {item.purchaseDate && (
-                        <div className={styles.itemSecondary}>
-                          {formatPurchaseDate(item.purchaseDate)}
-                        </div>
-                      )}
-                    </li>
-                  ))}
-                  {remainingCount > 0 && (
-                    <li className={styles.moreItems}>
-                      +{remainingCount} more
-                    </li>
-                  )}
-                </ul>
+                <>
+                  <div className={styles.divider}></div>
+                  <ul className={styles.itemsList}>
+                    {visibleItems.map((item) => {
+                      const purchaseYear = item.purchaseDate
+                        ? formatPurchaseDate(item.purchaseDate)
+                        : null;
+
+                      return (
+                        <li key={item.id} className={styles.itemRow}>
+                          <div className={styles.itemName}>
+                            <span className={styles.itemManufacturer}>
+                              {item.manufacturer}
+                            </span>
+                            <span className={styles.itemSeparator}>·</span>
+                            <span className={styles.itemModel}>
+                              {item.model}
+                            </span>
+                            {purchaseYear && (
+                              <span className={styles.itemYear}>
+                                {" "}({purchaseYear})
+                              </span>
+                            )}
+                          </div>
+                        </li>
+                      );
+                    })}
+                    {remainingCount > 0 && (
+                      <li className={styles.moreItems}>
+                        +{remainingCount} more items
+                      </li>
+                    )}
+                  </ul>
+                </>
               )}
             </div>
           );
