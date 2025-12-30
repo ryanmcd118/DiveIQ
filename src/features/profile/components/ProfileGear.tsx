@@ -5,6 +5,7 @@ import styles from "./ProfileGear.module.css";
 
 interface ProfileKitItem {
   id: string;
+  type: string;
   manufacturer: string;
   model: string;
   purchaseDate: string | null;
@@ -86,6 +87,14 @@ export function ProfileGear() {
     return null;
   }
 
+  // Format gear type for display (e.g., "DIVE_COMPUTER" -> "Dive Computer")
+  const formatGearType = (type: string): string => {
+    return type
+      .split("_")
+      .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+      .join(" ");
+  };
+
   return (
     <div className={styles.container}>
       <div className={styles.subheader}>Shared kits</div>
@@ -117,6 +126,10 @@ export function ProfileGear() {
                           <span className={styles.itemSeparator}>·</span>
                           <span className={styles.itemModel}>
                             {item.model}
+                          </span>
+                          <span className={styles.itemTypeSeparator}>—</span>
+                          <span className={styles.itemType}>
+                            {formatGearType(item.type)}
                           </span>
                         </div>
                       </li>

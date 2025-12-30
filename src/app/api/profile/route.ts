@@ -90,6 +90,7 @@ export async function GET() {
                     gearItem: {
                       select: {
                         id: true,
+                        type: true,
                         manufacturer: true,
                         model: true,
                         purchaseDate: true,
@@ -114,6 +115,7 @@ export async function GET() {
           name: pk.kit.name,
           items: pk.kit.kitItems.map((ki) => ({
             id: ki.gearItem.id,
+            type: ki.gearItem.type,
             manufacturer: ki.gearItem.manufacturer,
             model: ki.gearItem.model,
             purchaseDate: ki.gearItem.purchaseDate,
@@ -546,6 +548,7 @@ export async function PATCH(req: NextRequest) {
         name: pk.kit.name,
         items: pk.kit.kitItems.map((ki) => ({
           id: ki.gearItem.id,
+          type: ki.gearItem.type,
           manufacturer: ki.gearItem.manufacturer,
           model: ki.gearItem.model,
           purchaseDate: ki.gearItem.purchaseDate,

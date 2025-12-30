@@ -75,12 +75,12 @@
 .itemRow {
   display: flex;
   align-items: center;
-  padding: calc(var(--space-1) * 1.25) 0;
+  padding: var(--space-2) 0;
 }
 
 .itemRow:not(:last-child) {
   border-bottom: 1px solid rgba(148, 163, 184, 0.05);
-  padding-bottom: calc(var(--space-1) * 1.25);
+  padding-bottom: var(--space-2);
 }
 
 .itemName {
@@ -89,30 +89,42 @@
   gap: 4px;
   flex: 1;
   min-width: 0;
-  font-size: 11px;
+  font-size: var(--font-size-xs);
   line-height: 1.5;
-  opacity: 0.85;
 }
 
 .itemManufacturer {
-  color: var(--color-text-secondary);
+  color: var(--color-text-primary);
   font-weight: var(--font-weight-normal);
-  opacity: 0.8;
 }
 
 .itemSeparator {
   color: var(--color-text-muted);
-  opacity: 0.4;
+  opacity: 0.6;
   font-weight: var(--font-weight-normal);
 }
 
 .itemModel {
-  color: var(--color-text-secondary);
-  font-weight: var(--font-weight-normal);
+  color: var(--color-text-primary);
+  font-weight: var(--font-weight-medium);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  opacity: 0.9;
+}
+
+.itemTypeSeparator {
+  color: var(--color-text-muted);
+  opacity: 0.4;
+  font-weight: var(--font-weight-normal);
+  margin: 0 2px;
+}
+
+.itemType {
+  color: var(--color-text-secondary);
+  font-weight: var(--font-weight-normal);
+  font-size: 11px;
+  opacity: 0.8;
+  flex-shrink: 0;
 }
 
 /* Responsive */
