@@ -7,6 +7,7 @@ import { Avatar } from "@/components/Avatar/Avatar";
 import cardStyles from "@/styles/components/Card.module.css";
 import formStyles from "@/styles/components/Form.module.css";
 import buttonStyles from "@/styles/components/Button.module.css";
+import settingsStyles from "@/features/settings/components/SettingsPageContent.module.css";
 import styles from "./ProfilePageContent.module.css";
 import { parseJsonArray, stringifyJsonArray } from "../utils/parseJsonArray";
 import {
@@ -37,6 +38,7 @@ interface ProfileData {
   birthday: string | null;
   avatarUrl: string | null;
   showCertificationsOnProfile: boolean;
+  showGearOnProfile: boolean;
 }
 
 interface UserData {
@@ -108,6 +110,7 @@ export function ProfilePageContent() {
     birthday: null,
     avatarUrl: null,
     showCertificationsOnProfile: true,
+    showGearOnProfile: true,
   });
   const [originalProfile, setOriginalProfile] = useState<ProfileData | null>(
     null
@@ -155,7 +158,8 @@ export function ProfilePageContent() {
       norm(draftProfile.favoriteDiveLocation) !==
         norm(originalProfile.favoriteDiveLocation) ||
       norm(draftProfile.birthday) !== norm(originalProfile.birthday) ||
-      draftProfile.showCertificationsOnProfile !== originalProfile.showCertificationsOnProfile
+      draftProfile.showCertificationsOnProfile !== originalProfile.showCertificationsOnProfile ||
+      draftProfile.showGearOnProfile !== originalProfile.showGearOnProfile
     );
   }, [draftProfile, originalProfile]);
 
@@ -207,6 +211,9 @@ export function ProfilePageContent() {
         avatarUrl: data.user.avatarUrl || null,
         showCertificationsOnProfile: data.user.showCertificationsOnProfile !== undefined 
           ? Boolean(data.user.showCertificationsOnProfile)
+          : true,
+        showGearOnProfile: data.user.showGearOnProfile !== undefined 
+          ? Boolean(data.user.showGearOnProfile)
           : true,
       };
       setDraftProfile(profileData);
@@ -285,6 +292,7 @@ export function ProfilePageContent() {
         favoriteDiveLocation: normalizeValue(draftProfile.favoriteDiveLocation),
         birthday: normalizeValue(draftProfile.birthday),
         showCertificationsOnProfile: draftProfile.showCertificationsOnProfile,
+        showGearOnProfile: draftProfile.showGearOnProfile,
       };
 
       if (
@@ -373,6 +381,9 @@ export function ProfilePageContent() {
         avatarUrl: data.user.avatarUrl || null,
         showCertificationsOnProfile: data.user.showCertificationsOnProfile !== undefined 
           ? Boolean(data.user.showCertificationsOnProfile)
+          : true,
+        showGearOnProfile: data.user.showGearOnProfile !== undefined 
+          ? Boolean(data.user.showGearOnProfile)
           : true,
       };
 
@@ -770,18 +781,20 @@ export function ProfilePageContent() {
         )}
 
         {/* Section: Gear */}
-        <div className={styles.section}>
-          <h3 className={styles.sectionTitle}>Gear</h3>
-          {!hasGear ? (
-            <p className={styles.emptyState}>
-              This user hasn&apos;t shared any gear yet.
-            </p>
-          ) : (
-            <div className={styles.previewTiles}>
-              {/* Placeholder for gear */}
-            </div>
-          )}
-        </div>
+        {draftProfile.showGearOnProfile && (
+          <div className={styles.section}>
+            <h3 className={styles.sectionTitle}>Gear</h3>
+            {!hasGear ? (
+              <p className={styles.emptyState}>
+                This user hasn&apos;t shared any gear yet.
+              </p>
+            ) : (
+              <div className={styles.previewTiles}>
+                {/* Placeholder for gear */}
+              </div>
+            )}
+          </div>
+        )}
       </>
     );
   };
@@ -1015,71 +1028,70 @@ export function ProfilePageContent() {
                   </div>
                 </div>
 
-                {/* Section: Certifications Visibility */}
-                <div className={styles.section}>
-                  <h3 className={styles.sectionTitle}>Certifications</h3>
-                  <div className={styles.fieldRow}>
-                    <div className={styles.fieldLabel}>Show certifications on my profile</div>
-                    <label
-                      style={{
-                        display: "flex",
-                        alignItems: "center",
-                        gap: "var(--space-2)",
-                        cursor: "pointer",
-                      }}
-                    >
-                      <input
-                        type="checkbox"
-                        checked={draftProfile.showCertificationsOnProfile}
-                        onChange={(e) =>
-                          handleFieldChange("showCertificationsOnProfile", e.target.checked)
-                        }
-                        style={{
-                          width: "18px",
-                          height: "18px",
-                          cursor: "pointer",
-                        }}
-                      />
-                      <span
-                        style={{
-                          fontSize: "var(--font-size-sm)",
-                          color: "var(--color-text-secondary)",
-                        }}
-                      >
-                        Your certifications will be visible on your public profile.
-                      </span>
-                    </label>
-                    <p
-                      className={formStyles.helpText}
-                      style={{ marginTop: "var(--space-1)" }}
-                    >
-                      Manage your certifications on the{" "}
-                      <Link
-                        href="/certifications"
-                        style={{
-                          color: "var(--accent)",
-                          textDecoration: "none",
-                        }}
-                      >
-                        Certifications page
-                      </Link>
-                      .
+                {/* Section: Profile Visibility */}
+                <div className={`${cardStyles.card} ${styles.section}`}>
+                  <div className={settingsStyles.sectionHeader}>
+                    <h3 className={settingsStyles.sectionTitle}>Profile visibility</h3>
+                    <p className={settingsStyles.sectionDescription}>
+                      Choose what&apos;s shown on your public profile.
                     </p>
                   </div>
-                </div>
 
-                {/* Section: Gear */}
-                <div className={styles.section}>
-                  <h3 className={styles.sectionTitle}>Gear</h3>
-                  <p
-                    className={styles.emptyState}
-                    style={{
-                      fontStyle: "italic",
-                      color: "var(--color-text-secondary)",
-                    }}
-                  >
-                    Gear management coming soon.
-                  </p>
+                  <div className={settingsStyles.settingsList}>
+                    {/* Certifications Toggle */}
+                    <div className={settingsStyles.settingRow}>
+                      <div className={settingsStyles.settingLabel}>
+                        <label htmlFor="profile-visibility-certs">
+                          Show certifications on profile
+                        </label>
+                      </div>
+                      <div className={settingsStyles.settingControl}>
+                        <label className={settingsStyles.toggle}>
+                          <input
+                            id="profile-visibility-certs"
+                            type="checkbox"
+                            checked={draftProfile.showCertificationsOnProfile}
+                            onChange={(e) =>
+                              handleFieldChange("showCertificationsOnProfile", e.target.checked)
+                            }
+                          />
+                          <span className={settingsStyles.toggleSlider}></span>
+                        </label>
+                      </div>
+                    </div>
+                    <div style={{ marginTop: "var(--space-1)", marginLeft: "0" }}>
+                      <p className={settingsStyles.helperText}>
+                        Displays your certifications section on your profile.
+                      </p>
+                    </div>
+
+                    {/* Gear Toggle */}
+                    <div className={settingsStyles.settingRow}>
+                      <div className={settingsStyles.settingLabel}>
+                        <label htmlFor="profile-visibility-gear">
+                          Show gear on profile
+                        </label>
+                      </div>
+                      <div className={settingsStyles.settingControl}>
+                        <label className={settingsStyles.toggle}>
+                          <input
+                            id="profile-visibility-gear"
+                            type="checkbox"
+                            checked={draftProfile.showGearOnProfile}
+                            onChange={(e) =>
+                              handleFieldChange("showGearOnProfile", e.target.checked)
+                            }
+                          />
+                          <span className={settingsStyles.toggleSlider}></span>
+                        </label>
+                      </div>
+                    </div>
+                    <div style={{ marginTop: "var(--space-1)", marginLeft: "0" }}>
+                      <p className={settingsStyles.helperText}>
+                        Displays your gear section on your profile.
+                      </p>
+                    </div>
+                  </div>
                 </div>
 
                 {/* Save buttons at bottom */}

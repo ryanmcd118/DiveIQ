@@ -77,6 +77,7 @@ export async function GET() {
         lookingFor: true,
         favoriteDiveLocation: true,
         showCertificationsOnProfile: true,
+        showGearOnProfile: true,
       },
     });
 
@@ -221,6 +222,7 @@ export async function PATCH(req: NextRequest) {
       lookingFor,
       favoriteDiveLocation,
       showCertificationsOnProfile,
+      showGearOnProfile,
     } = body;
     
     // Explicitly ignore any other fields (especially certifications, userCertifications, etc.)
@@ -347,6 +349,7 @@ export async function PATCH(req: NextRequest) {
         ...(lookingFor !== undefined && { lookingFor: normalizedLookingFor }),
         ...(favoriteDiveLocation !== undefined && { favoriteDiveLocation: normalizedFavoriteDiveLocation }),
         ...(showCertificationsOnProfile !== undefined && { showCertificationsOnProfile: Boolean(showCertificationsOnProfile) }),
+        ...(showGearOnProfile !== undefined && { showGearOnProfile: Boolean(showGearOnProfile) }),
       },
       select: {
         id: true,
@@ -370,6 +373,7 @@ export async function PATCH(req: NextRequest) {
         lookingFor: true,
         favoriteDiveLocation: true,
         showCertificationsOnProfile: true,
+        showGearOnProfile: true,
       },
     });
 
