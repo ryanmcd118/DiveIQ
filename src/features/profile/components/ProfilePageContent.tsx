@@ -16,6 +16,7 @@ import {
   CERTIFYING_AGENCIES,
   type ExperienceLevel,
 } from "../types";
+import { ProfileCertifications } from "./ProfileCertifications";
 
 interface ProfileData {
   firstName: string | null;
@@ -591,7 +592,8 @@ export function ProfilePageContent() {
         draftProfile.typicalDivingEnvironment.length > 0) ||
       !!draftProfile.favoriteDiveLocation ||
       (draftProfile.lookingFor && draftProfile.lookingFor.length > 0);
-    const hasCertifications = false; // Placeholder - no certifications model yet
+    // Certifications will be loaded by ProfileCertifications component
+    const hasCertifications = true; // Always show section, component handles empty state
     const hasGear = false; // Placeholder - gear exists but not shown in profile yet
 
     return (
@@ -752,15 +754,7 @@ export function ProfilePageContent() {
         {/* Section: Certifications */}
         <div className={styles.section}>
           <h3 className={styles.sectionTitle}>Certifications</h3>
-          {!hasCertifications ? (
-            <p className={styles.emptyState}>
-              This user hasn&apos;t added any certifications yet.
-            </p>
-          ) : (
-            <div className={styles.previewTiles}>
-              {/* Placeholder for certifications */}
-            </div>
-          )}
+          <ProfileCertifications isOwner={true} />
         </div>
 
         {/* Section: Gear */}
@@ -1017,10 +1011,22 @@ export function ProfilePageContent() {
                     style={{
                       fontStyle: "italic",
                       color: "var(--color-text-secondary)",
+                      marginBottom: "var(--space-2)",
                     }}
                   >
-                    Certification management coming soon.
+                    Manage your certifications on the{" "}
+                    <Link
+                      href="/certifications"
+                      style={{
+                        color: "var(--accent)",
+                        textDecoration: "none",
+                      }}
+                    >
+                      Certifications page
+                    </Link>
+                    .
                   </p>
+                  <ProfileCertifications isOwner={true} />
                 </div>
 
                 {/* Section: Gear */}
