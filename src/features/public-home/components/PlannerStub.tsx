@@ -4,7 +4,11 @@ import { useState, FormEvent, useEffect } from "react";
 import { AIDiveBriefing } from "@/features/dive-plan/components/AIDiveBriefing";
 import type { AIBriefing, RiskLevel } from "@/features/dive-plan/types";
 import { useUnitPreferences } from "@/hooks/useUnitPreferences";
-import { preferencesToUnitSystem, uiToMetric, getUnitLabel } from "@/lib/units";
+import {
+  preferencesToUnitSystem,
+  depthInputToCm,
+  getUnitLabel,
+} from "@/lib/units";
 import styles from "./PublicHomePage.module.css";
 import cardStyles from "@/styles/components/Card.module.css";
 
@@ -59,18 +63,19 @@ export function PlannerStub() {
     const dateValue = formData.get("diveDate") as string;
     const date = dateValue || new Date().toISOString().split("T")[0];
 
-    // Convert UI unit values to metric for API
+    // Convert UI unit values to canonical (cm) for API
     const maxDepthUI = formData.get("maxDepth");
+    const maxDepthCm =
+      depthInputToCm(maxDepthUI as string | null, prefs.depth) ?? 18 * 100; // Default to 18m in cm
 
     const payload = {
       region: (formData.get("location") as string) || "Quick Plan",
       siteName: formData.get("location") || "Unspecified",
       date,
-      maxDepth:
-        uiToMetric(maxDepthUI as string | null, unitSystem, "depth") ?? 18,
+      maxDepthCm, // Pass canonical value in centimeters
       bottomTime: Number(formData.get("bottomTime")) || 45,
       experienceLevel: formData.get("experienceLevel") || "Intermediate",
-      unitSystem, // Pass unit system to AI
+      unitPreferences: prefs, // Pass unit preferences to AI
     };
 
     try {
