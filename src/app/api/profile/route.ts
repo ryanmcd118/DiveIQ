@@ -76,6 +76,7 @@ export async function GET() {
         typicalDivingEnvironment: true,
         lookingFor: true,
         favoriteDiveLocation: true,
+        showCertificationsOnProfile: true,
       },
     });
 
@@ -199,6 +200,9 @@ export async function PATCH(req: NextRequest) {
     }
 
     const body = await req.json();
+    
+    // Whitelist only allowed profile fields - explicitly exclude certifications and other fields
+    // This prevents any accidental inclusion of certifications, userCertifications, or nested objects
     const {
       firstName,
       lastName,
@@ -216,7 +220,11 @@ export async function PATCH(req: NextRequest) {
       typicalDivingEnvironment,
       lookingFor,
       favoriteDiveLocation,
+      showCertificationsOnProfile,
     } = body;
+    
+    // Explicitly ignore any other fields (especially certifications, userCertifications, etc.)
+    // Only the whitelisted fields above will be processed
 
     // Normalize string values: trim and convert empty strings to null
     const normalizeString = (val: string | null | undefined): string | null => {
@@ -338,6 +346,7 @@ export async function PATCH(req: NextRequest) {
         ...(typicalDivingEnvironment !== undefined && { typicalDivingEnvironment: normalizedTypicalDivingEnvironment }),
         ...(lookingFor !== undefined && { lookingFor: normalizedLookingFor }),
         ...(favoriteDiveLocation !== undefined && { favoriteDiveLocation: normalizedFavoriteDiveLocation }),
+        ...(showCertificationsOnProfile !== undefined && { showCertificationsOnProfile: Boolean(showCertificationsOnProfile) }),
       },
       select: {
         id: true,
@@ -360,6 +369,7 @@ export async function PATCH(req: NextRequest) {
         typicalDivingEnvironment: true,
         lookingFor: true,
         favoriteDiveLocation: true,
+        showCertificationsOnProfile: true,
       },
     });
 

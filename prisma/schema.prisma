@@ -48,6 +48,7 @@ model User {
   favoriteDiveType        String?  // Favorite dive type
   favoriteDiveLocation    String?  // Favorite dive location
   unitPreferences         Json?    // Unit preferences: { depth: "ft"|"m", temperature: "f"|"c", pressure: "psi"|"bar", weight: "lb"|"kg" }
+  showCertificationsOnProfile Boolean @default(true) // Whether to show certifications on public profile
   
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt

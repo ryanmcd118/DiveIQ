@@ -36,6 +36,7 @@ interface ProfileData {
   favoriteDiveLocation: string | null;
   birthday: string | null;
   avatarUrl: string | null;
+  showCertificationsOnProfile: boolean;
 }
 
 interface UserData {
@@ -106,6 +107,7 @@ export function ProfilePageContent() {
     favoriteDiveLocation: null,
     birthday: null,
     avatarUrl: null,
+    showCertificationsOnProfile: true,
   });
   const [originalProfile, setOriginalProfile] = useState<ProfileData | null>(
     null
@@ -152,7 +154,8 @@ export function ProfilePageContent() {
         JSON.stringify(originalProfile.lookingFor || []) ||
       norm(draftProfile.favoriteDiveLocation) !==
         norm(originalProfile.favoriteDiveLocation) ||
-      norm(draftProfile.birthday) !== norm(originalProfile.birthday)
+      norm(draftProfile.birthday) !== norm(originalProfile.birthday) ||
+      draftProfile.showCertificationsOnProfile !== originalProfile.showCertificationsOnProfile
     );
   }, [draftProfile, originalProfile]);
 
@@ -202,6 +205,9 @@ export function ProfilePageContent() {
             : null
         ),
         avatarUrl: data.user.avatarUrl || null,
+        showCertificationsOnProfile: data.user.showCertificationsOnProfile !== undefined 
+          ? Boolean(data.user.showCertificationsOnProfile)
+          : true,
       };
       setDraftProfile(profileData);
       setOriginalProfile(profileData);
@@ -259,7 +265,7 @@ export function ProfilePageContent() {
     setError(null);
     setSuccess(false);
     try {
-      const normalizedData: Record<string, string | number | null> = {
+      const normalizedData: Record<string, string | number | boolean | null> = {
         firstName: normalizeValue(draftProfile.firstName),
         lastName: normalizeValue(draftProfile.lastName),
         location: normalizeValue(draftProfile.location),
@@ -278,6 +284,7 @@ export function ProfilePageContent() {
         lookingFor: stringifyJsonArray(draftProfile.lookingFor),
         favoriteDiveLocation: normalizeValue(draftProfile.favoriteDiveLocation),
         birthday: normalizeValue(draftProfile.birthday),
+        showCertificationsOnProfile: draftProfile.showCertificationsOnProfile,
       };
 
       if (
@@ -364,6 +371,9 @@ export function ProfilePageContent() {
             : null
         ),
         avatarUrl: data.user.avatarUrl || null,
+        showCertificationsOnProfile: data.user.showCertificationsOnProfile !== undefined 
+          ? Boolean(data.user.showCertificationsOnProfile)
+          : true,
       };
 
       setDraftProfile(updatedProfile);
@@ -752,10 +762,12 @@ export function ProfilePageContent() {
         </div>
 
         {/* Section: Certifications */}
-        <div className={styles.section}>
-          <h3 className={styles.sectionTitle}>Certifications</h3>
-          <ProfileCertifications isOwner={true} />
-        </div>
+        {draftProfile.showCertificationsOnProfile && (
+          <div className={styles.section}>
+            <h3 className={styles.sectionTitle}>Certifications</h3>
+            <ProfileCertifications isOwner={true} />
+          </div>
+        )}
 
         {/* Section: Gear */}
         <div className={styles.section}>
@@ -1003,30 +1015,57 @@ export function ProfilePageContent() {
                   </div>
                 </div>
 
-                {/* Section: Certifications */}
+                {/* Section: Certifications Visibility */}
                 <div className={styles.section}>
                   <h3 className={styles.sectionTitle}>Certifications</h3>
-                  <p
-                    className={styles.emptyState}
-                    style={{
-                      fontStyle: "italic",
-                      color: "var(--color-text-secondary)",
-                      marginBottom: "var(--space-2)",
-                    }}
-                  >
-                    Manage your certifications on the{" "}
-                    <Link
-                      href="/certifications"
+                  <div className={styles.fieldRow}>
+                    <div className={styles.fieldLabel}>Show certifications on my profile</div>
+                    <label
                       style={{
-                        color: "var(--accent)",
-                        textDecoration: "none",
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "var(--space-2)",
+                        cursor: "pointer",
                       }}
                     >
-                      Certifications page
-                    </Link>
-                    .
-                  </p>
-                  <ProfileCertifications isOwner={true} />
+                      <input
+                        type="checkbox"
+                        checked={draftProfile.showCertificationsOnProfile}
+                        onChange={(e) =>
+                          handleFieldChange("showCertificationsOnProfile", e.target.checked)
+                        }
+                        style={{
+                          width: "18px",
+                          height: "18px",
+                          cursor: "pointer",
+                        }}
+                      />
+                      <span
+                        style={{
+                          fontSize: "var(--font-size-sm)",
+                          color: "var(--color-text-secondary)",
+                        }}
+                      >
+                        Your certifications will be visible on your public profile.
+                      </span>
+                    </label>
+                    <p
+                      className={formStyles.helpText}
+                      style={{ marginTop: "var(--space-1)" }}
+                    >
+                      Manage your certifications on the{" "}
+                      <Link
+                        href="/certifications"
+                        style={{
+                          color: "var(--accent)",
+                          textDecoration: "none",
+                        }}
+                      >
+                        Certifications page
+                      </Link>
+                      .
+                    </p>
+                  </div>
                 </div>
 
                 {/* Section: Gear */}
