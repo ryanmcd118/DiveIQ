@@ -11,6 +11,8 @@ import { AuthModal } from "@/features/auth/components/AuthModal";
 import layoutStyles from "@/styles/components/Layout.module.css";
 import gridStyles from "@/styles/components/PageGrid.module.css";
 import backgroundStyles from "@/styles/components/Background.module.css";
+import cardStyles from "@/styles/components/Card.module.css";
+import buttonStyles from "@/styles/components/Button.module.css";
 
 type PlanPageMode = "public" | "authed";
 
@@ -45,9 +47,25 @@ export function PlanPageContent({ mode = "authed" }: PlanPageContentProps) {
   } = usePlanPageState();
 
   const [showAuthModal, setShowAuthModal] = useState(false);
+  const [authModalMode, setAuthModalMode] = useState<"signup" | "login">(
+    "signup"
+  );
 
   // Handle save button click for unauthenticated users
   const handleRequireAuth = useCallback(() => {
+    setAuthModalMode("signup");
+    setShowAuthModal(true);
+  }, []);
+
+  // Handle "Create account" click from callout
+  const handleCreateAccount = useCallback(() => {
+    setAuthModalMode("signup");
+    setShowAuthModal(true);
+  }, []);
+
+  // Handle "Log in" click from callout
+  const handleLogIn = useCallback(() => {
+    setAuthModalMode("login");
     setShowAuthModal(true);
   }, []);
 
@@ -159,8 +177,8 @@ export function PlanPageContent({ mode = "authed" }: PlanPageContentProps) {
           </section>
         </div>
 
-        {/* Bottom zone: Full-width past plans - only visible for authenticated users */}
-        {isAuthenticated && (
+        {/* Bottom zone: Past plans (authenticated) or callout (public) */}
+        {mode === "authed" && isAuthenticated && (
           <section className={gridStyles.planPageBottom}>
             <PastPlansList
               pastPlans={pastPlans}
@@ -169,6 +187,63 @@ export function PlanPageContent({ mode = "authed" }: PlanPageContentProps) {
               onSelectPlan={handleSelectPastPlan}
               onDeletePlan={deletePlan}
             />
+          </section>
+        )}
+        {mode === "public" && !isAuthenticated && (
+          <section className={gridStyles.planPageBottom}>
+            <div className={cardStyles.elevatedForm}>
+              <div style={{ padding: "var(--space-6)" }}>
+                <h3
+                  style={{
+                    fontSize: "var(--font-size-lg)",
+                    fontWeight: "var(--font-weight-semibold)",
+                    marginBottom: "var(--space-2)",
+                    color: "var(--color-text-primary)",
+                  }}
+                >
+                  Save your plans
+                </h3>
+                <p
+                  style={{
+                    fontSize: "var(--font-size-base)",
+                    color: "var(--color-text-secondary)",
+                    marginBottom: "var(--space-4)",
+                    lineHeight: "1.6",
+                  }}
+                >
+                  Create an account to save dive plans and build your planning
+                  history.
+                </p>
+                <div
+                  style={{
+                    display: "flex",
+                    gap: "var(--space-3)",
+                    alignItems: "center",
+                  }}
+                >
+                  <button
+                    type="button"
+                    onClick={handleCreateAccount}
+                    className={buttonStyles.primaryGradient}
+                    style={{ whiteSpace: "nowrap" }}
+                  >
+                    Create account
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleLogIn}
+                    className={buttonStyles.secondary}
+                    style={{
+                      background: "transparent",
+                      color: "var(--color-text-primary)",
+                      textDecoration: "underline",
+                    }}
+                  >
+                    Log in
+                  </button>
+                </div>
+              </div>
+            </div>
           </section>
         )}
       </div>
@@ -187,7 +262,7 @@ export function PlanPageContent({ mode = "authed" }: PlanPageContentProps) {
         isOpen={showAuthModal}
         onClose={() => setShowAuthModal(false)}
         onAuthSuccess={handleAuthSuccess}
-        initialMode="signup"
+        initialMode={authModalMode}
       />
     </main>
   );

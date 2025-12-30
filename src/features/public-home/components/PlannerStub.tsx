@@ -3,8 +3,8 @@
 import { useState, FormEvent, useEffect } from "react";
 import { AIDiveBriefing } from "@/features/dive-plan/components/AIDiveBriefing";
 import type { AIBriefing, RiskLevel } from "@/features/dive-plan/types";
-import type { UnitSystem } from "@/lib/units";
-import { uiToMetric, getUnitLabel } from "@/lib/units";
+import { useUnitPreferences } from "@/hooks/useUnitPreferences";
+import { preferencesToUnitSystem, uiToMetric, getUnitLabel } from "@/lib/units";
 import styles from "./PublicHomePage.module.css";
 import cardStyles from "@/styles/components/Card.module.css";
 
@@ -17,43 +17,22 @@ export function PlannerStub() {
   // Client-mount guard to prevent hydration mismatch
   const [isMounted, setIsMounted] = useState(false);
 
-  // Use local state for logged-out planner stub (not global context)
-  const [unitSystem, setUnitSystem] = useState<UnitSystem>(() => {
-    // Try to load from localStorage, but this is local to this component
-    if (typeof window !== "undefined") {
-      const stored = localStorage.getItem("diveiq:unitSystem");
-      if (stored === "metric" || stored === "imperial") {
-        return stored;
-      }
-    }
-    return "metric";
-  });
+  // Use useUnitPreferences with guest mode for consistent unit handling
+  const { prefs, setPrefs } = useUnitPreferences({ mode: "guest" });
+  const unitSystem = preferencesToUnitSystem(prefs);
 
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<PlanResult | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [maxDepth, setMaxDepth] = useState<string>("18");
-  const [prevUnitSystem, setPrevUnitSystem] = useState<UnitSystem>(unitSystem);
+  const [prevUnitSystem, setPrevUnitSystem] = useState(unitSystem);
 
   // Set mounted flag on client mount
   useEffect(() => {
     setIsMounted(true);
   }, []);
 
-  // Persist to localStorage when unitSystem changes (local preference for logged-out users)
-  // Also dispatch custom event so AIDiveBriefing can pick it up
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      localStorage.setItem("diveiq:unitSystem", unitSystem);
-      // Dispatch event so AIDiveBriefing (via useUnitSystemOrLocal) can react to changes
-      const event = new CustomEvent("unitSystemChanged", {
-        detail: unitSystem,
-      });
-      window.dispatchEvent(event);
-    }
-  }, [unitSystem]);
-
-  // Handle unit system change - convert current values
+  // Handle unit system change - convert current values when prefs change
   useEffect(() => {
     if (prevUnitSystem !== unitSystem && maxDepth) {
       const numValue = parseFloat(maxDepth);
@@ -169,7 +148,15 @@ export function PlannerStub() {
                   >
                     <button
                       type="button"
-                      onClick={() => setUnitSystem("metric")}
+                      onClick={() => {
+                        // Update preferences via setPrefs which will dispatch event
+                        setPrefs({
+                          depth: "m",
+                          temperature: "c",
+                          pressure: "bar",
+                          weight: "kg",
+                        });
+                      }}
                       aria-pressed={unitSystem === "metric"}
                       aria-label="Metric units"
                       style={{
@@ -197,7 +184,15 @@ export function PlannerStub() {
                     </button>
                     <button
                       type="button"
-                      onClick={() => setUnitSystem("imperial")}
+                      onClick={() => {
+                        // Update preferences via setPrefs which will dispatch event
+                        setPrefs({
+                          depth: "ft",
+                          temperature: "f",
+                          pressure: "psi",
+                          weight: "lb",
+                        });
+                      }}
                       aria-pressed={unitSystem === "imperial"}
                       aria-label="Imperial units"
                       style={{
@@ -233,7 +228,7 @@ export function PlannerStub() {
               <div className={styles.plannerField}>
                 <label htmlFor="maxDepth" className={styles.plannerLabel}>
                   Max Depth{" "}
-                  {isMounted ? `(${getUnitLabel("depth", unitSystem)})` : ""}
+                  {isMounted ? `(${getUnitLabel("depth", prefs)})` : ""}
                 </label>
                 <input
                   type="number"
@@ -325,6 +320,7 @@ export function PlannerStub() {
             {/* Loading state with skeleton */}
             {loading && (
               <AIDiveBriefing
+                mode="public"
                 briefing={null}
                 loading={true}
                 compact={true}
@@ -352,6 +348,7 @@ export function PlannerStub() {
             {/* Result with AI Briefing */}
             {result && !loading && (
               <AIDiveBriefing
+                mode="public"
                 briefing={result.aiBriefing}
                 compact={true}
                 showExpander={true}
