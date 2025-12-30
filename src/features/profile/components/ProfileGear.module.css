@@ -1,0 +1,129 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.subheader {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: var(--space-1);
+}
+
+.kitsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: var(--space-3);
+}
+
+.kitCard {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-3);
+  background: rgba(6, 182, 212, 0.05);
+  border: 1px solid rgba(6, 182, 212, 0.15);
+  border-radius: var(--radius-md);
+  transition: all var(--transition-base);
+}
+
+.kitCard:hover {
+  background: rgba(6, 182, 212, 0.08);
+  border-color: rgba(6, 182, 212, 0.25);
+  transform: translateY(-2px);
+}
+
+.kitHeader {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.kitName {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-primary);
+  line-height: 1.4;
+}
+
+.kitItemCount {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+}
+
+.itemsList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.itemRow {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-2);
+  padding-bottom: var(--space-2);
+  border-bottom: 1px solid rgba(148, 163, 184, 0.05);
+}
+
+.itemRow:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.itemPrimary {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+  min-width: 0;
+}
+
+.itemManufacturer {
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-primary);
+}
+
+.itemModel {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.itemSecondary {
+  font-size: 10px;
+  color: var(--color-text-muted);
+  flex-shrink: 0;
+}
+
+.moreItems {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  font-style: italic;
+  padding-top: var(--space-1);
+  border-top: 1px solid rgba(148, 163, 184, 0.1);
+  margin-top: var(--space-1);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .kitsGrid {
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  }
+}
+
+@media (max-width: 480px) {
+  .kitsGrid {
+    grid-template-columns: 1fr;
+  }
+}
+

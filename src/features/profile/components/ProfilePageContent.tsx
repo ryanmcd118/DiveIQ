@@ -18,6 +18,7 @@ import {
   type ExperienceLevel,
 } from "../types";
 import { ProfileCertifications } from "./ProfileCertifications";
+import { ProfileGear } from "./ProfileGear";
 import { GearKitWithItems } from "@/services/database/repositories/gearRepository";
 
 interface ProfileData {
@@ -821,15 +822,7 @@ export function ProfilePageContent() {
         {draftProfile.showGearOnProfile && (
           <div className={styles.section}>
             <h3 className={styles.sectionTitle}>Gear</h3>
-            {!hasGear ? (
-              <p className={styles.emptyState}>
-                This user hasn&apos;t shared any gear yet.
-              </p>
-            ) : (
-              <div className={styles.previewTiles}>
-                {/* Placeholder for gear */}
-              </div>
-            )}
+            <ProfileGear />
           </div>
         )}
       </>
