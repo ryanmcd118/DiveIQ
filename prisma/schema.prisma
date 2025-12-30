@@ -7,6 +7,18 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+// Enums
+enum CertificationAgency {
+  PADI
+  SSI
+}
+
+enum CertificationCategory {
+  core
+  specialty
+  professional
+}
+
 // Authentication models (NextAuth.js)
 model User {
   id            String    @id @default(cuid())
@@ -47,6 +59,7 @@ model User {
   gearKits      GearKit[]
   accounts      Account[]
   sessions      Session[]
+  certifications UserCertification[]
 }
 
 model Account {
@@ -186,4 +199,44 @@ model DiveGearItem {
   @@unique([diveId, gearItemId])
   @@index([diveId])
   @@index([gearItemId])
+}
+
+// Certification models
+model CertificationDefinition {
+  id            String                @id @default(cuid())
+  agency        CertificationAgency
+  name          String
+  slug          String
+  levelRank     Int
+  category      CertificationCategory
+  badgeImageUrl String?
+  createdAt     DateTime              @default(now())
+  updatedAt     DateTime              @updatedAt
+  
+  userCertifications UserCertification[]
+  
+  @@unique([agency, slug])
+}
+
+model UserCertification {
+  id                        String                  @id @default(cuid())
+  userId                    String
+  certificationDefinitionId String
+  earnedDate                DateTime?
+  certNumber                String?
+  diveShop                  String?
+  location                  String?
+  instructor                String?
+  notes                     String?
+  isFeatured                Boolean                 @default(false)
+  sortOrder                 Int?
+  createdAt                 DateTime                @default(now())
+  updatedAt                 DateTime                @updatedAt
+  
+  user                      User                    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  certificationDefinition   CertificationDefinition @relation(fields: [certificationDefinitionId], references: [id], onDelete: Cascade)
+  
+  @@index([userId])
+  @@index([certificationDefinitionId])
+  @@index([userId, isFeatured])
 }
