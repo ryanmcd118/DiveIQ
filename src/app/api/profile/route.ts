@@ -294,11 +294,25 @@ export async function PATCH(req: NextRequest) {
       return trimmed === "" ? null : trimmed;
     };
 
+    // Normalize website URL: prepend https:// if missing protocol
+    const normalizeWebsiteUrl = (url: string | null | undefined): string | null => {
+      const normalized = normalizeString(url);
+      if (!normalized) return null;
+      
+      // If it already starts with http:// or https://, return as-is
+      if (normalized.startsWith("http://") || normalized.startsWith("https://")) {
+        return normalized;
+      }
+      
+      // Otherwise, prepend https://
+      return `https://${normalized}`;
+    };
+
     // Normalize values first for validation
     const normalizedFirstName = normalizeString(firstName);
     const normalizedLastName = normalizeString(lastName);
     const normalizedBio = normalizeString(bio);
-    const normalizedWebsite = normalizeString(website);
+    const normalizedWebsite = normalizeWebsiteUrl(website); // Normalize website URL (prepend https:// if needed)
     const normalizedLocation = normalizeString(location);
     const normalizedPronouns = normalizeString(pronouns);
     const normalizedHomeDiveRegion = normalizeString(homeDiveRegion);
@@ -332,14 +346,14 @@ export async function PATCH(req: NextRequest) {
       );
     }
 
-    // Validate website URL format (if provided)
+    // Validate website URL format (if provided, after normalization)
     if (normalizedWebsite) {
       try {
-        // Basic URL validation
+        // Validate using URL constructor (will throw if invalid)
         new URL(normalizedWebsite);
       } catch {
         return NextResponse.json(
-          { error: "Invalid website URL format" },
+          { error: "Please enter a valid website address" },
           { status: 400 }
         );
       }

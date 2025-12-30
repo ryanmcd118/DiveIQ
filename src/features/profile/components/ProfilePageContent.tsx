@@ -135,6 +135,20 @@ export function ProfilePageContent() {
     return trimmed === "" ? null : trimmed;
   };
 
+  const normalizeWebsiteUrl = (url: string | null): string | null => {
+    if (!url) return null;
+    const trimmed = url.trim();
+    if (trimmed === "") return null;
+    
+    // If it already starts with http:// or https://, return as-is
+    if (trimmed.startsWith("http://") || trimmed.startsWith("https://")) {
+      return trimmed;
+    }
+    
+    // Otherwise, prepend https://
+    return `https://${trimmed}`;
+  };
+
   const isDirty = useMemo(() => {
     if (!originalProfile) return false;
     const norm = (v: string | string[] | number | null) => {
@@ -304,13 +318,16 @@ export function ProfilePageContent() {
     setError(null);
     setSuccess(false);
     try {
+      // Normalize website URL before validation (prepend https:// if missing protocol)
+      const normalizedWebsite = normalizeWebsiteUrl(draftProfile.website);
+      
       const normalizedData: Record<string, string | number | boolean | null> = {
         firstName: normalizeValue(draftProfile.firstName),
         lastName: normalizeValue(draftProfile.lastName),
         location: normalizeValue(draftProfile.location),
         pronouns: normalizeValue(draftProfile.pronouns),
         homeDiveRegion: normalizeValue(draftProfile.homeDiveRegion),
-        website: normalizeValue(draftProfile.website),
+        website: normalizedWebsite,
         languages: normalizeValue(draftProfile.languages),
         bio: normalizeValue(draftProfile.bio),
         primaryDiveTypes: stringifyJsonArray(draftProfile.primaryDiveTypes),
@@ -355,6 +372,7 @@ export function ProfilePageContent() {
         setSaving(false);
         return;
       }
+      // Validate website URL format (after normalization)
       if (
         normalizedData.website &&
         typeof normalizedData.website === "string"
@@ -362,7 +380,7 @@ export function ProfilePageContent() {
         try {
           new URL(normalizedData.website);
         } catch {
-          setError("Invalid website URL format");
+          setError("Please enter a valid website address");
           setSaving(false);
           return;
         }
