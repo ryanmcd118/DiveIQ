@@ -78,8 +78,49 @@ export async function GET() {
         favoriteDiveLocation: true,
         showCertificationsOnProfile: true,
         showGearOnProfile: true,
+        profileKits: {
+          select: {
+            kitId: true,
+            kit: {
+              select: {
+                id: true,
+                name: true,
+                kitItems: {
+                  select: {
+                    gearItem: {
+                      select: {
+                        id: true,
+                        manufacturer: true,
+                        model: true,
+                        purchaseDate: true,
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
       },
     });
+
+    // Transform profile kits to a simpler structure if user exists
+    if (user) {
+      user = {
+        ...user,
+        profileKitIds: user.profileKits.map((pk) => pk.kitId),
+        profileKits: user.profileKits.map((pk) => ({
+          id: pk.kit.id,
+          name: pk.kit.name,
+          items: pk.kit.kitItems.map((ki) => ({
+            id: ki.gearItem.id,
+            manufacturer: ki.gearItem.manufacturer,
+            model: ki.gearItem.model,
+            purchaseDate: ki.gearItem.purchaseDate,
+          })),
+        })),
+      } as any;
+    }
 
     // If not found by ID, try by email (resilience for stale sessions)
     if (!user && userEmail) {
@@ -223,10 +264,26 @@ export async function PATCH(req: NextRequest) {
       favoriteDiveLocation,
       showCertificationsOnProfile,
       showGearOnProfile,
+      profileKitIds,
     } = body;
     
     // Explicitly ignore any other fields (especially certifications, userCertifications, etc.)
     // Only the whitelisted fields above will be processed
+    
+    // Validate profileKitIds if provided
+    let normalizedProfileKitIds: string[] | undefined = undefined;
+    if (profileKitIds !== undefined) {
+      if (!Array.isArray(profileKitIds)) {
+        return NextResponse.json(
+          { error: "profileKitIds must be an array" },
+          { status: 400 }
+        );
+      }
+      // Filter out invalid values and ensure all are strings
+      normalizedProfileKitIds = profileKitIds
+        .filter((id): id is string => typeof id === "string" && id.trim() !== "")
+        .map((id) => id.trim());
+    }
 
     // Normalize string values: trim and convert empty strings to null
     const normalizeString = (val: string | null | undefined): string | null => {
@@ -377,7 +434,126 @@ export async function PATCH(req: NextRequest) {
       },
     });
 
-    return NextResponse.json({ user: updatedUser });
+    // Handle profile kit selection if showGearOnProfile is being set or profileKitIds is provided
+    if (normalizedProfileKitIds !== undefined || showGearOnProfile !== undefined) {
+      const finalShowGear = showGearOnProfile !== undefined 
+        ? Boolean(showGearOnProfile)
+        : updatedUser.showGearOnProfile;
+
+      if (!finalShowGear) {
+        // Clear all profile kits if gear visibility is disabled
+        await prisma.userProfileKit.deleteMany({
+          where: { userId: session.user.id },
+        });
+      } else if (normalizedProfileKitIds !== undefined) {
+        // Verify all kit IDs belong to the user
+        if (normalizedProfileKitIds.length > 0) {
+          const userKits = await prisma.gearKit.findMany({
+            where: {
+              userId: session.user.id,
+              id: { in: normalizedProfileKitIds },
+            },
+            select: { id: true },
+          });
+
+          const validKitIds = userKits.map((kit) => kit.id);
+          const invalidKitIds = normalizedProfileKitIds.filter(
+            (id) => !validKitIds.includes(id)
+          );
+
+          if (invalidKitIds.length > 0) {
+            return NextResponse.json(
+              { error: `Invalid kit IDs: ${invalidKitIds.join(", ")}` },
+              { status: 400 }
+            );
+          }
+        }
+
+        // Replace existing profile kits with new selection
+        await prisma.userProfileKit.deleteMany({
+          where: { userId: session.user.id },
+        });
+
+        if (normalizedProfileKitIds.length > 0) {
+          await prisma.userProfileKit.createMany({
+            data: normalizedProfileKitIds.map((kitId) => ({
+              userId: session.user.id,
+              kitId,
+            })),
+          });
+        }
+      }
+    }
+
+    // Fetch updated user with profile kits for response
+    const userWithKits = await prisma.user.findUnique({
+      where: { id: session.user.id },
+      select: {
+        id: true,
+        email: true,
+        firstName: true,
+        lastName: true,
+        image: true,
+        avatarUrl: true,
+        birthday: true,
+        location: true,
+        bio: true,
+        pronouns: true,
+        website: true,
+        homeDiveRegion: true,
+        languages: true,
+        primaryDiveTypes: true,
+        experienceLevel: true,
+        yearsDiving: true,
+        certifyingAgency: true,
+        typicalDivingEnvironment: true,
+        lookingFor: true,
+        favoriteDiveLocation: true,
+        showCertificationsOnProfile: true,
+        showGearOnProfile: true,
+        profileKits: {
+          select: {
+            kitId: true,
+            kit: {
+              select: {
+                id: true,
+                name: true,
+                kitItems: {
+                  select: {
+                    gearItem: {
+                      select: {
+                        id: true,
+                        manufacturer: true,
+                        model: true,
+                        purchaseDate: true,
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    });
+
+    // Transform profile kits to a simpler structure
+    const userResponse = userWithKits ? {
+      ...userWithKits,
+      profileKitIds: userWithKits.profileKits.map((pk) => pk.kitId),
+      profileKits: userWithKits.profileKits.map((pk) => ({
+        id: pk.kit.id,
+        name: pk.kit.name,
+        items: pk.kit.kitItems.map((ki) => ({
+          id: ki.gearItem.id,
+          manufacturer: ki.gearItem.manufacturer,
+          model: ki.gearItem.model,
+          purchaseDate: ki.gearItem.purchaseDate,
+        })),
+      })),
+    } : updatedUser;
+
+    return NextResponse.json({ user: userResponse });
   } catch (error) {
     // Outer catch for all other errors
     if (process.env.NODE_ENV === 'development') {
