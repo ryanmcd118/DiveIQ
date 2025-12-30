@@ -77,27 +77,84 @@
   white-space: nowrap;
 }
 
-.starButton {
+.starButtonContainer {
+  position: relative;
   flex-shrink: 0;
+  display: flex;
+  align-items: center;
+}
+
+.starButton {
   background: none;
   border: none;
   padding: var(--space-1);
   cursor: pointer;
   color: var(--color-text-muted);
-  transition: color var(--transition-base);
+  transition: color var(--transition-base), opacity var(--transition-base);
   display: flex;
   align-items: center;
   justify-content: center;
   border-radius: var(--radius-sm);
 }
 
-.starButton:hover {
+.starButton:hover:not(:disabled) {
   color: var(--color-accent-primary);
   background-color: var(--color-surface-hover);
 }
 
+.starButton:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
 .starButtonActive {
   color: var(--color-accent-primary);
+}
+
+.starButtonDisabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.starTooltip {
+  position: absolute;
+  top: calc(100% + var(--space-1));
+  right: 0;
+  padding: var(--space-1) var(--space-2);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border-default);
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+  white-space: nowrap;
+  z-index: 10;
+  box-shadow: var(--shadow-md);
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity var(--transition-base), transform var(--transition-base);
+  transform: translateY(-4px);
+}
+
+.starButtonContainer:hover .starTooltip {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Only show tooltip when button is disabled */
+.starButtonContainer:has(.starButtonDisabled):hover .starTooltip {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Featured card styling - slightly larger */
+.featuredCard {
+  border: 1px solid rgba(6, 182, 212, 0.2);
+  background: rgba(6, 182, 212, 0.03);
+}
+
+.featuredCard:hover {
+  border-color: rgba(6, 182, 212, 0.3);
+  background: rgba(6, 182, 212, 0.05);
 }
 
 .cardMeta {

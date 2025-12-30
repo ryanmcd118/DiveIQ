@@ -52,37 +52,75 @@ export function CertificationsPageContent() {
     void loadData();
   }, []);
 
+  // Helper to get date for sorting
+  const getSortDate = (cert: UserCertification): number => {
+    return cert.earnedDate
+      ? new Date(cert.earnedDate).getTime()
+      : new Date(cert.createdAt).getTime();
+  };
+
   // Group and sort certifications
-  const { coreCerts, specialtyCerts } = useMemo(() => {
+  const { featuredCerts, coreCerts, specialtyCerts, hasMaxFeatured } = useMemo(() => {
+    // Separate featured and non-featured
+    const featured: UserCertification[] = [];
     const core: UserCertification[] = [];
     const specialty: UserCertification[] = [];
 
     certifications.forEach((cert) => {
-      if (cert.certificationDefinition.category === "core") {
-        core.push(cert);
-      } else if (cert.certificationDefinition.category === "specialty") {
-        specialty.push(cert);
+      if (cert.isFeatured) {
+        featured.push(cert);
+      } else {
+        if (cert.certificationDefinition.category === "core") {
+          core.push(cert);
+        } else if (cert.certificationDefinition.category === "specialty") {
+          specialty.push(cert);
+        }
       }
     });
+
+    // Sort featured: core first (levelRank DESC), then specialties (earnedDate DESC)
+    const featuredCore = featured.filter(
+      (c) => c.certificationDefinition.category === "core"
+    );
+    const featuredSpecialty = featured.filter(
+      (c) => c.certificationDefinition.category === "specialty"
+    );
+
+    featuredCore.sort((a, b) => {
+      const rankDiff = b.certificationDefinition.levelRank - a.certificationDefinition.levelRank;
+      if (rankDiff !== 0) return rankDiff;
+      return getSortDate(b) - getSortDate(a);
+    });
+
+    featuredSpecialty.sort((a, b) => getSortDate(b) - getSortDate(a));
+
+    const sortedFeatured = [...featuredCore, ...featuredSpecialty].slice(0, 3);
 
     // Sort core: by levelRank DESC, then earnedDate DESC (fallback createdAt)
     core.sort((a, b) => {
       const rankDiff = b.certificationDefinition.levelRank - a.certificationDefinition.levelRank;
       if (rankDiff !== 0) return rankDiff;
       
-      const aDate = a.earnedDate ? new Date(a.earnedDate).getTime() : new Date(a.createdAt).getTime();
-      const bDate = b.earnedDate ? new Date(b.earnedDate).getTime() : new Date(b.createdAt).getTime();
+      const aDate = getSortDate(a);
+      const bDate = getSortDate(b);
       return bDate - aDate;
     });
 
     // Sort specialty: by earnedDate DESC (fallback createdAt)
     specialty.sort((a, b) => {
-      const aDate = a.earnedDate ? new Date(a.earnedDate).getTime() : new Date(a.createdAt).getTime();
-      const bDate = b.earnedDate ? new Date(b.earnedDate).getTime() : new Date(b.createdAt).getTime();
+      const aDate = getSortDate(a);
+      const bDate = getSortDate(b);
       return bDate - aDate;
     });
 
-    return { coreCerts: core, specialtyCerts: specialty };
+    const hasMaxFeatured = sortedFeatured.length >= 3;
+
+    return {
+      featuredCerts: sortedFeatured,
+      coreCerts: core,
+      specialtyCerts: specialty,
+      hasMaxFeatured,
+    };
   }, [certifications]);
 
   const handleAdd = () => {
@@ -212,6 +250,45 @@ export function CertificationsPageContent() {
           </div>
         ) : (
           <>
+            {/* Featured Certifications Section */}
+            <section className={styles.section}>
+              <div className={styles.sectionHeader}>
+                <div>
+                  <h2 className={styles.sectionTitle}>Featured certifications</h2>
+                  <p className={styles.sectionSubtitle}>
+                    You can feature up to 3 certifications
+                  </p>
+                </div>
+              </div>
+              {featuredCerts.length === 0 ? (
+                <div className={styles.featuredEmptyState}>
+                  <p className={styles.featuredEmptyText}>
+                    Feature up to three certifications to highlight your experience.
+                  </p>
+                  <p className={styles.featuredEmptySubtext}>
+                    These will appear on your dashboard and profile.
+                  </p>
+                </div>
+              ) : (
+                <div className={styles.featuredGrid}>
+                  {featuredCerts.map((cert) => (
+                    <CertificationCard
+                      key={cert.id}
+                      certification={cert}
+                      isExpanded={expandedCards.has(cert.id)}
+                      onToggle={() => toggleCard(cert.id)}
+                      onEdit={() => handleEdit(cert)}
+                      onDelete={() => handleDelete(cert.id)}
+                      onToggleFeatured={() => handleToggleFeatured(cert)}
+                      isFeaturedSection={true}
+                      canFeature={!hasMaxFeatured || cert.isFeatured}
+                    />
+                  ))}
+                </div>
+              )}
+            </section>
+
+            {/* Core Certifications Section */}
             {coreCerts.length > 0 && (
               <section className={styles.section}>
                 <h2 className={styles.sectionTitle}>Core</h2>
@@ -225,12 +302,14 @@ export function CertificationsPageContent() {
                       onEdit={() => handleEdit(cert)}
                       onDelete={() => handleDelete(cert.id)}
                       onToggleFeatured={() => handleToggleFeatured(cert)}
+                      canFeature={!hasMaxFeatured || cert.isFeatured}
                     />
                   ))}
                 </div>
               </section>
             )}
 
+            {/* Specialties Section */}
             {specialtyCerts.length > 0 && (
               <section className={styles.section}>
                 <h2 className={styles.sectionTitle}>Specialties</h2>
@@ -244,6 +323,7 @@ export function CertificationsPageContent() {
                       onEdit={() => handleEdit(cert)}
                       onDelete={() => handleDelete(cert.id)}
                       onToggleFeatured={() => handleToggleFeatured(cert)}
+                      canFeature={!hasMaxFeatured || cert.isFeatured}
                     />
                   ))}
                 </div>

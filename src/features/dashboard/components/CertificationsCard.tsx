@@ -29,84 +29,109 @@ export function CertificationsCard() {
     void loadData();
   }, []);
 
-  // Sort and select top 3 certifications
-  const topCertifications = useMemo(() => {
-    if (certifications.length === 0) return [];
+  // Helper to get date for sorting
+  const getSortDate = (cert: UserCertification): number => {
+    return cert.earnedDate
+      ? new Date(cert.earnedDate).getTime()
+      : new Date(cert.createdAt).getTime();
+  };
+
+  // Calculate primary and secondary sections
+  const { primaryCerts, secondaryCerts } = useMemo(() => {
+    if (certifications.length === 0) {
+      return { primaryCerts: [], secondaryCerts: [] };
+    }
 
     // Separate featured and non-featured
     const featured = certifications.filter((c) => c.isFeatured);
     const nonFeatured = certifications.filter((c) => !c.isFeatured);
 
-    // Sort featured: core first, then levelRank DESC, then earnedDate DESC
-    featured.sort((a, b) => {
-      const aDef = a.certificationDefinition;
-      const bDef = b.certificationDefinition;
+    let primary: UserCertification[] = [];
+    const primaryIds = new Set<string>();
 
-      // Core before specialty
-      if (aDef.category === "core" && bDef.category !== "core") return -1;
-      if (aDef.category !== "core" && bDef.category === "core") return 1;
+    if (featured.length > 0) {
+      // Sort featured: core first by levelRank DESC, then specialties by earnedDate DESC
+      const featuredCore = featured.filter(
+        (c) => c.certificationDefinition.category === "core"
+      );
+      const featuredSpecialty = featured.filter(
+        (c) => c.certificationDefinition.category === "specialty"
+      );
 
-      // Then by levelRank DESC
-      if (aDef.levelRank !== bDef.levelRank) {
-        return bDef.levelRank - aDef.levelRank;
+      // Sort featured core by levelRank DESC
+      featuredCore.sort((a, b) => {
+        const aDef = a.certificationDefinition;
+        const bDef = b.certificationDefinition;
+        if (aDef.levelRank !== bDef.levelRank) {
+          return bDef.levelRank - aDef.levelRank;
+        }
+        return getSortDate(b) - getSortDate(a);
+      });
+
+      // Sort featured specialties by earnedDate DESC
+      featuredSpecialty.sort((a, b) => getSortDate(b) - getSortDate(a));
+
+      // Combine: core first, then specialties
+      primary = [...featuredCore, ...featuredSpecialty].slice(0, 3);
+    } else {
+      // No featured: show highest core + up to 2 most recent specialties
+      const core = nonFeatured.filter(
+        (c) => c.certificationDefinition.category === "core"
+      );
+      const specialties = nonFeatured.filter(
+        (c) => c.certificationDefinition.category === "specialty"
+      );
+
+      // Sort core by levelRank DESC
+      core.sort((a, b) => {
+        const aDef = a.certificationDefinition;
+        const bDef = b.certificationDefinition;
+        if (aDef.levelRank !== bDef.levelRank) {
+          return bDef.levelRank - aDef.levelRank;
+        }
+        return getSortDate(b) - getSortDate(a);
+      });
+
+      // Sort specialties by earnedDate DESC
+      specialties.sort((a, b) => getSortDate(b) - getSortDate(a));
+
+      // Add highest core (if exists)
+      if (core.length > 0) {
+        primary.push(core[0]);
       }
+      // Add up to 2 most recent specialties
+      primary.push(...specialties.slice(0, 2));
+    }
 
-      // Then by earnedDate DESC (fallback to createdAt)
-      const aDate = a.earnedDate
-        ? new Date(a.earnedDate).getTime()
-        : new Date(a.createdAt).getTime();
-      const bDate = b.earnedDate
-        ? new Date(b.earnedDate).getTime()
-        : new Date(b.createdAt).getTime();
-      return bDate - aDate;
-    });
+    // Track primary cert IDs to exclude from secondary
+    primary.forEach((cert) => primaryIds.add(cert.id));
 
-    // Sort non-featured core: levelRank DESC, then earnedDate DESC
-    const nonFeaturedCore = nonFeatured.filter(
+    // Secondary: all remaining certifications
+    // Sort by: core first (levelRank DESC), then specialties (earnedDate DESC)
+    const remaining = certifications.filter((c) => !primaryIds.has(c.id));
+    const remainingCore = remaining.filter(
       (c) => c.certificationDefinition.category === "core"
     );
-    nonFeaturedCore.sort((a, b) => {
+    const remainingSpecialty = remaining.filter(
+      (c) => c.certificationDefinition.category === "specialty"
+    );
+
+    // Sort remaining core by levelRank DESC
+    remainingCore.sort((a, b) => {
       const aDef = a.certificationDefinition;
       const bDef = b.certificationDefinition;
-
-      // levelRank DESC
       if (aDef.levelRank !== bDef.levelRank) {
         return bDef.levelRank - aDef.levelRank;
       }
-
-      // Then earnedDate DESC
-      const aDate = a.earnedDate
-        ? new Date(a.earnedDate).getTime()
-        : new Date(a.createdAt).getTime();
-      const bDate = b.earnedDate
-        ? new Date(b.earnedDate).getTime()
-        : new Date(b.createdAt).getTime();
-      return bDate - aDate;
+      return getSortDate(b) - getSortDate(a);
     });
 
-    // Sort non-featured specialties: earnedDate DESC
-    const nonFeaturedSpecialty = nonFeatured.filter(
-      (c) => c.certificationDefinition.category === "specialty"
-    );
-    nonFeaturedSpecialty.sort((a, b) => {
-      const aDate = a.earnedDate
-        ? new Date(a.earnedDate).getTime()
-        : new Date(a.createdAt).getTime();
-      const bDate = b.earnedDate
-        ? new Date(b.earnedDate).getTime()
-        : new Date(b.createdAt).getTime();
-      return bDate - aDate;
-    });
+    // Sort remaining specialties by earnedDate DESC
+    remainingSpecialty.sort((a, b) => getSortDate(b) - getSortDate(a));
 
-    // Combine: featured first, then non-featured core, then non-featured specialty
-    const combined = [
-      ...featured,
-      ...nonFeaturedCore,
-      ...nonFeaturedSpecialty,
-    ];
+    const secondary = [...remainingCore, ...remainingSpecialty];
 
-    // Return top 3
-    return combined.slice(0, 3);
+    return { primaryCerts: primary, secondaryCerts: secondary };
   }, [certifications]);
 
   const getEarnedYear = (cert: UserCertification): string | null => {
@@ -127,31 +152,63 @@ export function CertificationsCard() {
     <div className={`${cardStyles.card} ${styles.card} ${styles.cardTier3}`}>
       <h3 className={styles.cardTitle}>Certifications</h3>
 
-      {topCertifications.length === 0 ? (
+      {certifications.length === 0 ? (
         <div className={styles.emptyState}>
           <p className={styles.emptyText}>No certifications yet</p>
           <Link href="/certifications" className={styles.addLink}>
-            Add
+            Add certification
           </Link>
         </div>
       ) : (
-        <ul className={styles.certList}>
-          {topCertifications.map((cert) => {
-            const def = cert.certificationDefinition;
-            const year = getEarnedYear(cert);
-            return (
-              <li key={cert.id} className={styles.certItem}>
-                <div className={styles.certInfo}>
-                  <span className={styles.certName}>{def.name}</span>
-                  <div className={styles.certMeta}>
-                    <span className={styles.agencyTag}>{def.agency}</span>
-                    {year && <span className={styles.year}>{year}</span>}
-                  </div>
-                </div>
-              </li>
-            );
-          })}
-        </ul>
+        <>
+          {/* Primary / Featured Section */}
+          {primaryCerts.length > 0 && (
+            <div className={styles.primarySection}>
+              <ul className={styles.primaryList}>
+                {primaryCerts.map((cert) => {
+                  const def = cert.certificationDefinition;
+                  const year = getEarnedYear(cert);
+                  return (
+                    <li key={cert.id} className={styles.primaryItem}>
+                      <div className={styles.certInfo}>
+                        <span className={styles.certName}>{def.name}</span>
+                        <div className={styles.certMeta}>
+                          <span className={styles.agencyTag}>{def.agency}</span>
+                          {year && <span className={styles.year}>{year}</span>}
+                        </div>
+                      </div>
+                    </li>
+                  );
+                })}
+              </ul>
+            </div>
+          )}
+
+          {/* Secondary / Other Certifications Section */}
+          {secondaryCerts.length > 0 && (
+            <div className={styles.secondarySection}>
+              <ul className={styles.secondaryList}>
+                {secondaryCerts.map((cert) => {
+                  const def = cert.certificationDefinition;
+                  const year = getEarnedYear(cert);
+                  return (
+                    <li key={cert.id} className={styles.secondaryItem}>
+                      <span className={styles.secondaryName}>{def.name}</span>
+                      <div className={styles.secondaryMeta}>
+                        <span className={styles.secondaryAgencyTag}>
+                          {def.agency}
+                        </span>
+                        {year && (
+                          <span className={styles.secondaryYear}>{year}</span>
+                        )}
+                      </div>
+                    </li>
+                  );
+                })}
+              </ul>
+            </div>
+          )}
+        </>
       )}
 
       <div className={styles.actions}>

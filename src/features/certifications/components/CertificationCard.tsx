@@ -13,6 +13,8 @@ interface Props {
   onEdit: () => void;
   onDelete: () => void;
   onToggleFeatured: () => void;
+  isFeaturedSection?: boolean;
+  canFeature?: boolean;
 }
 
 export function CertificationCard({
@@ -22,6 +24,8 @@ export function CertificationCard({
   onEdit,
   onDelete,
   onToggleFeatured,
+  isFeaturedSection = false,
+  canFeature = true,
 }: Props) {
   const def = certification.certificationDefinition;
   const earnedDate = certification.earnedDate
@@ -32,8 +36,19 @@ export function CertificationCard({
       })
     : null;
 
+  const handleStarClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (canFeature) {
+      onToggleFeatured();
+    }
+  };
+
   return (
-    <div className={`${cardStyles.card} ${styles.card}`}>
+    <div
+      className={`${cardStyles.card} ${styles.card} ${
+        isFeaturedSection ? styles.featuredCard : ""
+      }`}
+    >
       <div className={styles.cardHeader} onClick={onToggle}>
         <div className={styles.badgeContainer}>
           {def.badgeImageUrl ? (
@@ -54,26 +69,40 @@ export function CertificationCard({
         <div className={styles.cardInfo}>
           <div className={styles.cardTitleRow}>
             <h3 className={styles.cardTitle}>{def.name}</h3>
-            <button
-              type="button"
-              onClick={(e) => {
-                e.stopPropagation();
-                onToggleFeatured();
-              }}
-              className={`${styles.starButton} ${
-                certification.isFeatured ? styles.starButtonActive : ""
-              }`}
-              aria-label={
-                certification.isFeatured
-                  ? "Remove from featured"
-                  : "Add to featured"
-              }
-            >
-              <Star
-                size={18}
-                fill={certification.isFeatured ? "currentColor" : "none"}
-              />
-            </button>
+            <div className={styles.starButtonContainer}>
+              <button
+                type="button"
+                onClick={handleStarClick}
+                disabled={!canFeature && !certification.isFeatured}
+                className={`${styles.starButton} ${
+                  certification.isFeatured ? styles.starButtonActive : ""
+                } ${!canFeature && !certification.isFeatured ? styles.starButtonDisabled : ""}`}
+                aria-label={
+                  certification.isFeatured
+                    ? "Remove from featured"
+                    : canFeature
+                    ? "Add to featured"
+                    : "Maximum of 3 featured certifications"
+                }
+                title={
+                  !canFeature && !certification.isFeatured
+                    ? "Maximum of 3 featured certifications"
+                    : certification.isFeatured
+                    ? "Remove from featured"
+                    : "Add to featured"
+                }
+              >
+                <Star
+                  size={18}
+                  fill={certification.isFeatured ? "currentColor" : "none"}
+                />
+              </button>
+              {!canFeature && !certification.isFeatured && (
+                <span className={styles.starTooltip}>
+                  Max 3 featured
+                </span>
+              )}
+            </div>
           </div>
           <div className={styles.cardMeta}>
             <span className={styles.agencyTag}>{def.agency}</span>
