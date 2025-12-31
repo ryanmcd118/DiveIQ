@@ -1,6 +1,5 @@
 "use client";
 
-import { useState, useEffect } from "react";
 import { useUnitPreferences } from "@/hooks/useUnitPreferences";
 import { displayDepth } from "@/lib/units";
 import cardStyles from "@/styles/components/Card.module.css";

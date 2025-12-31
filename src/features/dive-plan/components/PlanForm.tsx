@@ -3,7 +3,7 @@
 import { FormEvent, useState, useEffect } from "react";
 import { PlanData } from "@/features/dive-plan/types";
 import { useUnitPreferences } from "@/hooks/useUnitPreferences";
-import { displayDepth, getUnitLabel, depthInputToCm, cmToUI } from "@/lib/units";
+import { getUnitLabel, depthInputToCm, cmToUI } from "@/lib/units";
 import { FormUnitToggle } from "@/components/FormUnitToggle";
 import cardStyles from "@/styles/components/Card.module.css";
 import formStyles from "@/styles/components/Form.module.css";

@@ -158,7 +158,7 @@ export async function PATCH(
  * User can only delete their own certifications
  */
 export async function DELETE(
-  req: NextRequest,
+  _req: NextRequest,
   { params }: { params: Promise<{ id: string }> | { id: string } }
 ) {
   const session = await getServerSession(authOptions);

@@ -6,7 +6,6 @@ import type { GearItem } from "@prisma/client";
 import { GearKitWithItems } from "@/services/database/repositories/gearRepository";
 import {
   computeMaintenanceStatus,
-  getNextServiceDueAt,
   sortGearByMaintenanceDue,
   type MaintenanceStatus,
 } from "@/features/gear/lib/maintenance";

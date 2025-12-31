@@ -32,19 +32,4 @@ export function calculateRiskLevel(
   return "Low";
 }
 
-/**
- * Get a human-readable description of the risk level
- */
-export function getRiskDescription(riskLevel: RiskLevel): string {
-  switch (riskLevel) {
-    case "Low":
-      return "This dive is within safe recreational limits.";
-    case "Moderate":
-      return "This dive requires careful planning and execution.";
-    case "High":
-      return "This dive approaches or exceeds recommended recreational limits. Consider adjusting parameters or seeking additional training.";
-    default:
-      return "Unable to assess risk level.";
-  }
-}
 
