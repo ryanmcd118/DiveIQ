@@ -3,7 +3,7 @@
 import { useState, useEffect, useMemo, useRef } from "react";
 import type { ReactNode } from "react";
 import Link from "next/link";
-import { ChevronDown, Calendar, Link as LinkIcon } from "lucide-react";
+import { ChevronDown } from "lucide-react";
 import { useAuth } from "@/features/auth/hooks/useAuth";
 import cardStyles from "@/styles/components/Card.module.css";
 import formStyles from "@/styles/components/Form.module.css";

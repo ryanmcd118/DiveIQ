@@ -32,6 +32,7 @@ export function GearPageContent() {
     type: "gear" | "kit";
   } | null>(null);
   const [archivedGearId, setArchivedGearId] = useState<string | null>(null);
+  void archivedGearId;
   const [autoExpandArchived, setAutoExpandArchived] = useState(false);
   const [archiveConfirm, setArchiveConfirm] = useState<{
     itemId: string;

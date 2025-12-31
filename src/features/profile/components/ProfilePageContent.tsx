@@ -65,13 +65,6 @@ function formatUserName(user: UserData | null): string {
   return "Profile";
 }
 
-function getInitials(user: UserData | null): string {
-  if (!user) return "?";
-  if (user.firstName) return user.firstName.charAt(0).toUpperCase();
-  if (user.email) return user.email.charAt(0).toUpperCase();
-  return "?";
-}
-
 function normalizeDate(dateString: string | null): string | null {
   if (!dateString) return null;
   if (/^\d{4}-\d{2}-\d{2}$/.test(dateString)) return dateString;
