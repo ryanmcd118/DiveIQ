@@ -96,18 +96,27 @@ export function usePlanPageState() {
     // Convert UI unit values to metric for database storage
     const maxDepthUI = formData.get("maxDepth");
 
+    // Coerce FormDataEntryValue to string | null (treat File as null)
+    const maxDepthUIString = typeof maxDepthUI === "string" ? maxDepthUI : null;
+
     // Convert UI depth to canonical centimeters
-    const maxDepthCm = depthInputToCm(maxDepthUI, prefs.depth) ?? 0;
+    const maxDepthCm = depthInputToCm(maxDepthUIString, prefs.depth) ?? 0;
+
+    const regionValue = formData.get("region");
+    const siteNameValue = formData.get("siteName");
+    const dateValue = formData.get("date");
+    const bottomTimeValue = formData.get("bottomTime");
+    const experienceLevelValue = formData.get("experienceLevel");
 
     const values: PlanData = {
-      region: formData.get("region") as string,
-      siteName: formData.get("siteName") as string,
-      date: formData.get("date") as string,
-      maxDepth: parseFloat(maxDepthUI as string) || 0, // Keep UI value for PlanData
-      bottomTime: Number(formData.get("bottomTime")),
-      experienceLevel: formData.get(
-        "experienceLevel"
-      ) as PlanData["experienceLevel"],
+      region: typeof regionValue === "string" ? regionValue : "",
+      siteName: typeof siteNameValue === "string" ? siteNameValue : "",
+      date: typeof dateValue === "string" ? dateValue : "",
+      maxDepth: parseFloat(maxDepthUIString ?? "0") || 0, // Keep UI value for PlanData
+      bottomTime: typeof bottomTimeValue === "string" ? Number(bottomTimeValue) : Number(bottomTimeValue ?? 0),
+      experienceLevel: (typeof experienceLevelValue === "string"
+        ? experienceLevelValue
+        : "Beginner") as PlanData["experienceLevel"],
     };
 
     setSubmittedPlan(values);

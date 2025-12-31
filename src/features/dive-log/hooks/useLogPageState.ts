@@ -77,21 +77,33 @@ export function useLogPageState() {
     const waterTempUI = formData.get("waterTemp");
     const visibilityUI = formData.get("visibility");
 
-    // Convert UI values to canonical fixed-point
-    const maxDepthCm = depthInputToCm(maxDepthUI, prefs.depth) ?? 0;
-    const waterTempCx10 = tempInputToCx10(waterTempUI, prefs.temperature);
-    const visibilityCm = distanceInputToCm(visibilityUI, prefs.depth);
+    // Coerce FormDataEntryValue to string | null (treat File as null)
+    const maxDepthUIString = typeof maxDepthUI === "string" ? maxDepthUI : null;
+    const waterTempUIString = typeof waterTempUI === "string" ? waterTempUI : null;
+    const visibilityUIString = typeof visibilityUI === "string" ? visibilityUI : null;
 
-    const payload: DiveLogInput = {
-      date: formData.get("date") as string,
-      region: (formData.get("region") as string) ?? "",
-      siteName: (formData.get("siteName") as string) ?? "",
+    // Convert UI values to canonical fixed-point
+    const maxDepthCm = depthInputToCm(maxDepthUIString, prefs.depth) ?? 0;
+    const waterTempCx10 = tempInputToCx10(waterTempUIString, prefs.temperature);
+    const visibilityCm = distanceInputToCm(visibilityUIString, prefs.depth);
+
+    const dateValue = formData.get("date");
+    const regionValue = formData.get("region");
+    const siteNameValue = formData.get("siteName");
+    const bottomTimeValue = formData.get("bottomTime");
+    const buddyNameValue = formData.get("buddyName");
+    const notesValue = formData.get("notes");
+
+    const payload: Omit<DiveLogInput, "userId"> = {
+      date: typeof dateValue === "string" ? dateValue : "",
+      region: typeof regionValue === "string" ? regionValue : "",
+      siteName: typeof siteNameValue === "string" ? siteNameValue : "",
       maxDepthCm,
-      bottomTime: Number(formData.get("bottomTime")),
+      bottomTime: typeof bottomTimeValue === "string" ? Number(bottomTimeValue) : Number(bottomTimeValue ?? 0),
       waterTempCx10,
       visibilityCm,
-      buddyName: (formData.get("buddyName") as string) || null,
-      notes: (formData.get("notes") as string) || null,
+      buddyName: typeof buddyNameValue === "string" ? buddyNameValue || null : null,
+      notes: typeof notesValue === "string" ? notesValue || null : null,
       gearItemIds: selectedGearIds,
     };
 
