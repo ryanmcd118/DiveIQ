@@ -13,6 +13,8 @@
     "lint:fix": "eslint --fix",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
+    "typecheck": "tsc --noEmit",
+    "check": "npm run lint && npm run format:check && npm run typecheck && npm run build",
     "db:reset": "prisma migrate reset --force --skip-seed"
   },
   "dependencies": {
