@@ -26,6 +26,7 @@ interface Props {
   onEditGear: (item: GearItem) => void;
   onDeleteGear: (id: string) => void;
   onArchiveGear: (id: string) => void;
+  onRefresh?: () => void;
   autoExpandArchived?: boolean;
   onAutoExpandArchivedComplete?: () => void;
   onAddGear: () => void;
