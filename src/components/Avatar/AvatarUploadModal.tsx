@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { UploadButton } from "@/components/UploadThingProvider";
 import type { OurFileRouter } from "@/app/api/uploadthing/core";
 import buttonStyles from "@/styles/components/Button.module.css";
@@ -25,6 +25,13 @@ export function AvatarUploadModal({
   const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const uploadButtonInputRef = useRef<HTMLInputElement | null>(null);
+
+  // Define handleClose with useCallback to ensure stable reference
+  const handleClose = useCallback(() => {
+    setIsUploading(false);
+    setUploadError(null);
+    onClose();
+  }, [onClose]);
 
   // Reset state when modal opens
   useEffect(() => {
@@ -57,7 +64,7 @@ export function AvatarUploadModal({
     
     document.addEventListener("keydown", handleEscape);
     return () => document.removeEventListener("keydown", handleEscape);
-  }, [isOpen]);
+  }, [isOpen, handleClose]);
 
   // Prevent body scroll when modal is open
   useEffect(() => {
@@ -72,12 +79,6 @@ export function AvatarUploadModal({
   }, [isOpen]);
 
   if (!isOpen) return null;
-
-  const handleClose = () => {
-    setIsUploading(false);
-    setUploadError(null);
-    onClose();
-  };
 
   const handleChooseFileClick = () => {
     if (isUploading) return;
