@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import type { GearItem, GearKit, GearKitItem, DiveGearItem } from "@prisma/client";
+import type { Prisma } from "@prisma/client";
 
 export type GearItemWithRelations = GearItem & {
   kitItems?: GearKitItem[];
@@ -56,7 +57,7 @@ export const gearRepository = {
       type?: string;
     }
   ): Promise<GearItem[]> {
-    const where: any = {
+    const where: Prisma.GearItemWhereInput = {
       userId,
     };
 

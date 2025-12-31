@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import type { PlanInput, PastPlan } from "@/features/dive-plan/types";
+import type { Prisma } from "@prisma/client";
 
 /**
  * Data access layer for DivePlan operations
@@ -29,13 +30,13 @@ export const divePlanRepository = {
    * Find a single dive plan by ID
    */
   async findById(id: string, userId?: string): Promise<PastPlan | null> {
-    const where: any = { id };
-    if (userId) {
-      where.userId = userId;
-    }
-    return prisma.divePlan.findUnique({
-      where,
+    const plan = await prisma.divePlan.findUnique({
+      where: { id },
     });
+    if (userId && plan && plan.userId !== userId) {
+      return null;
+    }
+    return plan;
   },
 
   /**
@@ -46,7 +47,7 @@ export const divePlanRepository = {
     take?: number;
     userId?: string;
   }): Promise<PastPlan[]> {
-    const where: any = {};
+    const where: Prisma.DivePlanWhereInput = {};
     if (options?.userId) {
       where.userId = options.userId;
     }
@@ -65,12 +66,14 @@ export const divePlanRepository = {
     data: PlanInput,
     userId?: string
   ): Promise<PastPlan> {
-    const where: any = { id };
     if (userId) {
-      where.userId = userId;
+      const existing = await prisma.divePlan.findUnique({ where: { id } });
+      if (!existing || existing.userId !== userId) {
+        throw new Error("Dive plan not found or unauthorized");
+      }
     }
     return prisma.divePlan.update({
-      where,
+      where: { id },
       data: {
         date: data.date,
         region: data.region,
@@ -88,12 +91,14 @@ export const divePlanRepository = {
    * Delete a dive plan
    */
   async delete(id: string, userId?: string): Promise<void> {
-    const where: any = { id };
     if (userId) {
-      where.userId = userId;
+      const existing = await prisma.divePlan.findUnique({ where: { id } });
+      if (!existing || existing.userId !== userId) {
+        throw new Error("Dive plan not found or unauthorized");
+      }
     }
     await prisma.divePlan.delete({
-      where,
+      where: { id },
     });
   },
 
@@ -101,7 +106,7 @@ export const divePlanRepository = {
    * Get count of all dive plans
    */
   async count(userId?: string): Promise<number> {
-    const where: any = {};
+    const where: Prisma.DivePlanWhereInput = {};
     if (userId) {
       where.userId = userId;
     }

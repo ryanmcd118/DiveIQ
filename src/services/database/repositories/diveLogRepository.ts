@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import type { DiveLogInput, DiveLogEntry } from "@/features/dive-log/types";
+import type { Prisma } from "@prisma/client";
 
 /**
  * Data access layer for DiveLog operations
@@ -30,13 +31,13 @@ export const diveLogRepository = {
    * Find a single dive log entry by ID
    */
   async findById(id: string, userId?: string): Promise<DiveLogEntry | null> {
-    const where: any = { id };
-    if (userId) {
-      where.userId = userId;
-    }
-    return prisma.diveLog.findUnique({
-      where,
+    const entry = await prisma.diveLog.findUnique({
+      where: { id },
     });
+    if (userId && entry && entry.userId !== userId) {
+      return null;
+    }
+    return entry;
   },
 
   /**
@@ -47,7 +48,7 @@ export const diveLogRepository = {
     take?: number;
     userId?: string;
   }): Promise<DiveLogEntry[]> {
-    const where: any = {};
+    const where: Prisma.DiveLogWhereInput = {};
     if (options?.userId) {
       where.userId = options.userId;
     }
@@ -66,12 +67,14 @@ export const diveLogRepository = {
     data: DiveLogInput,
     userId?: string
   ): Promise<DiveLogEntry> {
-    const where: any = { id };
     if (userId) {
-      where.userId = userId;
+      const existing = await prisma.diveLog.findUnique({ where: { id } });
+      if (!existing || existing.userId !== userId) {
+        throw new Error("Dive log not found or unauthorized");
+      }
     }
     return prisma.diveLog.update({
-      where,
+      where: { id },
       data: {
         date: data.date,
         region: data.region,
@@ -90,12 +93,14 @@ export const diveLogRepository = {
    * Delete a dive log entry
    */
   async delete(id: string, userId?: string): Promise<void> {
-    const where: any = { id };
     if (userId) {
-      where.userId = userId;
+      const existing = await prisma.diveLog.findUnique({ where: { id } });
+      if (!existing || existing.userId !== userId) {
+        throw new Error("Dive log not found or unauthorized");
+      }
     }
     await prisma.diveLog.delete({
-      where,
+      where: { id },
     });
   },
 
@@ -103,7 +108,7 @@ export const diveLogRepository = {
    * Get count of all dive log entries
    */
   async count(userId?: string): Promise<number> {
-    const where: any = {};
+    const where: Prisma.DiveLogWhereInput = {};
     if (userId) {
       where.userId = userId;
     }
@@ -118,7 +123,7 @@ export const diveLogRepository = {
     totalBottomTime: number;
     deepestDive: number;
   }> {
-    const where: any = {};
+    const where: Prisma.DiveLogWhereInput = {};
     if (userId) {
       where.userId = userId;
     }
