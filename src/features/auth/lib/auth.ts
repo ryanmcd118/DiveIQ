@@ -456,7 +456,7 @@ export const authOptions: NextAuthOptions = {
       }
 
       // If token is invalidated or missing, return session unchanged
-      // Middleware will handle enforcement and redirects
+      // Proxy will handle enforcement and redirects
       if ((token as any)?.invalidated || !token || (!token.id && !token.sub)) {
         return session;
       }
