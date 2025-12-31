@@ -2,7 +2,6 @@
 
 import { useUnitPreferences } from "@/hooks/useUnitPreferences";
 import { displayDepth } from "@/lib/units";
-import cardStyles from "@/styles/components/Card.module.css";
 import styles from "./StatsGrid.module.css";
 
 interface StatsGridProps {

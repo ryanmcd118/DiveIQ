@@ -36,7 +36,10 @@ export function InFocusCards({
             <div className={styles.cardContent}>
               <p className={styles.siteName}>
                 {nextPlannedDive.siteName}
-                <span className={styles.region}> ({nextPlannedDive.region})</span>
+                <span className={styles.region}>
+                  {" "}
+                  ({nextPlannedDive.region})
+                </span>
               </p>
               <p className={styles.meta}>
                 {(() => {
@@ -48,8 +51,10 @@ export function InFocusCards({
                 })()}
               </p>
               <p className={styles.meta}>
-                <span className={styles.capitalize}>{nextPlannedDive.experienceLevel}</span> ·{" "}
-                {nextPlannedDive.riskLevel}
+                <span className={styles.capitalize}>
+                  {nextPlannedDive.experienceLevel}
+                </span>{" "}
+                · {nextPlannedDive.riskLevel}
               </p>
             </div>
           ) : (
@@ -69,7 +74,10 @@ export function InFocusCards({
             <div className={styles.cardContent}>
               <p className={styles.siteName}>
                 {mostRecentDive.siteName}
-                <span className={styles.region}> ({mostRecentDive.region})</span>
+                <span className={styles.region}>
+                  {" "}
+                  ({mostRecentDive.region})
+                </span>
               </p>
               <p className={styles.meta}>
                 {(() => {
@@ -140,4 +148,3 @@ export function InFocusCards({
     </section>
   );
 }
-
