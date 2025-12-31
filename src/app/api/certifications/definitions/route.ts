@@ -2,6 +2,14 @@ export const runtime = "nodejs";
 
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { CertificationAgency } from "@prisma/client";
+
+/**
+ * Type guard to check if a string is a valid CertificationAgency
+ */
+function isCertificationAgency(value: string): value is CertificationAgency {
+  return value === "PADI" || value === "SSI";
+}
 
 /**
  * GET /api/certifications/definitions
@@ -12,10 +20,10 @@ import { prisma } from "@/lib/prisma";
 export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url);
-    const agency = searchParams.get("agency");
+    const agencyParam = searchParams.get("agency");
 
-    const where = agency && (agency === "PADI" || agency === "SSI")
-      ? { agency }
+    const where = agencyParam && isCertificationAgency(agencyParam)
+      ? { agency: agencyParam }
       : undefined;
 
     // Fetch all definitions
