@@ -122,7 +122,7 @@ export function CertificationFormModal({
     try {
       if (editingCert) {
         // Update existing certification
-        const payload: {
+        const payload = {} as {
           earnedDate: string | null;
           certNumber: string | null;
           diveShop: string | null;
@@ -130,7 +130,7 @@ export function CertificationFormModal({
           instructor: string | null;
           notes: string | null;
           isFeatured: boolean;
-        } = {};
+        };
         if (earnedDate) payload.earnedDate = earnedDate;
         else payload.earnedDate = null;
         if (certNumber.trim()) payload.certNumber = certNumber.trim();
