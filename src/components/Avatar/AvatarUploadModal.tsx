@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import { UploadButton } from "@/components/UploadThingProvider";
-import type { OurFileRouter } from "@/app/api/uploadthing/core";
 import buttonStyles from "@/styles/components/Button.module.css";
 import styles from "./AvatarUploadModal.module.css";
 
@@ -228,7 +227,7 @@ export function AvatarUploadModal({
             </button>
             {/* Hidden UploadButton for actual upload handling */}
             <div className={styles.hiddenUploadButton}>
-              <UploadButton<OurFileRouter>
+              <UploadButton
                 endpoint="avatarUploader"
                 onClientUploadComplete={handleUploadComplete}
                 onUploadError={handleUploadError}
