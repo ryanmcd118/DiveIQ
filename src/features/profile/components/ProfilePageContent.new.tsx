@@ -117,7 +117,7 @@ export function ProfilePageContent() {
 
   const isDirty = useMemo(() => {
     if (!originalProfile) return false;
-    const norm = (v: any) => {
+    const norm = (v: string | number | string[] | null | undefined) => {
       if (Array.isArray(v)) return stringifyJsonArray(v);
       if (typeof v === "number") return v;
       return normalizeValue(v);
@@ -208,7 +208,7 @@ export function ProfilePageContent() {
     }, 0);
   };
 
-  const handleFieldChange = (field: keyof ProfileData, value: any) => {
+  const handleFieldChange = (field: keyof ProfileData, value: ProfileData[keyof ProfileData]) => {
     setDraftProfile((prev) => ({ ...prev, [field]: value }));
     if (success) setSuccess(false);
     if (error) setError(null);
@@ -228,7 +228,24 @@ export function ProfilePageContent() {
     setError(null);
     setSuccess(false);
     try {
-      const normalizedData: any = {
+      const normalizedData: {
+        firstName: string | null;
+        lastName: string | null;
+        location: string | null;
+        homeDiveRegion: string | null;
+        website: string | null;
+        languages: string | null;
+        bio: string | null;
+        primaryDiveTypes: string | null;
+        experienceLevel: string | null;
+        yearsDiving: number | null;
+        certifyingAgency: string | null;
+        typicalDivingEnvironment: string | null;
+        lookingFor: string | null;
+        favoriteDiveType: string | null;
+        favoriteDiveLocation: string | null;
+        birthday: string | null;
+      } = {
         firstName: normalizeValue(draftProfile.firstName),
         lastName: normalizeValue(draftProfile.lastName),
         location: normalizeValue(draftProfile.location),

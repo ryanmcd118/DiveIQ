@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import type { GearItem } from "@prisma/client";
+import type { GearItem, GearKitItem } from "@prisma/client";
 import formStyles from "@/styles/components/Form.module.css";
 import buttonStyles from "@/styles/components/Button.module.css";
 import styles from "./GearSelection.module.css";
@@ -41,7 +41,7 @@ export function GearSelection({
           const kitData = await defaultKitRes.json();
           if (kitData.kit) {
             const kitGearIds = kitData.kit.kitItems.map(
-              (ki: any) => ki.gearItemId
+              (ki: GearKitItem) => ki.gearItemId
             );
             setDefaultKitGearIds(kitGearIds);
             // No auto-prefill - user must explicitly click "Use default kit" button

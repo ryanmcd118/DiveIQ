@@ -99,7 +99,7 @@ export function GearFormModal({
   // Prefill service interval when type changes (for new items)
   useEffect(() => {
     if (!editingGear && type) {
-      const defaultInterval = getDefaultServiceInterval(type as any);
+      const defaultInterval = getDefaultServiceInterval(type as GearType);
       if (defaultInterval !== null && serviceIntervalMonths === null) {
         setServiceIntervalMonths(defaultInterval);
       }
@@ -136,7 +136,17 @@ export function GearFormModal({
     setKitUpdateErrors(null);
 
     try {
-      const payload: any = {
+      const payload: {
+        type: string;
+        manufacturer: string;
+        model: string;
+        nickname: string | null;
+        purchaseDate: string | null;
+        notes: string | null;
+        lastServicedAt: string | null;
+        serviceIntervalMonths: number | null;
+        id?: string;
+      } = {
         type,
         manufacturer,
         model,
@@ -471,7 +481,7 @@ export function GearFormModal({
             />
             <p className={formStyles.helpText}>
               Leave empty for no schedule. Default:{" "}
-              {getDefaultServiceInterval(type as any) ?? "None"}
+              {getDefaultServiceInterval(type as GearType) ?? "None"}
             </p>
           </div>
 

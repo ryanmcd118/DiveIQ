@@ -1,4 +1,5 @@
 import { FormEvent, useEffect, useState } from "react";
+import type { GearItem } from "@prisma/client";
 import { DiveLogEntry, DiveLogInput } from "@/features/dive-log/types";
 import { useUnitPreferences } from "@/hooks/useUnitPreferences";
 import { depthInputToCm, tempInputToCx10, distanceInputToCm } from "@/lib/units";
@@ -124,7 +125,7 @@ export function useLogPageState() {
         throw new Error(`API returned ${res.status}`);
       }
 
-      const data: { entry: DiveLogEntry; gearItems?: any[] } = await res.json();
+      const data: { entry: DiveLogEntry; gearItems?: GearItem[] } = await res.json();
 
       const entryWithGear = {
         ...data.entry,

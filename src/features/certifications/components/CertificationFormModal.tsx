@@ -121,7 +121,15 @@ export function CertificationFormModal({
     try {
       if (editingCert) {
         // Update existing certification
-        const payload: any = {};
+        const payload: {
+          earnedDate: string | null;
+          certNumber: string | null;
+          diveShop: string | null;
+          location: string | null;
+          instructor: string | null;
+          notes: string | null;
+          isFeatured: boolean;
+        } = {};
         if (earnedDate) payload.earnedDate = earnedDate;
         else payload.earnedDate = null;
         if (certNumber.trim()) payload.certNumber = certNumber.trim();
@@ -152,7 +160,16 @@ export function CertificationFormModal({
           throw new Error("Agency and certification are required");
         }
 
-        const payload: any = {
+        const payload: {
+          certificationDefinitionId: string;
+          isFeatured: boolean;
+          earnedDate?: string;
+          certNumber?: string;
+          diveShop?: string;
+          location?: string;
+          instructor?: string;
+          notes?: string;
+        } = {
           certificationDefinitionId,
           isFeatured,
         };
