@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
-import type { GearItem, GearKit } from "@prisma/client";
+import type { GearItem } from "@prisma/client";
 import { GearKitWithItems } from "@/services/database/repositories/gearRepository";
 import { MaintenanceDueSection } from "./MaintenanceDueSection";
 import { KitsSection } from "./KitsSection";

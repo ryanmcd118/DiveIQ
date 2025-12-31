@@ -37,7 +37,7 @@ export function usePlanPageState() {
   const [formKey, setFormKey] = useState<string>("new");
 
   // Use next-auth session for auth status
-  const { data: session, status: sessionStatus } = useSession();
+  const { status: sessionStatus } = useSession();
   const isAuthenticated = sessionStatus === "authenticated";
   const isSessionLoading = sessionStatus === "loading";
 

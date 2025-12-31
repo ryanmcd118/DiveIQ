@@ -40,11 +40,13 @@ export function AvatarUploadModal({
       setIsUploading(false);
       // Reset file input
       if (fileInputRef.current) {
-        fileInputRef.current.value = '';
+        fileInputRef.current.value = "";
       }
       // Find the hidden UploadButton's input after it renders
       setTimeout(() => {
-        const uploadInput = document.querySelector('[data-ut-element="button"] input[type="file"]') as HTMLInputElement;
+        const uploadInput = document.querySelector(
+          '[data-ut-element="button"] input[type="file"]'
+        ) as HTMLInputElement;
         if (uploadInput) {
           uploadButtonInputRef.current = uploadInput;
         }
@@ -55,13 +57,13 @@ export function AvatarUploadModal({
   // Handle escape key
   useEffect(() => {
     if (!isOpen) return;
-    
+
     const handleEscape = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
         handleClose();
       }
     };
-    
+
     document.addEventListener("keydown", handleEscape);
     return () => document.removeEventListener("keydown", handleEscape);
   }, [isOpen, handleClose]);
@@ -86,15 +88,17 @@ export function AvatarUploadModal({
     fileInputRef.current?.click();
   };
 
-  const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = async (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
     const file = event.target.files?.[0];
     if (!file) return;
 
     // Validate file type
-    if (!file.type.startsWith('image/')) {
-      setUploadError('Please select an image file.');
+    if (!file.type.startsWith("image/")) {
+      setUploadError("Please select an image file.");
       if (fileInputRef.current) {
-        fileInputRef.current.value = '';
+        fileInputRef.current.value = "";
       }
       return;
     }
@@ -102,9 +106,9 @@ export function AvatarUploadModal({
     // Validate file size (4MB max)
     const maxSize = 4 * 1024 * 1024; // 4MB
     if (file.size > maxSize) {
-      setUploadError('File size must be less than 4MB.');
+      setUploadError("File size must be less than 4MB.");
       if (fileInputRef.current) {
-        fileInputRef.current.value = '';
+        fileInputRef.current.value = "";
       }
       return;
     }
@@ -117,17 +121,20 @@ export function AvatarUploadModal({
     // Transfer file to hidden UploadButton and trigger upload
     // This uses native input for picking (reliable) but UploadButton for upload (handles UploadThing API)
     setTimeout(() => {
-      const uploadInput = uploadButtonInputRef.current || 
-        (document.querySelector('[data-ut-element="button"] input[type="file"]') as HTMLInputElement);
-      
+      const uploadInput =
+        uploadButtonInputRef.current ||
+        (document.querySelector(
+          '[data-ut-element="button"] input[type="file"]'
+        ) as HTMLInputElement);
+
       if (uploadInput) {
         // Create FileList with our file
         const dataTransfer = new DataTransfer();
         dataTransfer.items.add(file);
         uploadInput.files = dataTransfer.files;
-        
+
         // Trigger change event to start upload
-        const changeEvent = new Event('change', { bubbles: true });
+        const changeEvent = new Event("change", { bubbles: true });
         uploadInput.dispatchEvent(changeEvent);
       } else {
         // Fallback error if UploadButton not ready
@@ -136,7 +143,7 @@ export function AvatarUploadModal({
         setUploadError(error.message);
         onUploadError(error);
         if (fileInputRef.current) {
-          fileInputRef.current.value = '';
+          fileInputRef.current.value = "";
         }
       }
     }, 50);
@@ -152,7 +159,7 @@ export function AvatarUploadModal({
       setUploadError(error.message);
       onUploadError(error);
       if (fileInputRef.current) {
-        fileInputRef.current.value = '';
+        fileInputRef.current.value = "";
       }
     }
   };
@@ -162,7 +169,7 @@ export function AvatarUploadModal({
     setUploadError(error.message || "Upload failed. Please try again.");
     onUploadError(error);
     if (fileInputRef.current) {
-      fileInputRef.current.value = '';
+      fileInputRef.current.value = "";
     }
   };
 
@@ -190,9 +197,7 @@ export function AvatarUploadModal({
             </div>
           )}
 
-          <p className={styles.helperText}>
-            Select an image (max 4MB)
-          </p>
+          <p className={styles.helperText}>Select an image (max 4MB)</p>
 
           <div className={styles.uploadArea}>
             {/* Native file input - always reliable for file picking */}

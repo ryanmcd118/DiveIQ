@@ -7,7 +7,6 @@ import { StatsGrid } from "./StatsGrid";
 import { ActivityTabs } from "./ActivityTabs";
 import { RightRail } from "./RightRail";
 import { Trends } from "./Trends";
-import backgroundStyles from "@/styles/components/Background.module.css";
 import styles from "./DashboardPageContent.module.css";
 
 type Props = {
@@ -25,7 +24,7 @@ export function DashboardPageContent({
   totalBottomTime,
   deepestDive,
   recentPlans,
-  isAuthenticated = false,
+  isAuthenticated: _isAuthenticated = false,
 }: Props) {
   const mostRecentDive = recentDives[0];
   const nextPlannedDive = recentPlans[0]; // Assuming plans are ordered by date

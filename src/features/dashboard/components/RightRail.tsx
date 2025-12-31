@@ -11,7 +11,7 @@ interface RightRailProps {
   gearCount?: number;
 }
 
-export function RightRail({ gearCount = 0 }: RightRailProps) {
+export function RightRail({ gearCount: _gearCount = 0 }: RightRailProps) {
   return (
     <aside className={styles.rightRail}>
       {/* Quick actions - Elevated primary action zone */}
