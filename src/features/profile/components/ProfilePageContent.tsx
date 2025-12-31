@@ -467,7 +467,6 @@ export function ProfilePageContent() {
   };
 
   const displayName = formatUserName(user);
-  const initials = getInitials(user);
 
   const displayWebsiteUrl = (url: string): string => {
     try {
@@ -681,7 +680,9 @@ export function ProfilePageContent() {
       (draftProfile.lookingFor && draftProfile.lookingFor.length > 0);
     // Certifications will be loaded by ProfileCertifications component
     const hasCertifications = true; // Always show section, component handles empty state
+    void hasCertifications;
     const hasGear = false; // Placeholder - gear exists but not shown in profile yet
+    void hasGear;
 
     return (
       <>

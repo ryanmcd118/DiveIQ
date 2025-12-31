@@ -10,7 +10,7 @@ import type { UnitSystem } from "@/lib/units";
  * For logged-out users, listens to custom events from NavbarUnitToggleLocal
  */
 export function useUnitSystemOrLocal() {
-  const { data: session, status } = useSession();
+  const { status } = useSession();
   const isAuthenticated = status === "authenticated";
   const globalUnitSystem = useUnitSystem();
 

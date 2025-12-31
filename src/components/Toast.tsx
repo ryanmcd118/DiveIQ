@@ -3,7 +3,6 @@
 import { useEffect } from "react";
 import gridStyles from "@/styles/components/PageGrid.module.css";
 import buttonStyles from "@/styles/components/Button.module.css";
-import styles from "./Toast.module.css";
 
 interface ToastProps {
   message: string;

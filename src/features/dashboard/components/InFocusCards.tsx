@@ -4,7 +4,6 @@ import Link from "next/link";
 import type { DiveLog, DivePlan } from "@prisma/client";
 import { useUnitPreferences } from "@/hooks/useUnitPreferences";
 import { displayDepth, displayTemperature } from "@/lib/units";
-import cardStyles from "@/styles/components/Card.module.css";
 import buttonStyles from "@/styles/components/Button.module.css";
 import styles from "./InFocusCards.module.css";
 

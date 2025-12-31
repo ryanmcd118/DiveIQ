@@ -4,7 +4,6 @@ import { usePathname } from "next/navigation";
 import Link from "next/link";
 import { useAuth } from "../hooks/useAuth";
 import AuthNav from "./AuthNav";
-import { PublicNavbar } from "@/features/public-home/components/PublicNavbar";
 import navStyles from "@/styles/components/Navigation.module.css";
 import layoutStyles from "@/styles/components/Layout.module.css";
 import buttonStyles from "@/styles/components/Button.module.css";

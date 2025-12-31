@@ -28,8 +28,8 @@ interface UseUnitPreferencesOptions {
  */
 export function useUnitPreferences(options?: UseUnitPreferencesOptions) {
   const mode = options?.mode ?? "auto";
-  const { data: session, status } = useSession();
-  const { me, isLoading: meLoading } = useMe();
+  const { status } = useSession();
+  const { isLoading: meLoading } = useMe();
 
   // Determine if we should use authenticated mode
   const isAuthenticated =

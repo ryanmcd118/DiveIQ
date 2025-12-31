@@ -26,6 +26,7 @@ export function DashboardPageContent({
   recentPlans,
   isAuthenticated: _isAuthenticated = false,
 }: Props) {
+  void _isAuthenticated;
   const mostRecentDive = recentDives[0];
   const nextPlannedDive = recentPlans[0]; // Assuming plans are ordered by date
 

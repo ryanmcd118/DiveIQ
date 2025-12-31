@@ -1,8 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import cardStyles from "@/styles/components/Card.module.css";
-import buttonStyles from "@/styles/components/Button.module.css";
 import { GearCard } from "./GearCard";
 import { CertificationsCard } from "./CertificationsCard";
 import styles from "./RightRail.module.css";
@@ -12,6 +10,7 @@ interface RightRailProps {
 }
 
 export function RightRail({ gearCount: _gearCount = 0 }: RightRailProps) {
+  void _gearCount;
   return (
     <aside className={styles.rightRail}>
       {/* Quick actions - Elevated primary action zone */}
