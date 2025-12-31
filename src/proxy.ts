@@ -62,7 +62,7 @@ export async function proxy(request: NextRequest) {
 
     // If token is marked as invalidated by JWT callback, redirect to signin
     // (JWT callback sets token.invalidated = true when sessionVersion mismatches)
-    if ((token as any).invalidated) {
+    if (token && typeof token === "object" && "invalidated" in token && token.invalidated === true) {
       const signInUrl = new URL("/signin", request.url);
       signInUrl.searchParams.set("callbackUrl", pathname);
       const response = NextResponse.redirect(signInUrl);
