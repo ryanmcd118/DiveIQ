@@ -323,14 +323,27 @@ export const gearKitRepository = {
       throw new Error("Some gear items not found or unauthorized");
     }
 
-    // Create kit items (skip duplicates)
-    await prisma.gearKitItem.createMany({
-      data: gearItemIds.map((gearItemId) => ({
+    // Check for existing kit items to avoid duplicates
+    const existingItems = await prisma.gearKitItem.findMany({
+      where: {
         kitId,
-        gearItemId,
-      })),
-      skipDuplicates: true,
+        gearItemId: { in: gearItemIds },
+      },
+      select: { gearItemId: true },
     });
+
+    const existingGearItemIds = new Set(existingItems.map((item) => item.gearItemId));
+    const newItemIds = gearItemIds.filter((id) => !existingGearItemIds.has(id));
+
+    // Create kit items (only new ones, skip duplicates)
+    if (newItemIds.length > 0) {
+      await prisma.gearKitItem.createMany({
+        data: newItemIds.map((gearItemId) => ({
+          kitId,
+          gearItemId,
+        })),
+      });
+    }
   },
 
   /**
