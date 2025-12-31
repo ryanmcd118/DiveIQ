@@ -343,6 +343,7 @@ export const authOptions: NextAuthOptions = {
       return true;
     },
     async jwt({ token, user, account: _account, trigger }) {
+      void _account;
       if (user) {
         // Always set token.id from user.id (this is critical)
         token.id = user.id;
@@ -498,7 +499,7 @@ export const authOptions: NextAuthOptions = {
 
       // If token is invalidated or missing, return session unchanged
       // Proxy will handle enforcement and redirects
-      if ((token as any)?.invalidated || !token || (!token.id && !token.sub)) {
+      if (token?.invalidated || !token || (!token.id && !token.sub)) {
         return session;
       }
 
