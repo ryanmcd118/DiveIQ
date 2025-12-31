@@ -21,6 +21,8 @@ import { ProfileCertifications } from "./ProfileCertifications";
 import { ProfileGear } from "./ProfileGear";
 import { GearKitWithItems } from "@/services/database/repositories/gearRepository";
 
+type ProfileFieldValue = string | number | boolean | string[] | null;
+
 interface ProfileData {
   firstName: string | null;
   lastName: string | null;
@@ -302,7 +304,7 @@ export function ProfilePageContent() {
 
   const handleFieldChange = (
     field: keyof ProfileData,
-    value: string | string[] | number | null
+    value: ProfileFieldValue
   ) => {
     setDraftProfile((prev) => ({ ...prev, [field]: value }));
     if (success) setSuccess(false);
@@ -327,7 +329,7 @@ export function ProfilePageContent() {
       // Normalize website URL before validation (prepend https:// if missing protocol)
       const normalizedWebsite = normalizeWebsiteUrl(draftProfile.website);
 
-      const normalizedData: Record<string, string | number | boolean | null> = {
+      const normalizedData: Record<string, ProfileFieldValue> = {
         firstName: normalizeValue(draftProfile.firstName),
         lastName: normalizeValue(draftProfile.lastName),
         location: normalizeValue(draftProfile.location),
