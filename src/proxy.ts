@@ -1,13 +1,13 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { getToken } from "next-auth/jwt";
-import { prisma } from "@/lib/prisma";
 
 /**
- * Middleware to enforce sessionVersion-based session invalidation
- * Only applies to protected app routes
+ * Proxy to enforce lightweight authentication checks for protected routes
+ * Only checks token presence and basic validity (no database queries)
+ * DB-backed session invalidation is handled by NextAuth JWT callback in Node.js runtime
  */
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   // Only protect routes in the (app) group
@@ -26,18 +26,18 @@ export async function middleware(request: NextRequest) {
     pathname.startsWith("/trips") ||
     pathname.startsWith("/logbook");
 
-  // Skip middleware for public routes
+  // Skip proxy for public routes
   if (!isProtectedRoute) {
     return NextResponse.next();
   }
 
-  // Skip middleware for API routes (they handle auth themselves)
+  // Skip proxy for API routes (they handle auth themselves)
   if (pathname.startsWith("/api/")) {
     return NextResponse.next();
   }
 
   try {
-    // Get JWT token from cookies
+    // Get JWT token from cookies (edge-safe operation)
     const token = await getToken({
       req: request,
       secret: process.env.NEXTAUTH_SECRET,
@@ -50,9 +50,8 @@ export async function middleware(request: NextRequest) {
       return NextResponse.redirect(signInUrl);
     }
 
-    // Extract userId and sessionVersion from token
+    // Extract userId from token
     const userId = (token.id || token.sub) as string | undefined;
-    const tokenSessionVersion = (token.sessionVersion as number | undefined);
 
     // If userId missing, treat as unauthenticated
     if (!userId) {
@@ -61,8 +60,20 @@ export async function middleware(request: NextRequest) {
       return NextResponse.redirect(signInUrl);
     }
 
+    // If token is marked as invalidated by JWT callback, redirect to signin
+    // (JWT callback sets token.invalidated = true when sessionVersion mismatches)
+    if ((token as any).invalidated) {
+      const signInUrl = new URL("/signin", request.url);
+      signInUrl.searchParams.set("callbackUrl", pathname);
+      const response = NextResponse.redirect(signInUrl);
+      response.cookies.delete("next-auth.session-token");
+      response.cookies.delete("__Secure-next-auth.session-token");
+      return response;
+    }
+
     // If sessionVersion is missing (old token), treat as unauthenticated
     // This ensures old tokens without sessionVersion are invalidated
+    const tokenSessionVersion = (token.sessionVersion as number | undefined);
     if (tokenSessionVersion === undefined || tokenSessionVersion === null) {
       const signInUrl = new URL("/signin", request.url);
       signInUrl.searchParams.set("callbackUrl", pathname);
@@ -72,54 +83,19 @@ export async function middleware(request: NextRequest) {
       return response;
     }
 
-    // Fetch current user.sessionVersion from database
-    const user = await prisma.user.findUnique({
-      where: { id: userId },
-      select: { sessionVersion: true },
-    });
-
-    // If user doesn't exist, redirect to signin
-    if (!user) {
-      const signInUrl = new URL("/signin", request.url);
-      signInUrl.searchParams.set("callbackUrl", pathname);
-      // Clear session cookie
-      const response = NextResponse.redirect(signInUrl);
-      response.cookies.delete("next-auth.session-token");
-      response.cookies.delete("__Secure-next-auth.session-token");
-      return response;
-    }
-
-    const dbSessionVersion = (user as any).sessionVersion ?? 0;
-
-    // If sessionVersion mismatch, token is invalid - redirect to signin
-    if (tokenSessionVersion !== dbSessionVersion) {
-      if (process.env.NODE_ENV === "development") {
-        console.log(
-          `[Middleware] Session version mismatch for user ${userId}: token=${tokenSessionVersion}, db=${dbSessionVersion}`
-        );
-      }
-
-      const signInUrl = new URL("/signin", request.url);
-      signInUrl.searchParams.set("callbackUrl", pathname);
-      
-      // Clear session cookies to force logout
-      const response = NextResponse.redirect(signInUrl);
-      response.cookies.delete("next-auth.session-token");
-      response.cookies.delete("__Secure-next-auth.session-token");
-      return response;
-    }
-
-    // Session is valid, allow request to proceed
+    // Token is valid, allow request to proceed
+    // Note: DB-backed sessionVersion validation happens in JWT callback (Node.js runtime)
+    // which marks tokens as invalidated if sessionVersion mismatches
     return NextResponse.next();
   } catch (error) {
-    console.error("[Middleware] Error checking session:", error);
+    console.error("[Proxy] Error checking session:", error);
     // On error, allow request to proceed (fail open)
     // Individual route handlers will handle auth
     return NextResponse.next();
   }
 }
 
-// Configure which routes this middleware runs on
+// Configure which routes this proxy runs on
 export const config = {
   matcher: [
     /*
