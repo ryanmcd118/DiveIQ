@@ -87,7 +87,7 @@ export async function PATCH(req: NextRequest) {
     const validationResult = unitPreferencesSchema.safeParse(body);
     if (!validationResult.success) {
       return NextResponse.json(
-        { error: "Invalid preferences", details: validationResult.error.errors },
+        { error: "Invalid preferences", details: validationResult.error.issues },
         { status: 400 }
       );
     }
