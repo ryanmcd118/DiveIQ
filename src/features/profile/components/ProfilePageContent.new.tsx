@@ -125,7 +125,7 @@ export function ProfilePageContent() {
     const norm = (v: string | number | string[] | null | undefined) => {
       if (Array.isArray(v)) return stringifyJsonArray(v);
       if (typeof v === "number") return v;
-      return normalizeValue(v);
+      return normalizeValue(v ?? null);
     };
     return (
       norm(draftProfile.firstName) !== norm(originalProfile.firstName) ||

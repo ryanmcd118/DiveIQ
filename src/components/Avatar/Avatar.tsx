@@ -49,7 +49,8 @@ export function Avatar({
 
   const sizeClass =
     styles[`size${size.charAt(0).toUpperCase() + size.slice(1)}`];
-  const initials = getInitials(firstName, lastName, session?.user?.email);
+  const email = session?.user?.email ?? undefined;
+  const initials = getInitials(firstName, lastName, email);
 
   // Use avatarUrl first, then fallbackImageUrl, then null
   const displayUrl = avatarUrl ?? fallbackImageUrl ?? null;
