@@ -5,21 +5,41 @@ import { PrismaAdapter } from "@next-auth/prisma-adapter";
 import { prisma } from "@/lib/prisma";
 import bcrypt from "bcryptjs";
 
+// Helper functions for safe property access
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function getString(value: unknown): string | undefined {
+  return typeof value === "string" ? value : undefined;
+}
+
+function getStringProp(obj: unknown, key: string): string | undefined {
+  if (isRecord(obj)) {
+    return getString(obj[key]);
+  }
+  return undefined;
+}
+
 // Helper function to extract firstName and lastName from Google profile
 function extractNamesFromGoogleProfile(
-  profile: any,
-  user: any
+  profile: unknown,
+  user: unknown
 ): { firstName: string | null; lastName: string | null } {
   // Prefer given_name and family_name from profile if available
-  if (profile?.given_name && profile?.family_name) {
+  const givenName = getStringProp(profile, "given_name");
+  const familyName = getStringProp(profile, "family_name");
+  if (givenName && familyName) {
     return {
-      firstName: profile.given_name.trim(),
-      lastName: profile.family_name.trim(),
+      firstName: givenName.trim(),
+      lastName: familyName.trim(),
     };
   }
 
   // Fallback: split the full name if provided
-  const fullName = profile?.name || user?.name || "";
+  const profileName = getStringProp(profile, "name");
+  const userName = getStringProp(user, "name");
+  const fullName = profileName || userName || "";
   if (fullName) {
     const trimmed = fullName.trim();
     if (trimmed) {
