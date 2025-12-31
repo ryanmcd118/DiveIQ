@@ -107,6 +107,20 @@ export async function GET() {
 
     // Transform profile kits to a simpler structure if user exists
     if (user) {
+      type TransformedUser = typeof user & {
+        profileKitIds: string[];
+        profileKits: Array<{
+          id: string;
+          name: string;
+          items: Array<{
+            id: string;
+            type: string;
+            manufacturer: string;
+            model: string;
+            purchaseDate: Date | null;
+          }>;
+        }>;
+      };
       user = {
         ...user,
         profileKitIds: user.profileKits.map((pk) => pk.kitId),
@@ -121,7 +135,7 @@ export async function GET() {
             purchaseDate: ki.gearItem.purchaseDate,
           })),
         })),
-      } as any;
+      } as TransformedUser;
     }
 
     // If not found by ID, try by email (resilience for stale sessions)
@@ -157,11 +171,19 @@ export async function GET() {
       let recoveryLastName: string | null = session.user.lastName || null;
       
       // If names missing, try to split session.user.name
-      if (!recoveryFirstName && (session.user as any).name) {
-        const nameParts = (session.user as any).name.trim().split(/\s+/);
-        if (nameParts.length > 0) {
-          recoveryFirstName = nameParts[0];
-          recoveryLastName = nameParts.length > 1 ? nameParts.slice(1).join(" ") : null;
+      if (!recoveryFirstName) {
+        const sessionUserUnknown = session.user as unknown;
+        if (
+          sessionUserUnknown &&
+          typeof sessionUserUnknown === "object" &&
+          "name" in sessionUserUnknown &&
+          typeof sessionUserUnknown.name === "string"
+        ) {
+          const nameParts = sessionUserUnknown.name.trim().split(/\s+/);
+          if (nameParts.length > 0) {
+            recoveryFirstName = nameParts[0];
+            recoveryLastName = nameParts.length > 1 ? nameParts.slice(1).join(" ") : null;
+          }
         }
       }
       

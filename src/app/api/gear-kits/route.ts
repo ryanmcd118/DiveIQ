@@ -116,7 +116,10 @@ export async function PUT(req: NextRequest) {
       return NextResponse.json({ error: "Missing id" }, { status: 400 });
     }
 
-    const updateData: any = {};
+    const updateData: {
+      name?: string;
+      isDefault?: boolean;
+    } = {};
     if (name !== undefined) updateData.name = name;
     if (isDefault !== undefined) updateData.isDefault = isDefault;
 

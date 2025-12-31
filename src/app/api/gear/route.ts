@@ -125,7 +125,17 @@ export async function PUT(req: NextRequest) {
       return NextResponse.json({ error: "Missing id" }, { status: 400 });
     }
 
-    const updateData: any = {};
+    const updateData: {
+      type?: string;
+      manufacturer?: string;
+      model?: string;
+      nickname?: string | null;
+      purchaseDate?: Date | null;
+      notes?: string | null;
+      isActive?: boolean;
+      lastServicedAt?: Date | null;
+      serviceIntervalMonths?: number | null;
+    } = {};
     if (type !== undefined) updateData.type = type;
     if (manufacturer !== undefined) updateData.manufacturer = manufacturer;
     if (model !== undefined) updateData.model = model;
