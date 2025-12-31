@@ -9,6 +9,7 @@ import { prisma } from "@/lib/prisma";
  * Returns fresh DB data (not session cache)
  */
 export async function GET(_req: NextRequest) {
+  void _req;
   try {
     const session = await getServerSession(authOptions);
 

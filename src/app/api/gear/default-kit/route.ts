@@ -8,6 +8,7 @@ import { gearKitRepository } from "@/services/database/repositories/gearReposito
  * Get the default kit for the authenticated user
  */
 export async function GET(_req: NextRequest) {
+  void _req;
   const session = await getServerSession(authOptions);
 
   if (!session?.user) {

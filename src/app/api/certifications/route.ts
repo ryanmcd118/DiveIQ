@@ -12,6 +12,7 @@ import { createUserCertificationSchema } from "@/features/certifications/types";
  * Returns certifications with expanded definition info
  */
 export async function GET(_req: NextRequest) {
+  void _req;
   const session = await getServerSession(authOptions);
 
   if (!session?.user) {

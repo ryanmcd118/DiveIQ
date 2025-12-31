@@ -9,6 +9,7 @@ import { prisma } from "@/lib/prisma";
  * Requires authentication
  */
 export async function DELETE(_req: NextRequest) {
+  void _req;
   const session = await getServerSession(authOptions);
 
   if (!session?.user?.id) {

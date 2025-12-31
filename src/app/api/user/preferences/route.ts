@@ -21,6 +21,7 @@ const unitPreferencesSchema = z.object({
  * Returns preferences with defaults filled in if not set
  */
 export async function GET(_req: NextRequest) {
+  void _req;
   try {
     const session = await getServerSession(authOptions);
 
