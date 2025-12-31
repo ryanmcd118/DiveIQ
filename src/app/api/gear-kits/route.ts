@@ -7,7 +7,7 @@ import { gearKitRepository } from "@/services/database/repositories/gearReposito
  * GET /api/gear-kits
  * Get all kits for the authenticated user
  */
-export async function GET(req: NextRequest) {
+export async function GET(_req: NextRequest) {
   const session = await getServerSession(authOptions);
 
   if (!session?.user) {

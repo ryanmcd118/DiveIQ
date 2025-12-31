@@ -26,7 +26,6 @@ interface Props {
   onEditGear: (item: GearItem) => void;
   onDeleteGear: (id: string) => void;
   onArchiveGear: (id: string) => void;
-  onRefresh: () => void;
   autoExpandArchived?: boolean;
   onAutoExpandArchivedComplete?: () => void;
   onAddGear: () => void;
@@ -40,7 +39,6 @@ export function GearListSection({
   onEditGear,
   onDeleteGear,
   onArchiveGear,
-  onRefresh,
   autoExpandArchived = false,
   onAutoExpandArchivedComplete,
   onAddGear,

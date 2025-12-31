@@ -5,7 +5,6 @@ import { encode } from "next-auth/jwt";
 import { authOptions } from "@/features/auth/lib/auth";
 import { prisma } from "@/lib/prisma";
 import bcrypt from "bcryptjs";
-import { cookies } from "next/headers";
 import type { Prisma } from "@prisma/client";
 
 /**

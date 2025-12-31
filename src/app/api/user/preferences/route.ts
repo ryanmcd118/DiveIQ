@@ -20,7 +20,7 @@ const unitPreferencesSchema = z.object({
  * Get the current authenticated user's unit preferences
  * Returns preferences with defaults filled in if not set
  */
-export async function GET(req: NextRequest) {
+export async function GET(_req: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
 

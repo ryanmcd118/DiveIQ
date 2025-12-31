@@ -3,7 +3,6 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/features/auth/lib/auth";
 import { diveLogRepository } from "@/services/database/repositories/diveLogRepository";
 import { diveGearRepository } from "@/services/database/repositories/gearRepository";
-import { gearKitRepository } from "@/services/database/repositories/gearRepository";
 import type { DiveLogInput } from "@/features/dive-log/types";
 
 /**
