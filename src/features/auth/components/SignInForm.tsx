@@ -80,7 +80,7 @@ export default function SignInForm() {
       <GoogleOAuthButton callbackUrl="/" />
 
       <p className={formStyles.formFooter}>
-        Don't have an account?{" "}
+        Don&apos;t have an account?{" "}
         <Link href="/signup" className={formStyles.link}>
           Sign up
         </Link>
