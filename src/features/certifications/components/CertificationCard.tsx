@@ -81,15 +81,15 @@ export function CertificationCard({
                   certification.isFeatured
                     ? "Remove from featured"
                     : canFeature
-                    ? "Add to featured"
-                    : "Maximum of 3 featured certifications"
+                      ? "Add to featured"
+                      : "Maximum of 3 featured certifications"
                 }
                 title={
                   !canFeature && !certification.isFeatured
                     ? "Maximum of 3 featured certifications"
                     : certification.isFeatured
-                    ? "Remove from featured"
-                    : "Add to featured"
+                      ? "Remove from featured"
+                      : "Add to featured"
                 }
               >
                 <Star
@@ -98,9 +98,7 @@ export function CertificationCard({
                 />
               </button>
               {!canFeature && !certification.isFeatured && (
-                <span className={styles.starTooltip}>
-                  Max 3 featured
-                </span>
+                <span className={styles.starTooltip}>Max 3 featured</span>
               )}
             </div>
           </div>
@@ -128,32 +126,44 @@ export function CertificationCard({
           <div className={styles.cardDetails}>
             {certification.certNumber && (
               <div className={styles.detailRow}>
-                <span className={styles.detailLabel}>Certification number:</span>
-                <span className={styles.detailValue}>{certification.certNumber}</span>
+                <span className={styles.detailLabel}>
+                  Certification number:
+                </span>
+                <span className={styles.detailValue}>
+                  {certification.certNumber}
+                </span>
               </div>
             )}
             {certification.diveShop && (
               <div className={styles.detailRow}>
                 <span className={styles.detailLabel}>Dive shop:</span>
-                <span className={styles.detailValue}>{certification.diveShop}</span>
+                <span className={styles.detailValue}>
+                  {certification.diveShop}
+                </span>
               </div>
             )}
             {certification.location && (
               <div className={styles.detailRow}>
                 <span className={styles.detailLabel}>Location:</span>
-                <span className={styles.detailValue}>{certification.location}</span>
+                <span className={styles.detailValue}>
+                  {certification.location}
+                </span>
               </div>
             )}
             {certification.instructor && (
               <div className={styles.detailRow}>
                 <span className={styles.detailLabel}>Instructor:</span>
-                <span className={styles.detailValue}>{certification.instructor}</span>
+                <span className={styles.detailValue}>
+                  {certification.instructor}
+                </span>
               </div>
             )}
             {certification.notes && (
               <div className={styles.detailRow}>
                 <span className={styles.detailLabel}>Notes:</span>
-                <span className={styles.detailValue}>{certification.notes}</span>
+                <span className={styles.detailValue}>
+                  {certification.notes}
+                </span>
               </div>
             )}
           </div>
@@ -187,4 +197,3 @@ export function CertificationCard({
     </div>
   );
 }
-

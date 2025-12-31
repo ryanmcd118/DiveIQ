@@ -3,6 +3,7 @@
 ## Files Changed (Exact List)
 
 ### A) Cleanup (Removed Proof Code)
+
 1. **`src/features/dashboard/components/DashboardPageContent.tsx`**
    - Removed hotpink "DASHBOARD RENDER CONFIRMED" badge
    - Removed inline gradient background style
@@ -13,12 +14,14 @@
 2. **`DASHBOARD_RENDER_PROOF.md`** - Deleted
 
 ### B) Layout Support for Gradients
+
 3. **`src/styles/components/Layout.module.css`**
    - Removed `background-color: var(--color-bg-primary)` from `.page` class
    - Added comment explaining background is handled by Background.module.css
    - Default fallback: body background from globals.css (when no gradient class applied)
 
 ### C) Dashboard (Already Applied)
+
 4. **`src/features/dashboard/components/DashboardPageContent.tsx`**
    - ✅ Uses `Background.pageGradientSubtle` class
    - ✅ "Plan a dive" button uses `Button.primaryGradient`
@@ -27,6 +30,7 @@
    - ✅ All content cards use `Card.feature` class
 
 ### D) Plan Page (Already Applied)
+
 5. **`src/features/dive-plan/components/PlanPageContent.tsx`**
    - ✅ Uses `Background.pageGradientSubtle` class (both loading and main states)
 
@@ -35,6 +39,7 @@
    - ✅ Submit button uses `Button.primaryGradient`
 
 ### E) Log Page (Already Applied)
+
 7. **`src/features/dive-log/components/LogPageContent.tsx`**
    - ✅ Uses `Background.pageGradientSubtle` class (both authenticated and unauthenticated states)
    - ✅ Sign-in prompt buttons use `Button.primaryGradient` and `Button.secondaryText`
@@ -44,6 +49,7 @@
    - ✅ Submit button uses `Button.primaryGradient`
 
 ### F) Homepage (Unchanged - Verified)
+
 9. **`src/features/public-home/components/PublicHomePage.tsx`**
    - ✅ Uses `Background.pageGradient` (full homepage gradient)
    - ✅ All components use shared Button/Card styles
@@ -54,6 +60,7 @@
 ## Final Mechanism: Gradient Backgrounds Without Breaking Defaults
 
 ### Solution
+
 The `.page` class in `Layout.module.css` no longer sets a `background-color`. Instead:
 
 1. **Pages with gradients** apply `Background.pageGradient` or `Background.pageGradientSubtle` classes, which set the gradient background.
@@ -63,6 +70,7 @@ The `.page` class in `Layout.module.css` no longer sets a `background-color`. In
 3. **CSS Specificity**: Gradient classes from `Background.module.css` have higher specificity and override any default, while pages without gradient classes inherit the body background naturally.
 
 ### Code Pattern
+
 ```css
 /* Layout.module.css */
 .page {
@@ -77,6 +85,7 @@ The `.page` class in `Layout.module.css` no longer sets a `background-color`. In
 ```
 
 This ensures:
+
 - ✅ Gradient pages get their gradient
 - ✅ Non-gradient pages get default dark background
 - ✅ No conflicts or overrides needed
@@ -87,6 +96,7 @@ This ensures:
 ## Verification Checklist
 
 ### Dashboard
+
 - ✅ Shows subtle gradient background (no marker badge)
 - ✅ "Plan a dive" button is gradient cyan CTA with glow
 - ✅ "Log a dive" button is text link style
@@ -94,12 +104,14 @@ This ensures:
 - ✅ Content cards have feature card styling
 
 ### Plan Page
+
 - ✅ Shows subtle gradient background
 - ✅ Form is in elevated card container
 - ✅ Submit button is gradient cyan CTA
 - ✅ Input fields match homepage planner styling (dark background, cyan focus ring)
 
 ### Log Page
+
 - ✅ Shows subtle gradient background
 - ✅ Form is in elevated card container
 - ✅ Submit button is gradient cyan CTA
@@ -107,6 +119,7 @@ This ensures:
 - ✅ Sign-in prompt buttons use gradient styles
 
 ### Homepage
+
 - ✅ Full gradient background (unchanged)
 - ✅ All CTAs use gradient buttons (unchanged)
 - ✅ Feature cards use shared styles (unchanged)
@@ -117,6 +130,7 @@ This ensures:
 ## Summary
 
 All logged-in pages (Dashboard, Plan, Log) now use the unified design system:
+
 - **Gradient backgrounds** via `Background.pageGradientSubtle`
 - **Gradient CTAs** via `Button.primaryGradient`
 - **Elevated forms** via `Card.elevatedForm`

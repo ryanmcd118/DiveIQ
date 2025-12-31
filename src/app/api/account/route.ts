@@ -12,10 +12,7 @@ export async function DELETE(_req: NextRequest) {
   const session = await getServerSession(authOptions);
 
   if (!session?.user?.id) {
-    return NextResponse.json(
-      { error: "Unauthorized" },
-      { status: 401 }
-    );
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   const userId = session.user.id;
@@ -101,4 +98,3 @@ export async function DELETE(_req: NextRequest) {
     );
   }
 }
-

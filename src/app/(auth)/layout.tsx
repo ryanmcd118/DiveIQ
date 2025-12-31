@@ -7,4 +7,3 @@ export default function AuthLayout({
 }) {
   return <AuthLayoutClient>{children}</AuthLayoutClient>;
 }
-

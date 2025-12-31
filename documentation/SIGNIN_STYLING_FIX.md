@@ -3,6 +3,7 @@
 ## Files Changed
 
 ### 1. AppShell - Public Navbar for Auth Pages
+
 - **`src/features/auth/components/AppShell.tsx`**
   - Added import for `PublicNavbar`
   - Added check for `/signin` and `/signup` routes
@@ -10,6 +11,7 @@
   - This ensures signin/signup pages show the same public navbar as homepage
 
 ### 2. Signin Page Layout & Background
+
 - **`src/app/(auth)/signin/page.tsx`**
   - Added `Background.pageGradient` class (same as homepage)
   - Wrapped form in `Card.elevatedForm` (same elevated card style)
@@ -23,6 +25,7 @@
   - Added padding-top to account for navbar height
 
 ### 3. Signin Form Button
+
 - **`src/features/auth/components/SignInForm.tsx`**
   - Changed submit button from `Button.primary` to `Button.primaryGradient`
   - Matches homepage CTA styling (gradient cyan button with glow)
@@ -32,6 +35,7 @@
 ## Implementation Details
 
 ### Navbar Logic
+
 ```tsx
 const isAuthPage = pathname === "/signin" || pathname === "/signup";
 const showPublicNav = isAuthPage && !isAuthenticated && !isLoading;
@@ -47,11 +51,13 @@ if (showPublicNav) {
 ```
 
 This ensures:
+
 - Signin/signup pages show public navbar when not authenticated
 - Same navbar as homepage (Log in / Create account / Start a Dive Plan)
 - Authenticated users on these pages still see logged-in navbar
 
 ### Page Structure
+
 ```
 <div className="pageGradient">  <!-- Homepage gradient background -->
   <div className="section">      <!-- Max-width container, centered -->
@@ -64,6 +70,7 @@ This ensures:
 ```
 
 ### Form Styling
+
 - Inputs already use `Form.module.css` styles (updated in Phase 2):
   - Dark background: `var(--color-surface-input)`
   - Cyan focus ring: `0 0 0 3px rgba(6, 182, 212, 0.15)`
@@ -90,6 +97,7 @@ This ensures:
 ## Summary
 
 The `/signin` route now visually matches the logged-out homepage:
+
 - **Same gradient background** (`Background.pageGradient`)
 - **Same public navbar** (translucent, blur, cyan border)
 - **Same elevated form card** (`Card.elevatedForm`)

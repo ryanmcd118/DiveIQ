@@ -5,7 +5,10 @@ export type DiveLogEntry = DiveLog & {
   gearItems?: GearItem[];
 };
 
-export type DiveLogInput = Omit<DiveLogEntry, "id" | "createdAt" | "gearItems"> & {
+export type DiveLogInput = Omit<
+  DiveLogEntry,
+  "id" | "createdAt" | "gearItems"
+> & {
   gearItemIds?: string[];
 };
 
@@ -23,4 +26,3 @@ export type DiveLogApiResponse = {
   entries?: DiveLogEntry[];
   ok?: boolean;
 };
-

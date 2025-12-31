@@ -29,5 +29,3 @@ export type PlanApiResponse = {
   aiAdvice: string;
   plan: PastPlan;
 };
-
-

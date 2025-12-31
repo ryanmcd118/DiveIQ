@@ -57,7 +57,9 @@ export function ActivityTabs({ recentDives, plannedDives }: ActivityTabsProps) {
                         <div className={styles.left}>
                           <span className={styles.siteName}>
                             {dive.siteName}{" "}
-                            <span className={styles.region}>({dive.region})</span>
+                            <span className={styles.region}>
+                              ({dive.region})
+                            </span>
                           </span>
                           <p className={styles.meta}>
                             {depth.value}
@@ -93,12 +95,16 @@ export function ActivityTabs({ recentDives, plannedDives }: ActivityTabsProps) {
                         <div className={styles.left}>
                           <span className={styles.siteName}>
                             {plan.siteName}{" "}
-                            <span className={styles.region}>({plan.region})</span>
+                            <span className={styles.region}>
+                              ({plan.region})
+                            </span>
                           </span>
                           <p className={styles.meta}>
                             {depth.value}
                             {depth.unit} · {plan.bottomTime}min ·{" "}
-                            <span className={styles.capitalize}>{plan.experienceLevel}</span>
+                            <span className={styles.capitalize}>
+                              {plan.experienceLevel}
+                            </span>
                           </p>
                         </div>
                         <span className={listStyles.diveDate}>{plan.date}</span>
@@ -114,4 +120,3 @@ export function ActivityTabs({ recentDives, plannedDives }: ActivityTabsProps) {
     </section>
   );
 }
-

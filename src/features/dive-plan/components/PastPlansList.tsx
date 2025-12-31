@@ -23,7 +23,7 @@ export function PastPlansList({
   onDeletePlan,
 }: PastPlansListProps) {
   const { prefs } = useUnitPreferences();
-  
+
   return (
     <div className={cardStyles.cardCompact}>
       <div className={cardStyles.header}>
@@ -41,7 +41,10 @@ export function PastPlansList({
       )}
 
       {!plansLoading && pastPlans.length > 0 && (
-        <ul className={listStyles.listCompact} style={{ marginTop: "var(--space-2)" }}>
+        <ul
+          className={listStyles.listCompact}
+          style={{ marginTop: "var(--space-2)" }}
+        >
           {pastPlans.map((plan) => (
             <li
               key={plan.id}
@@ -53,7 +56,9 @@ export function PastPlansList({
                 <div>
                   <span className={listStyles.planTitle}>
                     {plan.siteName}{" "}
-                    <span className={listStyles.diveRegion}>({plan.region})</span>
+                    <span className={listStyles.diveRegion}>
+                      ({plan.region})
+                    </span>
                   </span>
                 </div>
 

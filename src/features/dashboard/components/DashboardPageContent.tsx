@@ -32,11 +32,13 @@ export function DashboardPageContent({
   // Calculate additional stats
   const avgDepth =
     recentDives.length > 0
-      ? recentDives.reduce((sum, dive) => sum + dive.maxDepthCm, 0) / recentDives.length
+      ? recentDives.reduce((sum, dive) => sum + dive.maxDepthCm, 0) /
+        recentDives.length
       : undefined;
   const avgBottomTime =
     recentDives.length > 0
-      ? recentDives.reduce((sum, dive) => sum + dive.bottomTime, 0) / recentDives.length
+      ? recentDives.reduce((sum, dive) => sum + dive.bottomTime, 0) /
+        recentDives.length
       : undefined;
 
   // Calculate dives this month (mock for now, would need date filtering)
@@ -79,7 +81,10 @@ export function DashboardPageContent({
             />
 
             {/* Activity section */}
-            <ActivityTabs recentDives={recentDives} plannedDives={recentPlans} />
+            <ActivityTabs
+              recentDives={recentDives}
+              plannedDives={recentPlans}
+            />
 
             {/* Trends */}
             <Trends />

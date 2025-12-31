@@ -5,16 +5,16 @@
 
 :root {
   /* === COLORS === */
-  
+
   /* Background */
-  --color-bg-primary: #020617;        /* slate-950 - default/fallback */
-  --color-bg-secondary: #0f172a;      /* slate-900 */
-  --color-bg-tertiary: #1e293b;       /* slate-800 */
-  --color-bg-elevated: #334155;       /* slate-700 */
-  
+  --color-bg-primary: #020617; /* slate-950 - default/fallback */
+  --color-bg-secondary: #0f172a; /* slate-900 */
+  --color-bg-tertiary: #1e293b; /* slate-800 */
+  --color-bg-elevated: #334155; /* slate-700 */
+
   /* App background (navy/blue tone for logged-in UI) */
-  --color-bg-app: #0a1628;            /* Navy base - matches dashboard cards */
-  --gradient-bg-app: 
+  --color-bg-app: #0a1628; /* Navy base - matches dashboard cards */
+  --gradient-bg-app:
     radial-gradient(
       circle at 15% 25%,
       rgba(15, 35, 55, 0.25) 0%,
@@ -28,80 +28,82 @@
       #071218 80%,
       #0a1820 100%
     );
-  
+
   /* Surface (cards, containers) */
   --color-surface: rgba(15, 23, 42, 0.7);
   --color-surface-hover: rgba(15, 23, 42, 0.9);
   --color-surface-alt: rgba(2, 6, 23, 0.4);
-  --color-surface-feature: rgba(15, 23, 42, 0.6);  /* Feature cards */
-  --color-surface-form: rgba(15, 23, 42, 0.8);     /* Form/elevated cards */
-  --color-surface-input: rgba(2, 6, 23, 0.6);       /* Form inputs */
-  --color-surface-navbar: rgba(10, 22, 40, 0.85);   /* Navbar with backdrop */
-  
+  --color-surface-feature: rgba(15, 23, 42, 0.6); /* Feature cards */
+  --color-surface-form: rgba(15, 23, 42, 0.8); /* Form/elevated cards */
+  --color-surface-input: rgba(2, 6, 23, 0.6); /* Form inputs */
+  --color-surface-navbar: rgba(10, 22, 40, 0.85); /* Navbar with backdrop */
+
   /* Text */
-  --color-text-primary: #f1f5f9;      /* slate-100 */
-  --color-text-secondary: #e2e8f0;    /* slate-200 */
-  --color-text-tertiary: #cbd5e1;     /* slate-300 */
-  --color-text-muted: #94a3b8;        /* slate-400 */
-  --color-text-disabled: #64748b;     /* slate-500 */
-  
+  --color-text-primary: #f1f5f9; /* slate-100 */
+  --color-text-secondary: #e2e8f0; /* slate-200 */
+  --color-text-tertiary: #cbd5e1; /* slate-300 */
+  --color-text-muted: #94a3b8; /* slate-400 */
+  --color-text-disabled: #64748b; /* slate-500 */
+
   /* Borders */
-  --color-border-default: #1e293b;    /* slate-800 */
-  --color-border-hover: #334155;      /* slate-700 */
-  --color-border-focus: #475569;      /* slate-600 */
-  --color-border-card: rgba(51, 65, 85, 0.5);        /* Card borders */
+  --color-border-default: #1e293b; /* slate-800 */
+  --color-border-hover: #334155; /* slate-700 */
+  --color-border-focus: #475569; /* slate-600 */
+  --color-border-card: rgba(51, 65, 85, 0.5); /* Card borders */
   --color-border-card-hover: rgba(6, 182, 212, 0.3); /* Card hover accent */
-  --color-border-input: rgba(51, 65, 85, 0.6);      /* Input borders */
-  --color-border-navbar: rgba(6, 182, 212, 0.1);     /* Navbar bottom border */
-  
+  --color-border-input: rgba(51, 65, 85, 0.6); /* Input borders */
+  --color-border-navbar: rgba(6, 182, 212, 0.1); /* Navbar bottom border */
+
   /* Brand/Accent (Cyan) */
-  --color-accent-primary: #06b6d4;    /* cyan-500 */
-  --color-accent-hover: #22d3ee;      /* cyan-400 */
-  --color-accent-light: #67e8f9;      /* cyan-300 */
-  --color-accent-dark: #0e7490;       /* cyan-700 */
-  
+  --color-accent-primary: #06b6d4; /* cyan-500 */
+  --color-accent-hover: #22d3ee; /* cyan-400 */
+  --color-accent-light: #67e8f9; /* cyan-300 */
+  --color-accent-dark: #0e7490; /* cyan-700 */
+
   /* Semantic Colors */
-  --color-danger: #ef4444;            /* red-500 */
-  --color-danger-hover: #f87171;      /* red-400 */
-  --color-danger-text: #fecaca;       /* red-200 */
+  --color-danger: #ef4444; /* red-500 */
+  --color-danger-hover: #f87171; /* red-400 */
+  --color-danger-text: #fecaca; /* red-200 */
   --color-danger-bg: rgba(239, 68, 68, 0.1);
   --color-danger-bg-hover: rgba(239, 68, 68, 0.2);
   --color-danger-border: rgba(239, 68, 68, 0.7);
-  
-  --color-success: #10b981;           /* green-500 */
-  --color-warning: #f59e0b;           /* amber-500 */
-  --color-info: #3b82f6;              /* blue-500 */
-  
+
+  --color-success: #10b981; /* green-500 */
+  --color-warning: #f59e0b; /* amber-500 */
+  --color-info: #3b82f6; /* blue-500 */
+
   /* === SPACING === */
-  --space-1: 0.25rem;   /* 4px */
-  --space-2: 0.5rem;    /* 8px */
-  --space-3: 0.75rem;   /* 12px */
-  --space-4: 1rem;      /* 16px */
-  --space-5: 1.25rem;   /* 20px */
-  --space-6: 1.5rem;    /* 24px */
-  --space-8: 2rem;      /* 32px */
-  --space-10: 2.5rem;   /* 40px */
-  --space-12: 3rem;     /* 48px */
-  
+  --space-1: 0.25rem; /* 4px */
+  --space-2: 0.5rem; /* 8px */
+  --space-3: 0.75rem; /* 12px */
+  --space-4: 1rem; /* 16px */
+  --space-5: 1.25rem; /* 20px */
+  --space-6: 1.5rem; /* 24px */
+  --space-8: 2rem; /* 32px */
+  --space-10: 2.5rem; /* 40px */
+  --space-12: 3rem; /* 48px */
+
   /* Layout constraints */
-  --max-width-page: 80rem;        /* 1280px */
-  --max-width-narrow: 48rem;      /* 768px */
+  --max-width-page: 80rem; /* 1280px */
+  --max-width-narrow: 48rem; /* 768px */
   --section-padding-mobile: var(--space-12) var(--space-6);
   --section-padding-desktop: 5rem var(--space-8);
-  
+
   /* === BORDER RADIUS === */
-  --radius-sm: 0.375rem;    /* 6px */
-  --radius-md: 0.5rem;      /* 8px */
-  --radius-lg: 0.75rem;     /* 12px */
-  --radius-xl: 1rem;        /* 16px */
+  --radius-sm: 0.375rem; /* 6px */
+  --radius-md: 0.5rem; /* 8px */
+  --radius-lg: 0.75rem; /* 12px */
+  --radius-xl: 1rem; /* 16px */
   --radius-full: 9999px;
-  
+
   /* === SHADOWS === */
   --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
   --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
-  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
-  --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
-  
+  --shadow-lg:
+    0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+  --shadow-xl:
+    0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+
   /* Glow shadows (cyan accent) */
   --glow-primary: 0 0 20px rgba(6, 182, 212, 0.3);
   --glow-primary-hover: 0 4px 24px rgba(6, 182, 212, 0.4);
@@ -109,7 +111,7 @@
   --glow-hero-cta-hover: 0 8px 40px rgba(6, 182, 212, 0.5);
   --glow-planner-button: 0 4px 24px rgba(6, 182, 212, 0.3);
   --glow-planner-button-hover: 0 8px 32px rgba(6, 182, 212, 0.45);
-  
+
   /* === GRADIENTS === */
   /* Page background gradient */
   --gradient-bg-page: linear-gradient(
@@ -120,17 +122,17 @@
     #051118 75%,
     #071a22 100%
   );
-  
+
   /* Button gradient (primary CTA) */
   --gradient-button-primary: linear-gradient(
     135deg,
     var(--color-accent-light) 0%,
     var(--color-accent-primary) 100%
   );
-  
+
   /* Button text color on gradient */
   --color-button-gradient-text: #0a1628;
-  
+
   /* Brand divider gradient */
   --gradient-divider: linear-gradient(
     90deg,
@@ -138,7 +140,7 @@
     var(--color-accent-primary),
     transparent
   );
-  
+
   /* Placeholder shimmer gradient */
   --gradient-shimmer: linear-gradient(
     45deg,
@@ -146,7 +148,7 @@
     rgba(6, 182, 212, 0.05) 50%,
     transparent 55%
   );
-  
+
   /* Hero image overlay (vignette) */
   --gradient-vignette: linear-gradient(
     180deg,
@@ -155,50 +157,51 @@
     rgba(5, 10, 20, 0.125) 60%,
     rgba(5, 10, 20, 0.275) 100%
   );
-  
+
   /* Placeholder background gradient */
   --gradient-placeholder: linear-gradient(
     135deg,
     rgba(6, 182, 212, 0.12) 0%,
     rgba(6, 182, 212, 0.04) 100%
   );
-  
+
   /* === TYPOGRAPHY === */
-  --font-sans: system-ui, -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", sans-serif;
-  --font-mono: ui-monospace, "SF Mono", Monaco, "Cascadia Code", "Courier New", monospace;
-  
-  --font-size-xs: 0.75rem;      /* 12px */
-  --font-size-sm: 0.875rem;     /* 14px */
-  --font-size-base: 1rem;       /* 16px */
-  --font-size-lg: 1.125rem;     /* 18px */
-  --font-size-xl: 1.25rem;      /* 20px */
-  --font-size-2xl: 1.5rem;      /* 24px */
-  --font-size-3xl: 1.875rem;    /* 30px */
-  --font-size-4xl: 2.25rem;     /* 36px */
-  
+  --font-sans:
+    system-ui, -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI",
+    sans-serif;
+  --font-mono:
+    ui-monospace, "SF Mono", Monaco, "Cascadia Code", "Courier New", monospace;
+
+  --font-size-xs: 0.75rem; /* 12px */
+  --font-size-sm: 0.875rem; /* 14px */
+  --font-size-base: 1rem; /* 16px */
+  --font-size-lg: 1.125rem; /* 18px */
+  --font-size-xl: 1.25rem; /* 20px */
+  --font-size-2xl: 1.5rem; /* 24px */
+  --font-size-3xl: 1.875rem; /* 30px */
+  --font-size-4xl: 2.25rem; /* 36px */
+
   --font-weight-normal: 400;
   --font-weight-medium: 500;
   --font-weight-semibold: 600;
   --font-weight-bold: 700;
-  
+
   --line-height-tight: 1.25;
   --line-height-normal: 1.5;
   --line-height-relaxed: 1.75;
-  
+
   /* === TRANSITIONS === */
   --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
   --transition-base: 200ms cubic-bezier(0.4, 0, 0.2, 1);
   --transition-slow: 300ms cubic-bezier(0.4, 0, 0.2, 1);
-  
+
   /* === Z-INDEX === */
   --z-dropdown: 1000;
   --z-sticky: 1100;
   --z-modal: 1300;
   --z-popover: 1400;
   --z-tooltip: 1500;
-  
+
   /* === LAYOUT HEIGHTS === */
-  --nav-height: 4rem;  /* Navbar height - used for positioning calculations */
+  --nav-height: 4rem; /* Navbar height - used for positioning calculations */
 }
-
-

@@ -22,9 +22,10 @@ export async function GET(req: NextRequest) {
     const { searchParams } = new URL(req.url);
     const agencyParam = searchParams.get("agency");
 
-    const where = agencyParam && isCertificationAgency(agencyParam)
-      ? { agency: agencyParam }
-      : undefined;
+    const where =
+      agencyParam && isCertificationAgency(agencyParam)
+        ? { agency: agencyParam }
+        : undefined;
 
     // Fetch all definitions
     const definitions = await prisma.certificationDefinition.findMany({
@@ -57,4 +58,3 @@ export async function GET(req: NextRequest) {
     );
   }
 }
-

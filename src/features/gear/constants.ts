@@ -63,4 +63,3 @@ export function formatGearTypeLabel(type: GearType): string {
   // Capitalize first letter only
   return withSpaces.charAt(0).toUpperCase() + withSpaces.slice(1);
 }
-

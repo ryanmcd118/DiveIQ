@@ -47,7 +47,9 @@ describe("API Route - GET /api/certifications/definitions", () => {
       mockDefinitions as any
     );
 
-    const req = new NextRequest("http://localhost:3000/api/certifications/definitions");
+    const req = new NextRequest(
+      "http://localhost:3000/api/certifications/definitions"
+    );
     const response = await GET(req);
     const data = await response.json();
 
@@ -102,7 +104,9 @@ describe("API Route - GET /api/certifications/definitions", () => {
       mockDefinitions as any
     );
 
-    const req = new NextRequest("http://localhost:3000/api/certifications/definitions");
+    const req = new NextRequest(
+      "http://localhost:3000/api/certifications/definitions"
+    );
     const response = await GET(req);
     const data = await response.json();
 
@@ -131,7 +135,9 @@ describe("API Route - GET /api/certifications/definitions", () => {
       new Error("Database error")
     );
 
-    const req = new NextRequest("http://localhost:3000/api/certifications/definitions");
+    const req = new NextRequest(
+      "http://localhost:3000/api/certifications/definitions"
+    );
     const response = await GET(req);
     const data = await response.json();
 
@@ -140,4 +146,3 @@ describe("API Route - GET /api/certifications/definitions", () => {
     expect(data.error).toBe("Failed to fetch certification definitions");
   });
 });
-

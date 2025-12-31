@@ -1,6 +1,8 @@
 // Utility to safely parse JSON arrays stored as strings in the database
 
-export function parseJsonArray<T = string>(value: string | null | undefined): T[] {
+export function parseJsonArray<T = string>(
+  value: string | null | undefined
+): T[] {
   if (!value || value.trim() === "") return [];
   try {
     const parsed = JSON.parse(value);
@@ -13,7 +15,9 @@ export function parseJsonArray<T = string>(value: string | null | undefined): T[
   }
 }
 
-export function stringifyJsonArray(value: (string | number)[] | null | undefined): string | null {
+export function stringifyJsonArray(
+  value: (string | number)[] | null | undefined
+): string | null {
   if (!value || value.length === 0) return null;
   try {
     return JSON.stringify(value);
@@ -21,4 +25,3 @@ export function stringifyJsonArray(value: (string | number)[] | null | undefined
     return null;
   }
 }
-

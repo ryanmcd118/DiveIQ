@@ -30,11 +30,16 @@ export function GearCard() {
           const kitsData = await kitsRes.json();
           const gearData = await gearRes.json();
 
-          const defaultKit = kitsData.kits.find((k: GearKitWithItems) => k.isDefault);
+          const defaultKit = kitsData.kits.find(
+            (k: GearKitWithItems) => k.isDefault
+          );
           setDefaultKit(defaultKit ?? null);
 
           // Get maintenance due items
-          const itemsWithStatus: Array<{ item: GearItem; status: MaintenanceStatus }> = gearData.items.map((item: GearItem) => ({
+          const itemsWithStatus: Array<{
+            item: GearItem;
+            status: MaintenanceStatus;
+          }> = gearData.items.map((item: GearItem) => ({
             item,
             status: computeMaintenanceStatus(item),
           }));
@@ -125,7 +130,9 @@ export function GearCard() {
               const status = computeMaintenanceStatus(item);
               return (
                 <li key={item.id} className={styles.maintenanceItem}>
-                  <span className={styles.itemName}>{getDisplayName(item)}</span>
+                  <span className={styles.itemName}>
+                    {getDisplayName(item)}
+                  </span>
                   <span
                     className={`${styles.statusPill} ${getStatusClass(status)}`}
                   >
@@ -146,4 +153,3 @@ export function GearCard() {
     </div>
   );
 }
-

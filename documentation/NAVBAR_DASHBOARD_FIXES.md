@@ -3,6 +3,7 @@
 ## Files Changed
 
 ### 1. Navbar Layout (Strict 3-Column Grid)
+
 - **`src/styles/components/Navigation.module.css`**
   - Changed `.nav` from `flex` with `justify-content: space-between` to `grid` with `grid-template-columns: auto 1fr auto`
   - Added `.rightGroup` class for utilities + CTA grouping
@@ -18,6 +19,7 @@
   - Reduced gap to `var(--space-3)` for tighter grouping
 
 ### 2. Dashboard Header Spacing
+
 - **`src/styles/components/Layout.module.css`**
   - Reduced `.pageHeader` padding: `var(--space-8)` → `var(--space-5)` (mobile), `var(--space-10)` → `var(--space-6)` (desktop)
   - Removed gradient divider (`::after` pseudo-element)
@@ -29,6 +31,7 @@
   - Added inline style to `.headerActions`: `alignSelf: 'flex-start'` and `paddingTop: 'var(--space-1)'` to align with title block
 
 ### 3. Stats Row Width Constraint
+
 - **`src/styles/components/Layout.module.css`**
   - Added `max-width: 60rem` to `.statsGrid`
   - Added `margin: 0 auto` to center the constrained grid
@@ -41,6 +44,7 @@
 ## Navbar Layout Implementation
 
 ### Structure
+
 ```
 ┌─────────────────────────────────────────────────────────┐
 │ [Logo]  │  [Dashboard] [Plan] [Log]  │  [Utils] [CTA]  │
@@ -49,6 +53,7 @@
 ```
 
 ### CSS Grid Implementation
+
 ```css
 .nav {
   display: grid;
@@ -62,6 +67,7 @@
 - **Right column (auto)**: Utilities + CTA - takes only needed width, right-aligned with `justify-content: flex-end`
 
 ### Benefits
+
 - ✅ Nav links are truly centered (not floating)
 - ✅ Logo and right group stay anchored to edges
 - ✅ Responsive: grid adapts naturally at all widths

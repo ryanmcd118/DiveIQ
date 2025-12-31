@@ -26,7 +26,10 @@ export function PublicNavbar({ variant = "default" }: PublicNavbarProps) {
             <Link href="/signup" className={styles.navLink}>
               Create account
             </Link>
-            <Link href="/dive-plans" className={`${buttonStyles.primaryGradient} ${styles.navCta}`}>
+            <Link
+              href="/dive-plans"
+              className={`${buttonStyles.primaryGradient} ${styles.navCta}`}
+            >
               Start a Dive Plan →
             </Link>
           </div>
@@ -35,4 +38,3 @@ export function PublicNavbar({ variant = "default" }: PublicNavbarProps) {
     </nav>
   );
 }
-

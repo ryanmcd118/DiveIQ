@@ -12,11 +12,12 @@ export async function GET(_req: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
 
-    if (!session?.user?.id || typeof session.user.id !== 'string' || session.user.id.trim() === '') {
-      return NextResponse.json(
-        { error: "Unauthorized" },
-        { status: 401 }
-      );
+    if (
+      !session?.user?.id ||
+      typeof session.user.id !== "string" ||
+      session.user.id.trim() === ""
+    ) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     // Fetch fresh user data from database
@@ -39,10 +40,7 @@ export async function GET(_req: NextRequest) {
     });
 
     if (!user) {
-      return NextResponse.json(
-        { error: "User not found" },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
     // Check sign-in methods
@@ -60,7 +58,7 @@ export async function GET(_req: NextRequest) {
       hasGoogle,
     });
   } catch (error) {
-    if (process.env.NODE_ENV === 'development') {
+    if (process.env.NODE_ENV === "development") {
       console.error("[GET /api/me] Error:", error);
       if (error instanceof Error) {
         console.error("[GET /api/me] Error message:", error.message);
@@ -74,4 +72,3 @@ export async function GET(_req: NextRequest) {
     );
   }
 }
-

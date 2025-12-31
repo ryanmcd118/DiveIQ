@@ -113,7 +113,10 @@ export function usePlanPageState() {
       siteName: typeof siteNameValue === "string" ? siteNameValue : "",
       date: typeof dateValue === "string" ? dateValue : "",
       maxDepth: parseFloat(maxDepthUIString ?? "0") || 0, // Keep UI value for PlanData
-      bottomTime: typeof bottomTimeValue === "string" ? Number(bottomTimeValue) : Number(bottomTimeValue ?? 0),
+      bottomTime:
+        typeof bottomTimeValue === "string"
+          ? Number(bottomTimeValue)
+          : Number(bottomTimeValue ?? 0),
       experienceLevel: (typeof experienceLevelValue === "string"
         ? experienceLevelValue
         : "Beginner") as PlanData["experienceLevel"],

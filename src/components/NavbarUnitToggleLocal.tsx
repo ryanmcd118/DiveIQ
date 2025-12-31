@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useEffect } from 'react';
-import type { UnitSystem } from '@/lib/units';
-import styles from './NavbarUnitToggle.module.css';
+import { useState, useEffect } from "react";
+import type { UnitSystem } from "@/lib/units";
+import styles from "./NavbarUnitToggle.module.css";
 
 /**
  * Local-state unit toggle for logged-out users in the navbar
@@ -10,14 +10,14 @@ import styles from './NavbarUnitToggle.module.css';
  */
 export function NavbarUnitToggleLocal() {
   // Always start with 'metric' for SSR/client consistency
-  const [unitSystem, setUnitSystem] = useState<UnitSystem>('metric');
+  const [unitSystem, setUnitSystem] = useState<UnitSystem>("metric");
   const [isMounted, setIsMounted] = useState(false);
 
   // Load from localStorage after mount
   useEffect(() => {
     setIsMounted(true);
-    const stored = localStorage.getItem('diveiq:unitSystem');
-    if (stored === 'metric' || stored === 'imperial') {
+    const stored = localStorage.getItem("diveiq:unitSystem");
+    if (stored === "metric" || stored === "imperial") {
       setUnitSystem(stored);
     }
   }, []);
@@ -25,7 +25,7 @@ export function NavbarUnitToggleLocal() {
   // Persist to localStorage when unitSystem changes (only after mount)
   useEffect(() => {
     if (isMounted) {
-      localStorage.setItem('diveiq:unitSystem', unitSystem);
+      localStorage.setItem("diveiq:unitSystem", unitSystem);
     }
   }, [unitSystem, isMounted]);
 
@@ -35,7 +35,9 @@ export function NavbarUnitToggleLocal() {
     if (!isMounted) return;
     // Small delay to ensure listeners are set up
     const timer = setTimeout(() => {
-      const event = new CustomEvent('unitSystemChanged', { detail: unitSystem });
+      const event = new CustomEvent("unitSystemChanged", {
+        detail: unitSystem,
+      });
       window.dispatchEvent(event);
     }, 0);
     return () => clearTimeout(timer);
@@ -48,7 +50,7 @@ export function NavbarUnitToggleLocal() {
         <button
           type="button"
           className={styles.segment}
-          onClick={() => setUnitSystem('metric')}
+          onClick={() => setUnitSystem("metric")}
           aria-pressed={false}
           aria-label="Metric units"
           title="Metric units (m, °C)"
@@ -58,7 +60,7 @@ export function NavbarUnitToggleLocal() {
         <button
           type="button"
           className={styles.segment}
-          onClick={() => setUnitSystem('imperial')}
+          onClick={() => setUnitSystem("imperial")}
           aria-pressed={false}
           aria-label="Imperial units"
           title="Imperial units (ft, °F)"
@@ -74,9 +76,9 @@ export function NavbarUnitToggleLocal() {
     <div className={styles.container} role="group" aria-label="Unit system">
       <button
         type="button"
-        className={`${styles.segment} ${unitSystem === 'metric' ? styles.active : ''}`}
-        onClick={() => setUnitSystem('metric')}
-        aria-pressed={unitSystem === 'metric'}
+        className={`${styles.segment} ${unitSystem === "metric" ? styles.active : ""}`}
+        onClick={() => setUnitSystem("metric")}
+        aria-pressed={unitSystem === "metric"}
         aria-label="Metric units"
         title="Metric units (m, °C)"
       >
@@ -84,9 +86,9 @@ export function NavbarUnitToggleLocal() {
       </button>
       <button
         type="button"
-        className={`${styles.segment} ${unitSystem === 'imperial' ? styles.active : ''}`}
-        onClick={() => setUnitSystem('imperial')}
-        aria-pressed={unitSystem === 'imperial'}
+        className={`${styles.segment} ${unitSystem === "imperial" ? styles.active : ""}`}
+        onClick={() => setUnitSystem("imperial")}
+        aria-pressed={unitSystem === "imperial"}
         aria-label="Imperial units"
         title="Imperial units (ft, °F)"
       >
@@ -95,4 +97,3 @@ export function NavbarUnitToggleLocal() {
     </div>
   );
 }
-

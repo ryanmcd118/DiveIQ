@@ -62,13 +62,18 @@
 }
 
 .transition-colors {
-  transition: color var(--transition-base), background-color var(--transition-base), border-color var(--transition-base);
+  transition:
+    color var(--transition-base),
+    background-color var(--transition-base),
+    border-color var(--transition-base);
 }
 
 /* === FOCUS === */
 .focus-ring:focus {
   outline: none;
-  box-shadow: 0 0 0 2px var(--color-bg-primary), 0 0 0 4px var(--color-accent-primary);
+  box-shadow:
+    0 0 0 2px var(--color-bg-primary),
+    0 0 0 4px var(--color-accent-primary);
 }
 
 /* === TRUNCATE === */
@@ -110,5 +115,3 @@
     display: none;
   }
 }
-
-

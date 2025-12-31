@@ -40,8 +40,8 @@ export function LinkGoogleModal({ isOpen, onClose }: LinkGoogleModalProps) {
             account to this DiveIQ account.
           </p>
           <p>
-            After linking, you&apos;ll be able to sign in with either your password
-            or your Google account.
+            After linking, you&apos;ll be able to sign in with either your
+            password or your Google account.
           </p>
         </div>
 
@@ -65,4 +65,3 @@ export function LinkGoogleModal({ isOpen, onClose }: LinkGoogleModalProps) {
     </div>
   );
 }
-

@@ -27,8 +27,13 @@ export async function POST(req: NextRequest) {
 
     // Get unit system from preferences (default to metric if not provided)
     const unitSystem: UnitSystem = body.unitPreferences
-      ? (body.unitPreferences.depth === 'm' && body.unitPreferences.temperature === 'c' && body.unitPreferences.pressure === 'bar' && body.unitPreferences.weight === 'kg' ? 'metric' : 'imperial')
-      : 'metric';
+      ? body.unitPreferences.depth === "m" &&
+        body.unitPreferences.temperature === "c" &&
+        body.unitPreferences.pressure === "bar" &&
+        body.unitPreferences.weight === "kg"
+        ? "metric"
+        : "imperial"
+      : "metric";
 
     // Generate AI structured briefing with unit system
     const aiBriefing = await generateDivePlanBriefing({

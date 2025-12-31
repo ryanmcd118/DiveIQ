@@ -77,7 +77,7 @@ export function PlanForm({
       if (newValue === null) return current;
 
       // Round to reasonable precision (1 decimal for meters, whole number for feet)
-      return prefs.depth === "m" 
+      return prefs.depth === "m"
         ? String(Math.round(newValue * 10) / 10)
         : String(Math.round(newValue));
     });

@@ -88,6 +88,7 @@
 - **Missing script**: `package.json` does **not** contain a `typecheck` script, but the CI/CD workflow (`.github/workflows/pr-checks.yml`) references `npm run typecheck` on line 31.
 
 **What runs today**: TypeScript compilation occurs during `next build` (Next.js runs `tsc` internally). The `tsc --noEmit` command is **not** available as a standalone script, which means:
+
 - Developers cannot easily type-check without building
 - The CI/CD workflow will **fail** when it attempts to run `npm run typecheck`
 
@@ -294,18 +295,21 @@
 ### Automation Balance
 
 **Current automation (good)**:
+
 - ESLint catches code quality issues
 - Prettier enforces formatting
 - CI runs checks on PRs
 - Next.js build validates TypeScript
 
 **Missing automation (would help)**:
+
 - Pre-commit hooks (lint-staged) - Would catch issues before commit
 - Type-check script - Would enable faster feedback
 - Test suite - Would enable confident refactoring
 - Migration validation in CI - Would catch schema issues early
 
 **Automation that might hurt speed** (if added without care):
+
 - Overly strict linting rules (current config seems reasonable)
 - Slow E2E tests on every commit (better suited for pre-merge or nightly)
 - Heavy dependency scanning that slows installs (should run periodically, not on every commit)
@@ -337,6 +341,7 @@
 ### Files Inspected
 
 **Configuration Files**:
+
 - `package.json` - Dependencies, scripts, project metadata
 - `eslint.config.mjs` - ESLint configuration (flat config)
 - `.prettierrc` - Prettier configuration
@@ -349,11 +354,13 @@
 - `.github/workflows/pr-checks.yml` - GitHub Actions CI workflow
 
 **Source Code Files** (sampled for context):
+
 - `src/lib/prisma.ts` - Database client initialization
 - `src/app/api/auth/[...nextauth]/route.ts` - NextAuth route handler
 - `README.md` - Project documentation
 
 **Documentation** (referenced for context):
+
 - `documentation/AUTH_SETUP.md` - Auth implementation details
 - `QUALITY_AUDIT_REPORT.md` - Previous audit (found via grep)
 
@@ -403,4 +410,3 @@ The DiveIQ repository has a solid foundation with modern tooling (ESLint, Pretti
 4. **Missing environment variable documentation** may cause deployment misconfiguration
 
 The application appears well-structured for continued development, but the missing type-check script and database migration path need immediate attention before the planned 2-4 week deployment window.
-

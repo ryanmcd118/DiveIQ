@@ -117,4 +117,3 @@ describe("Auth Helper - extractNamesFromGoogleProfile", () => {
     expect(result.lastName).toBe("Lee");
   });
 });
-

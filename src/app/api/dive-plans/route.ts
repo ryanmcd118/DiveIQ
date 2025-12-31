@@ -1,7 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/features/auth/lib/auth";
-import { generateDivePlanBriefing, generateUpdatedDivePlanBriefing } from "@/services/ai/openaiService";
+import {
+  generateDivePlanBriefing,
+  generateUpdatedDivePlanBriefing,
+} from "@/services/ai/openaiService";
 import { calculateRiskLevel } from "@/features/dive-plan/services/riskCalculator";
 import { divePlanRepository } from "@/services/database/repositories/divePlanRepository";
 import type { PlanInput } from "@/features/dive-plan/types";
@@ -15,7 +18,7 @@ import { cmToMeters } from "@/lib/units";
  */
 export async function POST(req: NextRequest) {
   const session = await getServerSession(authOptions);
-  
+
   if (!session?.user) {
     return NextResponse.json(
       { error: "Unauthorized - please sign in to save dive plans" },
@@ -40,8 +43,13 @@ export async function POST(req: NextRequest) {
 
     // Get user preferences for AI formatting (default to metric if not provided)
     const unitSystem: UnitSystem = body.unitPreferences
-      ? (body.unitPreferences.depth === 'm' && body.unitPreferences.temperature === 'c' && body.unitPreferences.pressure === 'bar' && body.unitPreferences.weight === 'kg' ? 'metric' : 'imperial')
-      : 'metric';
+      ? body.unitPreferences.depth === "m" &&
+        body.unitPreferences.temperature === "c" &&
+        body.unitPreferences.pressure === "bar" &&
+        body.unitPreferences.weight === "kg"
+        ? "metric"
+        : "imperial"
+      : "metric";
 
     // Generate AI structured briefing with unit system
     const aiBriefing = await generateDivePlanBriefing({
@@ -70,7 +78,10 @@ export async function POST(req: NextRequest) {
       aiAdvice,
     };
 
-    const savedPlan = await divePlanRepository.create(planInput, session.user.id);
+    const savedPlan = await divePlanRepository.create(
+      planInput,
+      session.user.id
+    );
 
     return NextResponse.json(
       {
@@ -96,12 +107,9 @@ export async function POST(req: NextRequest) {
  */
 export async function PUT(req: NextRequest) {
   const session = await getServerSession(authOptions);
-  
+
   if (!session?.user) {
-    return NextResponse.json(
-      { error: "Unauthorized" },
-      { status: 401 }
-    );
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   try {
@@ -129,8 +137,13 @@ export async function PUT(req: NextRequest) {
 
     // Get user preferences for AI formatting (default to metric if not provided)
     const unitSystem: UnitSystem = body.unitPreferences
-      ? (body.unitPreferences.depth === 'm' && body.unitPreferences.temperature === 'c' && body.unitPreferences.pressure === 'bar' && body.unitPreferences.weight === 'kg' ? 'metric' : 'imperial')
-      : 'metric';
+      ? body.unitPreferences.depth === "m" &&
+        body.unitPreferences.temperature === "c" &&
+        body.unitPreferences.pressure === "bar" &&
+        body.unitPreferences.weight === "kg"
+        ? "metric"
+        : "imperial"
+      : "metric";
 
     // Generate updated AI structured briefing with unit system
     const aiBriefing = await generateUpdatedDivePlanBriefing({
@@ -159,7 +172,11 @@ export async function PUT(req: NextRequest) {
       aiAdvice,
     };
 
-    const updatedPlan = await divePlanRepository.update(body.id, planInput, session.user.id);
+    const updatedPlan = await divePlanRepository.update(
+      body.id,
+      planInput,
+      session.user.id
+    );
 
     return NextResponse.json(
       {
@@ -184,12 +201,9 @@ export async function PUT(req: NextRequest) {
  */
 export async function GET() {
   const session = await getServerSession(authOptions);
-  
+
   if (!session?.user) {
-    return NextResponse.json(
-      { error: "Unauthorized" },
-      { status: 401 }
-    );
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   try {
@@ -216,22 +230,16 @@ export async function GET() {
  */
 export async function DELETE(req: NextRequest) {
   const session = await getServerSession(authOptions);
-  
+
   if (!session?.user) {
-    return NextResponse.json(
-      { error: "Unauthorized" },
-      { status: 401 }
-    );
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   try {
     const id = req.nextUrl.searchParams.get("id");
 
     if (!id) {
-      return NextResponse.json(
-        { error: "Missing plan id" },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "Missing plan id" }, { status: 400 });
     }
 
     await divePlanRepository.delete(id, session.user.id);

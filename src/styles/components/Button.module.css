@@ -18,7 +18,9 @@
 
 .base:focus {
   outline: none;
-  box-shadow: 0 0 0 2px var(--color-bg-primary), 0 0 0 4px var(--color-accent-primary);
+  box-shadow:
+    0 0 0 2px var(--color-bg-primary),
+    0 0 0 4px var(--color-accent-primary);
 }
 
 .base:disabled {
@@ -131,7 +133,9 @@
 
 .primaryGradient:hover:not(:disabled) {
   transform: translateY(-2px);
-  box-shadow: var(--glow-primary-hover), 0 0 40px rgba(6, 182, 212, 0.2);
+  box-shadow:
+    var(--glow-primary-hover),
+    0 0 40px rgba(6, 182, 212, 0.2);
 }
 
 .primaryGradient:active:not(:disabled) {
@@ -140,7 +144,9 @@
 
 .primaryGradient:focus {
   outline: none;
-  box-shadow: var(--glow-primary-hover), 0 0 0 3px rgba(6, 182, 212, 0.15);
+  box-shadow:
+    var(--glow-primary-hover),
+    0 0 0 3px rgba(6, 182, 212, 0.15);
 }
 
 .primaryGradient:disabled {
@@ -168,7 +174,9 @@
 
 .secondaryText:focus {
   outline: none;
-  box-shadow: 0 0 0 2px var(--color-bg-primary), 0 0 0 4px var(--color-accent-primary);
+  box-shadow:
+    0 0 0 2px var(--color-bg-primary),
+    0 0 0 4px var(--color-accent-primary);
 }
 
 /* Secondary Gradient variant (header CTA - matches primaryGradient size/shape) */
@@ -209,5 +217,3 @@
   cursor: wait;
   transform: none;
 }
-
-

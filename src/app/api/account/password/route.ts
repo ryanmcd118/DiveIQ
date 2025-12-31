@@ -16,10 +16,7 @@ export async function PUT(req: NextRequest) {
   const session = await getServerSession(authOptions);
 
   if (!session?.user?.id) {
-    return NextResponse.json(
-      { error: "Unauthorized" },
-      { status: 401 }
-    );
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   const userId = session.user.id;
@@ -52,16 +49,16 @@ export async function PUT(req: NextRequest) {
     });
 
     if (!user) {
-      return NextResponse.json(
-        { error: "User not found" },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
     // Check if user has a password (credentials account)
     if (!user.password) {
       return NextResponse.json(
-        { error: "This account does not have a password. You signed in with Google." },
+        {
+          error:
+            "This account does not have a password. You signed in with Google.",
+        },
         { status: 400 }
       );
     }
@@ -111,7 +108,9 @@ export async function PUT(req: NextRequest) {
         where: { id: userId },
         data: {
           password: hashedNewPassword,
-          sessionVersion: { increment: 1 } as Prisma.IntFieldUpdateOperationsInput,
+          sessionVersion: {
+            increment: 1,
+          } as Prisma.IntFieldUpdateOperationsInput,
         },
         select: {
           sessionVersion: true,
@@ -160,4 +159,3 @@ export async function PUT(req: NextRequest) {
     );
   }
 }
-

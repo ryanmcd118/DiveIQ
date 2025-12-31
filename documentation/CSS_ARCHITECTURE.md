@@ -35,6 +35,7 @@ src/styles/
 All design values are centralized in `tokens.css`:
 
 **Colors:**
+
 ```css
 --color-bg-primary         /* Main background */
 --color-surface            /* Cards, containers */
@@ -45,6 +46,7 @@ All design values are centralized in `tokens.css`:
 ```
 
 **Spacing:**
+
 ```css
 --space-1  (4px)
 --space-2  (8px)
@@ -55,6 +57,7 @@ All design values are centralized in `tokens.css`:
 ```
 
 **Border Radius:**
+
 ```css
 --radius-sm  (6px)
 --radius-md  (8px)
@@ -63,6 +66,7 @@ All design values are centralized in `tokens.css`:
 ```
 
 **Typography:**
+
 ```css
 --font-size-xs   (12px)
 --font-size-sm   (14px)
@@ -367,7 +371,7 @@ Access tokens with `var()` in inline styles or CSS:
 
 ```tsx
 // Inline styles
-<div style={{ 
+<div style={{
   padding: "var(--space-4)",
   backgroundColor: "var(--color-surface)",
   borderRadius: "var(--radius-lg)"
@@ -471,11 +475,7 @@ Access tokens with `var()` in inline styles or CSS:
 import styles from "@/styles/components/MyComponent.module.css";
 
 export function MyComponent() {
-  return (
-    <div className={styles.myComponent}>
-      Content
-    </div>
-  );
+  return <div className={styles.myComponent}>Content</div>;
 }
 ```
 
@@ -484,27 +484,35 @@ export function MyComponent() {
 ## ✨ Benefits
 
 ### ✅ Single Source of Truth
+
 Change a color in one place → updates everywhere
 
 ### ✅ Type-Safe
+
 TypeScript ensures class names exist (CSS Modules integration)
 
 ### ✅ Scoped Styles
+
 No global class name conflicts
 
 ### ✅ Better Performance
+
 Only loads CSS for components you actually use
 
 ### ✅ Maintainable
+
 Easy to understand and modify
 
 ### ✅ Scalable
+
 Architecture grows with your app
 
 ### ✅ Modern CSS
+
 Use all CSS features (Grid, custom properties, etc.)
 
 ### ✅ Component-First
+
 Styles co-located with components logically
 
 ---
@@ -512,6 +520,7 @@ Styles co-located with components logically
 ## 🎓 Best Practices
 
 ### 1. Use Design Tokens First
+
 Always use tokens instead of hardcoded values:
 
 ```tsx
@@ -523,15 +532,17 @@ Always use tokens instead of hardcoded values:
 ```
 
 ### 2. Use Existing Modules
+
 Check if a module exists before creating new styles:
 
 ```tsx
 // ✅ Good - reuse existing
 import buttonStyles from "@/styles/components/Button.module.css";
-<button className={buttonStyles.primary}>Save</button>
+<button className={buttonStyles.primary}>Save</button>;
 ```
 
 ### 3. Compose Styles
+
 Use `composes` in CSS Modules for inheritance:
 
 ```css
@@ -547,41 +558,47 @@ Use `composes` in CSS Modules for inheritance:
 ```
 
 ### 4. Keep Inline Styles Minimal
+
 Use CSS Modules for most styling, inline styles for dynamic values:
 
 ```tsx
 // ✅ Good
-<div 
+<div
   className={cardStyles.card}
   style={{ width: `${dynamicWidth}px` }}
 >
 ```
 
 ### 5. Use Semantic Class Names
+
 Name classes by purpose, not appearance:
 
 ```css
 /* ❌ Bad */
-.blueButton { }
-.smallText { }
+.blueButton {
+}
+.smallText {
+}
 
 /* ✅ Good */
-.primaryButton { }
-.caption { }
+.primaryButton {
+}
+.caption {
+}
 ```
 
 ---
 
 ## 🔍 Quick Reference
 
-| Need | Import | Class |
-|------|--------|-------|
+| Need           | Import         | Class      |
+| -------------- | -------------- | ---------- |
 | Primary button | `buttonStyles` | `.primary` |
-| Card container | `cardStyles` | `.card` |
-| Form input | `formStyles` | `.input` |
-| Page layout | `layoutStyles` | `.page` |
-| Navigation | `navStyles` | `.header` |
-| List | `listStyles` | `.list` |
+| Card container | `cardStyles`   | `.card`    |
+| Form input     | `formStyles`   | `.input`   |
+| Page layout    | `layoutStyles` | `.page`    |
+| Navigation     | `navStyles`    | `.header`  |
+| List           | `listStyles`   | `.list`    |
 
 ---
 
@@ -597,9 +614,9 @@ Your DiveIQ app now has a **professional, scalable CSS architecture**!
 - ✅ Easy global updates
 
 **Making style changes is now:**
+
 1. Find the design token or component module
 2. Update in ONE place
 3. See changes everywhere instantly
 
 Enjoy your new CSS superpowers! 🚀
-

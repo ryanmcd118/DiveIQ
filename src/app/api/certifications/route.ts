@@ -115,8 +115,7 @@ export async function POST(req: NextRequest) {
 
       // If both have the same earnedDate (or both null) AND same certNumber (or both null), it's a duplicate
       return (
-        certEarnedDate === inputEarnedDate &&
-        certCertNumber === inputCertNumber
+        certEarnedDate === inputEarnedDate && certCertNumber === inputCertNumber
       );
     });
 
@@ -173,4 +172,3 @@ export async function POST(req: NextRequest) {
     );
   }
 }
-

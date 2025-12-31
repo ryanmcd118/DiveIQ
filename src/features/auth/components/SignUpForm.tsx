@@ -99,9 +99,7 @@ export default function SignUpForm() {
           autoComplete="new-password"
           minLength={8}
         />
-        <span className={formStyles.hint}>
-          Must be at least 8 characters
-        </span>
+        <span className={formStyles.hint}>Must be at least 8 characters</span>
       </div>
 
       <div className={formStyles.formGroup}>
@@ -140,5 +138,3 @@ export default function SignUpForm() {
     </form>
   );
 }
-
-

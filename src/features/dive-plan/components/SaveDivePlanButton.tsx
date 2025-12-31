@@ -56,16 +56,23 @@ export function SaveDivePlanButton({
     } finally {
       setInternalSaving(false);
     }
-  }, [hasPlanDraft, isCurrentlySaving, isAuthenticated, onSaveAuthed, onRequireAuth]);
+  }, [
+    hasPlanDraft,
+    isCurrentlySaving,
+    isAuthenticated,
+    onSaveAuthed,
+    onRequireAuth,
+  ]);
 
   // Don't render if no plan is generated
   if (!hasPlanDraft) {
     return null;
   }
 
-  const buttonClass = variant === "header" 
-    ? `${buttonStyles.primary} ${styles.saveButton}`
-    : buttonStyles.primary;
+  const buttonClass =
+    variant === "header"
+      ? `${buttonStyles.primary} ${styles.saveButton}`
+      : buttonStyles.primary;
 
   if (showSuccess) {
     return (
@@ -94,4 +101,3 @@ export function SaveDivePlanButton({
     </button>
   );
 }
-

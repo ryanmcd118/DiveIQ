@@ -43,7 +43,9 @@ export function KitsSection({
           </button>
         </h2>
         <div className={cardStyles.card}>
-          <p className={styles.emptyState}>No kits yet. Create one to get started.</p>
+          <p className={styles.emptyState}>
+            No kits yet. Create one to get started.
+          </p>
         </div>
       </section>
     );
@@ -68,7 +70,11 @@ export function KitsSection({
             activeGearIds.has(ki.gearItemId)
           ).length;
           return (
-            <div key={kit.id} className={`${cardStyles.card} ${styles.kitCard}`} style={{ position: "relative" }}>
+            <div
+              key={kit.id}
+              className={`${cardStyles.card} ${styles.kitCard}`}
+              style={{ position: "relative" }}
+            >
               {/* Top-right: Edit and Delete icons */}
               <div className={styles.kitActionsTop}>
                 <button
@@ -148,4 +154,3 @@ export function KitsSection({
     </section>
   );
 }
-

@@ -133,9 +133,11 @@ export function AuthModal({
       });
 
       if (result?.error) {
-        setError(result.error === "CredentialsSignin" 
-          ? "Invalid email or password" 
-          : result.error);
+        setError(
+          result.error === "CredentialsSignin"
+            ? "Invalid email or password"
+            : result.error
+        );
         setIsLoading(false);
         return;
       }
@@ -249,7 +251,9 @@ export function AuthModal({
               onChange={(e) => setPassword(e.target.value)}
               className={formStyles.input}
               required
-              autoComplete={mode === "signup" ? "new-password" : "current-password"}
+              autoComplete={
+                mode === "signup" ? "new-password" : "current-password"
+              }
               minLength={mode === "signup" ? 8 : undefined}
               disabled={isLoading}
             />
@@ -262,7 +266,10 @@ export function AuthModal({
 
           {mode === "signup" && (
             <div className={formStyles.formGroup}>
-              <label htmlFor="modal-confirm-password" className={formStyles.label}>
+              <label
+                htmlFor="modal-confirm-password"
+                className={formStyles.label}
+              >
                 Confirm Password
               </label>
               <input
@@ -326,4 +333,3 @@ export function AuthModal({
     </div>
   );
 }
-

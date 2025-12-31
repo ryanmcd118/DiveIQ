@@ -15,7 +15,9 @@ export function RightRail({ gearCount: _gearCount = 0 }: RightRailProps) {
   return (
     <aside className={styles.rightRail}>
       {/* Quick actions - Elevated primary action zone */}
-      <div className={`${styles.card} ${styles.cardTier1} ${styles.quickActionsElevated}`}>
+      <div
+        className={`${styles.card} ${styles.cardTier1} ${styles.quickActionsElevated}`}
+      >
         <h3 className={styles.cardTitle}>Quick actions</h3>
         <div className={styles.actions}>
           <Link href="/plan" className={styles.primaryAction}>
@@ -24,7 +26,11 @@ export function RightRail({ gearCount: _gearCount = 0 }: RightRailProps) {
           <Link href="/dive-logs" className={styles.secondaryAction}>
             Log a dive
           </Link>
-          <button className={styles.disabledAction} disabled title="Coming soon">
+          <button
+            className={styles.disabledAction}
+            disabled
+            title="Coming soon"
+          >
             Import from dive computer (coming soon)
           </button>
         </div>
@@ -70,4 +76,3 @@ export function RightRail({ gearCount: _gearCount = 0 }: RightRailProps) {
     </aside>
   );
 }
-

@@ -61,7 +61,9 @@ export function Sidebar({ isMobileOpen = false, onClose }: SidebarProps) {
     setIsCollapsed(newState);
     localStorage.setItem("sidebarCollapsed", String(newState));
     // Dispatch custom event for AppShell to listen
-    window.dispatchEvent(new CustomEvent("sidebarToggle", { detail: { collapsed: newState } }));
+    window.dispatchEvent(
+      new CustomEvent("sidebarToggle", { detail: { collapsed: newState } })
+    );
   };
 
   if (isMobile) {
@@ -150,7 +152,6 @@ export function Sidebar({ isMobileOpen = false, onClose }: SidebarProps) {
   );
 }
 
-
 // Simple SVG Icons
 function DashboardIcon() {
   return (
@@ -174,11 +175,7 @@ function PlanIcon() {
         strokeWidth="1.5"
         fill="none"
       />
-      <path
-        d="M10 7v6M7 10h6"
-        stroke="currentColor"
-        strokeWidth="1.5"
-      />
+      <path d="M10 7v6M7 10h6" stroke="currentColor" strokeWidth="1.5" />
     </svg>
   );
 }
@@ -244,7 +241,14 @@ function SitesIcon() {
         strokeWidth="1.5"
         fill="none"
       />
-      <circle cx="10" cy="10" r="2" stroke="currentColor" strokeWidth="1.5" fill="none" />
+      <circle
+        cx="10"
+        cy="10"
+        r="2"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        fill="none"
+      />
     </svg>
   );
 }
@@ -252,12 +256,15 @@ function SitesIcon() {
 function TripsIcon() {
   return (
     <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-      <path
-        d="M3 10h14M10 3v14"
+      <path d="M3 10h14M10 3v14" stroke="currentColor" strokeWidth="1.5" />
+      <circle
+        cx="10"
+        cy="10"
+        r="6"
         stroke="currentColor"
         strokeWidth="1.5"
+        fill="none"
       />
-      <circle cx="10" cy="10" r="6" stroke="currentColor" strokeWidth="1.5" fill="none" />
     </svg>
   );
 }
@@ -278,8 +285,22 @@ function InsightsIcon() {
 function CommunityIcon() {
   return (
     <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-      <circle cx="7" cy="7" r="3" stroke="currentColor" strokeWidth="1.5" fill="none" />
-      <circle cx="13" cy="7" r="3" stroke="currentColor" strokeWidth="1.5" fill="none" />
+      <circle
+        cx="7"
+        cy="7"
+        r="3"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        fill="none"
+      />
+      <circle
+        cx="13"
+        cy="7"
+        r="3"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        fill="none"
+      />
       <path
         d="M5 13a4 4 0 014-4h2a4 4 0 014 4"
         stroke="currentColor"
@@ -293,7 +314,14 @@ function CommunityIcon() {
 function ProfileIcon() {
   return (
     <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-      <circle cx="10" cy="8" r="3.5" stroke="currentColor" strokeWidth="1.5" fill="none" />
+      <circle
+        cx="10"
+        cy="8"
+        r="3.5"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        fill="none"
+      />
       <path
         d="M4 17.5c0-3.314 2.686-6 6-6s6 2.686 6 6"
         stroke="currentColor"
@@ -307,7 +335,14 @@ function ProfileIcon() {
 function SettingsIcon() {
   return (
     <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-      <circle cx="10" cy="10" r="2.5" stroke="currentColor" strokeWidth="1.5" fill="none" />
+      <circle
+        cx="10"
+        cy="10"
+        r="2.5"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        fill="none"
+      />
       <path
         d="M10 2v2M10 16v2M18 10h-2M4 10H2M15.66 4.34l-1.41 1.41M5.75 14.25l-1.41 1.41M15.66 15.66l-1.41-1.41M5.75 5.75l-1.41-1.41"
         stroke="currentColor"
@@ -320,7 +355,12 @@ function SettingsIcon() {
 function ChevronLeftIcon() {
   return (
     <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-      <path d="M10 12l-4-4 4-4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+      <path
+        d="M10 12l-4-4 4-4"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+      />
     </svg>
   );
 }
@@ -328,7 +368,12 @@ function ChevronLeftIcon() {
 function ChevronRightIcon() {
   return (
     <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-      <path d="M6 4l4 4-4 4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+      <path
+        d="M6 4l4 4-4 4"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+      />
     </svg>
   );
 }
@@ -336,7 +381,12 @@ function ChevronRightIcon() {
 function MenuIcon() {
   return (
     <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-      <path d="M3 5h14M3 10h14M3 15h14" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+      <path
+        d="M3 5h14M3 10h14M3 15h14"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+      />
     </svg>
   );
 }
@@ -344,8 +394,12 @@ function MenuIcon() {
 function CloseIcon() {
   return (
     <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-      <path d="M5 5l10 10M15 5l-10 10" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+      <path
+        d="M5 5l10 10M15 5l-10 10"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+      />
     </svg>
   );
 }
-

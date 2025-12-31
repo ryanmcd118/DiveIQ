@@ -5,7 +5,8 @@ import styles from "./PublicHomePage.module.css";
 const galleryItems = [
   {
     header: "Dial in your next dive.",
-    subtext: "A clear, simple way to plan — depth, time, conditions, gear, notes.",
+    subtext:
+      "A clear, simple way to plan — depth, time, conditions, gear, notes.",
     placeholder: "Screenshot Placeholder: Dive Planning Interface",
     reverse: false,
   },
@@ -30,7 +31,9 @@ export function GallerySection() {
       {galleryItems.map((item, index) => (
         <div
           key={index}
-          className={item.reverse ? styles.galleryBlockReverse : styles.galleryBlock}
+          className={
+            item.reverse ? styles.galleryBlockReverse : styles.galleryBlock
+          }
         >
           <div className={styles.placeholderGallery}>
             <span className={styles.placeholderLabel}>{item.placeholder}</span>
@@ -45,4 +48,3 @@ export function GallerySection() {
     </section>
   );
 }
-

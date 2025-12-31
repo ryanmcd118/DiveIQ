@@ -38,7 +38,11 @@
 .badgePlaceholder {
   width: 100%;
   height: 100%;
-  background: linear-gradient(135deg, var(--color-accent-primary), var(--color-accent-secondary));
+  background: linear-gradient(
+    135deg,
+    var(--color-accent-primary),
+    var(--color-accent-secondary)
+  );
   border-radius: var(--radius-md);
   display: flex;
   align-items: center;
@@ -90,7 +94,9 @@
   padding: var(--space-1);
   cursor: pointer;
   color: var(--color-text-muted);
-  transition: color var(--transition-base), opacity var(--transition-base);
+  transition:
+    color var(--transition-base),
+    opacity var(--transition-base);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -131,7 +137,9 @@
   box-shadow: var(--shadow-md);
   pointer-events: none;
   opacity: 0;
-  transition: opacity var(--transition-base), transform var(--transition-base);
+  transition:
+    opacity var(--transition-base),
+    transform var(--transition-base);
   transform: translateY(-4px);
 }
 
@@ -195,7 +203,9 @@
   padding: var(--space-1);
   cursor: pointer;
   color: var(--color-text-muted);
-  transition: transform var(--transition-base), color var(--transition-base);
+  transition:
+    transform var(--transition-base),
+    color var(--transition-base);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -265,4 +275,3 @@
     justify-content: center;
   }
 }
-

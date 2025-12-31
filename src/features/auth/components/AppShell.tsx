@@ -17,7 +17,7 @@ export function AppShell({ children }: AppShellProps) {
   const { isAuthenticated, isLoading } = useAuth();
   const pathname = usePathname();
 
-  // On the homepage ("/"), if user is not authenticated, 
+  // On the homepage ("/"), if user is not authenticated,
   // render children directly (PublicHomePage has its own nav)
   const isHomePage = pathname === "/";
   const isAuthPage = pathname === "/signin" || pathname === "/signup";
@@ -28,7 +28,7 @@ export function AppShell({ children }: AppShellProps) {
     return <>{children}</>;
   }
 
-  // For signin/signup pages when not authenticated, 
+  // For signin/signup pages when not authenticated,
   // the auth layout handles the navbar, so just render children
   if (showAuthPages) {
     return <>{children}</>;
@@ -58,7 +58,10 @@ export function AppShell({ children }: AppShellProps) {
           </div>
           <div className={navStyles.rightGroup}>
             <AuthNav />
-            <Link href="/dive-plans" className={`${buttonStyles.primaryGradient} ${navStyles.cta}`}>
+            <Link
+              href="/dive-plans"
+              className={`${buttonStyles.primaryGradient} ${navStyles.cta}`}
+            >
               Plan a dive
             </Link>
           </div>
@@ -70,4 +73,3 @@ export function AppShell({ children }: AppShellProps) {
     </>
   );
 }
-

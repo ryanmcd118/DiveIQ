@@ -12,7 +12,12 @@ interface ToastProps {
   duration?: number;
 }
 
-export function Toast({ message, onUndo, onClose, duration = 5000 }: ToastProps) {
+export function Toast({
+  message,
+  onUndo,
+  onClose,
+  duration = 5000,
+}: ToastProps) {
   useEffect(() => {
     if (!onUndo) {
       const timer = setTimeout(() => {
@@ -46,4 +51,3 @@ export function Toast({ message, onUndo, onClose, duration = 5000 }: ToastProps)
     </div>
   );
 }
-

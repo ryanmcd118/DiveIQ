@@ -19,5 +19,3 @@ export type DiveLogApiResponse = {
   entries?: DiveLogEntry[];
   ok?: boolean;
 };
-
-

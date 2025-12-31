@@ -17,7 +17,11 @@ interface AvatarProps {
   onAvatarUpdated?: (newUrl: string | null) => void;
 }
 
-function getInitials(firstName?: string | null, lastName?: string | null, email?: string): string {
+function getInitials(
+  firstName?: string | null,
+  lastName?: string | null,
+  email?: string
+): string {
   if (firstName) {
     return firstName.charAt(0).toUpperCase();
   }
@@ -43,35 +47,44 @@ export function Avatar({
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [showUploadModal, setShowUploadModal] = useState(false);
 
-  const sizeClass = styles[`size${size.charAt(0).toUpperCase() + size.slice(1)}`];
+  const sizeClass =
+    styles[`size${size.charAt(0).toUpperCase() + size.slice(1)}`];
   const initials = getInitials(firstName, lastName, session?.user?.email);
 
   // Use avatarUrl first, then fallbackImageUrl, then null
   const displayUrl = avatarUrl ?? fallbackImageUrl ?? null;
   const shouldShowImage = displayUrl && !imageError;
 
-
-  if (process.env.NODE_ENV === 'development') {
-    console.log('[Avatar] avatarUrl:', avatarUrl, 'fallbackImageUrl:', fallbackImageUrl, 'displayUrl:', displayUrl, 'shouldShowImage:', shouldShowImage);
+  if (process.env.NODE_ENV === "development") {
+    console.log(
+      "[Avatar] avatarUrl:",
+      avatarUrl,
+      "fallbackImageUrl:",
+      fallbackImageUrl,
+      "displayUrl:",
+      displayUrl,
+      "shouldShowImage:",
+      shouldShowImage
+    );
   }
 
   const handleImageError = () => {
-    if (process.env.NODE_ENV === 'development') {
-      console.log('[Avatar] Image failed to load, falling back to initials');
+    if (process.env.NODE_ENV === "development") {
+      console.log("[Avatar] Image failed to load, falling back to initials");
     }
     setImageError(true);
   };
 
   const handlePencilClick = () => {
-    if (process.env.NODE_ENV === 'development') {
-      console.log('[Avatar] Pencil clicked, opening upload modal');
+    if (process.env.NODE_ENV === "development") {
+      console.log("[Avatar] Pencil clicked, opening upload modal");
     }
     setShowUploadModal(true);
   };
 
   const handleUploadComplete = async (url: string) => {
-    if (process.env.NODE_ENV === 'development') {
-      console.log('[Avatar] Upload complete, URL:', url);
+    if (process.env.NODE_ENV === "development") {
+      console.log("[Avatar] Upload complete, URL:", url);
     }
 
     try {
@@ -107,9 +120,10 @@ export function Avatar({
       setImageError(false);
     } catch (error) {
       console.error("Error updating avatar:", error);
-      const errorMessage = error instanceof Error ? error.message : "Failed to update avatar";
+      const errorMessage =
+        error instanceof Error ? error.message : "Failed to update avatar";
       setUploadError(errorMessage);
-      
+
       // Auto-clear error after 5 seconds
       setTimeout(() => {
         setUploadError(null);
@@ -164,9 +178,9 @@ export function Avatar({
           aria-label="Edit avatar"
           title="Upload avatar"
         >
-          <Pencil 
-            size={size === "sm" ? 12 : size === "md" ? 16 : 20} 
-            color="#ffffff" 
+          <Pencil
+            size={size === "sm" ? 12 : size === "md" ? 16 : 20}
+            color="#ffffff"
           />
         </button>
       )}
@@ -187,4 +201,3 @@ export function Avatar({
     </div>
   );
 }
-

@@ -35,21 +35,33 @@ export function LogPageContent() {
   // Show sign-in prompt for unauthenticated users
   if (!loading && !isAuthenticated) {
     return (
-      <main className={`${layoutStyles.page} ${backgroundStyles.pageGradientSubtle}`}>
+      <main
+        className={`${layoutStyles.page} ${backgroundStyles.pageGradientSubtle}`}
+      >
         <div className={layoutStyles.pageContent}>
           <header className={layoutStyles.pageHeader}>
             <div>
               <h1 className={layoutStyles.pageTitle}>Dive Log</h1>
               <p className={layoutStyles.pageSubtitle}>
-                Sign in to start logging your dives and tracking your underwater adventures.
+                Sign in to start logging your dives and tracking your underwater
+                adventures.
               </p>
             </div>
           </header>
-          <div className={cardStyles.card} style={{ textAlign: "center", padding: "var(--space-8)" }}>
+          <div
+            className={cardStyles.card}
+            style={{ textAlign: "center", padding: "var(--space-8)" }}
+          >
             <p style={{ marginBottom: "var(--space-4)" }}>
               Create an account or sign in to access your personal dive log.
             </p>
-            <div style={{ display: "flex", gap: "var(--space-3)", justifyContent: "center" }}>
+            <div
+              style={{
+                display: "flex",
+                gap: "var(--space-3)",
+                justifyContent: "center",
+              }}
+            >
               <Link href="/signup" className={buttonStyles.primaryGradient}>
                 Create account
               </Link>
@@ -64,17 +76,25 @@ export function LogPageContent() {
   }
 
   return (
-    <main className={`${layoutStyles.page} ${backgroundStyles.pageGradientSubtle}`}>
+    <main
+      className={`${layoutStyles.page} ${backgroundStyles.pageGradientSubtle}`}
+    >
       <div className={gridStyles.logPageGrid}>
         {/* Left: log form */}
         <section className={gridStyles.section}>
-          <header className={layoutStyles.pageHeader} style={{ paddingBottom: 'var(--space-6)', marginBottom: 'var(--space-6)' }}>
+          <header
+            className={layoutStyles.pageHeader}
+            style={{
+              paddingBottom: "var(--space-6)",
+              marginBottom: "var(--space-6)",
+            }}
+          >
             <div>
               <h1 className={layoutStyles.pageTitle}>Dive Log</h1>
               <p className={layoutStyles.pageSubtitle}>
-                Capture the essentials from each dive: conditions, depth, time, and
-                notes. This will eventually feed stats and visualizations in your
-                DiveIQ logbook.
+                Capture the essentials from each dive: conditions, depth, time,
+                and notes. This will eventually feed stats and visualizations in
+                your DiveIQ logbook.
               </p>
             </div>
           </header>
@@ -126,7 +146,13 @@ export function LogPageContent() {
             {loading ? (
               <p className={listStyles.empty}>Loading dives…</p>
             ) : (
-              <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-4)" }}>
+              <div
+                style={{
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: "var(--space-4)",
+                }}
+              >
                 <DiveLogList
                   entries={entries}
                   onSelect={handleSelectEntry}
@@ -139,9 +165,7 @@ export function LogPageContent() {
       </div>
 
       {statusMessage && (
-        <div className={gridStyles.statusToastAlt}>
-          {statusMessage}
-        </div>
+        <div className={gridStyles.statusToastAlt}>{statusMessage}</div>
       )}
     </main>
   );

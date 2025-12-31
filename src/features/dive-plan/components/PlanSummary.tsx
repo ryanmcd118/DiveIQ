@@ -28,7 +28,14 @@ export function PlanSummary({ plan }: { plan: PlanData }) {
   return (
     <div className={cardStyles.cardCompact}>
       <h2 className={cardStyles.titleWithMargin}>Dive Plan Summary</h2>
-      <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-1)", fontSize: "var(--font-size-sm)" }}>
+      <div
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          gap: "var(--space-1)",
+          fontSize: "var(--font-size-sm)",
+        }}
+      >
         <p>
           <strong>Region:</strong> {plan.region}
         </p>

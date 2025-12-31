@@ -1,5 +1,9 @@
 import { prisma } from "@/lib/prisma";
-import type { PlanInput, PastPlan, ExperienceLevel } from "@/features/dive-plan/types";
+import type {
+  PlanInput,
+  PastPlan,
+  ExperienceLevel,
+} from "@/features/dive-plan/types";
 import type { Prisma } from "@prisma/client";
 
 /**

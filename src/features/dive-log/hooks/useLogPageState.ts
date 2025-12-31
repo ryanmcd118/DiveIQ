@@ -2,7 +2,11 @@ import { FormEvent, useEffect, useState } from "react";
 import type { GearItem } from "@prisma/client";
 import { DiveLogEntry, DiveLogInput } from "@/features/dive-log/types";
 import { useUnitPreferences } from "@/hooks/useUnitPreferences";
-import { depthInputToCm, tempInputToCx10, distanceInputToCm } from "@/lib/units";
+import {
+  depthInputToCm,
+  tempInputToCx10,
+  distanceInputToCm,
+} from "@/lib/units";
 
 export function useLogPageState() {
   const { prefs } = useUnitPreferences();
@@ -80,8 +84,10 @@ export function useLogPageState() {
 
     // Coerce FormDataEntryValue to string | null (treat File as null)
     const maxDepthUIString = typeof maxDepthUI === "string" ? maxDepthUI : null;
-    const waterTempUIString = typeof waterTempUI === "string" ? waterTempUI : null;
-    const visibilityUIString = typeof visibilityUI === "string" ? visibilityUI : null;
+    const waterTempUIString =
+      typeof waterTempUI === "string" ? waterTempUI : null;
+    const visibilityUIString =
+      typeof visibilityUI === "string" ? visibilityUI : null;
 
     // Convert UI values to canonical fixed-point
     const maxDepthCm = depthInputToCm(maxDepthUIString, prefs.depth) ?? 0;
@@ -100,10 +106,14 @@ export function useLogPageState() {
       region: typeof regionValue === "string" ? regionValue : "",
       siteName: typeof siteNameValue === "string" ? siteNameValue : "",
       maxDepthCm,
-      bottomTime: typeof bottomTimeValue === "string" ? Number(bottomTimeValue) : Number(bottomTimeValue ?? 0),
+      bottomTime:
+        typeof bottomTimeValue === "string"
+          ? Number(bottomTimeValue)
+          : Number(bottomTimeValue ?? 0),
       waterTempCx10,
       visibilityCm,
-      buddyName: typeof buddyNameValue === "string" ? buddyNameValue || null : null,
+      buddyName:
+        typeof buddyNameValue === "string" ? buddyNameValue || null : null,
       notes: typeof notesValue === "string" ? notesValue || null : null,
       gearItemIds: selectedGearIds,
     };
@@ -125,7 +135,8 @@ export function useLogPageState() {
         throw new Error(`API returned ${res.status}`);
       }
 
-      const data: { entry: DiveLogEntry; gearItems?: GearItem[] } = await res.json();
+      const data: { entry: DiveLogEntry; gearItems?: GearItem[] } =
+        await res.json();
 
       const entryWithGear = {
         ...data.entry,

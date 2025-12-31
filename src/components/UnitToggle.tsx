@@ -1,7 +1,7 @@
 "use client";
 
-import { useUnitSystem } from '@/contexts/UnitSystemContext';
-import styles from './UnitToggle.module.css';
+import { useUnitSystem } from "@/contexts/UnitSystemContext";
+import styles from "./UnitToggle.module.css";
 
 interface UnitToggleProps {
   className?: string;
@@ -19,7 +19,7 @@ export function UnitToggle({ className, showLabel = true }: UnitToggleProps) {
           <button
             type="button"
             className={styles.segment}
-            onClick={() => setUnitSystem('metric')}
+            onClick={() => setUnitSystem("metric")}
             aria-pressed={false}
             aria-label="Metric units"
           >
@@ -28,7 +28,7 @@ export function UnitToggle({ className, showLabel = true }: UnitToggleProps) {
           <button
             type="button"
             className={styles.segment}
-            onClick={() => setUnitSystem('imperial')}
+            onClick={() => setUnitSystem("imperial")}
             aria-pressed={false}
             aria-label="Imperial units"
           >
@@ -42,18 +42,18 @@ export function UnitToggle({ className, showLabel = true }: UnitToggleProps) {
       <div className={styles.toggle} role="group" aria-label="Unit system">
         <button
           type="button"
-          className={`${styles.segment} ${unitSystem === 'metric' ? styles.active : ''}`}
-          onClick={() => setUnitSystem('metric')}
-          aria-pressed={unitSystem === 'metric'}
+          className={`${styles.segment} ${unitSystem === "metric" ? styles.active : ""}`}
+          onClick={() => setUnitSystem("metric")}
+          aria-pressed={unitSystem === "metric"}
           aria-label="Metric units"
         >
           Metric
         </button>
         <button
           type="button"
-          className={`${styles.segment} ${unitSystem === 'imperial' ? styles.active : ''}`}
-          onClick={() => setUnitSystem('imperial')}
-          aria-pressed={unitSystem === 'imperial'}
+          className={`${styles.segment} ${unitSystem === "imperial" ? styles.active : ""}`}
+          onClick={() => setUnitSystem("imperial")}
+          aria-pressed={unitSystem === "imperial"}
           aria-label="Imperial units"
         >
           Imperial
@@ -63,10 +63,9 @@ export function UnitToggle({ className, showLabel = true }: UnitToggleProps) {
   };
 
   return (
-    <div className={`${styles.container} ${className || ''}`}>
+    <div className={`${styles.container} ${className || ""}`}>
       {showLabel && <span className={styles.label}>Units</span>}
       {renderToggle()}
     </div>
   );
 }
-

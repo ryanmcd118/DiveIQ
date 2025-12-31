@@ -35,9 +35,13 @@ export function ProfileGear() {
           const data = await res.json();
           const kits = data.user.profileKits || [];
           const kitIds = data.user.profileKitIds || [];
-          
+
           // Only set data if showGearOnProfile is true AND there are selected kits
-          if (data.user.showGearOnProfile && kitIds.length > 0 && kits.length > 0) {
+          if (
+            data.user.showGearOnProfile &&
+            kitIds.length > 0 &&
+            kits.length > 0
+          ) {
             setProfileData({
               showGearOnProfile: true,
               profileKits: kits,
@@ -91,26 +95,26 @@ export function ProfileGear() {
   const formatGearType = (type: string): string => {
     // Normalize to uppercase for consistent matching
     const normalized = type.toUpperCase();
-    
+
     // Map to standardized display names
     const typeMap: Record<string, string> = {
-      "BCD": "BCD",
-      "REGULATOR": "Regulator",
-      "WETSUIT": "Wetsuit",
-      "DIVE_COMPUTER": "Dive Computer",
-      "FINS": "Fins",
-      "MASK": "Mask",
-      "SNORKEL": "Snorkel",
-      "TANK": "Tank",
-      "WEIGHTS": "Weights",
-      "OTHER": "Other",
+      BCD: "BCD",
+      REGULATOR: "Regulator",
+      WETSUIT: "Wetsuit",
+      DIVE_COMPUTER: "Dive Computer",
+      FINS: "Fins",
+      MASK: "Mask",
+      SNORKEL: "Snorkel",
+      TANK: "Tank",
+      WEIGHTS: "Weights",
+      OTHER: "Other",
     };
-    
+
     // Return mapped value or format as fallback
     if (typeMap[normalized]) {
       return typeMap[normalized];
     }
-    
+
     // Fallback: format underscore-separated types
     return type
       .split("_")
@@ -121,7 +125,7 @@ export function ProfileGear() {
   return (
     <div className={styles.container}>
       <div className={styles.subheader}>Shared kits</div>
-      
+
       <div className={styles.kitsGrid}>
         {selectedKits.map((kit) => {
           const itemCount = kit.items?.length || 0;
@@ -135,7 +139,7 @@ export function ProfileGear() {
                   {itemCount} {itemCount === 1 ? "item" : "items"}
                 </div>
               </div>
-              
+
               {itemCount > 0 && (
                 <>
                   <div className={styles.divider}></div>
@@ -147,9 +151,7 @@ export function ProfileGear() {
                             {item.manufacturer}
                           </span>
                           <span className={styles.itemSeparator}>·</span>
-                          <span className={styles.itemModel}>
-                            {item.model}
-                          </span>
+                          <span className={styles.itemModel}>{item.model}</span>
                           <span className={styles.itemTypeSeparator}>—</span>
                           <span className={styles.itemType}>
                             {formatGearType(item.type)}
@@ -167,4 +169,3 @@ export function ProfileGear() {
     </div>
   );
 }
-

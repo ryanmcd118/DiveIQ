@@ -19,9 +19,11 @@ export default function SignInForm() {
   useEffect(() => {
     const oauthError = searchParams.get("oauth");
     const hasError = searchParams.get("error");
-    
+
     if (oauthError === "google" && hasError === "1") {
-      setError("Google sign-in failed. Please try again or use email/password to sign in.");
+      setError(
+        "Google sign-in failed. Please try again or use email/password to sign in."
+      );
     }
   }, [searchParams]);
 
@@ -88,5 +90,3 @@ export default function SignInForm() {
     </form>
   );
 }
-
-

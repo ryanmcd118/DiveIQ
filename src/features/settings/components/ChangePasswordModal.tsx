@@ -11,7 +11,11 @@ interface ChangePasswordModalProps {
   onSuccess?: () => void;
 }
 
-export function ChangePasswordModal({ isOpen, onClose, onSuccess }: ChangePasswordModalProps) {
+export function ChangePasswordModal({
+  isOpen,
+  onClose,
+  onSuccess,
+}: ChangePasswordModalProps) {
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -87,11 +91,16 @@ export function ChangePasswordModal({ isOpen, onClose, onSuccess }: ChangePasswo
   };
 
   const validationError = getValidationError();
-  const canSubmit = !validationError && !isSubmitting && currentPassword && newPassword && confirmPassword;
+  const canSubmit =
+    !validationError &&
+    !isSubmitting &&
+    currentPassword &&
+    newPassword &&
+    confirmPassword;
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    
+
     const validationErr = getValidationError();
     if (validationErr) {
       setError(validationErr);
@@ -121,10 +130,14 @@ export function ChangePasswordModal({ isOpen, onClose, onSuccess }: ChangePasswo
           return;
         }
         if (response.status === 400) {
-          setError(data.error || "Invalid request. Please check your current password.");
+          setError(
+            data.error || "Invalid request. Please check your current password."
+          );
           return;
         }
-        throw new Error(data.error || `Failed to change password (${response.status})`);
+        throw new Error(
+          data.error || `Failed to change password (${response.status})`
+        );
       }
 
       // Success - close modal and show toast
@@ -149,7 +162,10 @@ export function ChangePasswordModal({ isOpen, onClose, onSuccess }: ChangePasswo
   if (!isOpen) return null;
 
   return (
-    <div className={styles.overlay} onClick={isSubmitting ? undefined : handleClose}>
+    <div
+      className={styles.overlay}
+      onClick={isSubmitting ? undefined : handleClose}
+    >
       <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
         {!isSubmitting && (
           <button
@@ -164,7 +180,8 @@ export function ChangePasswordModal({ isOpen, onClose, onSuccess }: ChangePasswo
         <div className={styles.header}>
           <h2 className={styles.title}>Change password</h2>
           <p className={styles.description}>
-            Enter your current password and choose a new one. Your other sessions will be signed out.
+            Enter your current password and choose a new one. Your other
+            sessions will be signed out.
           </p>
         </div>
 
@@ -192,7 +209,9 @@ export function ChangePasswordModal({ isOpen, onClose, onSuccess }: ChangePasswo
                 className={styles.togglePassword}
                 onClick={() => setShowCurrentPassword(!showCurrentPassword)}
                 disabled={isSubmitting}
-                aria-label={showCurrentPassword ? "Hide password" : "Show password"}
+                aria-label={
+                  showCurrentPassword ? "Hide password" : "Show password"
+                }
               >
                 {showCurrentPassword ? "👁️" : "👁️‍🗨️"}
               </button>
@@ -257,14 +276,18 @@ export function ChangePasswordModal({ isOpen, onClose, onSuccess }: ChangePasswo
                 className={styles.togglePassword}
                 onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                 disabled={isSubmitting}
-                aria-label={showConfirmPassword ? "Hide password" : "Show password"}
+                aria-label={
+                  showConfirmPassword ? "Hide password" : "Show password"
+                }
               >
                 {showConfirmPassword ? "👁️" : "👁️‍🗨️"}
               </button>
             </div>
-            {newPassword && confirmPassword && newPassword !== confirmPassword && (
-              <span className={formStyles.error}>Passwords do not match</span>
-            )}
+            {newPassword &&
+              confirmPassword &&
+              newPassword !== confirmPassword && (
+                <span className={formStyles.error}>Passwords do not match</span>
+              )}
           </div>
 
           {validationError && !error && (
@@ -301,4 +324,3 @@ export function ChangePasswordModal({ isOpen, onClose, onSuccess }: ChangePasswo
     </div>
   );
 }
-

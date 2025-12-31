@@ -2,11 +2,11 @@ import type { RiskLevel } from "@/features/plan/types";
 
 /**
  * Calculate risk level based on dive parameters
- * 
+ *
  * Risk factors considered:
  * - Maximum depth (deeper = higher risk)
  * - Bottom time (longer = higher risk)
- * 
+ *
  * TODO: Enhance with additional factors:
  * - Experience level
  * - Water temperature
@@ -31,6 +31,3 @@ export function calculateRiskLevel(
   // Low risk (within recreational limits)
   return "Low";
 }
-
-
-
