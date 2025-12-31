@@ -155,11 +155,47 @@ export async function GET() {
           firstName: true,
           lastName: true,
           image: true,
+          avatarUrl: true,
           birthday: true,
           location: true,
           bio: true,
           pronouns: true,
           website: true,
+          homeDiveRegion: true,
+          languages: true,
+          primaryDiveTypes: true,
+          experienceLevel: true,
+          yearsDiving: true,
+          certifyingAgency: true,
+          typicalDivingEnvironment: true,
+          lookingFor: true,
+          favoriteDiveLocation: true,
+          showCertificationsOnProfile: true,
+          showGearOnProfile: true,
+          profileKits: {
+            select: {
+              kitId: true,
+              kit: {
+                select: {
+                  id: true,
+                  name: true,
+                  kitItems: {
+                    select: {
+                      gearItem: {
+                        select: {
+                          id: true,
+                          type: true,
+                          manufacturer: true,
+                          model: true,
+                          purchaseDate: true,
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
         },
       });
     }
@@ -208,11 +244,47 @@ export async function GET() {
           firstName: true,
           lastName: true,
           image: true,
+          avatarUrl: true,
           birthday: true,
           location: true,
           bio: true,
           pronouns: true,
           website: true,
+          homeDiveRegion: true,
+          languages: true,
+          primaryDiveTypes: true,
+          experienceLevel: true,
+          yearsDiving: true,
+          certifyingAgency: true,
+          typicalDivingEnvironment: true,
+          lookingFor: true,
+          favoriteDiveLocation: true,
+          showCertificationsOnProfile: true,
+          showGearOnProfile: true,
+          profileKits: {
+            select: {
+              kitId: true,
+              kit: {
+                select: {
+                  id: true,
+                  name: true,
+                  kitItems: {
+                    select: {
+                      gearItem: {
+                        select: {
+                          id: true,
+                          type: true,
+                          manufacturer: true,
+                          model: true,
+                          purchaseDate: true,
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
         },
       });
     }
@@ -613,6 +685,7 @@ export async function PATCH(req: NextRequest) {
                     gearItem: {
                       select: {
                         id: true,
+                        type: true,
                         manufacturer: true,
                         model: true,
                         purchaseDate: true,
