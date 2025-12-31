@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import type { FormEvent } from "react";
 import buttonStyles from "@/styles/components/Button.module.css";
 import formStyles from "@/styles/components/Form.module.css";
 import styles from "./ChangePasswordModal.module.css";

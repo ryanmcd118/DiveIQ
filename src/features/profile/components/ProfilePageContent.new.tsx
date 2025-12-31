@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useMemo, useRef } from "react";
+import type { ReactNode } from "react";
 import Link from "next/link";
 import { ChevronDown, Calendar, Link as LinkIcon } from "lucide-react";
 import { useAuth } from "@/features/auth/hooks/useAuth";
@@ -597,7 +598,7 @@ export function ProfilePageContent() {
 
     const primaryDiveTypes = draftProfile.primaryDiveTypes || [];
 
-    const tiles: Array<{ label: string; value: string | JSX.Element }> = [];
+    const tiles: Array<{ label: string; value: string | ReactNode }> = [];
     if (
       draftProfile.yearsDiving !== null &&
       draftProfile.yearsDiving !== undefined
