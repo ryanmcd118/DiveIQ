@@ -21,6 +21,16 @@ function getStringProp(obj: unknown, key: string): string | undefined {
   return undefined;
 }
 
+function readAvatarUrlFromUnknown(value: unknown): string | null | undefined {
+  if (value === null) {
+    return null;
+  }
+  if (typeof value === "string") {
+    return value;
+  }
+  return undefined;
+}
+
 // Helper function to extract firstName and lastName from Google profile
 function extractNamesFromGoogleProfile(
   profile: unknown,
@@ -332,7 +342,7 @@ export const authOptions: NextAuthOptions = {
       // For credentials provider, allow sign-in
       return true;
     },
-    async jwt({ token, user, account, trigger }) {
+    async jwt({ token, user, account: _account, trigger }) {
       if (user) {
         // Always set token.id from user.id (this is critical)
         token.id = user.id;
@@ -342,10 +352,10 @@ export const authOptions: NextAuthOptions = {
         if ("firstName" in user && "lastName" in user) {
           token.firstName = user.firstName as string | null;
           token.lastName = user.lastName as string | null;
-          token.avatarUrl = (user as any).avatarUrl as
-            | string
-            | null
-            | undefined;
+          const userAvatarUrl = readAvatarUrlFromUnknown(user);
+          if (userAvatarUrl !== undefined) {
+            token.avatarUrl = userAvatarUrl;
+          }
         } else if (user.id) {
           // Fetch user from DB to get firstName/lastName/avatarUrl/sessionVersion (for OAuth providers)
           const dbUser = await prisma.user.findUnique({
@@ -361,7 +371,11 @@ export const authOptions: NextAuthOptions = {
             token.firstName = dbUser.firstName;
             token.lastName = dbUser.lastName;
             token.avatarUrl = dbUser.avatarUrl;
-            token.sessionVersion = (dbUser as any).sessionVersion ?? 0;
+            const dbVersion =
+              typeof dbUser.sessionVersion === "number"
+                ? dbUser.sessionVersion
+                : 0;
+            token.sessionVersion = dbVersion;
           }
         }
 
@@ -372,7 +386,11 @@ export const authOptions: NextAuthOptions = {
             select: { sessionVersion: true },
           });
           if (dbUser) {
-            token.sessionVersion = (dbUser as any).sessionVersion ?? 0;
+            const dbVersion =
+              typeof dbUser.sessionVersion === "number"
+                ? dbUser.sessionVersion
+                : 0;
+            token.sessionVersion = dbVersion;
           }
         }
       }
@@ -393,7 +411,8 @@ export const authOptions: NextAuthOptions = {
         }
 
         const tokenVersion = (token.sessionVersion as number) ?? -1;
-        const dbVersion = (dbUser as any).sessionVersion ?? 0;
+        const dbVersion =
+          typeof dbUser.sessionVersion === "number" ? dbUser.sessionVersion : 0;
 
         if (tokenVersion !== dbVersion) {
           // Session version mismatch - token is invalid, mark as invalidated
@@ -422,22 +441,24 @@ export const authOptions: NextAuthOptions = {
         let newAvatarUrl: string | null | undefined = undefined;
 
         // Shape 1: update({ avatarUrl: "..." })
-        if ((user as any)?.avatarUrl !== undefined) {
-          newAvatarUrl = (user as any).avatarUrl as string | null | undefined;
+        if (isRecord(user) && "avatarUrl" in user) {
+          newAvatarUrl = readAvatarUrlFromUnknown(user.avatarUrl);
         }
         // Shape 2: update({ user: { avatarUrl: "..." } })
-        else if ((user as any)?.user?.avatarUrl !== undefined) {
-          newAvatarUrl = (user as any).user.avatarUrl as
-            | string
-            | null
-            | undefined;
+        else if (isRecord(user) && "user" in user && isRecord(user.user)) {
+          if ("avatarUrl" in user.user) {
+            newAvatarUrl = readAvatarUrlFromUnknown(user.user.avatarUrl);
+          }
         }
         // Shape 3: update({ session: { avatarUrl: "..." } })
-        else if ((user as any)?.session?.avatarUrl !== undefined) {
-          newAvatarUrl = (user as any).session.avatarUrl as
-            | string
-            | null
-            | undefined;
+        else if (
+          isRecord(user) &&
+          "session" in user &&
+          isRecord(user.session)
+        ) {
+          if ("avatarUrl" in user.session) {
+            newAvatarUrl = readAvatarUrlFromUnknown(user.session.avatarUrl);
+          }
         }
 
         if (newAvatarUrl !== undefined) {
