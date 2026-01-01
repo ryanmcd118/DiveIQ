@@ -31,17 +31,15 @@ interface SidebarProps {
 }
 
 export function Sidebar({ isMobileOpen = false, onClose }: SidebarProps) {
-  const [isCollapsed, setIsCollapsed] = useState(false);
+  const [isCollapsed, setIsCollapsed] = useState(() => {
+    if (typeof window === "undefined") return false;
+    const saved = localStorage.getItem("sidebarCollapsed");
+    return saved === null ? false : saved === "true";
+  });
   const [isMobile, setIsMobile] = useState(false);
   const pathname = usePathname();
 
   useEffect(() => {
-    // Check if sidebar should be collapsed from localStorage
-    const saved = localStorage.getItem("sidebarCollapsed");
-    if (saved !== null) {
-      setIsCollapsed(saved === "true");
-    }
-
     // Check if mobile
     const checkMobile = () => {
       const mobile = window.innerWidth < 768;
