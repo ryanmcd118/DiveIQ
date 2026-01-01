@@ -28,6 +28,8 @@ Complete list of documentation files in `/docs`:
 
 - **`06_TESTING_CI.md`** - What `npm run check` does, CI workflow, canary tests, debugging CI failures, testing rules of thumb. **When to read**: Writing tests, debugging CI, understanding test patterns.
 
+- **`07_STATE_MANAGEMENT.md`** - State inventory (auth, unit preferences, forms, API data, UI), server vs client patterns, global state analysis, and incremental improvement recommendations. **When to read**: Understanding how state flows through the app, planning state management changes, debugging state issues.
+
 - **`08_ROADMAP_AND_DEBT.md`** - Technical debt items, refactor candidates, and prioritized improvement plans. **When to read**: Planning refactoring, understanding code quality issues, technical debt reviews.
 
 - **`09_CONVENTIONS.md`** - Folder structure, naming conventions, validation patterns, business logic boundaries, error handling, data access patterns, testing conventions, styling conventions. **When to read**: Day-to-day coding, onboarding to code style, before making architectural changes.
@@ -91,6 +93,7 @@ Complete list of documentation files in `/docs`:
 
 - **Quick feature work**: Read `09_CONVENTIONS.md` + relevant feature doc (`02_FRONTEND.md` or `03_BACKEND.md`)
 - **Architecture changes**: Read `01_ARCHITECTURE.md` + relevant layer docs + `09_CONVENTIONS.md`
+- **State management changes**: Read `07_STATE_MANAGEMENT.md` + relevant feature doc
 - **Security changes**: Read `04_AUTH.md` + `10_SECURITY.md`
 - **Database changes**: Read `05_DATABASE.md` + `03_BACKEND.md`
 - **Performance work**: Read `11_PERFORMANCE.md` + relevant layer docs
