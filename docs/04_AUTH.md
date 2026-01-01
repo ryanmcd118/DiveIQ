@@ -35,6 +35,7 @@ Two authentication providers configured:
 ### Session Strategy
 
 **JWT-based sessions** (`src/features/auth/lib/auth.ts:127-129`):
+
 ```typescript
 session: {
   strategy: "jwt",
@@ -42,6 +43,7 @@ session: {
 ```
 
 Uses Prisma adapter for OAuth account linking (`src/features/auth/lib/auth.ts:80`):
+
 ```typescript
 adapter: PrismaAdapter(prisma),
 ```
@@ -49,6 +51,7 @@ adapter: PrismaAdapter(prisma),
 ### Custom Pages
 
 Custom NextAuth pages configured (`src/features/auth/lib/auth.ts:130-134`):
+
 - `signIn: "/signin"`
 - `signOut: "/"`
 - `error: "/signin"` (with error query param)
@@ -60,6 +63,7 @@ Custom NextAuth pages configured (`src/features/auth/lib/auth.ts:130-134`):
 ### Token Fields Set
 
 **On sign-in** (`src/features/auth/lib/auth.ts:347-396`):
+
 - `token.id` - Always set from `user.id` (line 349)
 - `token.email` - Set from `user.email` (line 350)
 - `token.firstName` - Set from user object or fetched from DB (line 354, 372)
@@ -68,6 +72,7 @@ Custom NextAuth pages configured (`src/features/auth/lib/auth.ts:130-134`):
 - `token.sessionVersion` - Fetched from database (line 368-379, 387-395)
 
 **On every callback** (`src/features/auth/lib/auth.ts:399-432`):
+
 - Session version validation: Fetches current `sessionVersion` from database (line 403-406)
 - Compares token version vs database version (line 414-418)
 - Sets `token.invalidated = true` if versions don't match (line 418-427)
@@ -75,6 +80,7 @@ Custom NextAuth pages configured (`src/features/auth/lib/auth.ts:130-134`):
 - Sets `token.invalidated = false` if valid (line 431)
 
 **On session update trigger** (`src/features/auth/lib/auth.ts:440-489`):
+
 - Handles `trigger === "update"` (e.g., after avatar upload)
 - Updates `token.avatarUrl` from update() call or re-fetches from DB (line 442-488)
 
@@ -96,6 +102,7 @@ This invalidates all existing sessions when password changes, except the current
 ### Session Fields Set
 
 **Session user object** populated from token (`src/features/auth/lib/auth.ts:516-523`):
+
 - `session.user.id` - From `token.id` or `token.sub` (line 517)
 - `session.user.email` - From `token.email` (line 518)
 - `session.user.firstName` - From `token.firstName` (line 519)
@@ -108,6 +115,7 @@ This invalidates all existing sessions when password changes, except the current
 ### Invalidated Token Handling
 
 If token is invalidated or missing, session callback returns unchanged session (`src/features/auth/lib/auth.ts:502-504`):
+
 - Proxy/middleware handles redirects (line 501)
 - Session object itself is not nullified
 
@@ -124,7 +132,7 @@ Protected pages use `getServerSession()` and redirect if not authenticated:
 export default async function DashboardPage() {
   const session = await getServerSession(authOptions);
   const userId = session?.user?.id;
-  
+
   if (!userId) {
     redirect("/");
   }
@@ -150,6 +158,7 @@ export async function GET(req: NextRequest) {
 **3. Proxy/Middleware** (UNVERIFIED - see note below):
 
 File exists: `src/proxy.ts` with middleware-like code, but:
+
 - No `middleware.ts` file found (Next.js requires `middleware.ts` at root)
 - `proxy.ts` not imported anywhere
 - Has `export const config` with matcher pattern (line 104-116)
@@ -160,11 +169,13 @@ File exists: `src/proxy.ts` with middleware-like code, but:
 ### Public Routes
 
 **Public pages** (no auth required):
+
 - `/` (homepage - shows public home or redirects if authenticated)
 - `/signin`, `/signup` (auth pages)
 - `/(public)/dive-plans` (public dive plan viewer)
 
 **Public API endpoints**:
+
 - `/api/auth/*` (NextAuth endpoints)
 - `/api/dive-plans/preview` (guest plan preview)
 - `/api/auth/signup` (public signup)
@@ -172,6 +183,7 @@ File exists: `src/proxy.ts` with middleware-like code, but:
 ### Protected Route List
 
 Based on `proxy.ts` (if it were implemented, line 15-27):
+
 - `/dashboard`
 - `/settings`
 - `/profile`
@@ -197,11 +209,13 @@ export const runtime = "nodejs";
 ```
 
 Routes that need Node.js runtime (Prisma, bcrypt, etc.):
+
 - `/api/certifications/route.ts`
 - `/api/certifications/definitions/route.ts`
 - `/api/certifications/[id]/route.ts`
 
 **Other routes** (default to Node.js):
+
 - Most routes use `getServerSession()` which requires Node.js runtime
 - Prisma client requires Node.js runtime
 
@@ -210,6 +224,7 @@ Routes that need Node.js runtime (Prisma, bcrypt, etc.):
 **Current status**: `src/proxy.ts` exists but appears **unused/unimplemented**.
 
 **Proxy code** (`src/proxy.ts:10-101`):
+
 - Uses `getToken()` from `next-auth/jwt` (edge-safe, line 41-44)
 - Checks JWT token presence and validity
 - Validates `sessionVersion` on token
@@ -217,6 +232,7 @@ Routes that need Node.js runtime (Prisma, bcrypt, etc.):
 - Has config matcher for route matching (line 104-116)
 
 **Why it's not working**:
+
 - Next.js middleware must be in file named `middleware.ts` at root of `src/` or project root
 - `proxy.ts` is not named correctly and not imported/exported as middleware
 
@@ -259,12 +275,14 @@ Routes that need Node.js runtime (Prisma, bcrypt, etc.):
 ### Sign-In Flow Differences
 
 **Email/Password** (`src/features/auth/lib/auth.ts:88-120`):
+
 1. User provides email/password
 2. Lookup user by email
 3. Verify password with `bcrypt.compare()`
 4. Return user object with fields from database
 
 **Google OAuth** (`src/features/auth/lib/auth.ts:136-340`):
+
 1. User clicks Google sign-in button
 2. Redirected to Google OAuth
 3. Callback received by `signIn` callback
@@ -277,6 +295,7 @@ Routes that need Node.js runtime (Prisma, bcrypt, etc.):
 ### Account Linking Behavior
 
 **Email linking**: If user signs in with Google but email already exists in database (from credentials signup):
+
 - Google Account is linked to existing User record
 - User can then sign in with either method
 - Names/avatar backfilled if missing (`src/features/auth/lib/auth.ts:237-298`)
@@ -344,7 +363,7 @@ sequenceDiagram
     Prisma->>DB: UPDATE User SET password=?, sessionVersion=sessionVersion+1
     DB-->>Prisma: Updated (sessionVersion = N+1)
     Prisma-->>API: Updated user { sessionVersion: N+1 }
-    
+
     API->>API: getToken() [get current JWT]
     API->>JWTEncode: encode({ ...currentToken, sessionVersion: N+1 })
     JWTEncode-->>API: New JWT token

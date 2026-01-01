@@ -61,6 +61,7 @@ npm run lint && npm run format:check && npm run typecheck && npm run test && npm
 **Workflow file**: `.github/workflows/pr-checks.yml`
 
 **Triggers**:
+
 - Pull requests to `main` or `master` (line 4-5)
 - Pushes to `main` or `master` (line 6-7)
 
@@ -77,6 +78,7 @@ npm run lint && npm run format:check && npm run typecheck && npm run test && npm
 9. **Build** - `npm run build` (line 45-46)
 
 **CI environment variables** (line 12-17):
+
 - `DATABASE_URL: "file:./prisma/dev.db"` (placeholder)
 - `NEXTAUTH_SECRET: "placeholder-secret-for-build-check-only"`
 - `NEXTAUTH_URL: "http://localhost:3000"`
@@ -89,6 +91,7 @@ npm run lint && npm run format:check && npm run typecheck && npm run test && npm
 **Same checks**: Local `npm run check` and CI run identical commands.
 
 **CI adds**:
+
 - `npm ci` (clean install)
 - `npx prisma generate` (generates Prisma client)
 
@@ -111,6 +114,7 @@ npm run lint && npm run format:check && npm run typecheck && npm run test && npm
 **Vitest** (`package.json:53`) - Vite-based test runner
 
 **Config**: `vitest.config.ts`
+
 - Environment: `node` (line 6)
 - Path alias: `@` → `./src` (line 9-10)
 
@@ -119,6 +123,7 @@ npm run lint && npm run format:check && npm run typecheck && npm run test && npm
 **1. Unit Conversion Tests** (`src/__tests__/units.test.ts`)
 
 **What it covers**:
+
 - Depth/distance conversions (metric: meters ↔ cm, imperial: feet ↔ cm)
 - Temperature conversions (metric: Celsius ↔ C×10, imperial: Fahrenheit ↔ C×10)
 - Input conversion helpers (`depthInputToCm`, `tempInputToCx10`)
@@ -128,6 +133,7 @@ npm run lint && npm run format:check && npm run typecheck && npm run test && npm
 **Test pattern**: Pure function tests - no mocks, no side effects.
 
 **Example**:
+
 ```typescript
 it("converts meters to centimeters correctly", () => {
   expect(metersToCm(10)).toBe(1000);
@@ -138,6 +144,7 @@ it("converts meters to centimeters correctly", () => {
 **2. Auth Helper Tests** (`src/__tests__/auth-extract-names.test.ts`)
 
 **What it covers**:
+
 - Google OAuth profile name extraction
 - Handles `given_name`/`family_name` fields
 - Falls back to splitting `name` field
@@ -150,6 +157,7 @@ it("converts meters to centimeters correctly", () => {
 **3. API Route Test** (`src/__tests__/api-certifications-definitions.test.ts`)
 
 **What it covers**:
+
 - GET `/api/certifications/definitions` endpoint
 - Response shape validation
 - Sorting logic (by category, levelRank, name)
@@ -159,6 +167,7 @@ it("converts meters to centimeters correctly", () => {
 **Test pattern**: Integration test with mocked Prisma client.
 
 **Mocking**:
+
 ```typescript
 vi.mock("@/lib/prisma", () => ({
   prisma: {
@@ -174,10 +183,12 @@ vi.mock("@/lib/prisma", () => ({
 **Recommended test additions** (based on existing patterns):
 
 **1. Risk Calculator Test** (`src/features/dive-plan/services/riskCalculator.ts`)
+
 - **Location**: `src/__tests__/risk-calculator.test.ts`
 - **Pattern**: Pure function test (like `units.test.ts`)
 - **Cover**: `calculateRiskLevel()` function with various depth/time combinations
 - **Example**:
+
 ```typescript
 import { calculateRiskLevel } from "@/features/dive-plan/services/riskCalculator";
 
@@ -190,22 +201,26 @@ describe("Risk Calculator", () => {
 ```
 
 **2. Validation Utilities Test** (`src/lib/validation.ts`)
+
 - **Location**: `src/__tests__/validation.test.ts`
 - **Pattern**: Pure function test
 - **Cover**: Validation helper functions (if they exist)
 
 **3. Dive Math Test** (`src/lib/diveMath.ts`)
+
 - **Location**: `src/__tests__/dive-math.test.ts`
 - **Pattern**: Pure function test
 - **Cover**: Dive calculation functions (NDL, etc.)
 
 **4. API Route Test - Dive Logs GET** (`src/app/api/dive-logs/route.ts`)
+
 - **Location**: `src/__tests__/api-dive-logs-get.test.ts`
 - **Pattern**: Integration test with mocked Prisma (like `api-certifications-definitions.test.ts`)
 - **Cover**: GET endpoint, filtering, error handling
 - **Mock**: `diveLogRepository`, `diveGearRepository`
 
 **5. Repository Test - DiveLogRepository** (`src/services/database/repositories/diveLogRepository.ts`)
+
 - **Location**: `src/__tests__/dive-log-repository.test.ts`
 - **Pattern**: Unit test with mocked Prisma client
 - **Cover**: Repository methods (create, findById, findMany, update, delete, getStatistics)
@@ -214,6 +229,7 @@ describe("Risk Calculator", () => {
 **Test file naming convention**: `*.test.ts` (matches existing files).
 
 **Test structure**:
+
 ```typescript
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
@@ -235,6 +251,7 @@ describe("Feature/Function Name", () => {
 **Error**: `npm run format:check` fails with formatting errors
 
 **Debug locally**:
+
 ```bash
 # Check what's wrong
 npm run format:check
@@ -246,6 +263,7 @@ npm run format
 ```
 
 **Common causes**:
+
 - Trailing commas
 - Quote style (single vs double)
 - Line length (80 chars - `.prettierrc:7`)
@@ -260,6 +278,7 @@ npm run format
 **Error**: `npm run typecheck` fails with type errors
 
 **Debug locally**:
+
 ```bash
 # Run typecheck
 npm run typecheck
@@ -269,6 +288,7 @@ npx tsc --noEmit src/path/to/file.ts
 ```
 
 **Common causes**:
+
 - Missing type definitions
 - Type mismatches
 - Strict mode violations (`tsconfig.json:7` - `strict: true`)
@@ -281,6 +301,7 @@ npx tsc --noEmit src/path/to/file.ts
 **Error**: `npm run lint` fails with linting errors
 
 **Debug locally**:
+
 ```bash
 # Check errors
 npm run lint
@@ -290,12 +311,14 @@ npm run lint:fix
 ```
 
 **Common causes**:
+
 - Unused variables
 - Missing dependencies in useEffect
 - React hooks violations
 - TypeScript `any` usage (disabled for test files - `eslint.config.mjs:22-24`)
 
 **ESLint config**: `eslint.config.mjs`
+
 - Uses `eslint-config-next` (core-web-vitals + TypeScript)
 - Prettier integration (disables conflicting rules)
 - Test files: `@typescript-eslint/no-explicit-any` disabled
@@ -308,6 +331,7 @@ npm run lint:fix
 **Error**: `npm run test` fails
 
 **Debug locally**:
+
 ```bash
 # Run tests once
 npm run test
@@ -320,16 +344,19 @@ npx vitest run src/__tests__/units.test.ts
 ```
 
 **Common causes**:
+
 - Test assertions failing (logic errors)
 - Mock setup incorrect
 - Import path issues (check `@/` alias)
 - Missing test data
 
 **Vitest config**: `vitest.config.ts`
+
 - Node environment (not jsdom - no DOM APIs)
 - Path alias `@` resolves to `./src`
 
-**Fix**: 
+**Fix**:
+
 1. Check test output for specific failing assertions
 2. Verify mocks are set up correctly (for API/repository tests)
 3. Run in watch mode to iterate faster
@@ -339,6 +366,7 @@ npx vitest run src/__tests__/units.test.ts
 **Error**: `npm run build` fails
 
 **Debug locally**:
+
 ```bash
 # Try building
 npm run build
@@ -347,12 +375,14 @@ npm run build
 ```
 
 **Common causes**:
+
 - Type errors (should be caught by `typecheck`)
 - Missing environment variables (check `.env` or `.env.local`)
 - Next.js build errors (missing pages, invalid routes)
 - Prisma client not generated (`npx prisma generate`)
 
-**Fix**: 
+**Fix**:
+
 1. Run `npm run typecheck` first (catches type errors)
 2. Ensure Prisma client is generated: `npx prisma generate`
 3. Check Next.js build output for specific errors
@@ -364,12 +394,14 @@ npm run build
 **When to use**: Test pure functions with no side effects
 
 **Examples**:
+
 - `src/lib/units.ts` - Unit conversion functions ✅ (tested in `units.test.ts`)
 - `src/features/dive-plan/services/riskCalculator.ts` - Risk calculation ✅ (not tested yet)
 - `src/lib/diveMath.ts` - Dive math calculations ✅ (not tested yet)
 - `src/lib/validation.ts` - Validation helpers ✅ (not tested yet)
 
 **Pattern**:
+
 - No mocks needed
 - Test inputs → expected outputs
 - Test edge cases (null, 0, negative numbers, etc.)
@@ -381,10 +413,12 @@ npm run build
 **When to use**: Test functions that use external dependencies (Prisma, APIs)
 
 **Examples**:
+
 - Repository methods (`diveLogRepository`, `divePlanRepository`) ✅ (not tested yet)
 - Service functions with database access
 
 **Pattern**:
+
 - Mock external dependencies (`vi.mock()`)
 - Test function logic, not external dependencies
 - Example: `api-certifications-definitions.test.ts` mocks Prisma
@@ -396,9 +430,11 @@ npm run build
 **When to use**: Test API route handlers end-to-end
 
 **Examples**:
+
 - API route handlers (`src/app/api/**/route.ts`) ✅ (one example: `api-certifications-definitions.test.ts`)
 
 **Pattern**:
+
 - Mock database/Prisma
 - Test request → response flow
 - Test error cases
@@ -407,6 +443,7 @@ npm run build
 **Location**: `src/__tests__/api-route-name.test.ts`
 
 **Current example**: `src/__tests__/api-certifications-definitions.test.ts`
+
 - Mocks Prisma client
 - Tests GET endpoint
 - Tests query params, sorting, error handling
@@ -414,6 +451,7 @@ npm run build
 ### What NOT to Test (Current Approach)
 
 **Not tested** (and likely shouldn't be):
+
 - React components (no React Testing Library setup)
 - Client-side hooks (would need jsdom environment)
 - E2E flows (no Playwright/Cypress setup)
@@ -421,6 +459,7 @@ npm run build
 - Next.js pages (tested via build step)
 
 **Focus areas** (based on existing tests):
+
 - ✅ Pure utility functions (units, calculations)
 - ✅ API routes (with mocked dependencies)
 - ✅ Repository methods (with mocked Prisma)
@@ -431,17 +470,20 @@ npm run build
 ### Test Coverage Strategy
 
 **Current state**: 3 test files covering:
+
 - Unit conversions (comprehensive)
 - Auth helper function (comprehensive)
 - One API route (certifications definitions)
 
 **Gaps** (based on codebase):
+
 - Repository methods (none tested)
 - Most API routes (only 1 of ~15 tested)
 - Business logic services (risk calculator, dive math)
 - Validation utilities
 
 **Recommendation**: Add tests incrementally for:
+
 1. Critical business logic (risk calculator, unit conversions - ✅ done)
 2. API routes that handle user data (dive logs, dive plans, profile)
 3. Repository methods (data access layer)

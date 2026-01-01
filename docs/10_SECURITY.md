@@ -7,6 +7,7 @@
 **Location**: `src/features/auth/lib/auth.ts:79-538`
 
 **Session Strategy**: JWT-based (`src/features/auth/lib/auth.ts:127-129`)
+
 ```typescript
 session: {
   strategy: "jwt",
@@ -16,12 +17,14 @@ session: {
 **Secret**: Uses `process.env.NEXTAUTH_SECRET` (`src/features/auth/lib/auth.ts:537`)
 
 **Cookie Settings**: NextAuth handles cookie settings automatically. Custom cookie settings in password change handler (`src/app/api/account/password/route.ts:145-151`):
+
 - `httpOnly: true` ✅ (prevents XSS access)
 - `secure: isProduction` ✅ (HTTPS-only in production)
 - `sameSite: "lax"` ✅ (CSRF protection)
 - `maxAge: 30 * 24 * 60 * 60` (30 days)
 
 **Cookie naming**:
+
 - Production: `__Secure-next-auth.session-token` (requires HTTPS)
 - Development: `next-auth.session-token`
 
@@ -32,12 +35,14 @@ session: {
 **Strategy**: `sessionVersion` field on User model (`prisma/schema.prisma:28`)
 
 **How it works**:
+
 1. User model has `sessionVersion` integer (default: 0)
 2. JWT callback checks token version vs database version on every request (`src/features/auth/lib/auth.ts:399-432`)
 3. Password changes increment `sessionVersion` atomically (`src/app/api/account/password/route.ts:105-119`)
 4. Mismatched versions invalidate session (`src/features/auth/lib/auth.ts:418-427`)
 
-**Cited from**: 
+**Cited from**:
+
 - `src/features/auth/lib/auth.ts:399-432` (JWT callback validation)
 - `src/app/api/account/password/route.ts:105-119` (sessionVersion increment)
 
@@ -56,6 +61,7 @@ session: {
 **Pattern**: Server Components check session and redirect if unauthorized
 
 **Example**:
+
 ```typescript
 // src/app/(app)/dashboard/page.tsx:12-20 (inferred pattern from docs)
 const session = await getServerSession(authOptions);
@@ -73,6 +79,7 @@ if (!session?.user?.id) {
 **Pattern**: All protected API routes check `getServerSession(authOptions)` at start
 
 **Example** (`src/app/api/dive-logs/route.ts:15-19`):
+
 ```typescript
 const session = await getServerSession(authOptions);
 if (!session?.user) {
@@ -81,6 +88,7 @@ if (!session?.user) {
 ```
 
 **Strict validation** (some routes):
+
 ```typescript
 // src/app/api/profile/route.ts:35-47
 if (
@@ -93,11 +101,13 @@ if (
 ```
 
 **Public endpoints** (no auth check):
+
 - `/api/auth/*` (NextAuth endpoints)
 - `/api/dive-plans/preview` (guest plan preview)
 - `/api/auth/signup` (public signup)
 
 **Cited from**:
+
 - `src/app/api/dive-logs/route.ts:15-19`
 - `src/app/api/dive-plans/route.ts:20-27`
 - `src/app/api/profile/route.ts:35-47`
@@ -107,25 +117,30 @@ if (
 ### Validation Approaches
 
 **Zod validation** (2 routes use it):
+
 - `/api/certifications` - Uses `createUserCertificationSchema` (`src/app/api/certifications/route.ts:73`)
 - `/api/user/preferences` - Uses Zod schema (UNVERIFIED - check `src/app/api/user/preferences/route.ts`)
 
 **Manual validation** (most routes):
+
 - Email regex: `/^[^\s@]+@[^\s@]+\.[^\s@]+$/` (`src/app/api/auth/signup/route.ts:22-23`)
 - Password length: `password.length < 8` (`src/app/api/auth/signup/route.ts:31-35`)
 - Type assertions: `body as { ... }` (most routes)
 
 **Profile normalization** (`src/app/api/profile/route.ts:336-739`):
+
 - String trimming and null conversion
 - Website URL normalization (prepend https://)
 - No validation schema - manual checks
 
 **Security concerns**:
+
 - **Inconsistent validation**: Most routes use type assertions (no runtime validation)
 - **Missing validation**: Many routes accept JSON without validating structure
 - **Weak email validation**: Simple regex, doesn't follow RFC standards
 
 **Cited from**:
+
 - `src/app/api/auth/signup/route.ts:22-28` (email validation)
 - `src/app/api/certifications/route.ts:73-78` (Zod example)
 - `src/app/api/profile/route.ts:394-418` (normalization helpers)
@@ -149,6 +164,7 @@ if (
 **Authorization in repositories**: Repositories check `userId` parameter matches resource owner
 
 **Example** (`src/services/database/repositories/diveLogRepository.ts:33-40`):
+
 ```typescript
 async findById(id: string, userId?: string): Promise<DiveLogEntry | null> {
   const entry = await prisma.diveLog.findUnique({ where: { id } });
@@ -160,6 +176,7 @@ async findById(id: string, userId?: string): Promise<DiveLogEntry | null> {
 ```
 
 **Update/Delete checks** (`src/services/database/repositories/diveLogRepository.ts:70-75`):
+
 ```typescript
 if (userId) {
   const existing = await prisma.diveLog.findUnique({ where: { id } });
@@ -170,6 +187,7 @@ if (userId) {
 ```
 
 **Gear repository** (`src/services/database/repositories/gearRepository.ts:88-94`):
+
 ```typescript
 async findById(id: string, userId: string): Promise<GearItem | null> {
   return prisma.gearItem.findFirst({
@@ -181,6 +199,7 @@ async findById(id: string, userId: string): Promise<GearItem | null> {
 **Double protection**: Routes check session, repositories check ownership - defensive but redundant.
 
 **Cited from**:
+
 - `src/services/database/repositories/diveLogRepository.ts:33-40` (findById)
 - `src/services/database/repositories/diveLogRepository.ts:70-75` (update)
 - `src/services/database/repositories/gearRepository.ts:88-94` (gear findById)
@@ -188,6 +207,7 @@ async findById(id: string, userId: string): Promise<GearItem | null> {
 ### Direct Prisma Usage
 
 **Some routes bypass repositories** (less consistent protection):
+
 - `src/app/api/profile/route.ts:57-107` - Direct Prisma queries
 - `src/app/api/certifications/route.ts:84-93, 134-159` - Direct Prisma
 - `src/app/api/auth/signup/route.ts:39-61` - Direct Prisma (acceptable for auth)
@@ -201,6 +221,7 @@ async findById(id: string, userId: string): Promise<GearItem | null> {
 ### Environment Variables
 
 **Secrets used**:
+
 - `NEXTAUTH_SECRET` - NextAuth JWT signing secret
 - `GOOGLE_CLIENT_ID` - Google OAuth client ID
 - `GOOGLE_CLIENT_SECRET` - Google OAuth client secret
@@ -208,6 +229,7 @@ async findById(id: string, userId: string): Promise<GearItem | null> {
 - `DATABASE_URL` - Database connection string
 
 **Access patterns**:
+
 - `process.env.NEXTAUTH_SECRET` (`src/features/auth/lib/auth.ts:537`)
 - `process.env.GOOGLE_CLIENT_ID!` (`src/features/auth/lib/auth.ts:123`)
 - `process.env.GOOGLE_CLIENT_SECRET!` (`src/features/auth/lib/auth.ts:124`)
@@ -220,6 +242,7 @@ async findById(id: string, userId: string): Promise<GearItem | null> {
 **CI environment**: Uses placeholder values for build checks (`.github/workflows/pr-checks.yml:14-17`)
 
 **Cited from**:
+
 - `src/features/auth/lib/auth.ts:123-124, 537`
 - `src/services/ai/openaiService.ts:11`
 - `.github/workflows/pr-checks.yml:14-17`
@@ -227,6 +250,7 @@ async findById(id: string, userId: string): Promise<GearItem | null> {
 ### Logging Concerns
 
 **Development-only logging**: Some routes log session data in development (`src/app/api/profile/route.ts:16-24`):
+
 ```typescript
 if (process.env.NODE_ENV === "development") {
   console.log("[GET /api/profile] Session:", {
@@ -246,6 +270,7 @@ if (process.env.NODE_ENV === "development") {
 **No secret logging found**: ✅ No environment variables logged directly
 
 **Cited from**:
+
 - `src/app/api/profile/route.ts:16-24` (development logging)
 - `src/app/api/dive-logs/route.ts:61` (error logging)
 
@@ -286,11 +311,13 @@ if (process.env.NODE_ENV === "development") {
 **No security scripts in package.json**: ❌ No `audit`, `audit:fix`, or security-related scripts
 
 **Security gaps**:
+
 - No automated dependency vulnerability scanning
 - No automated security updates
 - Manual dependency updates only
 
 **Cited from**:
+
 - `.github/workflows/pr-checks.yml` (no audit step)
 - `package.json` (no audit scripts)
 - No `.github/dependabot.yml` file found
@@ -298,6 +325,7 @@ if (process.env.NODE_ENV === "development") {
 ### Dependency Versions
 
 **Key dependencies** (from `package.json`):
+
 - Next.js 16.0.7 (latest stable)
 - NextAuth 4.24.13 (latest stable)
 - Prisma 6.19.0 (latest stable)
@@ -326,7 +354,8 @@ if (process.env.NODE_ENV === "development") {
 
 **Threat**: XSS attack steals session cookies (even with httpOnly, JWT in cookies could be stolen)
 
-**Mitigation**: 
+**Mitigation**:
+
 - ✅ Cookies are `httpOnly` (prevents JavaScript access)
 - ✅ React escapes user input (prevents XSS)
 - ✅ No `dangerouslySetInnerHTML` found
@@ -341,7 +370,8 @@ if (process.env.NODE_ENV === "development") {
 
 **Threat**: Unvalidated input leads to data corruption, injection, or crashes
 
-**Mitigation**: 
+**Mitigation**:
+
 - ❌ Most routes use type assertions (no runtime validation)
 - ✅ 2 routes use Zod validation
 - ❌ Profile route has 400+ lines of manual validation
@@ -356,7 +386,8 @@ if (process.env.NODE_ENV === "development") {
 
 **Threat**: Malicious SQL input in queries
 
-**Mitigation**: 
+**Mitigation**:
+
 - ✅ Uses Prisma ORM (parameterized queries)
 - ✅ No raw SQL queries found
 - ✅ Repository pattern uses Prisma client
@@ -372,6 +403,7 @@ if (process.env.NODE_ENV === "development") {
 **Threat**: Users access/modify other users' data
 
 **Mitigation**:
+
 - ✅ Routes check session
 - ✅ Repositories check `userId` ownership
 - ✅ Double protection (redundant but secure)
@@ -387,6 +419,7 @@ if (process.env.NODE_ENV === "development") {
 **Threat**: Attackers attempt to guess passwords
 
 **Mitigation**:
+
 - ❌ No rate limiting on sign-in endpoint
 - ❌ No account lockout after failed attempts
 - ✅ Passwords hashed with bcrypt (slows brute force)
@@ -402,6 +435,7 @@ if (process.env.NODE_ENV === "development") {
 **Threat**: Vulnerable dependencies with known CVEs
 
 **Mitigation**:
+
 - ❌ No automated vulnerability scanning (no Dependabot)
 - ❌ No `npm audit` in CI
 - ✅ Dependencies appear recent (but unverified)
@@ -417,6 +451,7 @@ if (process.env.NODE_ENV === "development") {
 **Threat**: Attacker forces user to use known session ID
 
 **Mitigation**:
+
 - ✅ NextAuth handles session creation securely
 - ✅ Session invalidation on password change works correctly
 - ✅ JWT-based sessions (not session IDs)
@@ -432,6 +467,7 @@ if (process.env.NODE_ENV === "development") {
 **Threat**: Attacker links malicious Google account to existing email/password account
 
 **Mitigation**:
+
 - ✅ Account linking requires email match (`src/features/auth/lib/auth.ts:224-298`)
 - ✅ Existing accounts are updated, not overwritten
 - ⚠️ No email verification step before linking
@@ -447,6 +483,7 @@ if (process.env.NODE_ENV === "development") {
 **Threat**: Error messages leak sensitive information (stack traces, database errors)
 
 **Mitigation**:
+
 - ✅ Generic error messages in responses (`src/app/api/dive-logs/route.ts:63`)
 - ⚠️ Error details logged to console (may appear in logs)
 - ✅ Development-only detailed logging (`src/app/api/profile/route.ts:16-24`)
@@ -526,4 +563,3 @@ if (process.env.NODE_ENV === "development") {
 ---
 
 Last verified against commit:
-

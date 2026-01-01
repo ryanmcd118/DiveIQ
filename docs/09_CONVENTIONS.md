@@ -24,6 +24,7 @@ src/
 ### Feature Module Structure
 
 **Standard structure** (`src/features/{feature-name}/`):
+
 ```
 features/{feature}/
 ├── components/           # Feature-specific components
@@ -35,6 +36,7 @@ features/{feature}/
 ```
 
 **Examples**:
+
 - `src/features/dive-log/` - Has `components/`, `hooks/`, `types.ts`
 - `src/features/dive-plan/` - Has `components/`, `hooks/`, `types.ts`, `services/`
 - `src/features/profile/` - Has `components/`, `types.ts`, `utils/`
@@ -44,17 +46,21 @@ features/{feature}/
 ### When to Use Each Directory
 
 **`src/features/{feature}/`**:
+
 - Feature-specific code that belongs to a domain area (dive logs, dive plans, gear, etc.)
 
 **`src/components/`**:
+
 - Shared components used across 2+ features
 - Examples: `Avatar`, `Toast`, `ConfirmModal`, `UnitToggle`
 
 **`src/lib/`**:
+
 - Shared utilities used across features
 - Examples: `units.ts`, `prisma.ts`, `validation.ts`, `diveMath.ts`
 
 **`src/services/`**:
+
 - External service integrations (OpenAI, weather APIs, etc.)
 - Database repositories (data access layer)
 
@@ -65,12 +71,14 @@ features/{feature}/
 ### Components
 
 **PascalCase**, descriptive names:
+
 - `DiveLogForm.tsx`
 - `PlanPageContent.tsx`
 - `DashboardPageContent.tsx`
 - `CertificationCard.tsx`
 
 **Props interface**: `{ComponentName}Props`
+
 ```typescript
 interface DiveLogFormProps {
   formKey: string;
@@ -79,19 +87,22 @@ interface DiveLogFormProps {
 }
 ```
 
-**Cited from**: 
+**Cited from**:
+
 - `src/features/dive-log/components/DiveLogForm.tsx`
 - `src/features/dive-plan/components/PlanPageContent.tsx`
 
 ### Hooks
 
 **camelCase**, prefix with `use`:
+
 - `useLogPageState.ts`
 - `usePlanPageState.ts`
 - `useAuth.ts`
 - `useMe.ts`
 
-**Cited from**: 
+**Cited from**:
+
 - `src/features/dive-log/hooks/useLogPageState.ts`
 - `src/features/dive-plan/hooks/usePlanPageState.ts`
 - `src/features/auth/hooks/useAuth.ts`
@@ -99,6 +110,7 @@ interface DiveLogFormProps {
 ### Route Handlers
 
 **HTTP method names** (Next.js App Router convention):
+
 - `GET(req: NextRequest)`
 - `POST(req: NextRequest)`
 - `PATCH(req: NextRequest)`
@@ -107,7 +119,8 @@ interface DiveLogFormProps {
 
 **File location**: `src/app/api/{resource}/route.ts`
 
-**Cited from**: 
+**Cited from**:
+
 - `src/app/api/dive-logs/route.ts`
 - `src/app/api/profile/route.ts`
 - `src/app/api/certifications/route.ts`
@@ -115,6 +128,7 @@ interface DiveLogFormProps {
 ### Types and Interfaces
 
 **PascalCase**:
+
 - `DiveLogEntry`
 - `PlanInput`
 - `PastPlan`
@@ -123,15 +137,18 @@ interface DiveLogFormProps {
 **Type files**: `types.ts` (co-located with feature)
 
 **Input types**: Suffix with `Input` when representing API input
+
 - `DiveLogInput`
 - `PlanInput`
 - `CreateUserCertificationInput`
 
 **Response types**: Suffix with `Response` when representing API response
+
 - `DiveLogApiResponse`
 - `PlanApiResponse`
 
-**Cited from**: 
+**Cited from**:
+
 - `src/features/dive-log/types.ts`
 - `src/features/dive-plan/types.ts`
 - `src/features/certifications/types.ts`
@@ -139,12 +156,14 @@ interface DiveLogFormProps {
 ### Validation Schemas
 
 **Zod schemas**: camelCase with `Schema` suffix
+
 - `createUserCertificationSchema`
 - `updateUserCertificationSchema`
 
 **Location**: Feature `types.ts` file (when using Zod)
 
 **Type inference**: `z.infer<typeof schema>` for TypeScript types
+
 ```typescript
 export type CreateUserCertificationInput = z.infer<
   typeof createUserCertificationSchema
@@ -156,6 +175,7 @@ export type CreateUserCertificationInput = z.infer<
 ### Repositories
 
 **camelCase** with `Repository` suffix, export as const object:
+
 ```typescript
 export const diveLogRepository = {
   async create(...) { ... },
@@ -165,6 +185,7 @@ export const diveLogRepository = {
 ```
 
 **Examples**:
+
 - `diveLogRepository`
 - `divePlanRepository`
 - `gearRepository`
@@ -172,20 +193,23 @@ export const diveLogRepository = {
 
 **Location**: `src/services/database/repositories/{resource}Repository.ts`
 
-**Cited from**: 
+**Cited from**:
+
 - `src/services/database/repositories/diveLogRepository.ts:9`
 - `src/services/database/repositories/divePlanRepository.ts:13`
 
 ### Service Functions
 
 **camelCase**, descriptive function names:
+
 - `generateDivePlanBriefing()`
 - `generateUpdatedDivePlanBriefing()`
 - `calculateRiskLevel()`
 
 **Location**: `src/services/{service}/` or `src/features/{feature}/services/`
 
-**Cited from**: 
+**Cited from**:
+
 - `src/services/ai/openaiService.ts:332`
 - `src/features/dive-plan/services/riskCalculator.ts`
 
@@ -194,30 +218,35 @@ export const diveLogRepository = {
 ### Current Patterns (Inconsistent)
 
 **Pattern 1: Zod schemas in feature types** (2 routes use this):
+
 - Location: `src/features/{feature}/types.ts`
 - Example: `src/features/certifications/types.ts:6-17`
 - Usage: `safeParse()` in route handlers
 - Example route: `src/app/api/certifications/route.ts:73`
 
 **Pattern 2: Manual validation in route handlers** (most routes):
+
 - Location: Route handler file
 - Example: `src/app/api/auth/signup/route.ts:10-36`
 - Pattern: Type assertions + manual checks (regex, length, etc.)
 
 **Recommendation**: **Standardize on Pattern 1 (Zod schemas in types.ts)**
 
-**Cited from**: 
+**Cited from**:
+
 - Pattern 1: `src/features/certifications/types.ts:6-17`, `src/app/api/certifications/route.ts:73`
 - Pattern 2: `src/app/api/auth/signup/route.ts:10-36`
 
 ### Validation Schema Location
 
 **When using Zod** (recommended):
+
 - Define schemas in feature `types.ts` file
 - Export both schema and inferred type
 - Import schema in route handler for validation
 
 **Example**:
+
 ```typescript
 // src/features/{feature}/types.ts
 export const createSomethingSchema = z.object({ ... });
@@ -235,6 +264,7 @@ const result = createSomethingSchema.safeParse(body);
 ### ✅ Where Business Logic SHOULD Live
 
 **1. Repositories** (`src/services/database/repositories/`):
+
 - Data access operations (CRUD)
 - Query construction
 - Ownership/authorization checks
@@ -242,22 +272,26 @@ const result = createSomethingSchema.safeParse(body);
 **Cited from**: `src/services/database/repositories/diveLogRepository.ts`
 
 **2. Services** (`src/services/` or `src/features/{feature}/services/`):
+
 - External API integrations
 - Complex business logic calculations
 - Feature-specific business rules
 
 **Examples**:
+
 - `src/services/ai/openaiService.ts` - OpenAI API calls
 - `src/features/dive-plan/services/riskCalculator.ts` - Risk calculation
 
 **Cited from**: Service file locations
 
 **3. Utility Libraries** (`src/lib/`):
+
 - Pure utility functions
 - Unit conversions
 - Math calculations
 
 **Examples**:
+
 - `src/lib/units.ts` - Unit conversion
 - `src/lib/diveMath.ts` - Dive calculations
 
@@ -266,6 +300,7 @@ const result = createSomethingSchema.safeParse(body);
 ### ❌ Where Business Logic MUST NOT Live
 
 **1. Route Handlers** (`src/app/api/*/route.ts`):
+
 - Should only orchestrate: auth → validate → service/repository → response
 - Current violations:
   - `src/app/api/profile/route.ts:336-739` - 400+ lines of normalization logic
@@ -277,6 +312,7 @@ const result = createSomethingSchema.safeParse(body);
 **Cited from**: `docs/03_BACKEND.md:285-297` (boundary issues)
 
 **2. Client Components**:
+
 - Should only handle UI state and user interactions
 - Business logic should be in hooks or services
 
@@ -285,6 +321,7 @@ const result = createSomethingSchema.safeParse(body);
 ### API Route Error Handling
 
 **Standard pattern**:
+
 ```typescript
 try {
   // ... logic ...
@@ -299,6 +336,7 @@ try {
 ```
 
 **Error response shape**:
+
 ```typescript
 NextResponse.json(
   { error: "Human-readable error message" },
@@ -307,6 +345,7 @@ NextResponse.json(
 ```
 
 **Status codes used**:
+
 - `400` - Bad request (validation errors, missing fields)
 - `401` - Unauthorized (no session or invalid session)
 - `404` - Not found (resource doesn't exist)
@@ -314,6 +353,7 @@ NextResponse.json(
 - `500` - Internal server error
 
 **With validation details** (Zod routes):
+
 ```typescript
 if (!validationResult.success) {
   return NextResponse.json(
@@ -323,7 +363,8 @@ if (!validationResult.success) {
 }
 ```
 
-**Cited from**: 
+**Cited from**:
+
 - `src/app/api/dive-logs/route.ts:60-65`
 - `src/app/api/certifications/route.ts:74-78`
 - `docs/03_BACKEND.md:183-211` (error handling conventions)
@@ -331,6 +372,7 @@ if (!validationResult.success) {
 ### Error Logging
 
 **Pattern**: Log with route name for context
+
 ```typescript
 console.error("GET /api/dive-logs error", err);
 ```
@@ -342,6 +384,7 @@ console.error("GET /api/dive-logs error", err);
 **Current practice**: Catch blocks return generic messages (good for security, harder to debug)
 
 **Example**:
+
 ```typescript
 catch (err) {
   console.error("Signup error:", err);
@@ -361,6 +404,7 @@ catch (err) {
 **All data access should go through repositories** (`src/services/database/repositories/`)
 
 **Repository interface**:
+
 ```typescript
 export const resourceRepository = {
   async create(data: Input, userId?: string): Promise<Output> { ... },
@@ -373,13 +417,15 @@ export const resourceRepository = {
 
 **Authorization**: Repositories check `userId` ownership
 
-**Cited from**: 
+**Cited from**:
+
 - `src/services/database/repositories/diveLogRepository.ts:9-145`
 - `docs/03_BACKEND.md:215-252`
 
 ### Current Inconsistency: Direct Prisma Usage
 
 **Some routes bypass repositories** (violation of pattern):
+
 - `src/app/api/profile/route.ts:57-107` - Direct Prisma queries
 - `src/app/api/certifications/route.ts:84-93, 134-159` - Direct Prisma
 - `src/app/api/auth/signup/route.ts:39-61` - Direct Prisma (acceptable exception for auth)
@@ -391,6 +437,7 @@ export const resourceRepository = {
 ### Prisma Client Access
 
 **Singleton pattern**: `src/lib/prisma.ts`
+
 ```typescript
 export const prisma = globalForPrisma.prisma ?? new PrismaClient({ ... });
 ```
@@ -408,6 +455,7 @@ export const prisma = globalForPrisma.prisma ?? new PrismaClient({ ... });
 **Naming**: `*.test.ts`
 
 **Examples**:
+
 - `src/__tests__/units.test.ts`
 - `src/__tests__/auth-extract-names.test.ts`
 - `src/__tests__/api-certifications-definitions.test.ts`
@@ -417,6 +465,7 @@ export const prisma = globalForPrisma.prisma ?? new PrismaClient({ ... });
 ### Test Naming
 
 **Test structure**:
+
 ```typescript
 describe("Feature/Function Name", () => {
   it("does something specific", () => {
@@ -430,6 +479,7 @@ describe("Feature/Function Name", () => {
 ### What to Mock vs Not Mock
 
 **Do NOT mock** (pure function tests):
+
 - Unit conversion functions
 - Math/calculation utilities
 - Pure business logic functions
@@ -437,11 +487,13 @@ describe("Feature/Function Name", () => {
 **Example**: `src/__tests__/units.test.ts` - No mocks, tests pure functions
 
 **DO mock** (integration/API tests):
+
 - Prisma client
 - External services (OpenAI, etc.)
 - Repository methods (if testing route handlers)
 
 **Example**: `src/__tests__/api-certifications-definitions.test.ts`
+
 ```typescript
 vi.mock("@/lib/prisma", () => ({
   prisma: {
@@ -452,17 +504,20 @@ vi.mock("@/lib/prisma", () => ({
 }));
 ```
 
-**Cited from**: 
+**Cited from**:
+
 - `src/__tests__/units.test.ts` (no mocks)
 - `src/__tests__/api-certifications-definitions.test.ts:7-13` (mocked Prisma)
 
 ### Test Patterns
 
 **1. Pure function tests** (no mocks):
+
 - Test inputs → expected outputs
 - Test edge cases
 
 **2. Integration tests** (with mocks):
+
 - Mock external dependencies (Prisma, APIs)
 - Test function logic, not external dependencies
 
@@ -475,11 +530,13 @@ vi.mock("@/lib/prisma", () => ({
 **File naming**: `ComponentName.module.css` (co-located with component)
 
 **Import pattern**:
+
 ```typescript
 import styles from "./ComponentName.module.css";
 ```
 
 **Usage in JSX**:
+
 ```typescript
 <div className={styles.container}>
   <button className={styles.button}>Click</button>
@@ -493,12 +550,14 @@ import styles from "./ComponentName.module.css";
 **Shared component styles**: `src/styles/components/`
 
 **Import pattern**:
+
 ```typescript
 import cardStyles from "@/styles/components/Card.module.css";
 import formStyles from "@/styles/components/Form.module.css";
 ```
 
 **Usage**:
+
 ```typescript
 <div className={cardStyles.card}>
   <form className={formStyles.form}>...</form>
@@ -510,6 +569,7 @@ import formStyles from "@/styles/components/Form.module.css";
 ### Design System
 
 **Design tokens**: `src/styles/design-system/tokens.css`
+
 - CSS custom properties (variables)
 - Colors, spacing, typography scales
 
@@ -518,6 +578,7 @@ import formStyles from "@/styles/components/Form.module.css";
 **Utilities**: `src/styles/design-system/utilities.css`
 
 **Usage**: Reference tokens in component styles
+
 ```css
 .container {
   padding: var(--space-4);
@@ -531,6 +592,7 @@ import formStyles from "@/styles/components/Form.module.css";
 ### CSS Composition
 
 **Use `composes` for variants**:
+
 ```css
 .primary {
   composes: base;
@@ -569,6 +631,7 @@ import formStyles from "@/styles/components/Form.module.css";
 **Recommendation**: Extract to service functions or utilities
 
 **Examples to extract**:
+
 - `src/app/api/profile/route.ts:336-739` → `src/features/profile/utils/normalizeProfile.ts`
 - `src/app/api/certifications/route.ts:96-131` → Service function
 
@@ -637,4 +700,3 @@ import formStyles from "@/styles/components/Form.module.css";
 ---
 
 Last verified against commit:
-

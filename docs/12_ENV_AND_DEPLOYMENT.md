@@ -5,6 +5,7 @@
 ### Initial Setup
 
 **1. Install dependencies**:
+
 ```bash
 npm install
 ```
@@ -13,21 +14,25 @@ npm install
 Create `.env.local` file in project root (see "Environment Variables" section below)
 
 **3. Generate Prisma client**:
+
 ```bash
 npx prisma generate
 ```
 
 **4. Run database migrations**:
+
 ```bash
 npx prisma migrate dev
 ```
 
 **5. (Optional) Seed certification definitions**:
+
 ```bash
 npx prisma db seed
 ```
 
 **6. Start development server**:
+
 ```bash
 npm run dev
 ```
@@ -39,20 +44,24 @@ npm run dev
 ### Development Commands
 
 **Start dev server**: `npm run dev` (`package.json:8`)
+
 - Command: `next dev`
 - Runs on `http://localhost:3000`
 - Hot module reloading enabled
 
 **Build for production**: `npm run build` (`package.json:9`)
+
 - Command: `next build`
 - Creates optimized production build in `.next/` directory
 
 **Start production server**: `npm run start` (`package.json:10`)
+
 - Command: `next start`
 - Requires build to exist (run `npm run build` first)
 - Runs production server on `http://localhost:3000`
 
 **Reset database**: `npm run db:reset` (`package.json:21`)
+
 - Command: `prisma migrate reset --force --skip-seed`
 - Wipes database and re-runs all migrations
 - Skips seed (add `--seed` to run seed)
@@ -73,7 +82,8 @@ npm run dev
 - **Format**: `file:./prisma/dev.db` (SQLite, development)
 - **Production**: SQLite file path or PostgreSQL connection string (UNVERIFIED - check production setup)
 
-**Cited from**: 
+**Cited from**:
+
 - `prisma/schema.prisma:5-8`
 - `prisma.config.ts:12-14`
 
@@ -90,7 +100,8 @@ npm run dev
 - **Generation**: Use `openssl rand -base64 32` or NextAuth secret generator
 - **Security**: Must be a secure random string (32+ characters recommended)
 
-**Cited from**: 
+**Cited from**:
+
 - `src/features/auth/lib/auth.ts:537`
 - `src/app/api/account/password/route.ts:94, 130`
 
@@ -160,6 +171,7 @@ npm run dev
 **Command**: `npm run build` (`package.json:9`)
 
 **What it does**: `next build`
+
 - Compiles TypeScript
 - Bundles JavaScript
 - Optimizes assets
@@ -169,6 +181,7 @@ npm run dev
 **Environment assumed**: Production (Next.js sets `NODE_ENV=production`)
 
 **Required env vars for build**:
+
 - `DATABASE_URL` (for Prisma client generation)
 - Other env vars may be needed if accessed at build time (UNVERIFIED - check if any env vars are read at build time)
 
@@ -179,6 +192,7 @@ npm run dev
 **Command**: `npm run start` (`package.json:10`)
 
 **What it does**: `next start`
+
 - Serves the production build
 - Runs Next.js production server
 - Listens on port 3000 by default (configurable via `PORT` env var)
@@ -204,6 +218,7 @@ npm run dev
 7. Build: `npm run build`
 
 **Env vars in CI**: Uses placeholder values (`.github/workflows/pr-checks.yml:14-17`):
+
 - `DATABASE_URL: "file:./prisma/dev.db"`
 - `NEXTAUTH_SECRET: "placeholder-secret-for-build-check-only"`
 - `NEXTAUTH_URL: "http://localhost:3000"`
@@ -216,6 +231,7 @@ npm run dev
 ### No Deployment Config Found
 
 **No deployment configuration files found**:
+
 - ❌ No `vercel.json`
 - ❌ No `.vercel/` directory
 - ❌ No other deployment config files
@@ -227,6 +243,7 @@ npm run dev
 ### Assumed Deployment Platform
 
 **Based on Next.js defaults**: Application can be deployed to:
+
 - **Vercel** (recommended for Next.js, zero-config)
 - **Node.js server** (using `npm run build` + `npm run start`)
 - Other platforms supporting Node.js (Railway, Render, etc.)
@@ -240,11 +257,13 @@ npm run dev
 ### Development Workflow
 
 **Create migration**:
+
 ```bash
 npx prisma migrate dev --name migration_name
 ```
 
 **What it does**:
+
 - Creates migration file in `prisma/migrations/`
 - Applies migration to development database
 - Regenerates Prisma client
@@ -259,6 +278,7 @@ npx prisma migrate dev --name migration_name
 **Command**: `npm run db:reset` (`package.json:21`)
 
 **What it does**: `prisma migrate reset --force --skip-seed`
+
 - Wipes database
 - Re-runs all migrations from scratch
 - Skips seed (add `--seed` to run seed)
@@ -272,11 +292,13 @@ npx prisma migrate dev --name migration_name
 **No production migration script**: No script in `package.json` for production migrations
 
 **Standard Prisma production command**:
+
 ```bash
 npx prisma migrate deploy
 ```
 
 **What it does**:
+
 - Applies pending migrations to production database
 - Does NOT reset database (safe for production)
 - Does NOT run seed
@@ -290,6 +312,7 @@ npx prisma migrate deploy
 **Location**: `prisma/seed.ts`
 
 **Run manually**:
+
 ```bash
 npx prisma db seed
 ```
@@ -300,7 +323,8 @@ npx prisma db seed
 
 **Auto-run**: Runs automatically after `prisma migrate dev` (unless `--skip-seed`)
 
-**Cited from**: 
+**Cited from**:
+
 - `package.json:55-57`
 - `docs/05_DATABASE.md:147-175` (seed script documentation)
 
@@ -327,6 +351,7 @@ npx prisma db seed
 ### Secrets Security
 
 **✅ Good practices**:
+
 - No `.env` files in repository (checked - none found)
 - `.gitignore` excludes `.env*` files
 - CI uses placeholder values (not real secrets)
@@ -359,6 +384,7 @@ UPLOADTHING_TOKEN="your-uploadthing-token"
 ```
 
 **Notes**:
+
 - Replace placeholder values with actual secrets
 - Generate `NEXTAUTH_SECRET` with: `openssl rand -base64 32`
 - `DATABASE_URL` format for SQLite: `file:./prisma/dev.db`
@@ -369,6 +395,7 @@ UPLOADTHING_TOKEN="your-uploadthing-token"
 ### Generating NEXTAUTH_SECRET
 
 **Command**:
+
 ```bash
 openssl rand -base64 32
 ```
@@ -380,6 +407,7 @@ openssl rand -base64 32
 ### Production Secrets
 
 **Recommendations**:
+
 - Use platform secret management (Vercel environment variables, AWS Secrets Manager, etc.)
 - Never commit secrets to git
 - Rotate secrets periodically
@@ -390,4 +418,3 @@ openssl rand -base64 32
 ---
 
 Last verified against commit:
-

@@ -46,15 +46,15 @@ erDiagram
     User ||--o{ GearKit : "owns"
     User ||--o{ UserCertification : "has"
     User ||--o{ UserProfileKit : "shows"
-    
+
     DiveLog ||--o{ DiveGearItem : "uses"
     GearItem ||--o{ DiveGearItem : "used_in"
     GearKit ||--o{ GearKitItem : "contains"
     GearItem ||--o{ GearKitItem : "in_kit"
     GearKit ||--o{ UserProfileKit : "shown_on"
-    
+
     CertificationDefinition ||--o{ UserCertification : "defines"
-    
+
     User {
         string id PK
         string email UK
@@ -68,7 +68,7 @@ erDiagram
         boolean showGearOnProfile
         "~20 more profile fields"
     }
-    
+
     DiveLog {
         string id PK
         string userId FK "nullable"
@@ -80,7 +80,7 @@ erDiagram
         int waterTempCx10 "nullable"
         int visibilityCm "nullable"
     }
-    
+
     DivePlan {
         string id PK
         string userId FK "nullable"
@@ -93,7 +93,7 @@ erDiagram
         string riskLevel
         string aiAdvice "nullable"
     }
-    
+
     GearItem {
         string id PK
         string userId FK
@@ -102,14 +102,14 @@ erDiagram
         string model
         boolean isActive
     }
-    
+
     GearKit {
         string id PK
         string userId FK
         string name
         boolean isDefault
     }
-    
+
     CertificationDefinition {
         string id PK
         enum agency
@@ -122,15 +122,18 @@ erDiagram
 ### Relationships Summary
 
 **User relationships**:
+
 - One-to-many: `User → Account`, `User → Session`, `User → DiveLog`, `User → DivePlan`, `User → GearItem`, `User → GearKit`, `User → UserCertification`
 - Many-to-many (via join): `User ↔ GearKit` (via `UserProfileKit`)
 
 **Gear relationships**:
+
 - Many-to-many: `GearKit ↔ GearItem` (via `GearKitItem`)
 - Many-to-many: `DiveLog ↔ GearItem` (via `DiveGearItem`)
 - Many-to-many: `User ↔ GearKit` for profile display (via `UserProfileKit`)
 
 **Certification relationships**:
+
 - One-to-many: `CertificationDefinition → UserCertification`
 - Many-to-one: `UserCertification → User`
 
@@ -166,6 +169,7 @@ erDiagram
 **Migrations directory**: `prisma/migrations/`
 
 **Migration files**: Each migration is a timestamped directory containing `migration.sql`:
+
 - Format: `YYYYMMDDHHMMSS_migration_name/`
 - Example: `20251203180033_init_dive_log/migration.sql`
 
@@ -211,6 +215,7 @@ erDiagram
 **Purpose**: Seeds `CertificationDefinition` catalog with PADI and SSI certifications.
 
 **How it works**:
+
 1. Reads JSON file: `prisma/seed-data/certifications.json`
 2. Upserts each certification definition (creates if new, updates if exists)
 3. Uses `agency_slug` unique constraint to identify existing records
@@ -232,6 +237,7 @@ erDiagram
 **Directory**: `scripts/`
 
 **Scripts**:
+
 - `backfill-user-first-last.ts` - Migrates `User.name` → `firstName`/`lastName`
 - `backfill-user-names.ts` - (UNVERIFIED - check if different purpose)
 
@@ -244,6 +250,7 @@ erDiagram
 **When to run**: After migration `20251228023805_add_firstname_lastname` was applied to existing database.
 
 **How it works**:
+
 1. Finds users where `firstName` OR `lastName` is null AND `name` field exists and is not empty
 2. Uses `splitFullName()` helper from `src/features/auth/lib/name.ts` to split name
 3. Updates only null fields (doesn't overwrite existing data)
@@ -259,6 +266,7 @@ erDiagram
 **Data access layer**: `src/services/database/repositories/`
 
 All database queries go through repository modules:
+
 - `diveLogRepository.ts` - Dive log operations
 - `divePlanRepository.ts` - Dive plan operations
 - `gearRepository.ts` - Gear operations (items, kits, associations)
@@ -335,11 +343,13 @@ await prisma.$transaction(async (tx) => {
 ### Query Locations
 
 **Repository queries** (recommended pattern):
+
 - `src/services/database/repositories/diveLogRepository.ts`
 - `src/services/database/repositories/divePlanRepository.ts`
 - `src/services/database/repositories/gearRepository.ts`
 
 **Direct Prisma queries** (bypass repositories):
+
 - `src/app/api/profile/route.ts` - Complex profile queries with nested relations
 - `src/app/api/certifications/route.ts` - Certification queries
 - `src/app/api/auth/signup/route.ts` - User creation
@@ -367,11 +377,13 @@ await prisma.$transaction(async (tx) => {
 **Issue**: Most profile fields are nullable (`String?`, `Int?`, `Json?`) - 20+ optional fields (`prisma/schema.prisma:29-52`).
 
 **Examples**:
+
 - `firstName`, `lastName` (line 29-30) - Nullable for Google OAuth users
 - All dive-specific profile fields nullable (lines 40-49)
 - `unitPreferences` (line 50) - JSON field, nullable
 
-**Impact**: 
+**Impact**:
+
 - Hard to know which fields are actually required vs optional
 - Many null checks in application code
 - Unclear data invariants
@@ -388,6 +400,7 @@ await prisma.$transaction(async (tx) => {
 - `unitPreferences` - JSON object (line 50)
 
 **Impact**:
+
 - Can't query/filter efficiently on JSON fields
 - No referential integrity
 - Type safety issues (JSON parsed at runtime)
@@ -398,7 +411,8 @@ await prisma.$transaction(async (tx) => {
 
 **Issue**: `DiveLog.date` and `DivePlan.date` stored as `String` instead of `DateTime` (`prisma/schema.prisma:107, 127`).
 
-**Impact**: 
+**Impact**:
+
 - No date validation at database level
 - Date parsing/formatting in application code
 - Can't use SQL date functions
@@ -412,7 +426,8 @@ await prisma.$transaction(async (tx) => {
 - `maxDepthCm` - Integer (centimeters) (line 110, 130)
 - `waterTempCx10` - Integer (tenths of Celsius) (line 112)
 
-**Impact**: 
+**Impact**:
+
 - Requires conversion functions in application code
 - Less readable in database
 - Precision limited to fixed increments
@@ -424,6 +439,7 @@ await prisma.$transaction(async (tx) => {
 **Issue**: `DiveLog.userId` and `DivePlan.userId` are nullable (`String?`) with comment "Optional to allow future guest data migration" (`prisma/schema.prisma:106, 126`).
 
 **Impact**:
+
 - Queries must handle null userId
 - Authorization logic must account for null
 - Unclear if guest feature is actually planned
