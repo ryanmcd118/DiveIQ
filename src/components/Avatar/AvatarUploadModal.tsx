@@ -59,11 +59,17 @@ export function AvatarUploadModal({
 
   // Prevent body scroll when modal is open
   useEffect(() => {
+    if (!isOpen) return;
+    
+    // Store the previous overflow value
+    const previousOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
+    
     return () => {
-      document.body.style.overflow = "";
+      // Restore the previous overflow value
+      document.body.style.overflow = previousOverflow;
     };
-  }, []);
+  }, [isOpen]);
 
   if (!isOpen) return null;
 
