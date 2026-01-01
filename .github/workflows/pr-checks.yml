@@ -9,6 +9,12 @@ on:
 jobs:
   quality:
     runs-on: ubuntu-latest
+    env:
+      # Use placeholder values for build-time checks
+      DATABASE_URL: "file:./prisma/dev.db"
+      NEXTAUTH_SECRET: "placeholder-secret-for-build-check-only"
+      NEXTAUTH_URL: "http://localhost:3000"
+      OPENAI_API_KEY: "sk-placeholder"
     steps:
       - uses: actions/checkout@v4
 
@@ -20,6 +26,9 @@ jobs:
 
       - name: Install dependencies
         run: npm ci
+
+      - name: Generate Prisma client
+        run: npx prisma generate
 
       - name: Run linter
         run: npm run lint
@@ -35,9 +44,3 @@ jobs:
 
       - name: Build
         run: npm run build
-        env:
-          # Use placeholder values for build-time checks
-          DATABASE_URL: "file:./prisma/dev.db"
-          NEXTAUTH_SECRET: "placeholder-secret-for-build-check-only"
-          NEXTAUTH_URL: "http://localhost:3000"
-          OPENAI_API_KEY: "sk-placeholder"
