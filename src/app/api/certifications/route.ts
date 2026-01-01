@@ -11,7 +11,8 @@ import { createUserCertificationSchema } from "@/features/certifications/types";
  * Get all certifications for the authenticated user
  * Returns certifications with expanded definition info
  */
-export async function GET(req: NextRequest) {
+export async function GET(_req: NextRequest) {
+  void _req;
   const session = await getServerSession(authOptions);
 
   if (!session?.user) {
@@ -72,7 +73,7 @@ export async function POST(req: NextRequest) {
     const validationResult = createUserCertificationSchema.safeParse(body);
     if (!validationResult.success) {
       return NextResponse.json(
-        { error: "Invalid input", details: validationResult.error.errors },
+        { error: "Invalid input", details: validationResult.error.issues },
         { status: 400 }
       );
     }
@@ -115,8 +116,7 @@ export async function POST(req: NextRequest) {
 
       // If both have the same earnedDate (or both null) AND same certNumber (or both null), it's a duplicate
       return (
-        certEarnedDate === inputEarnedDate &&
-        certCertNumber === inputCertNumber
+        certEarnedDate === inputEarnedDate && certCertNumber === inputCertNumber
       );
     });
 
@@ -173,4 +173,3 @@ export async function POST(req: NextRequest) {
     );
   }
 }
-

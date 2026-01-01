@@ -17,8 +17,13 @@
   position: absolute;
   inset: 0;
   background:
-    radial-gradient(1200px 700px at 50% 45%, rgba(0, 0, 0, 0.02) 0%, rgba(0, 0, 0, 0.12) 70%, rgba(0, 0, 0, 0.25) 100%),
-    linear-gradient(180deg, rgba(5, 15, 25, 0.15) 0%, rgba(5, 15, 25, 0.20) 100%);
+    radial-gradient(
+      1200px 700px at 50% 45%,
+      rgba(0, 0, 0, 0.02) 0%,
+      rgba(0, 0, 0, 0.12) 70%,
+      rgba(0, 0, 0, 0.25) 100%
+    ),
+    linear-gradient(180deg, rgba(5, 15, 25, 0.15) 0%, rgba(5, 15, 25, 0.2) 100%);
   z-index: 1;
   pointer-events: none;
 }
@@ -49,7 +54,7 @@
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
   /* Reduced opacity to let more background show through (from 0.95 to 0.70) */
-  background: rgba(15, 23, 42, 0.70);
+  background: rgba(15, 23, 42, 0.7);
 }
 
 @media (min-width: 768px) {
@@ -92,4 +97,3 @@
   color: var(--color-text-secondary);
   margin: 0;
 }
-

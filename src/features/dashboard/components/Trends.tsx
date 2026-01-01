@@ -28,7 +28,10 @@ export function Trends({ divesOverTime, bottomTimeTrend }: TrendsProps) {
   ];
 
   const maxDives = Math.max(...mockDivesOverTime.map((d) => d.count), 1);
-  const maxBottomTime = Math.max(...mockBottomTimeTrend.map((d) => d.bottomTime), 1);
+  const maxBottomTime = Math.max(
+    ...mockBottomTimeTrend.map((d) => d.bottomTime),
+    1
+  );
 
   return (
     <section className={styles.trends}>
@@ -81,4 +84,3 @@ export function Trends({ divesOverTime, bottomTimeTrend }: TrendsProps) {
     </section>
   );
 }
-

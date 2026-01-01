@@ -9,7 +9,9 @@ interface ProfileCertificationsProps {
   isOwner?: boolean;
 }
 
-export function ProfileCertifications({ isOwner = true }: ProfileCertificationsProps) {
+export function ProfileCertifications({
+  isOwner = true,
+}: ProfileCertificationsProps) {
   const [certifications, setCertifications] = useState<UserCertification[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -177,8 +179,12 @@ export function ProfileCertifications({ isOwner = true }: ProfileCertificationsP
                 <div key={cert.id} className={styles.highlightCard}>
                   <div className={styles.highlightName}>{def.name}</div>
                   <div className={styles.highlightMeta}>
-                    <span className={styles.highlightAgencyTag}>{def.agency}</span>
-                    {year && <span className={styles.highlightYear}>{year}</span>}
+                    <span className={styles.highlightAgencyTag}>
+                      {def.agency}
+                    </span>
+                    {year && (
+                      <span className={styles.highlightYear}>{year}</span>
+                    )}
                   </div>
                 </div>
               );
@@ -224,4 +230,3 @@ export function ProfileCertifications({ isOwner = true }: ProfileCertificationsP
     </div>
   );
 }
-

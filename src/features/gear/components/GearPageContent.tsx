@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
-import type { GearItem, GearKit } from "@prisma/client";
+import type { GearItem } from "@prisma/client";
 import { GearKitWithItems } from "@/services/database/repositories/gearRepository";
 import { MaintenanceDueSection } from "./MaintenanceDueSection";
 import { KitsSection } from "./KitsSection";
@@ -23,15 +23,24 @@ export function GearPageContent() {
   const [showKitForm, setShowKitForm] = useState(false);
   const [editingGear, setEditingGear] = useState<GearItem | null>(null);
   const [editingKit, setEditingKit] = useState<GearKitWithItems | null>(null);
-  const [toast, setToast] = useState<{ message: string; onUndo?: () => void } | null>(null);
-  const [deleteConfirm, setDeleteConfirm] = useState<{ id: string; type: "gear" | "kit" } | null>(null);
+  const [toast, setToast] = useState<{
+    message: string;
+    onUndo?: () => void;
+  } | null>(null);
+  const [deleteConfirm, setDeleteConfirm] = useState<{
+    id: string;
+    type: "gear" | "kit";
+  } | null>(null);
   const [archivedGearId, setArchivedGearId] = useState<string | null>(null);
+  void archivedGearId;
   const [autoExpandArchived, setAutoExpandArchived] = useState(false);
   const [archiveConfirm, setArchiveConfirm] = useState<{
     itemId: string;
     kitIds: string[];
   } | null>(null);
-  const [highlightedGearId, setHighlightedGearId] = useState<string | null>(null);
+  const [highlightedGearId, setHighlightedGearId] = useState<string | null>(
+    null
+  );
   const gearCardRefs = useRef<Map<string, HTMLLIElement>>(new Map());
 
   const loadData = async (showLoading = true) => {
@@ -113,7 +122,8 @@ export function GearPageContent() {
     if (!deleteConfirm) return;
 
     try {
-      const endpoint = deleteConfirm.type === "gear" ? "/api/gear" : "/api/gear-kits";
+      const endpoint =
+        deleteConfirm.type === "gear" ? "/api/gear" : "/api/gear-kits";
       const res = await fetch(`${endpoint}?id=${deleteConfirm.id}`, {
         method: "DELETE",
       });
@@ -123,7 +133,9 @@ export function GearPageContent() {
       }
 
       setDeleteConfirm(null);
-      setToast({ message: deleteConfirm.type === "gear" ? "Gear deleted" : "Kit deleted" });
+      setToast({
+        message: deleteConfirm.type === "gear" ? "Gear deleted" : "Kit deleted",
+      });
       void loadData();
     } catch (err) {
       console.error(err);
@@ -139,10 +151,17 @@ export function GearPageContent() {
   const handleArchiveGear = (itemId: string) => {
     // Look up the item from current state
     const item = gearItems.find((g) => g.id === itemId);
-    
+
     // Hard debug logs
-    console.log("[toggleArchive] clicked", itemId, "found?", !!item, "isActive?", item?.isActive);
-    
+    console.log(
+      "[toggleArchive] clicked",
+      itemId,
+      "found?",
+      !!item,
+      "isActive?",
+      item?.isActive
+    );
+
     if (!item) {
       console.warn("[toggleArchive] item not found in gearItems", itemId);
       return;
@@ -152,7 +171,7 @@ export function GearPageContent() {
     if (item.isActive === true) {
       // ARCHIVE action
       const affected = kitsContainingItem(itemId);
-      
+
       if (affected.length > 0) {
         // Item is in kits - show confirmation modal
         setArchiveConfirm({
@@ -289,7 +308,9 @@ export function GearPageContent() {
               setToast(null);
               // Optimistically revert
               setGearItems((prev) =>
-                prev.map((g) => (g.id === itemId ? { ...g, isActive: true } : g))
+                prev.map((g) =>
+                  g.id === itemId ? { ...g, isActive: true } : g
+                )
               );
               void loadData(false);
             }
@@ -477,7 +498,13 @@ export function GearPageContent() {
             message={
               <>
                 This item will be removed from the following saved kits:
-                <ul style={{ marginTop: "1rem", marginBottom: 0, paddingLeft: "1.5rem" }}>
+                <ul
+                  style={{
+                    marginTop: "1rem",
+                    marginBottom: 0,
+                    paddingLeft: "1.5rem",
+                  }}
+                >
                   {kits
                     .filter((k) => archiveConfirm.kitIds.includes(k.id))
                     .map((kit) => (
@@ -520,4 +547,3 @@ export function GearPageContent() {
     </main>
   );
 }
-

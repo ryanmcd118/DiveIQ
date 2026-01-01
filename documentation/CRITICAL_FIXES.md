@@ -3,23 +3,27 @@
 ## Issues Fixed
 
 ### Issue 1: Hydration Mismatch (DashboardPageContent.tsx)
+
 **Problem**: Server-rendered unit values (metric) didn't match client values (user's preference from localStorage), causing Next.js hydration warnings.
 
 **Root Cause**: `useUnitSystem()` reads from localStorage on client, but server defaults to 'metric'. The `displayDepth()` function produced different values on server vs client.
 
-**Solution**: 
+**Solution**:
+
 - Added `isMounted` state using `useEffect` to detect client mount
 - All unit-dependent displays use `'metric'` (stable) until mounted
 - After mount, switch to user's `unitSystem` preference
 - This ensures SSR and initial client render match exactly
 
 **Files Changed**:
+
 - `src/features/dashboard/components/DashboardPageContent.tsx`
   - Added `useState` and `useEffect` imports
   - Added `isMounted` state
   - Updated all `displayDepth()`, `displayDistance()`, and `displayTemperature()` calls to use `isMounted ? unitSystem : 'metric'`
 
 **Locations Fixed**:
+
 - Line 34: `deepestDiveDisplay` (stat card)
 - Line 105: `depth` (most recent dive)
 - Line 107: `visibility` (most recent dive)
@@ -28,15 +32,18 @@
 - Line 257: `depth` (recent plans list)
 
 ### Issue 2: Runtime Crash (PlanPageContent.tsx)
+
 **Problem**: `hasPlanDraft is not defined` error when visiting `/dive-plans`.
 
 **Root Cause**: Variable name typo - hook returns `hasDraftPlan` but component used `hasPlanDraft`.
 
-**Solution**: 
+**Solution**:
+
 - Changed `hasPlanDraft={hasPlanDraft}` to `hasPlanDraft={hasDraftPlan}`
 - The prop name in `SaveDivePlanButton` is `hasPlanDraft`, but the value comes from `hasDraftPlan` (correctly destructured from hook)
 
 **Files Changed**:
+
 - `src/features/dive-plan/components/PlanPageContent.tsx`
   - Line 103: Fixed prop value from `hasPlanDraft` to `hasDraftPlan`
 
@@ -55,6 +62,7 @@
 ## Technical Details
 
 ### Hydration Fix Pattern
+
 ```tsx
 const [isMounted, setIsMounted] = useState(false);
 
@@ -63,10 +71,11 @@ useEffect(() => {
 }, []);
 
 // Use stable value for SSR, user preference after mount
-const display = displayDepth(value, isMounted ? unitSystem : 'metric');
+const display = displayDepth(value, isMounted ? unitSystem : "metric");
 ```
 
 This pattern ensures:
+
 1. Server renders with 'metric' (stable, predictable)
 2. Initial client render matches server (no hydration warning)
 3. After mount, updates to user's preference (imperial if set)
@@ -88,6 +97,7 @@ This pattern ensures:
 ## Summary
 
 Both critical issues are resolved:
+
 - **Hydration warnings eliminated** by using stable metric values until client mount
 - **Runtime crash fixed** by correcting variable name reference
 - **No business logic changes** - only rendering fixes

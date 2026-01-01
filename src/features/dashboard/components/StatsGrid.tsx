@@ -1,9 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
 import { useUnitPreferences } from "@/hooks/useUnitPreferences";
 import { displayDepth } from "@/lib/units";
-import cardStyles from "@/styles/components/Card.module.css";
 import styles from "./StatsGrid.module.css";
 
 interface StatsGridProps {
@@ -26,9 +24,7 @@ export function StatsGrid({
   const { prefs } = useUnitPreferences();
 
   const deepestDiveDisplay = displayDepth(deepestDive, prefs.depth);
-  const avgDepthDisplay = avgDepth
-    ? displayDepth(avgDepth, prefs.depth)
-    : null;
+  const avgDepthDisplay = avgDepth ? displayDepth(avgDepth, prefs.depth) : null;
 
   return (
     <section className={styles.statsSection}>
@@ -37,7 +33,9 @@ export function StatsGrid({
       </h2>
       <div className={styles.grid}>
         {/* Hero stat - spans 2 columns on desktop */}
-        <div className={`${styles.statCard} ${styles.statCardTier2} ${styles.statCardHero}`}>
+        <div
+          className={`${styles.statCard} ${styles.statCardTier2} ${styles.statCardHero}`}
+        >
           <p className={styles.statLabel}>Total dives</p>
           <p className={styles.statValue}>{totalDives}</p>
         </div>
@@ -86,4 +84,3 @@ export function StatsGrid({
     </section>
   );
 }
-

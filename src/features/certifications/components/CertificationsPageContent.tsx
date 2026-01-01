@@ -16,7 +16,9 @@ export function CertificationsPageContent() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showForm, setShowForm] = useState(false);
-  const [editingCert, setEditingCert] = useState<UserCertification | null>(null);
+  const [editingCert, setEditingCert] = useState<UserCertification | null>(
+    null
+  );
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
   const [toast, setToast] = useState<{ message: string } | null>(null);
   const [expandedCards, setExpandedCards] = useState<Set<string>>(new Set());
@@ -60,68 +62,76 @@ export function CertificationsPageContent() {
   };
 
   // Group and sort certifications
-  const { featuredCerts, coreCerts, specialtyCerts, hasMaxFeatured } = useMemo(() => {
-    // Separate featured and non-featured
-    const featured: UserCertification[] = [];
-    const core: UserCertification[] = [];
-    const specialty: UserCertification[] = [];
+  const { featuredCerts, coreCerts, specialtyCerts, hasMaxFeatured } =
+    useMemo(() => {
+      // Separate featured and non-featured
+      const featured: UserCertification[] = [];
+      const core: UserCertification[] = [];
+      const specialty: UserCertification[] = [];
 
-    certifications.forEach((cert) => {
-      if (cert.isFeatured) {
-        featured.push(cert);
-      } else {
-        if (cert.certificationDefinition.category === "core") {
-          core.push(cert);
-        } else if (cert.certificationDefinition.category === "specialty") {
-          specialty.push(cert);
+      certifications.forEach((cert) => {
+        if (cert.isFeatured) {
+          featured.push(cert);
+        } else {
+          if (cert.certificationDefinition.category === "core") {
+            core.push(cert);
+          } else if (cert.certificationDefinition.category === "specialty") {
+            specialty.push(cert);
+          }
         }
-      }
-    });
+      });
 
-    // Sort featured: core first (levelRank DESC), then specialties (earnedDate DESC)
-    const featuredCore = featured.filter(
-      (c) => c.certificationDefinition.category === "core"
-    );
-    const featuredSpecialty = featured.filter(
-      (c) => c.certificationDefinition.category === "specialty"
-    );
+      // Sort featured: core first (levelRank DESC), then specialties (earnedDate DESC)
+      const featuredCore = featured.filter(
+        (c) => c.certificationDefinition.category === "core"
+      );
+      const featuredSpecialty = featured.filter(
+        (c) => c.certificationDefinition.category === "specialty"
+      );
 
-    featuredCore.sort((a, b) => {
-      const rankDiff = b.certificationDefinition.levelRank - a.certificationDefinition.levelRank;
-      if (rankDiff !== 0) return rankDiff;
-      return getSortDate(b) - getSortDate(a);
-    });
+      featuredCore.sort((a, b) => {
+        const rankDiff =
+          b.certificationDefinition.levelRank -
+          a.certificationDefinition.levelRank;
+        if (rankDiff !== 0) return rankDiff;
+        return getSortDate(b) - getSortDate(a);
+      });
 
-    featuredSpecialty.sort((a, b) => getSortDate(b) - getSortDate(a));
+      featuredSpecialty.sort((a, b) => getSortDate(b) - getSortDate(a));
 
-    const sortedFeatured = [...featuredCore, ...featuredSpecialty].slice(0, 3);
+      const sortedFeatured = [...featuredCore, ...featuredSpecialty].slice(
+        0,
+        3
+      );
 
-    // Sort core: by levelRank DESC, then earnedDate DESC (fallback createdAt)
-    core.sort((a, b) => {
-      const rankDiff = b.certificationDefinition.levelRank - a.certificationDefinition.levelRank;
-      if (rankDiff !== 0) return rankDiff;
-      
-      const aDate = getSortDate(a);
-      const bDate = getSortDate(b);
-      return bDate - aDate;
-    });
+      // Sort core: by levelRank DESC, then earnedDate DESC (fallback createdAt)
+      core.sort((a, b) => {
+        const rankDiff =
+          b.certificationDefinition.levelRank -
+          a.certificationDefinition.levelRank;
+        if (rankDiff !== 0) return rankDiff;
 
-    // Sort specialty: by earnedDate DESC (fallback createdAt)
-    specialty.sort((a, b) => {
-      const aDate = getSortDate(a);
-      const bDate = getSortDate(b);
-      return bDate - aDate;
-    });
+        const aDate = getSortDate(a);
+        const bDate = getSortDate(b);
+        return bDate - aDate;
+      });
 
-    const hasMaxFeatured = sortedFeatured.length >= 3;
+      // Sort specialty: by earnedDate DESC (fallback createdAt)
+      specialty.sort((a, b) => {
+        const aDate = getSortDate(a);
+        const bDate = getSortDate(b);
+        return bDate - aDate;
+      });
 
-    return {
-      featuredCerts: sortedFeatured,
-      coreCerts: core,
-      specialtyCerts: specialty,
-      hasMaxFeatured,
-    };
-  }, [certifications]);
+      const hasMaxFeatured = sortedFeatured.length >= 3;
+
+      return {
+        featuredCerts: sortedFeatured,
+        coreCerts: core,
+        specialtyCerts: specialty,
+        hasMaxFeatured,
+      };
+    }, [certifications]);
 
   const handleAdd = () => {
     setEditingCert(null);
@@ -152,15 +162,16 @@ export function CertificationsPageContent() {
 
       // Optimistically remove from UI
       setCertifications((prev) => prev.filter((c) => c.id !== deleteConfirm));
-      
+
       setDeleteConfirm(null);
       setToast({ message: "Certification deleted" });
-      
+
       // Refetch to ensure consistency
       void loadData();
     } catch (err) {
       console.error(err);
-      const errorMessage = err instanceof Error ? err.message : "Failed to delete certification";
+      const errorMessage =
+        err instanceof Error ? err.message : "Failed to delete certification";
       setDeleteConfirm(null);
       setToast({ message: errorMessage });
     }
@@ -202,7 +213,9 @@ export function CertificationsPageContent() {
     if (success) {
       setShowForm(false);
       setEditingCert(null);
-      setToast({ message: editingCert ? "Certification updated" : "Certification added" });
+      setToast({
+        message: editingCert ? "Certification updated" : "Certification added",
+      });
       void loadData();
     } else {
       // Error is already shown in the modal, just keep it open
@@ -254,7 +267,10 @@ export function CertificationsPageContent() {
           <div className={styles.emptyState}>
             <div className={styles.emptyIcon}>🏆</div>
             <h2>No certifications yet</h2>
-            <p>Start tracking your diving achievements by adding your first certification.</p>
+            <p>
+              Start tracking your diving achievements by adding your first
+              certification.
+            </p>
             <button
               onClick={handleAdd}
               className={buttonStyles.primaryGradient}
@@ -268,7 +284,9 @@ export function CertificationsPageContent() {
             <section className={styles.section}>
               <div className={styles.sectionHeader}>
                 <div>
-                  <h2 className={styles.sectionTitle}>Featured certifications</h2>
+                  <h2 className={styles.sectionTitle}>
+                    Featured certifications
+                  </h2>
                   <p className={styles.sectionSubtitle}>
                     You can feature up to 3 certifications
                   </p>
@@ -277,7 +295,8 @@ export function CertificationsPageContent() {
               {featuredCerts.length === 0 ? (
                 <div className={styles.featuredEmptyState}>
                   <p className={styles.featuredEmptyText}>
-                    Feature up to three certifications to highlight your experience.
+                    Feature up to three certifications to highlight your
+                    experience.
                   </p>
                   <p className={styles.featuredEmptySubtext}>
                     These will appear on your dashboard and profile.
@@ -381,4 +400,3 @@ export function CertificationsPageContent() {
     </main>
   );
 }
-

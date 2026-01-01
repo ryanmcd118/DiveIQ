@@ -3,7 +3,6 @@
 import { useEffect } from "react";
 import gridStyles from "@/styles/components/PageGrid.module.css";
 import buttonStyles from "@/styles/components/Button.module.css";
-import styles from "./Toast.module.css";
 
 interface ToastProps {
   message: string;
@@ -12,7 +11,12 @@ interface ToastProps {
   duration?: number;
 }
 
-export function Toast({ message, onUndo, onClose, duration = 5000 }: ToastProps) {
+export function Toast({
+  message,
+  onUndo,
+  onClose,
+  duration = 5000,
+}: ToastProps) {
   useEffect(() => {
     if (!onUndo) {
       const timer = setTimeout(() => {
@@ -46,4 +50,3 @@ export function Toast({ message, onUndo, onClose, duration = 5000 }: ToastProps)
     </div>
   );
 }
-

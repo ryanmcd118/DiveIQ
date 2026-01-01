@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useEffect, useRef } from "react";
+import { useState, useMemo, useEffect, useRef, useCallback } from "react";
 import type { GearItem } from "@prisma/client";
 import { GearKitWithItems } from "@/services/database/repositories/gearRepository";
 import {
@@ -26,7 +26,7 @@ interface Props {
   onEditGear: (item: GearItem) => void;
   onDeleteGear: (id: string) => void;
   onArchiveGear: (id: string) => void;
-  onRefresh: () => void;
+  onRefresh?: () => void;
   autoExpandArchived?: boolean;
   onAutoExpandArchivedComplete?: () => void;
   onAddGear: () => void;
@@ -40,7 +40,6 @@ export function GearListSection({
   onEditGear,
   onDeleteGear,
   onArchiveGear,
-  onRefresh,
   autoExpandArchived = false,
   onAutoExpandArchivedComplete,
   onAddGear,
@@ -50,14 +49,16 @@ export function GearListSection({
   const [typeFilter, setTypeFilter] = useState<string>("all");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [sortBy, setSortBy] = useState<SortOption>("soonest-due");
-  const [isArchivedOpen, setIsArchivedOpen] = useState(false);
+  const [archivedOpenState, setArchivedOpenState] = useState(false);
   const [expandedItems, setExpandedItems] = useState<Set<string>>(new Set());
   const archivedSectionRef = useRef<HTMLDivElement>(null);
 
-  // Handle auto-expand when archiving
+  // Derive isArchivedOpen from autoExpandArchived or user-toggled state
+  const isArchivedOpen = autoExpandArchived ? true : archivedOpenState;
+
+  // Handle scrolling when auto-expand is triggered (effects can touch DOM)
   useEffect(() => {
     if (autoExpandArchived) {
-      setIsArchivedOpen(true);
       // Smooth scroll to archived section after a brief delay to allow render
       setTimeout(() => {
         if (archivedSectionRef.current) {
@@ -126,54 +127,57 @@ export function GearListSection({
     return { activeItems: active, inactiveItems: inactive };
   }, [gearItems]);
 
-  const applyFiltersAndSort = (items: GearItem[]) => {
-    let filtered = [...items];
+  const applyFiltersAndSort = useCallback(
+    (items: GearItem[]) => {
+      let filtered = [...items];
 
-    if (typeFilter !== "all") {
-      filtered = filtered.filter((item) => item.type === typeFilter);
-    }
-
-    if (statusFilter !== "all") {
-      filtered = filtered.filter((item) => {
-        const status = computeMaintenanceStatus(item);
-        return status === statusFilter;
-      });
-    }
-
-    // Apply sorting
-    let sorted = [...filtered];
-
-    if (sortBy === "soonest-due" || sortBy === "most-overdue") {
-      sorted = sortGearByMaintenanceDue(sorted, computeMaintenanceStatus);
-      if (sortBy === "most-overdue") {
-        // Reverse to show most overdue first
-        sorted = sorted.reverse();
+      if (typeFilter !== "all") {
+        filtered = filtered.filter((item) => item.type === typeFilter);
       }
-    } else if (sortBy === "name-az") {
-      sorted.sort((a, b) => {
-        const nameA = getPrimaryTitle(a).toLowerCase();
-        const nameB = getPrimaryTitle(b).toLowerCase();
-        return nameA.localeCompare(nameB);
-      });
-    } else if (sortBy === "recently-updated") {
-      sorted.sort((a, b) => {
-        const dateA = new Date(a.updatedAt).getTime();
-        const dateB = new Date(b.updatedAt).getTime();
-        return dateB - dateA; // Most recent first
-      });
-    }
 
-    return sorted;
-  };
+      if (statusFilter !== "all") {
+        filtered = filtered.filter((item) => {
+          const status = computeMaintenanceStatus(item);
+          return status === statusFilter;
+        });
+      }
+
+      // Apply sorting
+      let sorted = [...filtered];
+
+      if (sortBy === "soonest-due" || sortBy === "most-overdue") {
+        sorted = sortGearByMaintenanceDue(sorted, computeMaintenanceStatus);
+        if (sortBy === "most-overdue") {
+          // Reverse to show most overdue first
+          sorted = sorted.reverse();
+        }
+      } else if (sortBy === "name-az") {
+        sorted.sort((a, b) => {
+          const nameA = getPrimaryTitle(a).toLowerCase();
+          const nameB = getPrimaryTitle(b).toLowerCase();
+          return nameA.localeCompare(nameB);
+        });
+      } else if (sortBy === "recently-updated") {
+        sorted.sort((a, b) => {
+          const dateA = new Date(a.updatedAt).getTime();
+          const dateB = new Date(b.updatedAt).getTime();
+          return dateB - dateA; // Most recent first
+        });
+      }
+
+      return sorted;
+    },
+    [typeFilter, statusFilter, sortBy]
+  );
 
   const filteredAndSortedActive = useMemo(
     () => applyFiltersAndSort(activeItems),
-    [activeItems, typeFilter, statusFilter, sortBy]
+    [activeItems, applyFiltersAndSort]
   );
 
   const filteredAndSortedInactive = useMemo(
     () => applyFiltersAndSort(inactiveItems),
-    [inactiveItems, typeFilter, statusFilter, sortBy]
+    [inactiveItems, applyFiltersAndSort]
   );
 
   const getStatusLabel = (status: MaintenanceStatus): string => {
@@ -571,7 +575,7 @@ export function GearListSection({
           <div ref={archivedSectionRef} className={styles.archivedSection}>
             <button
               type="button"
-              onClick={() => setIsArchivedOpen(!isArchivedOpen)}
+              onClick={() => setArchivedOpenState(!archivedOpenState)}
               className={styles.archivedHeader}
             >
               <span className={styles.archivedHeaderText}>

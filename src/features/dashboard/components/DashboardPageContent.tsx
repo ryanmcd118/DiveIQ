@@ -7,7 +7,6 @@ import { StatsGrid } from "./StatsGrid";
 import { ActivityTabs } from "./ActivityTabs";
 import { RightRail } from "./RightRail";
 import { Trends } from "./Trends";
-import backgroundStyles from "@/styles/components/Background.module.css";
 import styles from "./DashboardPageContent.module.css";
 
 type Props = {
@@ -25,19 +24,22 @@ export function DashboardPageContent({
   totalBottomTime,
   deepestDive,
   recentPlans,
-  isAuthenticated = false,
+  isAuthenticated: _isAuthenticated = false,
 }: Props) {
+  void _isAuthenticated;
   const mostRecentDive = recentDives[0];
   const nextPlannedDive = recentPlans[0]; // Assuming plans are ordered by date
 
   // Calculate additional stats
   const avgDepth =
     recentDives.length > 0
-      ? recentDives.reduce((sum, dive) => sum + dive.maxDepthCm, 0) / recentDives.length
+      ? recentDives.reduce((sum, dive) => sum + dive.maxDepthCm, 0) /
+        recentDives.length
       : undefined;
   const avgBottomTime =
     recentDives.length > 0
-      ? recentDives.reduce((sum, dive) => sum + dive.bottomTime, 0) / recentDives.length
+      ? recentDives.reduce((sum, dive) => sum + dive.bottomTime, 0) /
+        recentDives.length
       : undefined;
 
   // Calculate dives this month (mock for now, would need date filtering)
@@ -80,7 +82,10 @@ export function DashboardPageContent({
             />
 
             {/* Activity section */}
-            <ActivityTabs recentDives={recentDives} plannedDives={recentPlans} />
+            <ActivityTabs
+              recentDives={recentDives}
+              plannedDives={recentPlans}
+            />
 
             {/* Trends */}
             <Trends />

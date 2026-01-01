@@ -27,6 +27,7 @@ export function useAuth() {
       router.refresh();
       return { success: true };
     } catch (error) {
+      void error;
       setIsLoading(false);
       return { success: false, error: "An unexpected error occurred" };
     }
@@ -74,6 +75,7 @@ export function useAuth() {
       router.refresh();
       return { success: true };
     } catch (error) {
+      void error;
       setIsLoading(false);
       return { success: false, error: "An unexpected error occurred" };
     }
@@ -92,5 +94,3 @@ export function useAuth() {
     signOutUser,
   };
 }
-
-

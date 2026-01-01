@@ -3,7 +3,6 @@ import type { AIBriefing, RiskLevel } from "@/features/dive-plan/types";
 import type { UnitSystem } from "@/lib/units";
 import {
   mToFt,
-  cToF,
   parseTemperatureString,
   parseDistanceString,
 } from "@/lib/units";
@@ -125,8 +124,6 @@ Rules:
 - Never hallucinate specific numbers; use ranges with sourceTag if uncertain
 `.trim();
 }
-
-const BRIEFING_SYSTEM_PROMPT = buildSystemPrompt("metric");
 
 function buildUpdatedSystemPrompt(unitSystem: UnitSystem = "metric"): string {
   const basePrompt = buildSystemPrompt(unitSystem);

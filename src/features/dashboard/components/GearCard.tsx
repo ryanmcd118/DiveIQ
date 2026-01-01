@@ -6,7 +6,6 @@ import type { GearItem } from "@prisma/client";
 import { GearKitWithItems } from "@/services/database/repositories/gearRepository";
 import {
   computeMaintenanceStatus,
-  getNextServiceDueAt,
   sortGearByMaintenanceDue,
   type MaintenanceStatus,
 } from "@/features/gear/lib/maintenance";
@@ -31,23 +30,28 @@ export function GearCard() {
           const kitsData = await kitsRes.json();
           const gearData = await gearRes.json();
 
-          const defaultKit = kitsData.kits.find((k: GearKitWithItems) => k.isDefault);
+          const defaultKit = kitsData.kits.find(
+            (k: GearKitWithItems) => k.isDefault
+          );
           setDefaultKit(defaultKit ?? null);
 
           // Get maintenance due items
-          const itemsWithStatus = gearData.items.map((item: GearItem) => ({
+          const itemsWithStatus: Array<{
+            item: GearItem;
+            status: MaintenanceStatus;
+          }> = gearData.items.map((item: GearItem) => ({
             item,
             status: computeMaintenanceStatus(item),
           }));
 
           const dueItems = itemsWithStatus.filter(
-            (i: any) => i.status === "OVERDUE" || i.status === "DUE_SOON"
+            (i) => i.status === "OVERDUE" || i.status === "DUE_SOON"
           );
 
           const sorted = sortGearByMaintenanceDue(
-            dueItems.map((i: any) => i.item),
+            dueItems.map((i) => i.item),
             (item) => {
-              const found = itemsWithStatus.find((i: any) => i.item.id === item.id);
+              const found = itemsWithStatus.find((i) => i.item.id === item.id);
               return found?.status ?? "NO_SCHEDULE";
             }
           );
@@ -126,7 +130,9 @@ export function GearCard() {
               const status = computeMaintenanceStatus(item);
               return (
                 <li key={item.id} className={styles.maintenanceItem}>
-                  <span className={styles.itemName}>{getDisplayName(item)}</span>
+                  <span className={styles.itemName}>
+                    {getDisplayName(item)}
+                  </span>
                   <span
                     className={`${styles.statusPill} ${getStatusClass(status)}`}
                   >
@@ -147,4 +153,3 @@ export function GearCard() {
     </div>
   );
 }
-

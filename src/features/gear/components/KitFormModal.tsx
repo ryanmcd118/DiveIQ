@@ -229,7 +229,9 @@ export function KitFormModal({
                       <span className={styles.gearItemName}>
                         {getPrimaryTitle(item)}
                       </span>
-                      <span className={styles.gearItemType}>{formatGearTypeLabel(item.type as GearType)}</span>
+                      <span className={styles.gearItemType}>
+                        {formatGearTypeLabel(item.type as GearType)}
+                      </span>
                     </div>
                   </label>
                 ))}
@@ -260,4 +262,3 @@ export function KitFormModal({
     </div>
   );
 }
-

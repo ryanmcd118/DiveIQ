@@ -17,7 +17,7 @@
   border: 1px solid rgba(6, 182, 212, 0.15);
   border-radius: var(--radius-xl);
   padding: var(--space-6);
-  box-shadow: 
+  box-shadow:
     0 4px 24px rgba(0, 0, 0, 0.4),
     0 0 0 1px rgba(6, 182, 212, 0.05),
     inset 0 1px 0 rgba(255, 255, 255, 0.02);
@@ -196,7 +196,11 @@
   line-height: 1.6;
   color: var(--color-text-primary);
   padding: var(--space-3) var(--space-4);
-  background: linear-gradient(135deg, rgba(6, 182, 212, 0.1) 0%, rgba(6, 182, 212, 0.03) 100%);
+  background: linear-gradient(
+    135deg,
+    rgba(6, 182, 212, 0.1) 0%,
+    rgba(6, 182, 212, 0.03) 100%
+  );
   border: 1px solid rgba(6, 182, 212, 0.2);
   border-radius: var(--radius-lg);
 }
@@ -474,14 +478,13 @@
   .quickLookContainer {
     gap: var(--space-2);
   }
-  
+
   .chip {
     min-width: calc(50% - var(--space-1));
     flex: 1 1 calc(50% - var(--space-1));
   }
-  
+
   .briefingContainer {
     padding: var(--space-4);
   }
 }
-

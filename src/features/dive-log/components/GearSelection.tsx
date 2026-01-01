@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import type { GearItem } from "@prisma/client";
+import type { GearItem, GearKitItem } from "@prisma/client";
 import formStyles from "@/styles/components/Form.module.css";
 import buttonStyles from "@/styles/components/Button.module.css";
 import styles from "./GearSelection.module.css";
@@ -19,7 +19,7 @@ export function GearSelection({
 }: Props) {
   // Ensure selectedGearIds is always an array
   const selectedGearIdsSafe = selectedGearIds ?? [];
-  
+
   const [gearItems, setGearItems] = useState<GearItem[]>([]);
   const [defaultKitGearIds, setDefaultKitGearIds] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
@@ -41,7 +41,7 @@ export function GearSelection({
           const kitData = await defaultKitRes.json();
           if (kitData.kit) {
             const kitGearIds = kitData.kit.kitItems.map(
-              (ki: any) => ki.gearItemId
+              (ki: GearKitItem) => ki.gearItemId
             );
             setDefaultKitGearIds(kitGearIds);
             // No auto-prefill - user must explicitly click "Use default kit" button
@@ -58,8 +58,8 @@ export function GearSelection({
   }, [editingEntryId, onSelectionChange]);
 
   const toggleGearItem = (id: string) => {
-    if (typeof onSelectionChange !== 'function') {
-      console.error('GearSelection: onSelectionChange is not a function');
+    if (typeof onSelectionChange !== "function") {
+      console.error("GearSelection: onSelectionChange is not a function");
       return;
     }
     const newSelection = selectedGearIdsSafe.includes(id)
@@ -69,8 +69,8 @@ export function GearSelection({
   };
 
   const handleUseDefaultKit = () => {
-    if (typeof onSelectionChange !== 'function') {
-      console.error('GearSelection: onSelectionChange is not a function');
+    if (typeof onSelectionChange !== "function") {
+      console.error("GearSelection: onSelectionChange is not a function");
       return;
     }
     if (defaultKitGearIds.length > 0) {
@@ -124,7 +124,9 @@ export function GearSelection({
               className={styles.checkbox}
             />
             <div className={styles.gearItemContent}>
-              <span className={styles.gearItemName}>{getDisplayName(item)}</span>
+              <span className={styles.gearItemName}>
+                {getDisplayName(item)}
+              </span>
               <span className={styles.gearItemType}>{item.type}</span>
             </div>
           </label>
@@ -149,4 +151,3 @@ export function GearSelection({
     </div>
   );
 }
-

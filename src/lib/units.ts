@@ -418,6 +418,7 @@ export function parseTemperatureString(
 
   const isFahrenheit = /°?F\b/i.test(cleaned);
   const isCelsius = /°?C\b/i.test(cleaned) && !isFahrenheit;
+  void isCelsius;
 
   // Extract numbers (supports ranges like "24-26" or single values like "25")
   const numberMatch = cleaned.match(
@@ -465,6 +466,7 @@ export function parseDistanceString(
 
   const isFeet = /\b(ft|feet)\b/i.test(cleaned);
   const isMeters = /\bm\b/i.test(cleaned) && !isFeet;
+  void isMeters;
 
   // Extract numbers (supports ranges like "15-25" or single values like "20")
   const numberMatch = cleaned.match(

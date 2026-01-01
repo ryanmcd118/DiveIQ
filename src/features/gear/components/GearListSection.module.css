@@ -31,7 +31,10 @@
   cursor: pointer;
   padding: 0;
   margin: 0;
-  transition: color 175ms ease, border-color 175ms ease, background-color 175ms ease;
+  transition:
+    color 175ms ease,
+    border-color 175ms ease,
+    background-color 175ms ease;
   vertical-align: middle;
 }
 
@@ -57,7 +60,6 @@
   flex-wrap: wrap;
 }
 
-
 .filters .field {
   flex: 0 1 auto;
   min-width: 200px;
@@ -76,7 +78,6 @@
   /* Match the total field height: label + gap + select input */
   min-height: calc(1.5rem + var(--space-1) + var(--space-3) * 2 + 1.5em);
 }
-
 
 .list {
   list-style: none;
@@ -97,13 +98,17 @@
   justify-content: space-between;
   gap: var(--space-4);
   transition: all var(--transition-base);
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08), 0 1px 2px rgba(0, 0, 0, 0.04);
+  box-shadow:
+    0 1px 3px rgba(0, 0, 0, 0.08),
+    0 1px 2px rgba(0, 0, 0, 0.04);
   position: relative;
 }
 
 .item:hover {
   border-color: var(--color-border-hover);
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1), 0 2px 4px rgba(0, 0, 0, 0.06);
+  box-shadow:
+    0 4px 6px rgba(0, 0, 0, 0.1),
+    0 2px 4px rgba(0, 0, 0, 0.06);
   background: var(--color-surface-hover);
 }
 
@@ -120,7 +125,9 @@
 }
 
 .itemHighlighted {
-  box-shadow: 0 0 0 3px rgba(6, 182, 212, 0.4), 0 0 20px rgba(6, 182, 212, 0.2);
+  box-shadow:
+    0 0 0 3px rgba(6, 182, 212, 0.4),
+    0 0 20px rgba(6, 182, 212, 0.2);
   transition: box-shadow 0.3s ease;
 }
 
@@ -299,7 +306,9 @@
   outline: none;
   color: var(--color-accent-primary);
   background-color: rgba(6, 182, 212, 0.1);
-  box-shadow: 0 0 0 2px var(--color-bg-primary), 0 0 0 4px var(--color-accent-primary);
+  box-shadow:
+    0 0 0 2px var(--color-bg-primary),
+    0 0 0 4px var(--color-accent-primary);
   opacity: 1;
 }
 
@@ -315,7 +324,9 @@
 .iconButtonDanger:focus {
   color: var(--color-danger-hover);
   background-color: var(--color-danger-bg);
-  box-shadow: 0 0 0 2px var(--color-bg-primary), 0 0 0 4px var(--color-danger);
+  box-shadow:
+    0 0 0 2px var(--color-bg-primary),
+    0 0 0 4px var(--color-danger);
 }
 
 .emptyState {
@@ -486,4 +497,3 @@
 .itemExpandedRow:has(.itemExpandedValue:empty) {
   display: none;
 }
-

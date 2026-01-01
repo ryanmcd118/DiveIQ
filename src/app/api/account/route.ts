@@ -8,14 +8,12 @@ import { prisma } from "@/lib/prisma";
  * Delete the authenticated user's account and all associated data
  * Requires authentication
  */
-export async function DELETE(req: NextRequest) {
+export async function DELETE(_req: NextRequest) {
+  void _req;
   const session = await getServerSession(authOptions);
 
   if (!session?.user?.id) {
-    return NextResponse.json(
-      { error: "Unauthorized" },
-      { status: 401 }
-    );
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   const userId = session.user.id;
@@ -101,4 +99,3 @@ export async function DELETE(req: NextRequest) {
     );
   }
 }
-

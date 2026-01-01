@@ -12,13 +12,12 @@ export function BrandStory() {
         <p className={styles.brandBody}>
           DiveIQ started as a personal logbook experiment — too many paper logs,
           too many half-finished plans, too many tabs open before a trip. There
-          wasn&apos;t a calm, modern space that reflected the way divers actually
-          think. So I built one. A place to plan dives, log them, learn from
-          them, and keep everything in one clean, simple space.
+          wasn&apos;t a calm, modern space that reflected the way divers
+          actually think. So I built one. A place to plan dives, log them, learn
+          from them, and keep everything in one clean, simple space.
         </p>
         <div className={styles.brandDivider} />
       </div>
     </section>
   );
 }
-

@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useEffect } from 'react';
-import type { UnitSystem } from '@/lib/units';
-import styles from './UnitToggle.module.css';
+import { useState, useEffect } from "react";
+import type { UnitSystem } from "@/lib/units";
+import styles from "./UnitToggle.module.css";
 
 /**
  * Form-level unit toggle for logged-out users
@@ -10,76 +10,48 @@ import styles from './UnitToggle.module.css';
  * Positioned at the top of forms (not in navbar)
  */
 export function FormUnitToggle() {
-  // Always start with 'metric' for SSR/client consistency
-  const [unitSystem, setUnitSystem] = useState<UnitSystem>('metric');
-  const [isMounted, setIsMounted] = useState(false);
-
-  // Load from localStorage after mount
-  useEffect(() => {
-    setIsMounted(true);
-    if (typeof window !== 'undefined') {
-      const stored = localStorage.getItem('diveiq:unitSystem');
-      if (stored === 'metric' || stored === 'imperial') {
-        setUnitSystem(stored);
+  // Initialize from localStorage if available (client-side only)
+  // On SSR, window is undefined so this returns "metric" for consistency
+  const [unitSystem, setUnitSystem] = useState<UnitSystem>(() => {
+    if (typeof window !== "undefined") {
+      const stored = localStorage.getItem("diveiq:unitSystem");
+      if (stored === "metric" || stored === "imperial") {
+        return stored;
       }
     }
-  }, []);
+    return "metric";
+  });
 
   // Persist to localStorage when unitSystem changes (only after mount)
   useEffect(() => {
-    if (isMounted && typeof window !== 'undefined') {
-      localStorage.setItem('diveiq:unitSystem', unitSystem);
+    if (typeof window !== "undefined") {
+      localStorage.setItem("diveiq:unitSystem", unitSystem);
       // Dispatch event so useUnitSystemOrLocal can react to changes
-      const event = new CustomEvent('unitSystemChanged', {
+      const event = new CustomEvent("unitSystemChanged", {
         detail: unitSystem,
       });
       window.dispatchEvent(event);
     }
-  }, [unitSystem, isMounted]);
+  }, [unitSystem]);
 
-  // Before mount, render with no active state to match SSR
+  // Render toggle with active state based on unitSystem
   const renderToggle = () => {
-    if (!isMounted) {
-      return (
-        <div className={styles.toggle} role="group" aria-label="Unit system">
-          <button
-            type="button"
-            className={styles.segment}
-            onClick={() => setUnitSystem('metric')}
-            aria-pressed={false}
-            aria-label="Metric units"
-          >
-            Metric
-          </button>
-          <button
-            type="button"
-            className={styles.segment}
-            onClick={() => setUnitSystem('imperial')}
-            aria-pressed={false}
-            aria-label="Imperial units"
-          >
-            Imperial
-          </button>
-        </div>
-      );
-    }
-
     return (
       <div className={styles.toggle} role="group" aria-label="Unit system">
         <button
           type="button"
-          className={`${styles.segment} ${unitSystem === 'metric' ? styles.active : ''}`}
-          onClick={() => setUnitSystem('metric')}
-          aria-pressed={unitSystem === 'metric'}
+          className={`${styles.segment} ${unitSystem === "metric" ? styles.active : ""}`}
+          onClick={() => setUnitSystem("metric")}
+          aria-pressed={unitSystem === "metric"}
           aria-label="Metric units"
         >
           Metric
         </button>
         <button
           type="button"
-          className={`${styles.segment} ${unitSystem === 'imperial' ? styles.active : ''}`}
-          onClick={() => setUnitSystem('imperial')}
-          aria-pressed={unitSystem === 'imperial'}
+          className={`${styles.segment} ${unitSystem === "imperial" ? styles.active : ""}`}
+          onClick={() => setUnitSystem("imperial")}
+          aria-pressed={unitSystem === "imperial"}
           aria-label="Imperial units"
         >
           Imperial
@@ -91,23 +63,23 @@ export function FormUnitToggle() {
   return (
     <div
       style={{
-        display: 'flex',
-        justifyContent: 'flex-end',
-        marginBottom: 'var(--space-4)',
+        display: "flex",
+        justifyContent: "flex-end",
+        marginBottom: "var(--space-4)",
       }}
     >
       <div
         style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: 'var(--space-2)',
+          display: "flex",
+          alignItems: "center",
+          gap: "var(--space-2)",
         }}
       >
         <span
           style={{
-            fontSize: 'var(--font-size-xs)',
-            fontWeight: 'var(--font-weight-medium)',
-            color: 'var(--color-text-secondary)',
+            fontSize: "var(--font-size-xs)",
+            fontWeight: "var(--font-weight-medium)",
+            color: "var(--color-text-secondary)",
           }}
         >
           Units
@@ -117,4 +89,3 @@ export function FormUnitToggle() {
     </div>
   );
 }
-

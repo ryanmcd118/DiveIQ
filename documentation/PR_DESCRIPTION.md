@@ -30,7 +30,7 @@ Previously, hitting `/dive-plans` while logged out showed an auth gate. Now it s
 
 The key change: submitting the form no longer auto-saves. Instead, there's an explicit "Save Dive Plan" button that only appears after a briefing has been generated. For authenticated users, clicking it saves immediately. For guests, it opens an auth modal with signup/login forms. After successful auth, the plan saves automatically and the Past Plans section becomes visible.
 
-New components: `SaveDivePlanButton` and `AuthModal`. 
+New components: `SaveDivePlanButton` and `AuthModal`.
 
 **API updates**: Updated `/api/dive-plans/preview` (public endpoint for guest users) and `/api/dive-plans` (POST/PUT for authenticated users) to use the new structured briefing format. Both endpoints now return both `aiBriefing` (structured) and `aiAdvice` (legacy string, extracted from `whatMattersMost`) for backward compatibility.
 
@@ -46,4 +46,3 @@ New components: `SaveDivePlanButton` and `AuthModal`.
 - Removed default Next.js assets, added custom feature icons and hero image
 - Updated favicon
 - ~3,800 lines added, ~260 lines removed across 38 files
-

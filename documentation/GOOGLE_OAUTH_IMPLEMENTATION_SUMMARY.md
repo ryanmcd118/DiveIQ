@@ -7,6 +7,7 @@ Google OAuth has been successfully integrated into DiveIQ's authentication syste
 ## Authentication Mechanism
 
 **Current Setup**: NextAuth.js v4 with JWT strategy
+
 - Sessions are stored as JWTs in HTTP-only cookies
 - Same session mechanism used for both email/password and Google OAuth
 - No changes to existing auth flow
@@ -14,6 +15,7 @@ Google OAuth has been successfully integrated into DiveIQ's authentication syste
 ## Files Changed
 
 ### 1. Backend Authentication Configuration
+
 - **`src/features/auth/lib/auth.ts`**
   - Added `GoogleProvider` from `next-auth/providers/google`
   - Implemented custom `signIn` callback for:
@@ -22,6 +24,7 @@ Google OAuth has been successfully integrated into DiveIQ's authentication syste
     - Preventing duplicate accounts
 
 ### 2. Error Handling
+
 - **`src/app/(auth)/signin/page.tsx`**
   - Added `OAuthErrorHandler` component wrapper with Suspense
   - Handles OAuth error redirects
@@ -31,6 +34,7 @@ Google OAuth has been successfully integrated into DiveIQ's authentication syste
   - Redirects to `/signin?oauth=google&error=1` format as required
 
 ### 3. Documentation
+
 - **`documentation/GOOGLE_OAUTH_SETUP.md`** (NEW)
   - Complete setup guide
   - Environment variables documentation
@@ -40,6 +44,7 @@ Google OAuth has been successfully integrated into DiveIQ's authentication syste
 ## Database Schema
 
 **No changes required** - The existing `Account` table already has all necessary fields:
+
 - `provider` and `providerAccountId` (with unique constraint)
 - OAuth token fields (access_token, refresh_token, etc.)
 - User relation
@@ -47,6 +52,7 @@ Google OAuth has been successfully integrated into DiveIQ's authentication syste
 ## API Endpoints
 
 NextAuth automatically creates these endpoints (no manual implementation needed):
+
 - **`GET /api/auth/signin/google`** - Initiates Google OAuth flow
 - **`GET /api/auth/callback/google`** - Handles OAuth callback (automatic)
 
@@ -63,6 +69,7 @@ NEXTAUTH_URL=http://localhost:3000  # Should already exist
 ## How It Works
 
 ### 1. New User Flow
+
 1. User clicks "Sign in with Google" → Redirects to `/api/auth/signin/google`
 2. Google OAuth consent screen
 3. After approval → Callback to `/api/auth/callback/google`
@@ -74,6 +81,7 @@ NEXTAUTH_URL=http://localhost:3000  # Should already exist
 6. User redirected to app (logged in)
 
 ### 2. Existing User Linking Flow
+
 1. User with email/password account signs in with Google
 2. `signIn` callback checks if email matches existing user
 3. If match found:
@@ -83,6 +91,7 @@ NEXTAUTH_URL=http://localhost:3000  # Should already exist
 4. User is signed in with their existing account
 
 ### 3. Returning Google User Flow
+
 1. User who previously signed in with Google signs in again
 2. `signIn` callback finds existing `Account` record by `provider` + `providerAccountId`
 3. Links to existing user
@@ -123,16 +132,13 @@ To add a "Sign in with Google" button to your UI:
 ```tsx
 import { signIn } from "next-auth/react";
 
-<button onClick={() => signIn("google")}>
-  Sign in with Google
-</button>
+<button onClick={() => signIn("google")}>Sign in with Google</button>;
 ```
 
 Or use a direct link:
+
 ```tsx
-<Link href="/api/auth/signin/google">
-  Sign in with Google
-</Link>
+<Link href="/api/auth/signin/google">Sign in with Google</Link>
 ```
 
 ## Notes
@@ -158,14 +164,17 @@ Or use a direct link:
 ## Potential Issues & Solutions
 
 **Issue**: "Redirect URI mismatch" error
+
 - **Solution**: Ensure Google Console redirect URI exactly matches: `http://localhost:3000/api/auth/callback/google`
 
-**Issue**: "Invalid client" error  
+**Issue**: "Invalid client" error
+
 - **Solution**: Verify `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET` are correct
 
 **Issue**: User not being created
+
 - **Solution**: Check database connection, verify Prisma client is generated (`npx prisma generate`)
 
 **Issue**: TypeScript errors about Prisma unique constraint
-- **Solution**: The format `provider_providerAccountId` is correct for composite unique constraints in Prisma
 
+- **Solution**: The format `provider_providerAccountId` is correct for composite unique constraints in Prisma

@@ -8,7 +8,6 @@ import { GallerySection } from "./GallerySection";
 import { BrandStory } from "./BrandStory";
 import { FinalCTA } from "./FinalCTA";
 import { Footer } from "./Footer";
-import styles from "./PublicHomePage.module.css";
 import backgroundStyles from "@/styles/components/Background.module.css";
 
 export function PublicHomePage() {
@@ -25,4 +24,3 @@ export function PublicHomePage() {
     </div>
   );
 }
-

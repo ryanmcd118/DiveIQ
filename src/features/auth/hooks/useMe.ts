@@ -43,7 +43,9 @@ export function useMe() {
       setMe(data);
     } catch (err) {
       console.error("[useMe] Error fetching /api/me:", err);
-      setError(err instanceof Error ? err.message : "Failed to fetch user data");
+      setError(
+        err instanceof Error ? err.message : "Failed to fetch user data"
+      );
       setMe(null);
     } finally {
       setIsLoading(false);
@@ -78,4 +80,3 @@ export function useMe() {
     refreshMe,
   };
 }
-

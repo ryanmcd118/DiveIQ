@@ -5,7 +5,7 @@ import { encode } from "next-auth/jwt";
 import { authOptions } from "@/features/auth/lib/auth";
 import { prisma } from "@/lib/prisma";
 import bcrypt from "bcryptjs";
-import { cookies } from "next/headers";
+import type { Prisma } from "@prisma/client";
 
 /**
  * PUT /api/account/password
@@ -16,10 +16,7 @@ export async function PUT(req: NextRequest) {
   const session = await getServerSession(authOptions);
 
   if (!session?.user?.id) {
-    return NextResponse.json(
-      { error: "Unauthorized" },
-      { status: 401 }
-    );
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   const userId = session.user.id;
@@ -52,16 +49,16 @@ export async function PUT(req: NextRequest) {
     });
 
     if (!user) {
-      return NextResponse.json(
-        { error: "User not found" },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
     // Check if user has a password (credentials account)
     if (!user.password) {
       return NextResponse.json(
-        { error: "This account does not have a password. You signed in with Google." },
+        {
+          error:
+            "This account does not have a password. You signed in with Google.",
+        },
         { status: 400 }
       );
     }
@@ -93,7 +90,7 @@ export async function PUT(req: NextRequest) {
 
     // Get current JWT token to preserve its data
     const currentToken = await getToken({
-      req: req as any,
+      req: req as unknown as Parameters<typeof getToken>[0]["req"],
       secret: process.env.NEXTAUTH_SECRET,
     });
 
@@ -111,7 +108,9 @@ export async function PUT(req: NextRequest) {
         where: { id: userId },
         data: {
           password: hashedNewPassword,
-          sessionVersion: { increment: 1 } as any,
+          sessionVersion: {
+            increment: 1,
+          } as Prisma.IntFieldUpdateOperationsInput,
         },
         select: {
           sessionVersion: true,
@@ -122,7 +121,7 @@ export async function PUT(req: NextRequest) {
     // Create a new JWT token with updated sessionVersion to keep current session alive
     const newTokenPayload = {
       ...currentToken,
-      sessionVersion: (updatedUser as any).sessionVersion ?? 0,
+      sessionVersion: updatedUser.sessionVersion ?? 0,
     };
 
     // Encode the new token
@@ -160,4 +159,3 @@ export async function PUT(req: NextRequest) {
     );
   }
 }
-

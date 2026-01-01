@@ -3,7 +3,11 @@
 import { useState, useEffect, useMemo, FormEvent } from "react";
 import type { GearItem } from "@prisma/client";
 import { GearKitWithItems } from "@/services/database/repositories/gearRepository";
-import { GearType, getDefaultServiceInterval, formatGearTypeLabel } from "../constants";
+import {
+  GearType,
+  getDefaultServiceInterval,
+  formatGearTypeLabel,
+} from "../constants";
 import formStyles from "@/styles/components/Form.module.css";
 import buttonStyles from "@/styles/components/Button.module.css";
 import styles from "./GearFormModal.module.css";
@@ -99,7 +103,7 @@ export function GearFormModal({
   // Prefill service interval when type changes (for new items)
   useEffect(() => {
     if (!editingGear && type) {
-      const defaultInterval = getDefaultServiceInterval(type as any);
+      const defaultInterval = getDefaultServiceInterval(type as GearType);
       if (defaultInterval !== null && serviceIntervalMonths === null) {
         setServiceIntervalMonths(defaultInterval);
       }
@@ -136,7 +140,17 @@ export function GearFormModal({
     setKitUpdateErrors(null);
 
     try {
-      const payload: any = {
+      const payload: {
+        type: string;
+        manufacturer: string;
+        model: string;
+        nickname: string | null;
+        purchaseDate: string | null;
+        notes: string | null;
+        lastServicedAt: string | null;
+        serviceIntervalMonths: number | null;
+        id?: string;
+      } = {
         type,
         manufacturer,
         model,
@@ -220,7 +234,10 @@ export function GearFormModal({
                     throw new Error(`Failed to remove from kit: ${kit.name}`);
                   }
                 } catch (err) {
-                  console.error(`Failed to remove gear from kit ${kitId}:`, err);
+                  console.error(
+                    `Failed to remove gear from kit ${kitId}:`,
+                    err
+                  );
                   throw err;
                 }
               })()
@@ -238,7 +255,9 @@ export function GearFormModal({
                   }
 
                   // Get current gear item IDs and add this gear
-                  const currentGearIds = kit.kitItems.map((ki) => ki.gearItemId);
+                  const currentGearIds = kit.kitItems.map(
+                    (ki) => ki.gearItemId
+                  );
                   if (!currentGearIds.includes(gearId)) {
                     const updatedGearIds = [...currentGearIds, gearId];
 
@@ -314,7 +333,7 @@ export function GearFormModal({
             // Wait for all kit updates, but don't fail if some fail
             const results = await Promise.allSettled(kitUpdatePromises);
             const failures = results.filter((r) => r.status === "rejected");
-            
+
             if (failures.length > 0) {
               setKitUpdateErrors(
                 `Gear added, but couldn't add to ${failures.length} kit${failures.length > 1 ? "s" : ""}. Try again.`
@@ -462,16 +481,14 @@ export function GearFormModal({
               value={serviceIntervalMonths ?? ""}
               onChange={(e) => {
                 const val = e.target.value;
-                setServiceIntervalMonths(
-                  val === "" ? null : parseInt(val, 10)
-                );
+                setServiceIntervalMonths(val === "" ? null : parseInt(val, 10));
               }}
               placeholder="No schedule"
               className={formStyles.input}
             />
             <p className={formStyles.helpText}>
               Leave empty for no schedule. Default:{" "}
-              {getDefaultServiceInterval(type as any) ?? "None"}
+              {getDefaultServiceInterval(type as GearType) ?? "None"}
             </p>
           </div>
 
@@ -491,43 +508,44 @@ export function GearFormModal({
           {/* Kits section */}
           <div className={formStyles.field}>
             <label className={formStyles.label}>Kits</label>
-              {kits.length === 0 ? (
-                <p className={formStyles.helpText}>
-                  No kits yet. Create a kit to group gear items.
-                </p>
-              ) : (
-                <div className={styles.kitList}>
-                  {kits.map((kit) => (
-                    <label
-                      key={kit.id}
-                      className={`${styles.kitItem} ${
-                        selectedKitIds.includes(kit.id) ? styles.selected : ""
-                      }`}
-                    >
-                      <input
-                        type="checkbox"
-                        checked={selectedKitIds.includes(kit.id)}
-                        onChange={() => toggleKitSelection(kit.id)}
-                        className={styles.checkbox}
-                        disabled={loading}
-                      />
-                      <div className={styles.kitItemContent}>
-                        <span className={styles.kitItemName}>
-                          {kit.name}
-                        </span>
-                        {kit.isDefault && (
-                          <span className={styles.defaultBadge}>(Default)</span>
-                        )}
-                      </div>
-                    </label>
-                  ))}
-                </div>
-              )}
+            {kits.length === 0 ? (
+              <p className={formStyles.helpText}>
+                No kits yet. Create a kit to group gear items.
+              </p>
+            ) : (
+              <div className={styles.kitList}>
+                {kits.map((kit) => (
+                  <label
+                    key={kit.id}
+                    className={`${styles.kitItem} ${
+                      selectedKitIds.includes(kit.id) ? styles.selected : ""
+                    }`}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={selectedKitIds.includes(kit.id)}
+                      onChange={() => toggleKitSelection(kit.id)}
+                      className={styles.checkbox}
+                      disabled={loading}
+                    />
+                    <div className={styles.kitItemContent}>
+                      <span className={styles.kitItemName}>{kit.name}</span>
+                      {kit.isDefault && (
+                        <span className={styles.defaultBadge}>(Default)</span>
+                      )}
+                    </div>
+                  </label>
+                ))}
+              </div>
+            )}
           </div>
 
           {error && <p className={formStyles.error}>{error}</p>}
           {kitUpdateErrors && (
-            <p className={formStyles.error} style={{ color: "var(--color-warning)" }}>
+            <p
+              className={formStyles.error}
+              style={{ color: "var(--color-warning)" }}
+            >
               {kitUpdateErrors}
             </p>
           )}
@@ -553,4 +571,3 @@ export function GearFormModal({
     </div>
   );
 }
-

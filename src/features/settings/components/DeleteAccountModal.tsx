@@ -11,7 +11,10 @@ interface DeleteAccountModalProps {
   onClose: () => void;
 }
 
-export function DeleteAccountModal({ isOpen, onClose }: DeleteAccountModalProps) {
+export function DeleteAccountModal({
+  isOpen,
+  onClose,
+}: DeleteAccountModalProps) {
   const [confirmText, setConfirmText] = useState("");
   const [isDeleting, setIsDeleting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -65,7 +68,9 @@ export function DeleteAccountModal({ isOpen, onClose }: DeleteAccountModalProps)
         }
 
         const data = await response.json().catch(() => ({}));
-        throw new Error(data.error || `Failed to delete account (${response.status})`);
+        throw new Error(
+          data.error || `Failed to delete account (${response.status})`
+        );
       }
 
       // Success - sign out and redirect to homepage
@@ -100,7 +105,8 @@ export function DeleteAccountModal({ isOpen, onClose }: DeleteAccountModalProps)
         <div className={styles.header}>
           <h2 className={styles.title}>Delete your account?</h2>
           <p className={styles.description}>
-            This permanently deletes your DiveIQ account and all associated dive data. This cannot be undone.
+            This permanently deletes your DiveIQ account and all associated dive
+            data. This cannot be undone.
           </p>
         </div>
 
@@ -153,4 +159,3 @@ export function DeleteAccountModal({ isOpen, onClose }: DeleteAccountModalProps)
     </div>
   );
 }
-

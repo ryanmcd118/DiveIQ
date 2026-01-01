@@ -7,6 +7,7 @@ Added "Continue with Google" button to both `/signin` and `/signup` pages with p
 ## Files Changed
 
 ### New Files
+
 1. **`src/features/auth/components/GoogleOAuthButton.tsx`**
    - Shared component for Google OAuth sign-in button
    - Includes divider with "or" text
@@ -19,6 +20,7 @@ Added "Continue with Google" button to both `/signin` and `/signup` pages with p
    - Responsive and accessible
 
 ### Modified Files
+
 1. **`src/features/auth/components/SignInForm.tsx`**
    - Added `GoogleOAuthButton` component after the sign-in button
    - Added `useEffect` to detect OAuth errors from URL params
@@ -35,20 +37,23 @@ Added "Continue with Google" button to both `/signin` and `/signup` pages with p
 ## Implementation Details
 
 ### UI Structure
+
 - **Divider**: Horizontal line with "or" text in the middle
 - **Button**: Full-width button with Google icon and "Continue with Google" text
 - **Styling**: Matches existing DiveIQ button styles (secondary style with border)
 - **Placement**: Positioned between the email/password form and the footer link
 
 ### Behavior
+
 - **Click Handler**: Uses `signIn("google", { callbackUrl: "/" })` from `next-auth/react`
 - **Callback URL**: Redirects to `/` (root), which automatically redirects authenticated users to `/dashboard`
-- **Error Handling**: 
+- **Error Handling**:
   - OAuth errors redirect to `/signin?oauth=google&error=1`
   - `SignInForm` detects this and displays: "Google sign-in failed. Please try again or use email/password to sign in."
 - **Session Management**: NextAuth's `SessionProvider` automatically handles session refresh after OAuth callback
 
 ### Styling
+
 - **Button**: Uses `buttonStyles.base` with custom `.googleButton` styles
 - **Divider**: Custom styles using CSS variables for colors and spacing
 - **Google Icon**: Inline SVG with official Google brand colors
@@ -57,6 +62,7 @@ Added "Continue with Google" button to both `/signin` and `/signup` pages with p
 ## Testing Locally
 
 1. **Start the development server**:
+
    ```bash
    npm run dev
    ```
@@ -108,6 +114,7 @@ Added "Continue with Google" button to both `/signin` and `/signup` pages with p
 ## Environment Variables Required
 
 Ensure these are set in your `.env` file:
+
 ```env
 GOOGLE_CLIENT_ID=your-client-id.apps.googleusercontent.com
 GOOGLE_CLIENT_SECRET=your-client-secret
@@ -123,4 +130,3 @@ See `documentation/GOOGLE_OAUTH_SETUP.md` for complete setup instructions.
 2. Add Google button to other auth modals/prompts if needed
 3. Consider adding more OAuth providers (GitHub, etc.) using the same pattern
 4. Add analytics tracking for OAuth sign-ins
-

@@ -45,7 +45,9 @@
 .row:focus {
   outline: none;
   background-color: var(--color-surface-hover);
-  box-shadow: 0 0 0 2px var(--color-bg-primary), 0 0 0 4px var(--color-accent-primary);
+  box-shadow:
+    0 0 0 2px var(--color-bg-primary),
+    0 0 0 4px var(--color-accent-primary);
 }
 
 .rowLeft {

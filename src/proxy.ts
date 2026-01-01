@@ -62,7 +62,12 @@ export async function proxy(request: NextRequest) {
 
     // If token is marked as invalidated by JWT callback, redirect to signin
     // (JWT callback sets token.invalidated = true when sessionVersion mismatches)
-    if ((token as any).invalidated) {
+    if (
+      token &&
+      typeof token === "object" &&
+      "invalidated" in token &&
+      token.invalidated === true
+    ) {
       const signInUrl = new URL("/signin", request.url);
       signInUrl.searchParams.set("callbackUrl", pathname);
       const response = NextResponse.redirect(signInUrl);
@@ -73,7 +78,7 @@ export async function proxy(request: NextRequest) {
 
     // If sessionVersion is missing (old token), treat as unauthenticated
     // This ensures old tokens without sessionVersion are invalidated
-    const tokenSessionVersion = (token.sessionVersion as number | undefined);
+    const tokenSessionVersion = token.sessionVersion as number | undefined;
     if (tokenSessionVersion === undefined || tokenSessionVersion === null) {
       const signInUrl = new URL("/signin", request.url);
       signInUrl.searchParams.set("callbackUrl", pathname);
@@ -109,4 +114,3 @@ export const config = {
     "/((?!api/auth|_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
   ],
 };
-

@@ -36,7 +36,7 @@ All colors, spacing, radii, shadows, and transitions are now centralized as CSS 
 --color-border-default: #1e293b;
 --radius-sm: 0.375rem;
 --space-md: 1rem;
---shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1)...
+--shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1)...;
 ```
 
 ---
@@ -44,6 +44,7 @@ All colors, spacing, radii, shadows, and transitions are now centralized as CSS 
 ## 🧩 Component Classes Created
 
 ### Buttons
+
 - `.btn-primary` - Primary action button (cyan)
 - `.btn-secondary` - Secondary outlined button
 - `.btn-danger` - Destructive action button
@@ -53,6 +54,7 @@ All colors, spacing, radii, shadows, and transitions are now centralized as CSS 
 - `.btn-disabled` - Disabled/coming soon state
 
 ### Cards
+
 - `.card` - Standard card container
 - `.card-compact` - Card with less padding
 - `.card-form` - Form-specific card
@@ -60,6 +62,7 @@ All colors, spacing, radii, shadows, and transitions are now centralized as CSS 
 - `.card-list-item-interactive` - Clickable list item
 
 ### Forms
+
 - `.input` - Text input
 - `.select` - Select dropdown
 - `.textarea` - Textarea
@@ -68,23 +71,27 @@ All colors, spacing, radii, shadows, and transitions are now centralized as CSS 
 - `.error-message` - Error text
 
 ### Lists
+
 - `.list` - List container
 - `.dive-list-item-title` - Dive entry title
 - `.dive-list-item-stats` - Dive stats text
 - `.dive-list-item-meta` - Metadata text
 
 ### Navigation
+
 - `.nav-header` - Top navigation bar
 - `.nav-link` - Navigation link
 - `.link-accent` - Accent colored link
 
 ### Typography
+
 - `.page-title` - Main page heading
 - `.section-heading` - Section heading
 - `.stat-label` - Statistic label
 - `.stat-value` - Statistic value
 
 ### Layout
+
 - `.page-container` - Main page wrapper
 - `.stats-grid` - Dashboard stats grid
 - `.dashboard-grid` - Dashboard layout grid
@@ -96,6 +103,7 @@ All colors, spacing, radii, shadows, and transitions are now centralized as CSS 
 ### Before vs After
 
 **Before:**
+
 ```tsx
 <button className="inline-flex items-center justify-center rounded-md bg-cyan-500 px-4 py-2 text-sm font-medium text-slate-950 hover:bg-cyan-400 focus:ring-2 focus:ring-cyan-400 focus:ring-offset-2 focus:ring-offset-slate-950 focus:outline-none disabled:opacity-60">
   Submit
@@ -103,11 +111,13 @@ All colors, spacing, radii, shadows, and transitions are now centralized as CSS 
 ```
 
 **After:**
+
 ```tsx
 <button className="btn-primary">Submit</button>
 ```
 
 ### Files Migrated
+
 ✅ `src/app/layout.tsx` - Navigation
 ✅ `src/features/plan/components/PlanForm.tsx` - Form
 ✅ `src/features/log/components/DiveLogForm.tsx` - Form
@@ -121,12 +131,15 @@ All colors, spacing, radii, shadows, and transitions are now centralized as CSS 
 ## 🚀 Benefits Achieved
 
 ### 1. **Drastically Reduced Repetition**
+
 - Button classes: 150+ characters → 13 characters (`btn-primary`)
 - Input fields: 200+ characters → 5 characters (`input`)
 - Cards: 80+ characters → 4 characters (`card`)
 
 ### 2. **Single Source of Truth**
+
 Want to change button colors globally? One line update:
+
 ```css
 /* src/styles/components/buttons.css */
 .btn-primary {
@@ -134,10 +147,13 @@ Want to change button colors globally? One line update:
   @apply hover:bg-purple-400;
 }
 ```
+
 This instantly updates **every primary button** across all 7+ components!
 
 ### 3. **Easy Theme Switching**
+
 Update design tokens to create new themes:
+
 ```css
 /* src/styles/tokens.css */
 :root {
@@ -146,7 +162,9 @@ Update design tokens to create new themes:
 ```
 
 ### 4. **Improved Readability**
+
 Components are now much easier to read and understand:
+
 ```tsx
 // Clear semantic meaning
 <div className="card">
@@ -157,6 +175,7 @@ Components are now much easier to read and understand:
 ```
 
 ### 5. **Faster Development**
+
 - No more copying class strings
 - Autocomplete works better
 - Less cognitive load
@@ -166,19 +185,25 @@ Components are now much easier to read and understand:
 ## 🎯 Common Use Cases
 
 ### Change Primary Color Globally
+
 **File:** `src/styles/components/buttons.css` and other component files
+
 ```css
 /* Find and replace: cyan-500 → purple-500 */
 ```
 
 ### Adjust All Border Radii
+
 **File:** `src/styles/tokens.css`
+
 ```css
 --radius-md: 12px; /* was 8px */
 ```
 
 ### Update All Card Styles
+
 **File:** `src/styles/components/cards.css`
+
 ```css
 .card {
   @apply bg-slate-800; /* Make darker */
@@ -187,7 +212,9 @@ Components are now much easier to read and understand:
 ```
 
 ### Change Form Input Styles
+
 **File:** `src/styles/components/forms.css`
+
 ```css
 .input {
   @apply rounded-lg; /* More rounded */
@@ -200,11 +227,13 @@ Components are now much easier to read and understand:
 ## 🔄 Development Workflow
 
 ### Adding New Components
+
 1. Use existing classes first
 2. If new pattern needed, add to appropriate component CSS file
 3. Use `@apply` directive to compose Tailwind utilities
 
 ### Example: New Button Variant
+
 ```css
 /* src/styles/components/buttons.css */
 .btn-success {
@@ -215,6 +244,7 @@ Components are now much easier to read and understand:
 ```
 
 ### Testing Changes
+
 The dev server hot-reloads CSS changes instantly. Just save a CSS file and see results!
 
 ---
@@ -222,7 +252,9 @@ The dev server hot-reloads CSS changes instantly. Just save a CSS file and see r
 ## 📝 Next Steps (Optional Enhancements)
 
 ### 1. Dark/Light Mode
+
 Leverage tokens for easy theme switching:
+
 ```css
 [data-theme="light"] {
   --color-bg-primary: #ffffff;
@@ -231,13 +263,17 @@ Leverage tokens for easy theme switching:
 ```
 
 ### 2. Additional Variants
+
 Create more specialized components as needed:
+
 - `.btn-outline`
 - `.card-elevated`
 - `.input-error`
 
 ### 3. Animation Classes
+
 Add reusable animations:
+
 ```css
 .fade-in {
   @apply animate-in fade-in duration-300;
@@ -245,7 +281,9 @@ Add reusable animations:
 ```
 
 ### 4. Responsive Utilities
+
 Create responsive helper classes:
+
 ```css
 .stack-mobile {
   @apply flex flex-col md:flex-row;
@@ -263,4 +301,3 @@ Create responsive helper classes:
 **Maintainability:** ⭐⭐⭐⭐⭐
 
 Your codebase is now significantly more maintainable and scalable!
-

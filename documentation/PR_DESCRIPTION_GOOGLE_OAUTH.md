@@ -17,4 +17,3 @@ Uses NextAuth's built-in Google provider. The existing `Account` table in Prisma
 The Google button component is shared between sign-in and sign-up pages. Error handling redirects to `/signin?oauth=google&error=1` and displays a user-friendly message.
 
 See `documentation/GOOGLE_OAUTH_SETUP.md` for setup instructions.
-

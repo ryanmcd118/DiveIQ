@@ -42,7 +42,7 @@
   .grid {
     grid-template-columns: repeat(3, 1fr);
   }
-  
+
   /* Hero stat spans 2 columns on desktop */
   .statCardHero {
     grid-column: span 2;
@@ -105,4 +105,3 @@
   font-weight: var(--font-weight-normal);
   color: var(--text-muted);
 }
-

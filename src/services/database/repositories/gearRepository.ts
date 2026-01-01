@@ -1,5 +1,11 @@
 import { prisma } from "@/lib/prisma";
-import type { GearItem, GearKit, GearKitItem, DiveGearItem } from "@prisma/client";
+import type {
+  GearItem,
+  GearKit,
+  GearKitItem,
+  DiveGearItem,
+} from "@prisma/client";
+import type { Prisma } from "@prisma/client";
 
 export type GearItemWithRelations = GearItem & {
   kitItems?: GearKitItem[];
@@ -56,7 +62,7 @@ export const gearRepository = {
       type?: string;
     }
   ): Promise<GearItem[]> {
-    const where: any = {
+    const where: Prisma.GearItemWhereInput = {
       userId,
     };
 
@@ -141,7 +147,11 @@ export const gearRepository = {
   /**
    * Archive/unarchive a gear item
    */
-  async setActive(id: string, isActive: boolean, userId: string): Promise<GearItem> {
+  async setActive(
+    id: string,
+    isActive: boolean,
+    userId: string
+  ): Promise<GearItem> {
     return this.update(id, { isActive }, userId);
   },
 };
@@ -193,10 +203,7 @@ export const gearKitRepository = {
           },
         },
       },
-      orderBy: [
-        { isDefault: "desc" },
-        { createdAt: "desc" },
-      ],
+      orderBy: [{ isDefault: "desc" }, { createdAt: "desc" }],
     });
   },
 
@@ -322,14 +329,29 @@ export const gearKitRepository = {
       throw new Error("Some gear items not found or unauthorized");
     }
 
-    // Create kit items (skip duplicates)
-    await prisma.gearKitItem.createMany({
-      data: gearItemIds.map((gearItemId) => ({
+    // Check for existing kit items to avoid duplicates
+    const existingItems = await prisma.gearKitItem.findMany({
+      where: {
         kitId,
-        gearItemId,
-      })),
-      skipDuplicates: true,
+        gearItemId: { in: gearItemIds },
+      },
+      select: { gearItemId: true },
     });
+
+    const existingGearItemIds = new Set(
+      existingItems.map((item) => item.gearItemId)
+    );
+    const newItemIds = gearItemIds.filter((id) => !existingGearItemIds.has(id));
+
+    // Create kit items (only new ones, skip duplicates)
+    if (newItemIds.length > 0) {
+      await prisma.gearKitItem.createMany({
+        data: newItemIds.map((gearItemId) => ({
+          kitId,
+          gearItemId,
+        })),
+      });
+    }
   },
 
   /**
@@ -410,7 +432,10 @@ export const diveGearRepository = {
   /**
    * Get gear items for a dive
    */
-  async getGearForDive(diveId: string, userId: string): Promise<DiveGearItemWithGear[]> {
+  async getGearForDive(
+    diveId: string,
+    userId: string
+  ): Promise<DiveGearItemWithGear[]> {
     // Verify dive ownership
     const dive = await prisma.diveLog.findFirst({
       where: { id: diveId, userId },
@@ -475,4 +500,3 @@ export const diveGearRepository = {
     });
   },
 };
-

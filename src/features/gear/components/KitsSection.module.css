@@ -31,7 +31,10 @@
   cursor: pointer;
   padding: 0;
   margin: 0;
-  transition: color 175ms ease, border-color 175ms ease, background-color 175ms ease;
+  transition:
+    color 175ms ease,
+    border-color 175ms ease,
+    background-color 175ms ease;
   vertical-align: middle;
 }
 
@@ -137,7 +140,9 @@
   outline: none;
   color: var(--color-accent-primary);
   background-color: rgba(6, 182, 212, 0.1);
-  box-shadow: 0 0 0 2px var(--color-bg-primary), 0 0 0 4px var(--color-accent-primary);
+  box-shadow:
+    0 0 0 2px var(--color-bg-primary),
+    0 0 0 4px var(--color-accent-primary);
   opacity: 1;
 }
 
@@ -153,7 +158,9 @@
 .iconButtonDanger:focus {
   color: var(--color-danger-hover);
   background-color: var(--color-danger-bg);
-  box-shadow: 0 0 0 2px var(--color-bg-primary), 0 0 0 4px var(--color-danger);
+  box-shadow:
+    0 0 0 2px var(--color-bg-primary),
+    0 0 0 4px var(--color-danger);
 }
 
 .kitActionsBottom {
@@ -167,4 +174,3 @@
   text-align: center;
   color: var(--color-text-muted);
 }
-

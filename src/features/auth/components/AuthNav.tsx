@@ -15,7 +15,7 @@ export default function AuthNav() {
   const { user, isAuthenticated, isLoading, signOutUser } = useAuth();
   const { me } = useMe();
   const pathname = usePathname();
-  const isDivePlansPage = pathname === '/dive-plans';
+  const isDivePlansPage = pathname === "/dive-plans";
 
   if (isLoading) {
     return (
@@ -59,5 +59,3 @@ export default function AuthNav() {
     </div>
   );
 }
-
-

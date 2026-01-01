@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import styles from "./PublicHomePage.module.css";
 import cardStyles from "@/styles/components/Card.module.css";
 
@@ -28,7 +29,7 @@ export function FeatureTrio() {
         {features.map((feature) => (
           <article key={feature.title} className={cardStyles.feature}>
             <div className={styles.featureIcon} aria-hidden="true">
-              <img src={feature.icon} alt="" />
+              <Image src={feature.icon} alt="" width={64} height={64} />
             </div>
             <h3 className={styles.featureTitle}>{feature.title}</h3>
             <p className={styles.featureBody}>{feature.body}</p>

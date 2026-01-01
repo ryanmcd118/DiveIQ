@@ -4,7 +4,6 @@ import Link from "next/link";
 import type { DiveLog, DivePlan } from "@prisma/client";
 import { useUnitPreferences } from "@/hooks/useUnitPreferences";
 import { displayDepth, displayTemperature } from "@/lib/units";
-import cardStyles from "@/styles/components/Card.module.css";
 import buttonStyles from "@/styles/components/Button.module.css";
 import styles from "./InFocusCards.module.css";
 
@@ -36,7 +35,10 @@ export function InFocusCards({
             <div className={styles.cardContent}>
               <p className={styles.siteName}>
                 {nextPlannedDive.siteName}
-                <span className={styles.region}> ({nextPlannedDive.region})</span>
+                <span className={styles.region}>
+                  {" "}
+                  ({nextPlannedDive.region})
+                </span>
               </p>
               <p className={styles.meta}>
                 {(() => {
@@ -48,8 +50,10 @@ export function InFocusCards({
                 })()}
               </p>
               <p className={styles.meta}>
-                <span className={styles.capitalize}>{nextPlannedDive.experienceLevel}</span> ·{" "}
-                {nextPlannedDive.riskLevel}
+                <span className={styles.capitalize}>
+                  {nextPlannedDive.experienceLevel}
+                </span>{" "}
+                · {nextPlannedDive.riskLevel}
               </p>
             </div>
           ) : (
@@ -69,7 +73,10 @@ export function InFocusCards({
             <div className={styles.cardContent}>
               <p className={styles.siteName}>
                 {mostRecentDive.siteName}
-                <span className={styles.region}> ({mostRecentDive.region})</span>
+                <span className={styles.region}>
+                  {" "}
+                  ({mostRecentDive.region})
+                </span>
               </p>
               <p className={styles.meta}>
                 {(() => {
@@ -140,4 +147,3 @@ export function InFocusCards({
     </section>
   );
 }
-

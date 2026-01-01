@@ -19,12 +19,12 @@ interface PlaceholderPageProps {
   };
 }
 
-export function PlaceholderPage({ 
-  title, 
-  subtitle, 
+export function PlaceholderPage({
+  title,
+  subtitle,
   features,
   primaryAction,
-  secondaryAction 
+  secondaryAction,
 }: PlaceholderPageProps) {
   return (
     <div className={styles.placeholderPage}>
@@ -46,12 +46,18 @@ export function PlaceholderPage({
           )}
           <div className={styles.actions}>
             {primaryAction && (
-              <Link href={primaryAction.href} className={buttonStyles.primaryGradient}>
+              <Link
+                href={primaryAction.href}
+                className={buttonStyles.primaryGradient}
+              >
                 {primaryAction.label}
               </Link>
             )}
             {secondaryAction && (
-              <Link href={secondaryAction.href} className={buttonStyles.secondaryGradient}>
+              <Link
+                href={secondaryAction.href}
+                className={buttonStyles.secondaryGradient}
+              >
                 {secondaryAction.label}
               </Link>
             )}
@@ -66,4 +72,3 @@ export function PlaceholderPage({
     </div>
   );
 }
-

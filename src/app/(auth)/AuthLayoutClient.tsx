@@ -5,11 +5,7 @@ import Image from "next/image";
 import { PublicNavbar } from "@/features/public-home/components/PublicNavbar";
 import styles from "./auth-layout.module.css";
 
-export function AuthLayoutClient({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export function AuthLayoutClient({ children }: { children: React.ReactNode }) {
   // Disable body scroll only on auth pages
   useEffect(() => {
     // Store original overflow value
@@ -50,11 +46,8 @@ export function AuthLayoutClient({
           className={styles.backgroundImage}
         />
         <div className={styles.overlay} />
-        <div className={styles.section}>
-          {children}
-        </div>
+        <div className={styles.section}>{children}</div>
       </div>
     </>
   );
 }
-

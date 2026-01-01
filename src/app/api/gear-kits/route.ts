@@ -7,7 +7,8 @@ import { gearKitRepository } from "@/services/database/repositories/gearReposito
  * GET /api/gear-kits
  * Get all kits for the authenticated user
  */
-export async function GET(req: NextRequest) {
+export async function GET(_req: NextRequest) {
+  void _req;
   const session = await getServerSession(authOptions);
 
   if (!session?.user) {
@@ -116,7 +117,10 @@ export async function PUT(req: NextRequest) {
       return NextResponse.json({ error: "Missing id" }, { status: 400 });
     }
 
-    const updateData: any = {};
+    const updateData: {
+      name?: string;
+      isDefault?: boolean;
+    } = {};
     if (name !== undefined) updateData.name = name;
     if (isDefault !== undefined) updateData.isDefault = isDefault;
 
@@ -173,4 +177,3 @@ export async function DELETE(req: NextRequest) {
     );
   }
 }
-

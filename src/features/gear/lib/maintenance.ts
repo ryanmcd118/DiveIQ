@@ -105,4 +105,3 @@ export function sortGearByMaintenanceDue<T extends GearItem>(
     return 0;
   });
 }
-

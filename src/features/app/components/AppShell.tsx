@@ -41,17 +41,26 @@ export function AppShell({ children }: AppShellProps) {
     const handleSidebarToggle = (e: CustomEvent) => {
       setIsSidebarCollapsed(e.detail.collapsed);
     };
-    window.addEventListener("sidebarToggle", handleSidebarToggle as EventListener);
+    window.addEventListener(
+      "sidebarToggle",
+      handleSidebarToggle as EventListener
+    );
 
     return () => {
-      window.removeEventListener("sidebarToggle", handleSidebarToggle as EventListener);
+      window.removeEventListener(
+        "sidebarToggle",
+        handleSidebarToggle as EventListener
+      );
     };
   }, []);
 
   // AppShell is only used in (app) route group, so always render sidebar/topbar
   return (
     <div className={styles.appShell}>
-      <Sidebar isMobileOpen={isMobileOpen} onClose={() => setIsMobileOpen(false)} />
+      <Sidebar
+        isMobileOpen={isMobileOpen}
+        onClose={() => setIsMobileOpen(false)}
+      />
       <div
         className={`${styles.mainContent} ${
           isSidebarCollapsed && !isMobile ? styles.sidebarCollapsed : ""
@@ -63,4 +72,3 @@ export function AppShell({ children }: AppShellProps) {
     </div>
   );
 }
-

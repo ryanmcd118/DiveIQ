@@ -1,46 +1,52 @@
 "use client";
 
-import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import type { UnitSystem } from '@/lib/units';
+import {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  ReactNode,
+} from "react";
+import type { UnitSystem } from "@/lib/units";
 
 interface UnitSystemContextType {
   unitSystem: UnitSystem;
   setUnitSystem: (system: UnitSystem) => void;
   toggleUnitSystem: () => void;
-  isMounted: boolean;
 }
 
-const UnitSystemContext = createContext<UnitSystemContextType | undefined>(undefined);
+const UnitSystemContext = createContext<UnitSystemContextType | undefined>(
+  undefined
+);
 
-const STORAGE_KEY = 'diveiq:unitSystem';
+const STORAGE_KEY = "diveiq:unitSystem";
 
 export function UnitSystemProvider({ children }: { children: ReactNode }) {
-  // Always start with 'metric' for SSR/client consistency
-  const [unitSystem, setUnitSystemState] = useState<UnitSystem>('metric');
-  const [isMounted, setIsMounted] = useState(false);
-
-  // Load from localStorage after mount
-  useEffect(() => {
-    setIsMounted(true);
-    const stored = localStorage.getItem(STORAGE_KEY);
-    if (stored === 'metric' || stored === 'imperial') {
-      setUnitSystemState(stored);
+  // Initialize from localStorage if available (client-side only)
+  // On SSR, window is undefined so this returns "metric" for consistency
+  const [unitSystem, setUnitSystemState] = useState<UnitSystem>(() => {
+    if (typeof window !== "undefined") {
+      const stored = localStorage.getItem(STORAGE_KEY);
+      if (stored === "metric" || stored === "imperial") {
+        return stored;
+      }
     }
-  }, []);
+    return "metric";
+  });
 
-  // Persist to localStorage when unitSystem changes (only after mount)
+  // Persist to localStorage when unitSystem changes
   useEffect(() => {
-    if (isMounted) {
+    if (typeof window !== "undefined") {
       localStorage.setItem(STORAGE_KEY, unitSystem);
     }
-  }, [unitSystem, isMounted]);
+  }, [unitSystem]);
 
   const setUnitSystem = (system: UnitSystem) => {
     setUnitSystemState(system);
   };
 
   const toggleUnitSystem = () => {
-    setUnitSystemState((prev) => (prev === 'metric' ? 'imperial' : 'metric'));
+    setUnitSystemState((prev) => (prev === "metric" ? "imperial" : "metric"));
   };
 
   return (
@@ -49,7 +55,6 @@ export function UnitSystemProvider({ children }: { children: ReactNode }) {
         unitSystem,
         setUnitSystem,
         toggleUnitSystem,
-        isMounted,
       }}
     >
       {children}
@@ -60,8 +65,7 @@ export function UnitSystemProvider({ children }: { children: ReactNode }) {
 export function useUnitSystem() {
   const context = useContext(UnitSystemContext);
   if (context === undefined) {
-    throw new Error('useUnitSystem must be used within a UnitSystemProvider');
+    throw new Error("useUnitSystem must be used within a UnitSystemProvider");
   }
   return context;
 }
-

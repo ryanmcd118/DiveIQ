@@ -24,7 +24,7 @@ export default function OAuthErrorHandler() {
         "Callback",
         "OAuthAccountNotLinked",
       ];
-      
+
       if (oauthErrorCodes.includes(error)) {
         // Redirect to desired format: /signin?oauth=google&error=1
         router.replace("/signin?oauth=google&error=1");
@@ -34,4 +34,3 @@ export default function OAuthErrorHandler() {
 
   return null;
 }
-

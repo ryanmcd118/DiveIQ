@@ -17,7 +17,12 @@ async function main() {
   console.log("🌱 Seeding CertificationDefinition catalog...");
 
   // Read JSON file
-  const jsonPath = join(process.cwd(), "prisma", "seed-data", "certifications.json");
+  const jsonPath = join(
+    process.cwd(),
+    "prisma",
+    "seed-data",
+    "certifications.json"
+  );
   const certificationsData = JSON.parse(
     readFileSync(jsonPath, "utf-8")
   ) as CertificationSeedData[];
@@ -78,4 +83,3 @@ main()
   .finally(async () => {
     await prisma.$disconnect();
   });
-

@@ -1,9 +1,9 @@
 "use client";
 
-import { FormEvent, useState, useEffect } from "react";
+import { FormEvent, useState, useEffect, useRef } from "react";
 import { PlanData } from "@/features/dive-plan/types";
 import { useUnitPreferences } from "@/hooks/useUnitPreferences";
-import { displayDepth, getUnitLabel, depthInputToCm, cmToUI } from "@/lib/units";
+import { getUnitLabel } from "@/lib/units";
 import { FormUnitToggle } from "@/components/FormUnitToggle";
 import cardStyles from "@/styles/components/Card.module.css";
 import formStyles from "@/styles/components/Form.module.css";
@@ -44,68 +44,23 @@ export function PlanForm({
     if (!submittedPlan?.maxDepth) return "";
     return String(Math.round(submittedPlan.maxDepth));
   });
-  const [prevDepthUnit, setPrevDepthUnit] = useState(prefs.depth);
-  const [prevSubmittedPlan, setPrevSubmittedPlan] = useState<PlanData | null>(
-    submittedPlan
-  );
-  const [isInitialMount, setIsInitialMount] = useState(true);
+  const prevSubmittedPlanRef = useRef<PlanData | null>(submittedPlan);
 
-  // Convert input values when unit preference changes
+  // Track submittedPlan changes using ref (no setState in effect)
+  // Form fields are initialized via useState and reset via formKey remount
   useEffect(() => {
-    // Skip conversion on initial mount
-    if (isInitialMount) {
-      setIsInitialMount(false);
-      setPrevDepthUnit(prefs.depth);
-      return;
+    if (submittedPlan !== prevSubmittedPlanRef.current) {
+      prevSubmittedPlanRef.current = submittedPlan;
     }
-
-    // Only convert if the depth unit actually changed
-    if (prefs.depth === prevDepthUnit) return;
-
-    // Convert maxDepth from old unit to new unit
-    setMaxDepth((current) => {
-      if (!current || current.trim() === "") return current;
-
-      const numValue = parseFloat(current);
-      if (isNaN(numValue)) return current;
-
-      // Convert from old unit to canonical (cm), then to new unit
-      const depthCm = depthInputToCm(numValue, prevDepthUnit);
-      if (depthCm === null) return current;
-
-      const newValue = cmToUI(depthCm, prefs.depth);
-      if (newValue === null) return current;
-
-      // Round to reasonable precision (1 decimal for meters, whole number for feet)
-      return prefs.depth === "m" 
-        ? String(Math.round(newValue * 10) / 10)
-        : String(Math.round(newValue));
-    });
-
-    setPrevDepthUnit(prefs.depth);
-  }, [prefs.depth, prevDepthUnit, isInitialMount]);
-
-  // Update values when plan loads or changes
-  useEffect(() => {
-    if (submittedPlan !== prevSubmittedPlan) {
-      setPrevSubmittedPlan(submittedPlan);
-      if (submittedPlan) {
-        setMaxDepth(
-          submittedPlan.maxDepth
-            ? String(Math.round(submittedPlan.maxDepth))
-            : ""
-        );
-        // Reset prevDepthUnit when a new plan loads
-        setPrevDepthUnit(prefs.depth);
-      } else {
-        setMaxDepth("");
-      }
-    }
-  }, [submittedPlan, prevSubmittedPlan, prefs.depth]);
+  }, [submittedPlan]);
 
   return (
     <div className={cardStyles.elevatedForm}>
-      <form key={formKey} onSubmit={onSubmit} className={formStyles.form}>
+      <form
+        key={`${formKey}-${prefs.depth}`}
+        onSubmit={onSubmit}
+        className={formStyles.form}
+      >
         {/* Units toggle - only show for public mode */}
         {mode === "public" && <FormUnitToggle />}
         <div className={formStyles.field}>

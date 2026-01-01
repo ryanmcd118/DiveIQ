@@ -1,8 +1,7 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { UploadButton } from "@/components/UploadThingProvider";
-import type { OurFileRouter } from "@/app/api/uploadthing/core";
 import buttonStyles from "@/styles/components/Button.module.css";
 import styles from "./AvatarUploadModal.module.css";
 
@@ -26,58 +25,53 @@ export function AvatarUploadModal({
   const fileInputRef = useRef<HTMLInputElement>(null);
   const uploadButtonInputRef = useRef<HTMLInputElement | null>(null);
 
-  // Reset state when modal opens
+  // Define handleClose with useCallback to ensure stable reference
+  const handleClose = useCallback(() => {
+    setIsUploading(false);
+    setUploadError(null);
+    onClose();
+  }, [onClose]);
+
+  // Find UploadButton input after render (async, can use regular effect)
   useEffect(() => {
-    if (isOpen) {
-      setUploadError(null);
-      setIsUploading(false);
-      // Reset file input
-      if (fileInputRef.current) {
-        fileInputRef.current.value = '';
+    const timer = setTimeout(() => {
+      const uploadInput = document.querySelector(
+        '[data-ut-element="button"] input[type="file"]'
+      ) as HTMLInputElement;
+      if (uploadInput) {
+        uploadButtonInputRef.current = uploadInput;
       }
-      // Find the hidden UploadButton's input after it renders
-      setTimeout(() => {
-        const uploadInput = document.querySelector('[data-ut-element="button"] input[type="file"]') as HTMLInputElement;
-        if (uploadInput) {
-          uploadButtonInputRef.current = uploadInput;
-        }
-      }, 100);
-    }
-  }, [isOpen]);
+    }, 100);
+    return () => clearTimeout(timer);
+  }, []);
 
   // Handle escape key
   useEffect(() => {
-    if (!isOpen) return;
-    
     const handleEscape = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
         handleClose();
       }
     };
-    
+
     document.addEventListener("keydown", handleEscape);
     return () => document.removeEventListener("keydown", handleEscape);
-  }, [isOpen]);
+  }, [handleClose]);
 
   // Prevent body scroll when modal is open
   useEffect(() => {
-    if (isOpen) {
-      document.body.style.overflow = "hidden";
-    } else {
-      document.body.style.overflow = "";
-    }
+    if (!isOpen) return;
+
+    // Store the previous overflow value
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+
     return () => {
-      document.body.style.overflow = "";
+      // Restore the previous overflow value
+      document.body.style.overflow = previousOverflow;
     };
   }, [isOpen]);
 
   if (!isOpen) return null;
-
-  const handleClose = () => {
-    setIsUploading(false);
-    setUploadError(null);
-    onClose();
-  };
 
   const handleChooseFileClick = () => {
     if (isUploading) return;
@@ -85,15 +79,17 @@ export function AvatarUploadModal({
     fileInputRef.current?.click();
   };
 
-  const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = async (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
     const file = event.target.files?.[0];
     if (!file) return;
 
     // Validate file type
-    if (!file.type.startsWith('image/')) {
-      setUploadError('Please select an image file.');
+    if (!file.type.startsWith("image/")) {
+      setUploadError("Please select an image file.");
       if (fileInputRef.current) {
-        fileInputRef.current.value = '';
+        fileInputRef.current.value = "";
       }
       return;
     }
@@ -101,9 +97,9 @@ export function AvatarUploadModal({
     // Validate file size (4MB max)
     const maxSize = 4 * 1024 * 1024; // 4MB
     if (file.size > maxSize) {
-      setUploadError('File size must be less than 4MB.');
+      setUploadError("File size must be less than 4MB.");
       if (fileInputRef.current) {
-        fileInputRef.current.value = '';
+        fileInputRef.current.value = "";
       }
       return;
     }
@@ -116,17 +112,22 @@ export function AvatarUploadModal({
     // Transfer file to hidden UploadButton and trigger upload
     // This uses native input for picking (reliable) but UploadButton for upload (handles UploadThing API)
     setTimeout(() => {
-      const uploadInput = uploadButtonInputRef.current || 
-        (document.querySelector('[data-ut-element="button"] input[type="file"]') as HTMLInputElement);
-      
+      const uploadInput =
+        uploadButtonInputRef.current ||
+        (document.querySelector(
+          '[data-ut-element="button"] input[type="file"]'
+        ) as HTMLInputElement);
+
       if (uploadInput) {
         // Create FileList with our file
         const dataTransfer = new DataTransfer();
         dataTransfer.items.add(file);
         uploadInput.files = dataTransfer.files;
-        
+
         // Trigger change event to start upload
-        const changeEvent = new Event('change', { bubbles: true });
+        const changeEvent = new Event("change", { bubbles: true });
+        if (!isOpen) return null;
+
         uploadInput.dispatchEvent(changeEvent);
       } else {
         // Fallback error if UploadButton not ready
@@ -135,7 +136,7 @@ export function AvatarUploadModal({
         setUploadError(error.message);
         onUploadError(error);
         if (fileInputRef.current) {
-          fileInputRef.current.value = '';
+          fileInputRef.current.value = "";
         }
       }
     }, 50);
@@ -151,7 +152,7 @@ export function AvatarUploadModal({
       setUploadError(error.message);
       onUploadError(error);
       if (fileInputRef.current) {
-        fileInputRef.current.value = '';
+        fileInputRef.current.value = "";
       }
     }
   };
@@ -161,7 +162,7 @@ export function AvatarUploadModal({
     setUploadError(error.message || "Upload failed. Please try again.");
     onUploadError(error);
     if (fileInputRef.current) {
-      fileInputRef.current.value = '';
+      fileInputRef.current.value = "";
     }
   };
 
@@ -189,9 +190,7 @@ export function AvatarUploadModal({
             </div>
           )}
 
-          <p className={styles.helperText}>
-            Select an image (max 4MB)
-          </p>
+          <p className={styles.helperText}>Select an image (max 4MB)</p>
 
           <div className={styles.uploadArea}>
             {/* Native file input - always reliable for file picking */}
@@ -222,7 +221,7 @@ export function AvatarUploadModal({
             </button>
             {/* Hidden UploadButton for actual upload handling */}
             <div className={styles.hiddenUploadButton}>
-              <UploadButton<OurFileRouter>
+              <UploadButton
                 endpoint="avatarUploader"
                 onClientUploadComplete={handleUploadComplete}
                 onUploadError={handleUploadError}

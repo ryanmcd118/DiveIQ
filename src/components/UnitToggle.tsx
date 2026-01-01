@@ -1,7 +1,7 @@
 "use client";
 
-import { useUnitSystem } from '@/contexts/UnitSystemContext';
-import styles from './UnitToggle.module.css';
+import { useUnitSystem } from "@/contexts/UnitSystemContext";
+import styles from "./UnitToggle.module.css";
 
 interface UnitToggleProps {
   className?: string;
@@ -9,64 +9,31 @@ interface UnitToggleProps {
 }
 
 export function UnitToggle({ className, showLabel = true }: UnitToggleProps) {
-  const { unitSystem, setUnitSystem, isMounted } = useUnitSystem();
+  const { unitSystem, setUnitSystem } = useUnitSystem();
 
-  // Before mount, render with no active state to match SSR
-  const renderToggle = () => {
-    if (!isMounted) {
-      return (
-        <div className={styles.toggle} role="group" aria-label="Unit system">
-          <button
-            type="button"
-            className={styles.segment}
-            onClick={() => setUnitSystem('metric')}
-            aria-pressed={false}
-            aria-label="Metric units"
-          >
-            Metric
-          </button>
-          <button
-            type="button"
-            className={styles.segment}
-            onClick={() => setUnitSystem('imperial')}
-            aria-pressed={false}
-            aria-label="Imperial units"
-          >
-            Imperial
-          </button>
-        </div>
-      );
-    }
-
-    return (
+  return (
+    <div className={`${styles.container} ${className || ""}`}>
+      {showLabel && <span className={styles.label}>Units</span>}
       <div className={styles.toggle} role="group" aria-label="Unit system">
         <button
           type="button"
-          className={`${styles.segment} ${unitSystem === 'metric' ? styles.active : ''}`}
-          onClick={() => setUnitSystem('metric')}
-          aria-pressed={unitSystem === 'metric'}
+          className={`${styles.segment} ${unitSystem === "metric" ? styles.active : ""}`}
+          onClick={() => setUnitSystem("metric")}
+          aria-pressed={unitSystem === "metric"}
           aria-label="Metric units"
         >
           Metric
         </button>
         <button
           type="button"
-          className={`${styles.segment} ${unitSystem === 'imperial' ? styles.active : ''}`}
-          onClick={() => setUnitSystem('imperial')}
-          aria-pressed={unitSystem === 'imperial'}
+          className={`${styles.segment} ${unitSystem === "imperial" ? styles.active : ""}`}
+          onClick={() => setUnitSystem("imperial")}
+          aria-pressed={unitSystem === "imperial"}
           aria-label="Imperial units"
         >
           Imperial
         </button>
       </div>
-    );
-  };
-
-  return (
-    <div className={`${styles.container} ${className || ''}`}>
-      {showLabel && <span className={styles.label}>Units</span>}
-      {renderToggle()}
     </div>
   );
 }
-

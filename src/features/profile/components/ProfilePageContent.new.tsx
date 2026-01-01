@@ -1,8 +1,9 @@
 "use client";
 
 import { useState, useEffect, useMemo, useRef } from "react";
+import type { ReactNode } from "react";
 import Link from "next/link";
-import { ChevronDown, Calendar, Link as LinkIcon } from "lucide-react";
+import { ChevronDown } from "lucide-react";
 import { useAuth } from "@/features/auth/hooks/useAuth";
 import cardStyles from "@/styles/components/Card.module.css";
 import formStyles from "@/styles/components/Form.module.css";
@@ -104,10 +105,14 @@ export function ProfilePageContent() {
     favoriteDiveLocation: null,
     birthday: null,
   });
-  const [originalProfile, setOriginalProfile] = useState<ProfileData | null>(null);
+  const [originalProfile, setOriginalProfile] = useState<ProfileData | null>(
+    null
+  );
 
   const [editingField, setEditingField] = useState<string | null>(null);
-  const inputRefs = useRef<{ [key: string]: HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement }>({});
+  const inputRefs = useRef<{
+    [key: string]: HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement;
+  }>({});
 
   const normalizeValue = (val: string | null): string | null => {
     if (!val) return null;
@@ -117,27 +122,35 @@ export function ProfilePageContent() {
 
   const isDirty = useMemo(() => {
     if (!originalProfile) return false;
-    const norm = (v: any) => {
+    const norm = (v: string | number | string[] | null | undefined) => {
       if (Array.isArray(v)) return stringifyJsonArray(v);
       if (typeof v === "number") return v;
-      return normalizeValue(v);
+      return normalizeValue(v ?? null);
     };
     return (
       norm(draftProfile.firstName) !== norm(originalProfile.firstName) ||
       norm(draftProfile.lastName) !== norm(originalProfile.lastName) ||
       norm(draftProfile.location) !== norm(originalProfile.location) ||
-      norm(draftProfile.homeDiveRegion) !== norm(originalProfile.homeDiveRegion) ||
+      norm(draftProfile.homeDiveRegion) !==
+        norm(originalProfile.homeDiveRegion) ||
       norm(draftProfile.website) !== norm(originalProfile.website) ||
       norm(draftProfile.languages) !== norm(originalProfile.languages) ||
       norm(draftProfile.bio) !== norm(originalProfile.bio) ||
-      JSON.stringify(draftProfile.primaryDiveTypes || []) !== JSON.stringify(originalProfile.primaryDiveTypes || []) ||
-      norm(draftProfile.experienceLevel) !== norm(originalProfile.experienceLevel) ||
+      JSON.stringify(draftProfile.primaryDiveTypes || []) !==
+        JSON.stringify(originalProfile.primaryDiveTypes || []) ||
+      norm(draftProfile.experienceLevel) !==
+        norm(originalProfile.experienceLevel) ||
       draftProfile.yearsDiving !== originalProfile.yearsDiving ||
-      norm(draftProfile.certifyingAgency) !== norm(originalProfile.certifyingAgency) ||
-      JSON.stringify(draftProfile.typicalDivingEnvironment || []) !== JSON.stringify(originalProfile.typicalDivingEnvironment || []) ||
-      JSON.stringify(draftProfile.lookingFor || []) !== JSON.stringify(originalProfile.lookingFor || []) ||
-      norm(draftProfile.favoriteDiveType) !== norm(originalProfile.favoriteDiveType) ||
-      norm(draftProfile.favoriteDiveLocation) !== norm(originalProfile.favoriteDiveLocation) ||
+      norm(draftProfile.certifyingAgency) !==
+        norm(originalProfile.certifyingAgency) ||
+      JSON.stringify(draftProfile.typicalDivingEnvironment || []) !==
+        JSON.stringify(originalProfile.typicalDivingEnvironment || []) ||
+      JSON.stringify(draftProfile.lookingFor || []) !==
+        JSON.stringify(originalProfile.lookingFor || []) ||
+      norm(draftProfile.favoriteDiveType) !==
+        norm(originalProfile.favoriteDiveType) ||
+      norm(draftProfile.favoriteDiveLocation) !==
+        norm(originalProfile.favoriteDiveLocation) ||
       norm(draftProfile.birthday) !== norm(originalProfile.birthday)
     );
   }, [draftProfile, originalProfile]);
@@ -147,7 +160,9 @@ export function ProfilePageContent() {
     setError(null);
     try {
       const response = await fetch("/api/profile");
-      const data = await response.json().catch(() => ({ error: "Failed to parse response" }));
+      const data = await response
+        .json()
+        .catch(() => ({ error: "Failed to parse response" }));
       if (!response.ok) {
         setError(data.error || `Failed to fetch profile (${response.status})`);
         setLoading(false);
@@ -168,13 +183,22 @@ export function ProfilePageContent() {
         bio: data.user.bio || null,
         primaryDiveTypes: parseJsonArray<string>(data.user.primaryDiveTypes),
         experienceLevel: (data.user.experienceLevel as ExperienceLevel) || null,
-        yearsDiving: data.user.yearsDiving !== null && data.user.yearsDiving !== undefined ? Number(data.user.yearsDiving) : null,
+        yearsDiving:
+          data.user.yearsDiving !== null && data.user.yearsDiving !== undefined
+            ? Number(data.user.yearsDiving)
+            : null,
         certifyingAgency: data.user.certifyingAgency || null,
-        typicalDivingEnvironment: parseJsonArray<string>(data.user.typicalDivingEnvironment),
+        typicalDivingEnvironment: parseJsonArray<string>(
+          data.user.typicalDivingEnvironment
+        ),
         lookingFor: parseJsonArray<string>(data.user.lookingFor),
         favoriteDiveType: data.user.favoriteDiveType || null,
         favoriteDiveLocation: data.user.favoriteDiveLocation || null,
-        birthday: normalizeDate(data.user.birthday ? new Date(data.user.birthday).toISOString().split("T")[0] : null),
+        birthday: normalizeDate(
+          data.user.birthday
+            ? new Date(data.user.birthday).toISOString().split("T")[0]
+            : null
+        ),
       };
       setDraftProfile(profileData);
       setOriginalProfile(profileData);
@@ -208,7 +232,10 @@ export function ProfilePageContent() {
     }, 0);
   };
 
-  const handleFieldChange = (field: keyof ProfileData, value: any) => {
+  const handleFieldChange = (
+    field: keyof ProfileData,
+    value: ProfileData[keyof ProfileData]
+  ) => {
     setDraftProfile((prev) => ({ ...prev, [field]: value }));
     if (success) setSuccess(false);
     if (error) setError(null);
@@ -228,7 +255,24 @@ export function ProfilePageContent() {
     setError(null);
     setSuccess(false);
     try {
-      const normalizedData: any = {
+      const normalizedData: {
+        firstName: string | null;
+        lastName: string | null;
+        location: string | null;
+        homeDiveRegion: string | null;
+        website: string | null;
+        languages: string | null;
+        bio: string | null;
+        primaryDiveTypes: string | null;
+        experienceLevel: string | null;
+        yearsDiving: number | null;
+        certifyingAgency: string | null;
+        typicalDivingEnvironment: string | null;
+        lookingFor: string | null;
+        favoriteDiveType: string | null;
+        favoriteDiveLocation: string | null;
+        birthday: string | null;
+      } = {
         firstName: normalizeValue(draftProfile.firstName),
         lastName: normalizeValue(draftProfile.lastName),
         location: normalizeValue(draftProfile.location),
@@ -240,7 +284,9 @@ export function ProfilePageContent() {
         experienceLevel: normalizeValue(draftProfile.experienceLevel),
         yearsDiving: draftProfile.yearsDiving,
         certifyingAgency: normalizeValue(draftProfile.certifyingAgency),
-        typicalDivingEnvironment: stringifyJsonArray(draftProfile.typicalDivingEnvironment),
+        typicalDivingEnvironment: stringifyJsonArray(
+          draftProfile.typicalDivingEnvironment
+        ),
         lookingFor: stringifyJsonArray(draftProfile.lookingFor),
         favoriteDiveType: normalizeValue(draftProfile.favoriteDiveType),
         favoriteDiveLocation: normalizeValue(draftProfile.favoriteDiveLocation),
@@ -279,7 +325,8 @@ export function ProfilePageContent() {
       });
 
       const data = await response.json();
-      if (!response.ok) throw new Error(data.error || "Failed to update profile");
+      if (!response.ok)
+        throw new Error(data.error || "Failed to update profile");
 
       setUser({
         firstName: data.user.firstName || null,
@@ -297,13 +344,22 @@ export function ProfilePageContent() {
         bio: data.user.bio || null,
         primaryDiveTypes: parseJsonArray<string>(data.user.primaryDiveTypes),
         experienceLevel: (data.user.experienceLevel as ExperienceLevel) || null,
-        yearsDiving: data.user.yearsDiving !== null && data.user.yearsDiving !== undefined ? Number(data.user.yearsDiving) : null,
+        yearsDiving:
+          data.user.yearsDiving !== null && data.user.yearsDiving !== undefined
+            ? Number(data.user.yearsDiving)
+            : null,
         certifyingAgency: data.user.certifyingAgency || null,
-        typicalDivingEnvironment: parseJsonArray<string>(data.user.typicalDivingEnvironment),
+        typicalDivingEnvironment: parseJsonArray<string>(
+          data.user.typicalDivingEnvironment
+        ),
         lookingFor: parseJsonArray<string>(data.user.lookingFor),
         favoriteDiveType: data.user.favoriteDiveType || null,
         favoriteDiveLocation: data.user.favoriteDiveLocation || null,
-        birthday: normalizeDate(data.user.birthday ? new Date(data.user.birthday).toISOString().split("T")[0] : null),
+        birthday: normalizeDate(
+          data.user.birthday
+            ? new Date(data.user.birthday).toISOString().split("T")[0]
+            : null
+        ),
       };
 
       setDraftProfile(updatedProfile);
@@ -328,7 +384,10 @@ export function ProfilePageContent() {
       if (domain.startsWith("www.")) domain = domain.slice(4);
       return domain;
     } catch {
-      let cleaned = url.trim().replace(/^https?:\/\//, "").replace(/\/$/, "");
+      let cleaned = url
+        .trim()
+        .replace(/^https?:\/\//, "")
+        .replace(/\/$/, "");
       if (cleaned.startsWith("www.")) cleaned = cleaned.slice(4);
       return cleaned.split("/")[0];
     }
@@ -378,13 +437,18 @@ export function ProfilePageContent() {
             {selected.length > 0 ? (
               <div className={styles.tagContainer}>
                 {selected.map((tag) => (
-                  <span key={tag} className={`${styles.tag} ${styles.tagSelected}`}>
+                  <span
+                    key={tag}
+                    className={`${styles.tag} ${styles.tagSelected}`}
+                  >
                     {tag}
                   </span>
                 ))}
               </div>
             ) : (
-              <span className={styles.fieldPlaceholder}>Add {label.toLowerCase()}</span>
+              <span className={styles.fieldPlaceholder}>
+                Add {label.toLowerCase()}
+              </span>
             )}
           </div>
         )}
@@ -483,7 +547,16 @@ export function ProfilePageContent() {
                 }}
                 type={type}
                 value={value as string | number}
-                onChange={(e) => handleFieldChange(field, type === "number" ? (e.target.value === "" ? null : Number(e.target.value)) : e.target.value)}
+                onChange={(e) =>
+                  handleFieldChange(
+                    field,
+                    type === "number"
+                      ? e.target.value === ""
+                        ? null
+                        : Number(e.target.value)
+                      : e.target.value
+                  )
+                }
                 onBlur={handleFieldBlur}
                 className={styles.fieldInput}
                 placeholder={placeholder}
@@ -510,30 +583,51 @@ export function ProfilePageContent() {
 
   // Render public profile preview
   const renderPublicPreview = () => {
-    const fullName = [draftProfile.firstName, draftProfile.lastName]
-      .filter(Boolean)
-      .join(" ") || displayName;
+    const fullName =
+      [draftProfile.firstName, draftProfile.lastName]
+        .filter(Boolean)
+        .join(" ") || displayName;
 
     const metadataParts: string[] = [];
     if (draftProfile.location) metadataParts.push(draftProfile.location);
-    if (draftProfile.homeDiveRegion) metadataParts.push(draftProfile.homeDiveRegion);
-    if (draftProfile.experienceLevel) metadataParts.push(draftProfile.experienceLevel);
+    if (draftProfile.homeDiveRegion)
+      metadataParts.push(draftProfile.homeDiveRegion);
+    if (draftProfile.experienceLevel)
+      metadataParts.push(draftProfile.experienceLevel);
     const metadata = metadataParts.join(" · ");
 
     const primaryDiveTypes = draftProfile.primaryDiveTypes || [];
 
-    const tiles: Array<{ label: string; value: string | JSX.Element }> = [];
-    if (draftProfile.yearsDiving !== null && draftProfile.yearsDiving !== undefined) {
-      tiles.push({ label: "Years Diving", value: `${draftProfile.yearsDiving} ${draftProfile.yearsDiving === 1 ? "year" : "years"}` });
+    const tiles: Array<{ label: string; value: string | ReactNode }> = [];
+    if (
+      draftProfile.yearsDiving !== null &&
+      draftProfile.yearsDiving !== undefined
+    ) {
+      tiles.push({
+        label: "Years Diving",
+        value: `${draftProfile.yearsDiving} ${draftProfile.yearsDiving === 1 ? "year" : "years"}`,
+      });
     }
     if (draftProfile.certifyingAgency) {
-      tiles.push({ label: "Certifying Agency", value: draftProfile.certifyingAgency });
+      tiles.push({
+        label: "Certifying Agency",
+        value: draftProfile.certifyingAgency,
+      });
     }
-    if (draftProfile.typicalDivingEnvironment && draftProfile.typicalDivingEnvironment.length > 0) {
-      tiles.push({ label: "Typical Diving Environment", value: draftProfile.typicalDivingEnvironment.join(", ") });
+    if (
+      draftProfile.typicalDivingEnvironment &&
+      draftProfile.typicalDivingEnvironment.length > 0
+    ) {
+      tiles.push({
+        label: "Typical Diving Environment",
+        value: draftProfile.typicalDivingEnvironment.join(", "),
+      });
     }
     if (draftProfile.lookingFor && draftProfile.lookingFor.length > 0) {
-      tiles.push({ label: "Looking For", value: draftProfile.lookingFor.join(", ") });
+      tiles.push({
+        label: "Looking For",
+        value: draftProfile.lookingFor.join(", "),
+      });
     }
     if (draftProfile.languages) {
       tiles.push({ label: "Languages", value: draftProfile.languages });
@@ -543,7 +637,12 @@ export function ProfilePageContent() {
       tiles.push({
         label: "Website",
         value: (
-          <a href={draftProfile.website} target="_blank" rel="noopener noreferrer" className={styles.previewWebsiteLink}>
+          <a
+            href={draftProfile.website}
+            target="_blank"
+            rel="noopener noreferrer"
+            className={styles.previewWebsiteLink}
+          >
             {websiteDisplay}
             <span className={styles.previewExternalIcon}>↗</span>
           </a>
@@ -612,11 +711,19 @@ export function ProfilePageContent() {
         <h1 className={styles.title}>Profile</h1>
         <div className={styles.headerActions}>
           {mode === "edit" ? (
-            <button onClick={() => setMode("preview")} className={buttonStyles.secondary} type="button">
+            <button
+              onClick={() => setMode("preview")}
+              className={buttonStyles.secondary}
+              type="button"
+            >
               Preview public profile
             </button>
           ) : (
-            <button onClick={() => setMode("edit")} className={buttonStyles.secondary} type="button">
+            <button
+              onClick={() => setMode("edit")}
+              className={buttonStyles.secondary}
+              type="button"
+            >
               Back to editing
             </button>
           )}
@@ -630,8 +737,14 @@ export function ProfilePageContent() {
         {loading && <p>Loading profile...</p>}
         {error && !loading && (
           <div className={styles.errorContainer}>
-            <p className={formStyles.error}>We couldn&apos;t load your profile. Please try again.</p>
-            <button onClick={fetchProfile} className={buttonStyles.primary} type="button">
+            <p className={formStyles.error}>
+              We couldn&apos;t load your profile. Please try again.
+            </p>
+            <button
+              onClick={fetchProfile}
+              className={buttonStyles.primary}
+              type="button"
+            >
               Retry
             </button>
           </div>
@@ -655,31 +768,96 @@ export function ProfilePageContent() {
                 <div className={styles.section}>
                   <h3 className={styles.sectionTitle}>Basic Information</h3>
                   <div className={styles.twoColumnGrid}>
-                    {renderEditableField("firstName", "First Name", "Add your first name", "text", 50)}
-                    {renderEditableField("lastName", "Last Name", "Add your last name", "text", 50)}
-                    {renderEditableField("location", "Location (City, Country)", "Add your location", "text")}
-                    {renderEditableField("homeDiveRegion", "Home Dive Region", "Add your home dive region", "text")}
-                    {renderEditableField("website", "Website", "Add your website", "url")}
-                    {renderEditableField("languages", "Languages", "Add languages (comma-separated)", "text")}
+                    {renderEditableField(
+                      "firstName",
+                      "First Name",
+                      "Add your first name",
+                      "text",
+                      50
+                    )}
+                    {renderEditableField(
+                      "lastName",
+                      "Last Name",
+                      "Add your last name",
+                      "text",
+                      50
+                    )}
+                    {renderEditableField(
+                      "location",
+                      "Location (City, Country)",
+                      "Add your location",
+                      "text"
+                    )}
+                    {renderEditableField(
+                      "homeDiveRegion",
+                      "Home Dive Region",
+                      "Add your home dive region",
+                      "text"
+                    )}
+                    {renderEditableField(
+                      "website",
+                      "Website",
+                      "Add your website",
+                      "url"
+                    )}
+                    {renderEditableField(
+                      "languages",
+                      "Languages",
+                      "Add languages (comma-separated)",
+                      "text"
+                    )}
                   </div>
                 </div>
 
                 {/* Section 2: About You */}
                 <div className={styles.section}>
                   <h3 className={styles.sectionTitle}>About You</h3>
-                  {renderEditableField("bio", "About", "Add a short personal and/or diving bio", "textarea", 500)}
+                  {renderEditableField(
+                    "bio",
+                    "About",
+                    "Add a short personal and/or diving bio",
+                    "textarea",
+                    500
+                  )}
                 </div>
 
                 {/* Section 3: Diving Profile */}
                 <div className={styles.section}>
                   <h3 className={styles.sectionTitle}>Diving Profile</h3>
                   <div className={styles.twoColumnGrid}>
-                    {renderMultiSelect("primaryDiveTypes", "Primary Dive Types", DIVE_TYPES)}
-                    {renderSelect("experienceLevel", "Experience Level", ["Beginner", "Intermediate", "Advanced"] as const, "Select experience level")}
-                    {renderEditableField("yearsDiving", "Years Diving", "Add years of experience", "number")}
-                    {renderSelect("certifyingAgency", "Certifying Agency", CERTIFYING_AGENCIES, "Select certifying agency")}
-                    {renderMultiSelect("typicalDivingEnvironment", "Typical Diving Environment", DIVING_ENVIRONMENTS)}
-                    {renderMultiSelect("lookingFor", "Looking For", LOOKING_FOR_OPTIONS)}
+                    {renderMultiSelect(
+                      "primaryDiveTypes",
+                      "Primary Dive Types",
+                      DIVE_TYPES
+                    )}
+                    {renderSelect(
+                      "experienceLevel",
+                      "Experience Level",
+                      ["Beginner", "Intermediate", "Advanced"] as const,
+                      "Select experience level"
+                    )}
+                    {renderEditableField(
+                      "yearsDiving",
+                      "Years Diving",
+                      "Add years of experience",
+                      "number"
+                    )}
+                    {renderSelect(
+                      "certifyingAgency",
+                      "Certifying Agency",
+                      CERTIFYING_AGENCIES,
+                      "Select certifying agency"
+                    )}
+                    {renderMultiSelect(
+                      "typicalDivingEnvironment",
+                      "Typical Diving Environment",
+                      DIVING_ENVIRONMENTS
+                    )}
+                    {renderMultiSelect(
+                      "lookingFor",
+                      "Looking For",
+                      LOOKING_FOR_OPTIONS
+                    )}
                   </div>
                 </div>
 
@@ -688,7 +866,9 @@ export function ProfilePageContent() {
                   <button
                     type="button"
                     className={styles.sectionToggle}
-                    onClick={() => setShowAdditionalDetails(!showAdditionalDetails)}
+                    onClick={() =>
+                      setShowAdditionalDetails(!showAdditionalDetails)
+                    }
                   >
                     <h3 className={styles.sectionTitle}>Additional Details</h3>
                     <ChevronDown
@@ -697,9 +877,24 @@ export function ProfilePageContent() {
                   </button>
                   {showAdditionalDetails && (
                     <div className={styles.twoColumnGrid}>
-                      {renderEditableField("favoriteDiveType", "Favorite Dive Type", "Add your favorite dive type", "text")}
-                      {renderEditableField("favoriteDiveLocation", "Favorite Dive Location", "Add your favorite dive location", "text")}
-                      {renderEditableField("birthday", "Birthday", "Add your birthday", "date")}
+                      {renderEditableField(
+                        "favoriteDiveType",
+                        "Favorite Dive Type",
+                        "Add your favorite dive type",
+                        "text"
+                      )}
+                      {renderEditableField(
+                        "favoriteDiveLocation",
+                        "Favorite Dive Location",
+                        "Add your favorite dive location",
+                        "text"
+                      )}
+                      {renderEditableField(
+                        "birthday",
+                        "Birthday",
+                        "Add your birthday",
+                        "date"
+                      )}
                     </div>
                   )}
                 </div>
@@ -708,12 +903,26 @@ export function ProfilePageContent() {
                 {isDirty && (
                   <div className={styles.footer}>
                     {error && <div className={styles.footerError}>{error}</div>}
-                    {success && <div className={styles.footerSuccess}>Profile updated</div>}
+                    {success && (
+                      <div className={styles.footerSuccess}>
+                        Profile updated
+                      </div>
+                    )}
                     <div className={styles.footerActions}>
-                      <button onClick={handleCancel} className={buttonStyles.secondary} type="button" disabled={saving}>
+                      <button
+                        onClick={handleCancel}
+                        className={buttonStyles.secondary}
+                        type="button"
+                        disabled={saving}
+                      >
                         Cancel
                       </button>
-                      <button onClick={handleSave} className={buttonStyles.primary} type="button" disabled={saving}>
+                      <button
+                        onClick={handleSave}
+                        className={buttonStyles.primary}
+                        type="button"
+                        disabled={saving}
+                      >
                         {saving ? "Saving..." : "Save"}
                       </button>
                     </div>
@@ -727,4 +936,3 @@ export function ProfilePageContent() {
     </div>
   );
 }
-

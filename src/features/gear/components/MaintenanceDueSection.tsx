@@ -20,7 +20,7 @@ export function MaintenanceDueSection({ gearItems, onJumpToGear }: Props) {
   const maintenanceItems = useMemo(() => {
     // Filter out archived/inactive items
     const activeItems = gearItems.filter((item) => item.isActive);
-    
+
     const itemsWithStatus = activeItems.map((item) => ({
       item,
       status: computeMaintenanceStatus(item),
@@ -124,7 +124,9 @@ export function MaintenanceDueSection({ gearItems, onJumpToGear }: Props) {
                   </span>
                 </div>
                 <div className={styles.rowRight}>
-                  <span className={`${styles.statusPill} ${getStatusClass(status)}`}>
+                  <span
+                    className={`${styles.statusPill} ${getStatusClass(status)}`}
+                  >
                     {getStatusLabel(status)}
                   </span>
                 </div>
@@ -136,4 +138,3 @@ export function MaintenanceDueSection({ gearItems, onJumpToGear }: Props) {
     </section>
   );
 }
-

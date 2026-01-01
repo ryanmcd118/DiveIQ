@@ -25,7 +25,8 @@ export function CertificationFormModal({
   const [error, setError] = useState<string | null>(null);
 
   const [agency, setAgency] = useState<"PADI" | "SSI" | "">("");
-  const [certificationDefinitionId, setCertificationDefinitionId] = useState("");
+  const [certificationDefinitionId, setCertificationDefinitionId] =
+    useState("");
   const [earnedDate, setEarnedDate] = useState("");
   const [certNumber, setCertNumber] = useState("");
   const [diveShop, setDiveShop] = useState("");
@@ -121,7 +122,15 @@ export function CertificationFormModal({
     try {
       if (editingCert) {
         // Update existing certification
-        const payload: any = {};
+        const payload = {} as {
+          earnedDate: string | null;
+          certNumber: string | null;
+          diveShop: string | null;
+          location: string | null;
+          instructor: string | null;
+          notes: string | null;
+          isFeatured: boolean;
+        };
         if (earnedDate) payload.earnedDate = earnedDate;
         else payload.earnedDate = null;
         if (certNumber.trim()) payload.certNumber = certNumber.trim();
@@ -152,7 +161,16 @@ export function CertificationFormModal({
           throw new Error("Agency and certification are required");
         }
 
-        const payload: any = {
+        const payload: {
+          certificationDefinitionId: string;
+          isFeatured: boolean;
+          earnedDate?: string;
+          certNumber?: string;
+          diveShop?: string;
+          location?: string;
+          instructor?: string;
+          notes?: string;
+        } = {
           certificationDefinitionId,
           isFeatured,
         };
@@ -178,7 +196,8 @@ export function CertificationFormModal({
       onSave(true);
     } catch (err) {
       console.error(err);
-      const errorMessage = err instanceof Error ? err.message : "Failed to save certification";
+      const errorMessage =
+        err instanceof Error ? err.message : "Failed to save certification";
       setError(errorMessage);
       onSave(false, errorMessage);
     } finally {
@@ -214,7 +233,9 @@ export function CertificationFormModal({
                 <select
                   id="agency"
                   value={agency}
-                  onChange={(e) => setAgency(e.target.value as "PADI" | "SSI" | "")}
+                  onChange={(e) =>
+                    setAgency(e.target.value as "PADI" | "SSI" | "")
+                  }
                   required
                   className={formStyles.select}
                 >
@@ -253,7 +274,8 @@ export function CertificationFormModal({
             <div className={formStyles.field}>
               <label className={formStyles.label}>Certification</label>
               <div className={styles.readOnlyField}>
-                {editingCert.certificationDefinition.name} ({editingCert.certificationDefinition.agency})
+                {editingCert.certificationDefinition.name} (
+                {editingCert.certificationDefinition.agency})
               </div>
               <p className={formStyles.helpText}>
                 Certification cannot be changed after creation
@@ -345,7 +367,14 @@ export function CertificationFormModal({
           </div>
 
           <div className={formStyles.field}>
-            <label style={{ display: "flex", alignItems: "center", gap: "var(--space-2)", cursor: "pointer" }}>
+            <label
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: "var(--space-2)",
+                cursor: "pointer",
+              }}
+            >
               <input
                 type="checkbox"
                 checked={isFeatured}
@@ -356,9 +385,19 @@ export function CertificationFormModal({
                   cursor: "pointer",
                 }}
               />
-              <span style={{ fontSize: "var(--font-size-sm)", color: "var(--color-text-secondary)" }}>Featured</span>
+              <span
+                style={{
+                  fontSize: "var(--font-size-sm)",
+                  color: "var(--color-text-secondary)",
+                }}
+              >
+                Featured
+              </span>
             </label>
-            <p className={formStyles.hint} style={{ marginTop: "var(--space-1)" }}>
+            <p
+              className={formStyles.hint}
+              style={{ marginTop: "var(--space-1)" }}
+            >
               Featured certifications appear at the top of your list
             </p>
           </div>
@@ -374,8 +413,8 @@ export function CertificationFormModal({
               {loading
                 ? "Saving..."
                 : editingCert
-                ? "Update"
-                : "Add certification"}
+                  ? "Update"
+                  : "Add certification"}
             </button>
             <button
               type="button"
@@ -390,4 +429,3 @@ export function CertificationFormModal({
     </div>
   );
 }
-

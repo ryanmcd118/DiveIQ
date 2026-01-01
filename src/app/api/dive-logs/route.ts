@@ -3,7 +3,6 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/features/auth/lib/auth";
 import { diveLogRepository } from "@/services/database/repositories/diveLogRepository";
 import { diveGearRepository } from "@/services/database/repositories/gearRepository";
-import { gearKitRepository } from "@/services/database/repositories/gearRepository";
 import type { DiveLogInput } from "@/features/dive-log/types";
 
 /**
@@ -14,12 +13,9 @@ import type { DiveLogInput } from "@/features/dive-log/types";
  */
 export async function GET(req: NextRequest) {
   const session = await getServerSession(authOptions);
-  
+
   if (!session?.user) {
-    return NextResponse.json(
-      { error: "Unauthorized" },
-      { status: 401 }
-    );
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   const { searchParams } = new URL(req.url);
@@ -74,7 +70,7 @@ export async function GET(req: NextRequest) {
  * POST /api/dive-logs
  * Handle dive log operations (create, update, delete)
  * Requires authentication
- * 
+ *
  * Body format:
  * {
  *   action: "create" | "update" | "delete",
@@ -84,12 +80,9 @@ export async function GET(req: NextRequest) {
  */
 export async function POST(req: NextRequest) {
   const session = await getServerSession(authOptions);
-  
+
   if (!session?.user) {
-    return NextResponse.json(
-      { error: "Unauthorized" },
-      { status: 401 }
-    );
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   try {
@@ -193,10 +186,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Unknown action
-    return NextResponse.json(
-      { error: "Invalid action" },
-      { status: 400 }
-    );
+    return NextResponse.json({ error: "Invalid action" }, { status: 400 });
   } catch (err) {
     console.error("POST /api/dive-logs error", err);
     return NextResponse.json(

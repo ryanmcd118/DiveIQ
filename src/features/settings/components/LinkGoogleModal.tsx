@@ -36,12 +36,12 @@ export function LinkGoogleModal({ isOpen, onClose }: LinkGoogleModalProps) {
 
         <div className={styles.content}>
           <p>
-            You'll be redirected to Google to authorize linking your Google
+            You&apos;ll be redirected to Google to authorize linking your Google
             account to this DiveIQ account.
           </p>
           <p>
-            After linking, you'll be able to sign in with either your password
-            or your Google account.
+            After linking, you&apos;ll be able to sign in with either your
+            password or your Google account.
           </p>
         </div>
 
@@ -65,4 +65,3 @@ export function LinkGoogleModal({ isOpen, onClose }: LinkGoogleModalProps) {
     </div>
   );
 }
-
