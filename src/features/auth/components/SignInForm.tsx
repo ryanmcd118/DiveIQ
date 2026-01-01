@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, FormEvent, useEffect } from "react";
+import { useState, FormEvent } from "react";
 import { useSearchParams } from "next/navigation";
 import { useAuth } from "../hooks/useAuth";
 import Link from "next/link";
@@ -15,17 +15,11 @@ export default function SignInForm() {
   const { signInUser, isLoading } = useAuth();
   const searchParams = useSearchParams();
 
-  // Check for OAuth error in URL params
-  useEffect(() => {
-    const oauthError = searchParams.get("oauth");
-    const hasError = searchParams.get("error");
-
-    if (oauthError === "google" && hasError === "1") {
-      setError(
-        "Google sign-in failed. Please try again or use email/password to sign in."
-      );
-    }
-  }, [searchParams]);
+  // Compute OAuth error message from URL params (derived state, not set in effect)
+  const oauthErrorMessage =
+    searchParams.get("oauth") === "google" && searchParams.get("error") === "1"
+      ? "Google sign-in failed. Please try again or use email/password to sign in."
+      : "";
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -69,7 +63,9 @@ export default function SignInForm() {
         />
       </div>
 
-      {error && <div className={formStyles.error}>{error}</div>}
+      {(error || oauthErrorMessage) && (
+        <div className={formStyles.error}>{error || oauthErrorMessage}</div>
+      )}
 
       <button
         type="submit"
