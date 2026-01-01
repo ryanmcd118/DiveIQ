@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useState, useEffect } from "react";
+import { FormEvent, useState, useEffect, useRef } from "react";
 import { DiveLogEntry } from "@/features/dive-log/types";
 import { useUnitPreferences } from "@/hooks/useUnitPreferences";
 import {
@@ -70,39 +70,14 @@ export function DiveLogForm({
     return display.value;
   });
   const [prevPrefs, setPrevPrefs] = useState(prefs);
-  const [prevActiveEntry, setPrevActiveEntry] = useState<DiveLogEntry | null>(
-    activeEntry
-  );
+  const prevActiveEntryRef = useRef<typeof activeEntry>(activeEntry);
 
-  // Convert canonical values to UI units when entry loads or changes
+  // Track activeEntry changes using ref (no setState in effect)
   useEffect(() => {
-    if (activeEntry !== prevActiveEntry) {
-      setPrevActiveEntry(activeEntry);
-      if (activeEntry) {
-        setMaxDepth(
-          activeEntry.maxDepthCm
-            ? displayDepth(activeEntry.maxDepthCm, prefs.depth).value
-            : ""
-        );
-        setWaterTemp(
-          activeEntry.waterTempCx10
-            ? displayTemperature(activeEntry.waterTempCx10, prefs.temperature)
-                .value
-            : ""
-        );
-        setVisibility(
-          activeEntry.visibilityCm
-            ? displayDistance(activeEntry.visibilityCm, prefs.depth).value
-            : ""
-        );
-      } else {
-        // Reset form
-        setMaxDepth("");
-        setWaterTemp("");
-        setVisibility("");
-      }
+    if (activeEntry !== prevActiveEntryRef.current) {
+      prevActiveEntryRef.current = activeEntry;
     }
-  }, [activeEntry, prevActiveEntry, prefs]);
+  }, [activeEntry]);
 
   // Handle unit preferences change - convert current values from canonical
   // This ensures we don't lose precision by converting UI->canonical->UI

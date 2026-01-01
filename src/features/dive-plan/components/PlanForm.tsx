@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useState, useEffect } from "react";
+import { FormEvent, useState, useEffect, useRef } from "react";
 import { PlanData } from "@/features/dive-plan/types";
 import { useUnitPreferences } from "@/hooks/useUnitPreferences";
 import { getUnitLabel, depthInputToCm, cmToUI } from "@/lib/units";
@@ -45,17 +45,14 @@ export function PlanForm({
     return String(Math.round(submittedPlan.maxDepth));
   });
   const [prevDepthUnit, setPrevDepthUnit] = useState(prefs.depth);
-  const [prevSubmittedPlan, setPrevSubmittedPlan] = useState<PlanData | null>(
-    submittedPlan
-  );
-  const [isInitialMount, setIsInitialMount] = useState(true);
+  const prevSubmittedPlanRef = useRef<PlanData | null>(submittedPlan);
+  const isInitialMountRef = useRef(true);
 
   // Convert input values when unit preference changes
   useEffect(() => {
     // Skip conversion on initial mount
-    if (isInitialMount) {
-      setIsInitialMount(false);
-      setPrevDepthUnit(prefs.depth);
+    if (isInitialMountRef.current) {
+      isInitialMountRef.current = false;
       return;
     }
 
@@ -83,25 +80,15 @@ export function PlanForm({
     });
 
     setPrevDepthUnit(prefs.depth);
-  }, [prefs.depth, prevDepthUnit, isInitialMount]);
+  }, [prefs.depth, prevDepthUnit]);
 
-  // Update values when plan loads or changes
+  // Track submittedPlan changes using ref (no setState in effect)
+  // Form fields are initialized via useState and reset via formKey remount
   useEffect(() => {
-    if (submittedPlan !== prevSubmittedPlan) {
-      setPrevSubmittedPlan(submittedPlan);
-      if (submittedPlan) {
-        setMaxDepth(
-          submittedPlan.maxDepth
-            ? String(Math.round(submittedPlan.maxDepth))
-            : ""
-        );
-        // Reset prevDepthUnit when a new plan loads
-        setPrevDepthUnit(prefs.depth);
-      } else {
-        setMaxDepth("");
-      }
+    if (submittedPlan !== prevSubmittedPlanRef.current) {
+      prevSubmittedPlanRef.current = submittedPlan;
     }
-  }, [submittedPlan, prevSubmittedPlan, prefs.depth]);
+  }, [submittedPlan]);
 
   return (
     <div className={cardStyles.elevatedForm}>
