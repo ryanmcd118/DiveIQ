@@ -32,31 +32,22 @@ export function AvatarUploadModal({
     onClose();
   }, [onClose]);
 
-  // Reset state when modal opens
+
+  // Find UploadButton input after render (async, can use regular effect)
   useEffect(() => {
-    if (isOpen) {
-      setUploadError(null);
-      setIsUploading(false);
-      // Reset file input
-      if (fileInputRef.current) {
-        fileInputRef.current.value = "";
+    const timer = setTimeout(() => {
+      const uploadInput = document.querySelector(
+        '[data-ut-element="button"] input[type="file"]'
+      ) as HTMLInputElement;
+      if (uploadInput) {
+        uploadButtonInputRef.current = uploadInput;
       }
-      // Find the hidden UploadButton's input after it renders
-      setTimeout(() => {
-        const uploadInput = document.querySelector(
-          '[data-ut-element="button"] input[type="file"]'
-        ) as HTMLInputElement;
-        if (uploadInput) {
-          uploadButtonInputRef.current = uploadInput;
-        }
-      }, 100);
-    }
-  }, [isOpen]);
+    }, 100);
+    return () => clearTimeout(timer);
+  }, []);
 
   // Handle escape key
   useEffect(() => {
-    if (!isOpen) return;
-
     const handleEscape = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
         handleClose();
@@ -65,19 +56,15 @@ export function AvatarUploadModal({
 
     document.addEventListener("keydown", handleEscape);
     return () => document.removeEventListener("keydown", handleEscape);
-  }, [isOpen, handleClose]);
+  }, [handleClose]);
 
   // Prevent body scroll when modal is open
   useEffect(() => {
-    if (isOpen) {
-      document.body.style.overflow = "hidden";
-    } else {
-      document.body.style.overflow = "";
-    }
+    document.body.style.overflow = "hidden";
     return () => {
       document.body.style.overflow = "";
     };
-  }, [isOpen]);
+  }, []);
 
   if (!isOpen) return null;
 
@@ -134,6 +121,8 @@ export function AvatarUploadModal({
 
         // Trigger change event to start upload
         const changeEvent = new Event("change", { bubbles: true });
+  if (!isOpen) return null;
+
         uploadInput.dispatchEvent(changeEvent);
       } else {
         // Fallback error if UploadButton not ready
