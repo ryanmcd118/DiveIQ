@@ -69,7 +69,6 @@ export function DiveLogForm({
     const display = displayDistance(activeEntry.visibilityCm, prefs.depth);
     return display.value;
   });
-  const [prevPrefs, setPrevPrefs] = useState(prefs);
   const prevActiveEntryRef = useRef<typeof activeEntry>(activeEntry);
 
   // Track activeEntry changes using ref (no setState in effect)
@@ -78,34 +77,6 @@ export function DiveLogForm({
       prevActiveEntryRef.current = activeEntry;
     }
   }, [activeEntry]);
-
-  // Handle unit preferences change - convert current values from canonical
-  // This ensures we don't lose precision by converting UI->canonical->UI
-  useEffect(() => {
-    if (
-      prevPrefs.depth !== prefs.depth ||
-      prevPrefs.temperature !== prefs.temperature
-    ) {
-      // Re-read from activeEntry if available to avoid precision loss
-      if (activeEntry) {
-        if (activeEntry.maxDepthCm) {
-          setMaxDepth(displayDepth(activeEntry.maxDepthCm, prefs.depth).value);
-        }
-        if (activeEntry.waterTempCx10) {
-          setWaterTemp(
-            displayTemperature(activeEntry.waterTempCx10, prefs.temperature)
-              .value
-          );
-        }
-        if (activeEntry.visibilityCm) {
-          setVisibility(
-            displayDistance(activeEntry.visibilityCm, prefs.depth).value
-          );
-        }
-      }
-      setPrevPrefs(prefs);
-    }
-  }, [prefs, prevPrefs, activeEntry]);
 
   // Custom submit handler that sets hidden inputs with UI values
   const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
@@ -118,7 +89,7 @@ export function DiveLogForm({
       className={cardStyles.elevatedForm}
       style={{ marginTop: "var(--space-4)" }}
     >
-      <form key={formKey} onSubmit={handleSubmit} className={formStyles.form}>
+      <form key={`${formKey}-${prefs.depth}-${prefs.temperature}`} onSubmit={handleSubmit} className={formStyles.form}>
         <div className={formStyles.field}>
           <label htmlFor="date" className={formStyles.label}>
             Date
