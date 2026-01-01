@@ -49,14 +49,16 @@ export function GearListSection({
   const [typeFilter, setTypeFilter] = useState<string>("all");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [sortBy, setSortBy] = useState<SortOption>("soonest-due");
-  const [isArchivedOpen, setIsArchivedOpen] = useState(false);
+  const [archivedOpenState, setArchivedOpenState] = useState(false);
   const [expandedItems, setExpandedItems] = useState<Set<string>>(new Set());
   const archivedSectionRef = useRef<HTMLDivElement>(null);
 
-  // Handle auto-expand when archiving
+  // Derive isArchivedOpen from autoExpandArchived or user-toggled state
+  const isArchivedOpen = autoExpandArchived ? true : archivedOpenState;
+
+  // Handle scrolling when auto-expand is triggered (effects can touch DOM)
   useEffect(() => {
     if (autoExpandArchived) {
-      setIsArchivedOpen(true);
       // Smooth scroll to archived section after a brief delay to allow render
       setTimeout(() => {
         if (archivedSectionRef.current) {
@@ -573,7 +575,7 @@ export function GearListSection({
           <div ref={archivedSectionRef} className={styles.archivedSection}>
             <button
               type="button"
-              onClick={() => setIsArchivedOpen(!isArchivedOpen)}
+              onClick={() => setArchivedOpenState(!archivedOpenState)}
               className={styles.archivedHeader}
             >
               <span className={styles.archivedHeaderText}>
