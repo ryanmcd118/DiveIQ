@@ -15,12 +15,15 @@ interface AuthModalProps {
   initialMode?: AuthMode;
 }
 
-export function AuthModal({
-  isOpen,
-  onClose,
+interface AuthModalContentProps {
+  onAuthSuccess: () => void;
+  initialMode: AuthMode;
+}
+
+function AuthModalContent({
   onAuthSuccess,
-  initialMode = "signup",
-}: AuthModalProps) {
+  initialMode,
+}: AuthModalContentProps) {
   const [mode, setMode] = useState<AuthMode>(initialMode);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
@@ -31,42 +34,6 @@ export function AuthModal({
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-
-  // Reset form when modal opens/closes
-  useEffect(() => {
-    if (isOpen) {
-      setMode(initialMode);
-      setError("");
-      setFirstName("");
-      setLastName("");
-      setEmail("");
-      setPassword("");
-      setConfirmPassword("");
-    }
-  }, [isOpen, initialMode]);
-
-  // Handle escape key
-  useEffect(() => {
-    const handleEscape = (e: KeyboardEvent) => {
-      if (e.key === "Escape" && isOpen) {
-        onClose();
-      }
-    };
-    document.addEventListener("keydown", handleEscape);
-    return () => document.removeEventListener("keydown", handleEscape);
-  }, [isOpen, onClose]);
-
-  // Prevent body scroll when modal is open
-  useEffect(() => {
-    if (isOpen) {
-      document.body.style.overflow = "hidden";
-    } else {
-      document.body.style.overflow = "";
-    }
-    return () => {
-      document.body.style.overflow = "";
-    };
-  }, [isOpen]);
 
   const handleSignup = async (e: FormEvent) => {
     e.preventDefault();
@@ -158,6 +125,198 @@ export function AuthModal({
     setConfirmPassword("");
   };
 
+  return (
+    <>
+      <div className={styles.header}>
+        <h2 className={styles.title}>
+          {mode === "signup"
+            ? "Create an account to save this plan"
+            : "Sign in to save this plan"}
+        </h2>
+        <p className={styles.subtitle}>
+          {mode === "signup"
+            ? "Your dive plan will be saved after creating your account"
+            : "Your dive plan will be saved after signing in"}
+        </p>
+      </div>
+
+      <form
+        onSubmit={mode === "signup" ? handleSignup : handleLogin}
+        className={styles.form}
+      >
+        {mode === "signup" && (
+          <>
+            <div className={formStyles.formGroup}>
+              <label htmlFor="modal-firstName" className={formStyles.label}>
+                First Name
+              </label>
+              <input
+                id="modal-firstName"
+                type="text"
+                value={firstName}
+                onChange={(e) => setFirstName(e.target.value)}
+                className={formStyles.input}
+                required
+                autoComplete="given-name"
+                disabled={isLoading}
+              />
+            </div>
+            <div className={formStyles.formGroup}>
+              <label htmlFor="modal-lastName" className={formStyles.label}>
+                Last Name
+              </label>
+              <input
+                id="modal-lastName"
+                type="text"
+                value={lastName}
+                onChange={(e) => setLastName(e.target.value)}
+                className={formStyles.input}
+                required
+                autoComplete="family-name"
+                disabled={isLoading}
+              />
+            </div>
+          </>
+        )}
+
+        <div className={formStyles.formGroup}>
+          <label htmlFor="modal-email" className={formStyles.label}>
+            Email
+          </label>
+          <input
+            id="modal-email"
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            className={formStyles.input}
+            required
+            autoComplete="email"
+            disabled={isLoading}
+          />
+        </div>
+
+        <div className={formStyles.formGroup}>
+          <label htmlFor="modal-password" className={formStyles.label}>
+            Password
+          </label>
+          <input
+            id="modal-password"
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            className={formStyles.input}
+            required
+            autoComplete={
+              mode === "signup" ? "new-password" : "current-password"
+            }
+            minLength={mode === "signup" ? 8 : undefined}
+            disabled={isLoading}
+          />
+          {mode === "signup" && (
+            <span className={formStyles.hint}>
+              Must be at least 8 characters
+            </span>
+          )}
+        </div>
+
+        {mode === "signup" && (
+          <div className={formStyles.formGroup}>
+            <label
+              htmlFor="modal-confirm-password"
+              className={formStyles.label}
+            >
+              Confirm Password
+            </label>
+            <input
+              id="modal-confirm-password"
+              type="password"
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              className={formStyles.input}
+              required
+              autoComplete="new-password"
+              disabled={isLoading}
+            />
+          </div>
+        )}
+
+        {error && <div className={formStyles.error}>{error}</div>}
+
+        <button
+          type="submit"
+          className={`${buttonStyles.button} ${buttonStyles.primary}`}
+          disabled={isLoading}
+        >
+          {isLoading
+            ? mode === "signup"
+              ? "Creating account..."
+              : "Signing in..."
+            : mode === "signup"
+              ? "Create Account & Save Plan"
+              : "Sign In & Save Plan"}
+        </button>
+      </form>
+
+      <div className={styles.footer}>
+        {mode === "signup" ? (
+          <p>
+            Already have an account?{" "}
+            <button
+              type="button"
+              onClick={toggleMode}
+              className={styles.toggleLink}
+              disabled={isLoading}
+            >
+              Log in
+            </button>
+          </p>
+        ) : (
+          <p>
+            Need an account?{" "}
+            <button
+              type="button"
+              onClick={toggleMode}
+              className={styles.toggleLink}
+              disabled={isLoading}
+            >
+              Create one
+            </button>
+          </p>
+        )}
+      </div>
+    </>
+  );
+}
+
+export function AuthModal({
+  isOpen,
+  onClose,
+  onAuthSuccess,
+  initialMode = "signup",
+}: AuthModalProps) {
+  // Handle escape key
+  useEffect(() => {
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === "Escape" && isOpen) {
+        onClose();
+      }
+    };
+    document.addEventListener("keydown", handleEscape);
+    return () => document.removeEventListener("keydown", handleEscape);
+  }, [isOpen, onClose]);
+
+  // Prevent body scroll when modal is open
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [isOpen]);
+
   if (!isOpen) return null;
 
   return (
@@ -171,164 +330,10 @@ export function AuthModal({
         >
           ×
         </button>
-
-        <div className={styles.header}>
-          <h2 className={styles.title}>
-            {mode === "signup"
-              ? "Create an account to save this plan"
-              : "Sign in to save this plan"}
-          </h2>
-          <p className={styles.subtitle}>
-            {mode === "signup"
-              ? "Your dive plan will be saved after creating your account"
-              : "Your dive plan will be saved after signing in"}
-          </p>
-        </div>
-
-        <form
-          onSubmit={mode === "signup" ? handleSignup : handleLogin}
-          className={styles.form}
-        >
-          {mode === "signup" && (
-            <>
-              <div className={formStyles.formGroup}>
-                <label htmlFor="modal-firstName" className={formStyles.label}>
-                  First Name
-                </label>
-                <input
-                  id="modal-firstName"
-                  type="text"
-                  value={firstName}
-                  onChange={(e) => setFirstName(e.target.value)}
-                  className={formStyles.input}
-                  required
-                  autoComplete="given-name"
-                  disabled={isLoading}
-                />
-              </div>
-              <div className={formStyles.formGroup}>
-                <label htmlFor="modal-lastName" className={formStyles.label}>
-                  Last Name
-                </label>
-                <input
-                  id="modal-lastName"
-                  type="text"
-                  value={lastName}
-                  onChange={(e) => setLastName(e.target.value)}
-                  className={formStyles.input}
-                  required
-                  autoComplete="family-name"
-                  disabled={isLoading}
-                />
-              </div>
-            </>
-          )}
-
-          <div className={formStyles.formGroup}>
-            <label htmlFor="modal-email" className={formStyles.label}>
-              Email
-            </label>
-            <input
-              id="modal-email"
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className={formStyles.input}
-              required
-              autoComplete="email"
-              disabled={isLoading}
-            />
-          </div>
-
-          <div className={formStyles.formGroup}>
-            <label htmlFor="modal-password" className={formStyles.label}>
-              Password
-            </label>
-            <input
-              id="modal-password"
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className={formStyles.input}
-              required
-              autoComplete={
-                mode === "signup" ? "new-password" : "current-password"
-              }
-              minLength={mode === "signup" ? 8 : undefined}
-              disabled={isLoading}
-            />
-            {mode === "signup" && (
-              <span className={formStyles.hint}>
-                Must be at least 8 characters
-              </span>
-            )}
-          </div>
-
-          {mode === "signup" && (
-            <div className={formStyles.formGroup}>
-              <label
-                htmlFor="modal-confirm-password"
-                className={formStyles.label}
-              >
-                Confirm Password
-              </label>
-              <input
-                id="modal-confirm-password"
-                type="password"
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                className={formStyles.input}
-                required
-                autoComplete="new-password"
-                disabled={isLoading}
-              />
-            </div>
-          )}
-
-          {error && <div className={formStyles.error}>{error}</div>}
-
-          <button
-            type="submit"
-            className={`${buttonStyles.button} ${buttonStyles.primary}`}
-            disabled={isLoading}
-          >
-            {isLoading
-              ? mode === "signup"
-                ? "Creating account..."
-                : "Signing in..."
-              : mode === "signup"
-                ? "Create Account & Save Plan"
-                : "Sign In & Save Plan"}
-          </button>
-        </form>
-
-        <div className={styles.footer}>
-          {mode === "signup" ? (
-            <p>
-              Already have an account?{" "}
-              <button
-                type="button"
-                onClick={toggleMode}
-                className={styles.toggleLink}
-                disabled={isLoading}
-              >
-                Log in
-              </button>
-            </p>
-          ) : (
-            <p>
-              Need an account?{" "}
-              <button
-                type="button"
-                onClick={toggleMode}
-                className={styles.toggleLink}
-                disabled={isLoading}
-              >
-                Create one
-              </button>
-            </p>
-          )}
-        </div>
+        <AuthModalContent
+          onAuthSuccess={onAuthSuccess}
+          initialMode={initialMode}
+        />
       </div>
     </div>
   );
