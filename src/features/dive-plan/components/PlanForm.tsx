@@ -56,7 +56,11 @@ export function PlanForm({
 
   return (
     <div className={cardStyles.elevatedForm}>
-      <form key={`${formKey}-${prefs.depth}`} onSubmit={onSubmit} className={formStyles.form}>
+      <form
+        key={`${formKey}-${prefs.depth}`}
+        onSubmit={onSubmit}
+        className={formStyles.form}
+      >
         {/* Units toggle - only show for public mode */}
         {mode === "public" && <FormUnitToggle />}
         <div className={formStyles.field}>

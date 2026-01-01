@@ -89,7 +89,11 @@ export function DiveLogForm({
       className={cardStyles.elevatedForm}
       style={{ marginTop: "var(--space-4)" }}
     >
-      <form key={`${formKey}-${prefs.depth}-${prefs.temperature}`} onSubmit={handleSubmit} className={formStyles.form}>
+      <form
+        key={`${formKey}-${prefs.depth}-${prefs.temperature}`}
+        onSubmit={handleSubmit}
+        className={formStyles.form}
+      >
         <div className={formStyles.field}>
           <label htmlFor="date" className={formStyles.label}>
             Date

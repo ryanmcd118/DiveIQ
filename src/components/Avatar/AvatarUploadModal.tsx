@@ -32,7 +32,6 @@ export function AvatarUploadModal({
     onClose();
   }, [onClose]);
 
-
   // Find UploadButton input after render (async, can use regular effect)
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -121,7 +120,7 @@ export function AvatarUploadModal({
 
         // Trigger change event to start upload
         const changeEvent = new Event("change", { bubbles: true });
-  if (!isOpen) return null;
+        if (!isOpen) return null;
 
         uploadInput.dispatchEvent(changeEvent);
       } else {
