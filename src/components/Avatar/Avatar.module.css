@@ -25,6 +25,12 @@
   height: 120px;
 }
 
+.avatarImageWrapper {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
 .avatarImage {
   width: 100%;
   height: 100%;

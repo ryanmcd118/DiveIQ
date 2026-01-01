@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
+import Image from "next/image";
 import { Pencil } from "lucide-react";
 import { AvatarUploadModal } from "./AvatarUploadModal";
 import styles from "./Avatar.module.css";
@@ -155,12 +156,15 @@ export function Avatar({
   return (
     <div className={`${styles.avatarContainer} ${sizeClass}`}>
       {shouldShowImage ? (
-        <img
-          src={displayUrl || undefined}
-          alt=""
-          className={styles.avatarImage}
-          onError={handleImageError}
-        />
+        <div className={styles.avatarImageWrapper}>
+          <Image
+            src={displayUrl || ""}
+            alt=""
+            fill
+            className={styles.avatarImage}
+            onError={handleImageError}
+          />
+        </div>
       ) : (
         <div className={styles.avatarInitials}>{initials}</div>
       )}

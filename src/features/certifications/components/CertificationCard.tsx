@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { UserCertification } from "../types";
 import cardStyles from "@/styles/components/Card.module.css";
 import buttonStyles from "@/styles/components/Button.module.css";
@@ -52,11 +53,14 @@ export function CertificationCard({
       <div className={styles.cardHeader} onClick={onToggle}>
         <div className={styles.badgeContainer}>
           {def.badgeImageUrl ? (
-            <img
-              src={def.badgeImageUrl}
-              alt={def.name}
-              className={styles.badgeImage}
-            />
+            <div className={styles.badgeImageWrapper}>
+              <Image
+                src={def.badgeImageUrl}
+                alt={def.name}
+                fill
+                className={styles.badgeImage}
+              />
+            </div>
           ) : (
             <div className={styles.badgePlaceholder}>
               <span className={styles.badgePlaceholderText}>
