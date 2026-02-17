@@ -7,15 +7,17 @@ import cardStyles from "@/styles/components/Card.module.css";
 import listStyles from "@/styles/components/List.module.css";
 import buttonStyles from "@/styles/components/Button.module.css";
 import layoutStyles from "./LogbookLayout.module.css";
+import { highlightMatch } from "./SearchHighlight";
 
 type Props = {
   entries: DiveLogEntry[];
+  searchQuery?: string;
   onSelect?: (entry: DiveLogEntry) => void;
   onDelete?: (id: string) => void;
   selectedId?: string | null;
 };
 
-function DiveLogList({ entries, onSelect, onDelete, selectedId }: Props) {
+function DiveLogList({ entries, searchQuery = "", onSelect, onDelete, selectedId }: Props) {
   const { prefs } = useUnitPreferences();
 
   if (entries.length === 0) {
@@ -53,9 +55,9 @@ function DiveLogList({ entries, onSelect, onDelete, selectedId }: Props) {
             <div className={listStyles.diveHeader}>
               <div>
                 <span className={listStyles.diveTitle}>
-                  {entry.siteName}{" "}
+                  {highlightMatch(entry.siteName, searchQuery)}{" "}
                   <span className={listStyles.diveRegion}>
-                    ({entry.region})
+                    ({highlightMatch(entry.region, searchQuery)})
                   </span>
                 </span>
                 <p className={listStyles.diveStats}>
@@ -93,7 +95,7 @@ function DiveLogList({ entries, onSelect, onDelete, selectedId }: Props) {
             </div>
 
             {entry.buddyName && (
-              <p className={listStyles.diveMeta}>Buddy: {entry.buddyName}</p>
+              <p className={listStyles.diveMeta}>Buddy: {highlightMatch(entry.buddyName, searchQuery)}</p>
             )}
             {entry.gearItems && entry.gearItems.length > 0 && (
               <p className={listStyles.diveMeta}>
@@ -104,7 +106,7 @@ function DiveLogList({ entries, onSelect, onDelete, selectedId }: Props) {
               </p>
             )}
             {entry.notes && (
-              <p className={listStyles.diveNotes}>{entry.notes}</p>
+              <p className={listStyles.diveNotes}>{highlightMatch(entry.notes, searchQuery)}</p>
             )}
           </li>
         );

@@ -9,14 +9,13 @@ export const metadata: Metadata = {
 };
 
 type LogPageProps = {
-  searchParams?: {
-    diveId?: string;
-  };
+  searchParams?: Promise<{ diveId?: string }>;
 };
 
 export default async function LogPage({ searchParams }: LogPageProps) {
   const session = await getServerSession(authOptions);
-  const initialSelectedDiveId = searchParams?.diveId ?? null;
+  const params = await searchParams;
+  const initialSelectedDiveId = params?.diveId ?? null;
 
   // Preserve existing unauthenticated UX: render in-page sign-in card
   // instead of redirecting to /signin.

@@ -8,6 +8,7 @@ import { DiveLogGrid } from "./DiveLogGrid";
 import { DiveLogDetail } from "./DiveLogDetail";
 import { AddEditDiveSheet } from "./AddEditDiveSheet";
 import buttonStyles from "@/styles/components/Button.module.css";
+import { matchesQuery } from "../utils/searchMatch";
 import styles from "./LogbookLayout.module.css";
 
 interface LogbookLayoutProps {
@@ -25,7 +26,7 @@ interface LogbookLayoutProps {
   handleCancelEdit: (form?: HTMLFormElement | null) => void;
   handleDeleteFromForm: (form: HTMLFormElement) => void;
   // For delete-from-list; wired for future prompts
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+   
   handleDeleteFromList?: (id: string) => void;
   lastSavedEntry: DiveLogEntry | null;
   lastAction: "create" | "update" | null;
@@ -78,17 +79,23 @@ export function LogbookLayout({
   const urlDiveId = searchParams.get("diveId") ?? initialSelectedDiveId;
   const [searchQuery, setSearchQuery] = useState("");
 
+  // Single source of truth for browse: grid and list both render from filteredEntries only
   const filteredEntries = useMemo(() => {
     let filtered = entries;
-    
-    // Apply search filter
-    if (searchQuery.trim()) {
-      const q = searchQuery.toLowerCase();
+    const q = searchQuery.trim().toLowerCase();
+
+    // Apply search filter: word-boundary matching (e.g. "rig" matches "Oil Rig", not "frigid")
+    if (q) {
       filtered = entries.filter((entry) => {
+        const site = entry.siteName ?? "";
+        const region = entry.region ?? "";
+        const buddy = entry.buddyName ?? "";
+        const notes = entry.notes ?? "";
         return (
-          entry.siteName.toLowerCase().includes(q) ||
-          entry.region.toLowerCase().includes(q) ||
-          (entry.notes && entry.notes.toLowerCase().includes(q))
+          matchesQuery(site, q) ||
+          matchesQuery(region, q) ||
+          matchesQuery(buddy, q) ||
+          matchesQuery(notes, q)
         );
       });
     }
@@ -189,7 +196,7 @@ export function LogbookLayout({
       return () => clearTimeout(timeoutId);
     }
     // Only depend on onOpenCreateSheetRef, not openCreateSheet
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
   }, [onOpenCreateSheetRef]);
 
   const openEditSheet = () => {
@@ -278,7 +285,7 @@ export function LogbookLayout({
             <input
               type="search"
               className={styles.searchInput}
-              placeholder="Search by site, region, or notes"
+              placeholder="Search by site, region, buddy, or notes"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
@@ -296,12 +303,14 @@ export function LogbookLayout({
               {effectiveView === "grid" ? (
                 <DiveLogGrid
                   entries={filteredEntries}
+                  searchQuery={searchQuery.trim()}
                   onSelect={handleSelectFromGrid}
                   selectedId={selectedEntry?.id ?? null}
                 />
               ) : (
                 <DiveLogList
                   entries={filteredEntries}
+                  searchQuery={searchQuery.trim()}
                   onSelect={handleSelectFromList}
                   selectedId={selectedEntry?.id ?? null}
                 />
@@ -371,7 +380,7 @@ export function LogbookLayout({
               <input
                 type="search"
                 className={styles.searchInput}
-                placeholder="Search by site, region, or notes"
+                placeholder="Search by site, region, buddy, or notes"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
@@ -403,12 +412,14 @@ export function LogbookLayout({
             {effectiveView === "grid" ? (
               <DiveLogGrid
                 entries={filteredEntries}
+                searchQuery={searchQuery.trim()}
                 onSelect={handleSelectFromGrid}
                 selectedId={selectedEntry?.id ?? null}
               />
             ) : (
               <DiveLogList
                 entries={filteredEntries}
+                searchQuery={searchQuery.trim()}
                 onSelect={handleSelectFromList}
                 selectedId={selectedEntry?.id ?? null}
               />

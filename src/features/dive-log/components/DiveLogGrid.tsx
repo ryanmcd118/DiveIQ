@@ -4,15 +4,17 @@ import { DiveLogEntry } from "@/features/dive-log/types";
 import { useUnitPreferences } from "@/hooks/useUnitPreferences";
 import { displayDepth, displayTemperature, displayDistance } from "@/lib/units";
 import cardStyles from "@/styles/components/Card.module.css";
+import { highlightMatch } from "./SearchHighlight";
 import styles from "./DiveLogGrid.module.css";
 
 type Props = {
   entries: DiveLogEntry[];
+  searchQuery?: string;
   selectedId?: string | null;
   onSelect: (id: string) => void;
 };
 
-export function DiveLogGrid({ entries, selectedId, onSelect }: Props) {
+export function DiveLogGrid({ entries, searchQuery = "", selectedId, onSelect }: Props) {
   const { prefs } = useUnitPreferences();
 
   if (entries.length === 0) {
@@ -62,8 +64,8 @@ export function DiveLogGrid({ entries, selectedId, onSelect }: Props) {
           >
             <div className={styles.cardContent}>
               <div className={styles.cardHeader}>
-                <h3 className={styles.cardTitle}>{entry.siteName}</h3>
-                <span className={styles.cardRegion}>{entry.region}</span>
+                <h3 className={styles.cardTitle}>{highlightMatch(entry.siteName, searchQuery)}</h3>
+                <span className={styles.cardRegion}>{highlightMatch(entry.region, searchQuery)}</span>
               </div>
               <p className={styles.cardDate}>{entry.date}</p>
               <p className={styles.cardSummary}>{summary}</p>
