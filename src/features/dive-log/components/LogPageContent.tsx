@@ -9,6 +9,7 @@ import layoutStyles from "@/styles/components/Layout.module.css";
 import cardStyles from "@/styles/components/Card.module.css";
 import buttonStyles from "@/styles/components/Button.module.css";
 import backgroundStyles from "@/styles/components/Background.module.css";
+import styles from "./LogPageContent.module.css";
 
 interface LogPageContentProps {
   initialEntries: DiveLogEntry[];
@@ -103,10 +104,9 @@ export function LogPageContent({
 
   return (
     <main
-      className={`${layoutStyles.page} ${backgroundStyles.pageGradientSubtle}`}
-      style={{ display: "flex", flexDirection: "column", height: "100%", minHeight: 0 }}
+      className={`${backgroundStyles.pageGradientSubtle} ${styles.pageRoot}`}
     >
-      <div className={layoutStyles.pageContent} style={{ display: "flex", flexDirection: "column", flex: 1, minHeight: 0 }}>
+      <div className={styles.pageContentWrapper}>
         <header
           className={layoutStyles.pageHeader}
           style={{
@@ -133,7 +133,7 @@ export function LogPageContent({
           )}
         </header>
 
-        <div style={{ flex: 1, minHeight: 0, display: "flex", flexDirection: "column" }}>
+        <div className={styles.pageBody}>
           <LogbookLayout
             entries={entries}
             initialSelectedDiveId={initialSelectedDiveId}

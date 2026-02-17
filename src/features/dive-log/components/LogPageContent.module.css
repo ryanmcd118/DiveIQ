@@ -1,0 +1,54 @@
+.pageRoot {
+  height: 100dvh;
+  max-height: 100dvh;
+  min-height: 100dvh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  padding: 0;
+  justify-content: flex-start;
+}
+
+.pageContentWrapper {
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  max-width: none;
+  width: 100%;
+  padding: var(--space-6);
+}
+
+@media (min-width: 768px) {
+  .pageContentWrapper {
+    padding: var(--space-8) var(--space-10);
+  }
+}
+
+.pageBody {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Reset height constraints on mobile for normal page scroll */
+@media (max-width: 767px) {
+  .pageRoot {
+    height: auto;
+    max-height: none;
+    min-height: auto;
+    overflow: visible;
+  }
+
+  .pageContentWrapper {
+    overflow: visible;
+  }
+
+  .pageBody {
+    overflow: visible;
+  }
+}

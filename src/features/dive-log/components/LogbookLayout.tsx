@@ -62,7 +62,7 @@ export function LogbookLayout({
   const [isMobile, setIsMobile] = useState(false);
   const [isSheetOpen, setIsSheetOpen] = useState(false);
   const [sheetMode, setSheetMode] = useState<"create" | "edit">("create");
-  const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
+  const [preferredView, setPreferredView] = useState<"grid" | "list">("grid");
   const [sortKey, setSortKey] = useState<"date-desc" | "date-asc" | "site-asc" | "region-asc">("date-desc");
 
   // Basic viewport breakpoint detection
@@ -130,6 +130,13 @@ export function LogbookLayout({
 
     return fromUrl ?? null;
   }, [filteredEntries, urlDiveId]);
+
+  // Determine if detail pane is open (desktop) or detail view is shown (mobile)
+  const hasSelectedDive = urlDiveId && selectedEntry;
+  const isDetailOpen = hasSelectedDive;
+  
+  // When detail pane is open, force List view; otherwise use preferred view
+  const effectiveView = isDetailOpen ? "list" : preferredView;
 
   // On selection change, ensure gear is loaded for selected dive
   useEffect(() => {
@@ -246,26 +253,28 @@ export function LogbookLayout({
               <h2 className={styles.browseTitle}>Logbook</h2>
             </div>
             <div className={styles.browseControls}>
-              <div className={styles.viewToggle}>
-                <button
-                  type="button"
-                  className={`${styles.toggleButton} ${
-                    viewMode === "grid" ? styles.toggleButtonActive : ""
-                  }`}
-                  onClick={() => setViewMode("grid")}
-                >
-                  Grid
-                </button>
-                <button
-                  type="button"
-                  className={`${styles.toggleButton} ${
-                    viewMode === "list" ? styles.toggleButtonActive : ""
-                  }`}
-                  onClick={() => setViewMode("list")}
-                >
-                  List
-                </button>
-              </div>
+              {!isDetailOpen && (
+                <div className={styles.viewToggle}>
+                  <button
+                    type="button"
+                    className={`${styles.toggleButton} ${
+                      effectiveView === "grid" ? styles.toggleButtonActive : ""
+                    }`}
+                    onClick={() => setPreferredView("grid")}
+                  >
+                    Grid
+                  </button>
+                  <button
+                    type="button"
+                    className={`${styles.toggleButton} ${
+                      effectiveView === "list" ? styles.toggleButtonActive : ""
+                    }`}
+                    onClick={() => setPreferredView("list")}
+                  >
+                    List
+                  </button>
+                </div>
+              )}
             </div>
             <input
               type="search"
@@ -285,7 +294,7 @@ export function LogbookLayout({
               <option value="region-asc">Region (A-Z)</option>
             </select>
             <div className={styles.browseContent}>
-              {viewMode === "grid" ? (
+              {effectiveView === "grid" ? (
                 <DiveLogGrid
                   entries={filteredEntries}
                   onSelect={handleSelectFromGrid}
@@ -340,16 +349,11 @@ export function LogbookLayout({
   }
 
   // Desktop / tablet: two-pane layout when diveId is selected, full-width browse when not
-  const hasSelectedDive = urlDiveId && selectedEntry;
 
   return (
     <div className={styles.container}>
-      <div className={`${styles.content} ${hasSelectedDive ? styles.contentTwoPane : ""}`}>
-        <div
-          className={`${styles.browsePane} ${
-            !hasSelectedDive ? styles.browsePaneFullWidth : ""
-          }`.trim()}
-        >
+      <div className={`${styles.content} ${!hasSelectedDive ? styles.contentSinglePane : ""}`}>
+        <div className={styles.browsePane}>
           <div className={styles.browseHeader}>
             <div className={styles.browseHeaderRow1}>
               <h2 className={styles.browseTitle}>Logbook</h2>
@@ -372,30 +376,32 @@ export function LogbookLayout({
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
-              <div className={styles.viewToggle}>
-                <button
-                  type="button"
-                  className={`${styles.toggleButton} ${
-                    viewMode === "grid" ? styles.toggleButtonActive : ""
-                  }`}
-                  onClick={() => setViewMode("grid")}
-                >
-                  Grid
-                </button>
-                <button
-                  type="button"
-                  className={`${styles.toggleButton} ${
-                    viewMode === "list" ? styles.toggleButtonActive : ""
-                  }`}
-                  onClick={() => setViewMode("list")}
-                >
-                  List
-                </button>
-              </div>
+              {!isDetailOpen && (
+                <div className={styles.viewToggle}>
+                  <button
+                    type="button"
+                    className={`${styles.toggleButton} ${
+                      effectiveView === "grid" ? styles.toggleButtonActive : ""
+                    }`}
+                    onClick={() => setPreferredView("grid")}
+                  >
+                    Grid
+                  </button>
+                  <button
+                    type="button"
+                    className={`${styles.toggleButton} ${
+                      effectiveView === "list" ? styles.toggleButtonActive : ""
+                    }`}
+                    onClick={() => setPreferredView("list")}
+                  >
+                    List
+                  </button>
+                </div>
+              )}
             </div>
           </div>
           <div className={styles.browseContent}>
-            {viewMode === "grid" ? (
+            {effectiveView === "grid" ? (
               <DiveLogGrid
                 entries={filteredEntries}
                 onSelect={handleSelectFromGrid}
