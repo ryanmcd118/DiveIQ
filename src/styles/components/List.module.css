@@ -19,69 +19,130 @@
   color: var(--color-text-muted);
 }
 
-/* Dive log list items */
+/* Dive log list items – 2×2 CSS grid (stats + notes column-aligned) */
 .diveItem {
   /* Inherits from Card.module.css .listItem or .listItemInteractive */
 }
 
-/* Main row: place (left) | date (middle) | stats + actions (right) */
-.diveRowMain {
+.diveListItem {
+  padding: var(--space-2) var(--space-3);
   display: grid;
-  grid-template-columns: 1fr auto auto;
-  gap: var(--space-3) var(--space-4);
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  grid-template-rows: auto auto;
+  row-gap: 4px;
+  column-gap: 24px;
   align-items: center;
-  min-width: 0;
 }
 
-.diveColPlace {
+/* Grid (1,1): Site name · Region */
+.diveCellPlace {
   min-width: 0;
-}
-
-.diveTitle {
-  font-weight: var(--font-weight-semibold);
-  color: var(--color-text-primary);
-  display: block;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  font-size: var(--font-size-sm);
+}
+
+.diveSiteName {
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-primary);
+}
+
+.diveRegionSep {
+  color: var(--color-text-muted);
 }
 
 .diveRegion {
   color: var(--color-text-muted);
+}
+
+/* Grid (1,2): Stats cluster (date · depth · time · temp · vis) + Selected + delete */
+.diveCellStats {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  white-space: nowrap;
+}
+
+.diveStatsCluster {
+  color: var(--color-text-secondary);
   font-size: var(--font-size-xs);
+  white-space: nowrap;
+}
+
+.diveSelectedBadge {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+/* Grid (2,1): Buddy: Name */
+.diveCellBuddy {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: var(--font-size-xs);
+  color: var(--color-text-primary);
+}
+
+.diveBuddyLabel {
+  color: var(--color-text-muted);
+}
+
+.diveRow2Placeholder {
+  display: inline-block;
+  min-height: 1em;
+}
+
+/* Grid (2,2): Notes preview (1 line, aligns under stats column) */
+.diveCellNotes {
+  min-width: 0;
+  overflow: hidden;
+  text-align: left;
+}
+
+.diveNotesPreview {
   display: block;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-}
-
-.diveColDate {
-  font-size: var(--font-size-sm);
-  color: var(--color-text-secondary);
-  white-space: nowrap;
-}
-
-.diveColStats {
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
-  justify-content: flex-end;
-  flex-wrap: nowrap;
-}
-
-.diveStats {
-  color: var(--color-text-secondary);
   font-size: var(--font-size-xs);
-  white-space: nowrap;
-  text-align: right;
+  color: var(--color-text-secondary);
+  min-width: 0;
+  max-width: 100%;
+  word-break: break-word;
 }
 
+@media (max-width: 480px) {
+  .diveListItem {
+    grid-template-columns: 1fr;
+  }
+
+  .diveCellStats {
+    justify-content: flex-start;
+  }
+
+  .diveCellNotes {
+    text-align: left;
+    justify-self: start;
+  }
+}
+
+/* Legacy / plan list (keep for non–dive-log list usage) */
 .diveHeader {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
   gap: var(--space-2);
   margin-bottom: var(--space-1);
+}
+
+.diveTitle {
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-primary);
 }
 
 .diveMeta {
@@ -93,27 +154,6 @@
   font-size: var(--font-size-xs);
   color: var(--color-text-muted);
   white-space: nowrap;
-}
-
-/* Single line for buddy/gear; notes with 1-line clamp */
-.diveMetaRow {
-  margin-top: var(--space-1);
-  font-size: var(--font-size-xs);
-  color: var(--color-text-muted);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.diveNotes {
-  margin-top: var(--space-1);
-  font-size: var(--font-size-xs);
-  color: var(--color-text-tertiary);
-  display: -webkit-box;
-  -webkit-line-clamp: 1;
-  line-clamp: 1;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
 }
 
 /* Plan list items */
