@@ -96,13 +96,15 @@ export function LogPageContent({
   return (
     <main
       className={`${layoutStyles.page} ${backgroundStyles.pageGradientSubtle}`}
+      style={{ display: "flex", flexDirection: "column", height: "100%", minHeight: 0 }}
     >
-      <div className={layoutStyles.pageContent}>
+      <div className={layoutStyles.pageContent} style={{ display: "flex", flexDirection: "column", flex: 1, minHeight: 0 }}>
         <header
           className={layoutStyles.pageHeader}
           style={{
             paddingBottom: "var(--space-6)",
             marginBottom: "var(--space-4)",
+            flexShrink: 0,
           }}
         >
           <div>
@@ -114,30 +116,32 @@ export function LogPageContent({
           </div>
         </header>
 
-        <LogbookLayout
-          entries={entries}
-          initialSelectedDiveId={initialSelectedDiveId}
-          activeEntry={activeEntry}
-          editingEntryId={editingEntryId}
-          saving={saving}
-          error={error}
-          formKey={formKey}
-          selectedGearIds={selectedGearIds}
-          setSelectedGearIds={setSelectedGearIds}
-          handleSubmit={handleSubmit}
-          handleSelectEntry={handleSelectEntry}
-          handleCancelEdit={handleCancelEdit}
-          handleDeleteFromForm={handleDeleteFromForm}
-          handleDeleteFromList={handleDeleteFromList}
-          lastSavedEntry={lastSavedEntry}
-          lastAction={lastAction}
-          ensureGearLoaded={ensureGearLoaded}
-          gearLoadingId={gearLoadingId}
-          clearLastSave={clearLastSave}
-        />
+        <div style={{ flex: 1, minHeight: 0, display: "flex", flexDirection: "column" }}>
+          <LogbookLayout
+            entries={entries}
+            initialSelectedDiveId={initialSelectedDiveId}
+            activeEntry={activeEntry}
+            editingEntryId={editingEntryId}
+            saving={saving}
+            error={error}
+            formKey={formKey}
+            selectedGearIds={selectedGearIds}
+            setSelectedGearIds={setSelectedGearIds}
+            handleSubmit={handleSubmit}
+            handleSelectEntry={handleSelectEntry}
+            handleCancelEdit={handleCancelEdit}
+            handleDeleteFromForm={handleDeleteFromForm}
+            handleDeleteFromList={handleDeleteFromList}
+            lastSavedEntry={lastSavedEntry}
+            lastAction={lastAction}
+            ensureGearLoaded={ensureGearLoaded}
+            gearLoadingId={gearLoadingId}
+            clearLastSave={clearLastSave}
+          />
+        </div>
 
         {statusMessage && (
-          <div className={layoutStyles.pageFooter}>{statusMessage}</div>
+          <div className={layoutStyles.pageFooter} style={{ flexShrink: 0 }}>{statusMessage}</div>
         )}
       </div>
     </main>

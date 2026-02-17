@@ -6,6 +6,7 @@ import { displayDepth, displayTemperature, displayDistance } from "@/lib/units";
 import cardStyles from "@/styles/components/Card.module.css";
 import listStyles from "@/styles/components/List.module.css";
 import buttonStyles from "@/styles/components/Button.module.css";
+import layoutStyles from "./LogbookLayout.module.css";
 
 type Props = {
   entries: DiveLogEntry[];
@@ -39,10 +40,14 @@ function DiveLogList({ entries, onSelect, onDelete, selectedId }: Props) {
             ? displayTemperature(entry.waterTempCx10, prefs.temperature)
             : null;
 
+        const isSelected = selectedId === entry.id;
+
         return (
           <li
             key={entry.id}
-            className={cardStyles.listItemInteractive}
+            className={`${cardStyles.listItemInteractive} ${
+              isSelected ? layoutStyles.listItemSelected : ""
+            }`}
             onClick={() => onSelect?.(entry)}
           >
             <div className={listStyles.diveHeader}>
@@ -63,7 +68,7 @@ function DiveLogList({ entries, onSelect, onDelete, selectedId }: Props) {
 
               <div className={listStyles.actions}>
                 <span className={listStyles.diveDate}>
-                  {selectedId === entry.id ? "Selected" : ""}
+                  {isSelected ? "Selected" : ""}
                 </span>
                 {onDelete && (
                   <button

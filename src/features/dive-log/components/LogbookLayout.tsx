@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import type { DiveLogEntry } from "@/features/dive-log/types";
 import DiveLogList from "./DiveLogList";
+import { DiveLogGrid } from "./DiveLogGrid";
 import { DiveLogDetail } from "./DiveLogDetail";
 import { AddEditDiveSheet } from "./AddEditDiveSheet";
 import buttonStyles from "@/styles/components/Button.module.css";
@@ -59,6 +60,8 @@ export function LogbookLayout({
   const [isMobile, setIsMobile] = useState(false);
   const [isSheetOpen, setIsSheetOpen] = useState(false);
   const [sheetMode, setSheetMode] = useState<"create" | "edit">("create");
+  const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
+  const [sortKey, setSortKey] = useState<"date-desc" | "date-asc" | "site-asc" | "region-asc">("date-desc");
 
   // Basic viewport breakpoint detection
   useEffect(() => {
@@ -74,34 +77,57 @@ export function LogbookLayout({
   const [searchQuery, setSearchQuery] = useState("");
 
   const filteredEntries = useMemo(() => {
-    if (!searchQuery.trim()) return entries;
-    const q = searchQuery.toLowerCase();
-    return entries.filter((entry) => {
-      return (
-        entry.siteName.toLowerCase().includes(q) ||
-        entry.region.toLowerCase().includes(q) ||
-        (entry.notes && entry.notes.toLowerCase().includes(q))
-      );
+    let filtered = entries;
+    
+    // Apply search filter
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase();
+      filtered = entries.filter((entry) => {
+        return (
+          entry.siteName.toLowerCase().includes(q) ||
+          entry.region.toLowerCase().includes(q) ||
+          (entry.notes && entry.notes.toLowerCase().includes(q))
+        );
+      });
+    }
+
+    // Apply sorting
+    const sorted = [...filtered].sort((a, b) => {
+      switch (sortKey) {
+        case "date-desc":
+          // Newest first (ISO YYYY-MM-DD string compare works)
+          if (a.date < b.date) return 1;
+          if (a.date > b.date) return -1;
+          return 0;
+        case "date-asc":
+          // Oldest first
+          if (a.date < b.date) return -1;
+          if (a.date > b.date) return 1;
+          return 0;
+        case "site-asc":
+          // Site name A-Z
+          return a.siteName.localeCompare(b.siteName);
+        case "region-asc":
+          // Region A-Z
+          return a.region.localeCompare(b.region);
+        default:
+          return 0;
+      }
     });
-  }, [entries, searchQuery]);
+
+    return sorted;
+  }, [entries, searchQuery, sortKey]);
 
   const selectedEntry = useMemo(() => {
     if (!filteredEntries.length) return null;
 
+    // Only select if urlDiveId is explicitly set (no implicit selection)
     const fromUrl = urlDiveId
       ? filteredEntries.find((entry) => entry.id === urlDiveId)
       : null;
 
-    if (fromUrl) return fromUrl;
-
-    // Desktop: implicitly select most recent when nothing selected
-    if (!isMobile) {
-      return filteredEntries[0];
-    }
-
-    // Mobile: no implicit selection, list-only
-    return null;
-  }, [filteredEntries, urlDiveId, isMobile]);
+    return fromUrl ?? null;
+  }, [filteredEntries, urlDiveId]);
 
   // On selection change, ensure gear is loaded for selected dive
   useEffect(() => {
@@ -118,7 +144,19 @@ export function LogbookLayout({
     router.push(`/dive-logs?${params.toString()}`);
   };
 
+  const handleSelectFromGrid = (id: string) => {
+    const entry = filteredEntries.find((e) => e.id === id);
+    if (entry) {
+      handleSelectFromList(entry);
+    }
+  };
+
   const handleBackToList = () => {
+    router.push("/dive-logs");
+  };
+
+  const handleCloseDetail = () => {
+    // Clear diveId from URL - explicit user action
     router.push("/dive-logs");
   };
 
@@ -171,7 +209,10 @@ export function LogbookLayout({
       onSubmit={handleSubmit}
       onCancelEdit={handleCancelEdit}
       onDeleteFromForm={handleDeleteFromForm}
-      onClose={() => setIsSheetOpen(false)}
+      onClose={() => {
+        setIsSheetOpen(false);
+        handleCancelEdit();
+      }}
     />
   );
 
@@ -180,8 +221,11 @@ export function LogbookLayout({
     if (!urlDiveId || !selectedEntry) {
       return (
         <div className={styles.container}>
-          <div className={styles.listPane}>
-            <div className={styles.listToolbar}>
+          <div className={styles.browsePane}>
+            <div className={styles.browseHeader}>
+              <h2 className={styles.browseTitle}>Logbook</h2>
+            </div>
+            <div className={styles.browseControls}>
               <button
                 type="button"
                 className={buttonStyles.primaryGradient}
@@ -190,19 +234,59 @@ export function LogbookLayout({
               >
                 Add dive
               </button>
-              <input
-                type="search"
-                className={styles.searchInput}
-                placeholder="Search by site, region, or notes"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-              />
+              <div className={styles.viewToggle}>
+                <button
+                  type="button"
+                  className={`${styles.toggleButton} ${
+                    viewMode === "grid" ? styles.toggleButtonActive : ""
+                  }`}
+                  onClick={() => setViewMode("grid")}
+                >
+                  Grid
+                </button>
+                <button
+                  type="button"
+                  className={`${styles.toggleButton} ${
+                    viewMode === "list" ? styles.toggleButtonActive : ""
+                  }`}
+                  onClick={() => setViewMode("list")}
+                >
+                  List
+                </button>
+              </div>
             </div>
-            <DiveLogList
-              entries={filteredEntries}
-              onSelect={handleSelectFromList}
-              selectedId={selectedEntry?.id ?? null}
+            <input
+              type="search"
+              className={styles.searchInput}
+              placeholder="Search by site, region, or notes"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
             />
+            <select
+              className={styles.sortSelect}
+              value={sortKey}
+              onChange={(e) => setSortKey(e.target.value as typeof sortKey)}
+            >
+              <option value="date-desc">Date (newest first)</option>
+              <option value="date-asc">Date (oldest first)</option>
+              <option value="site-asc">Site name (A-Z)</option>
+              <option value="region-asc">Region (A-Z)</option>
+            </select>
+            <div className={styles.browseContent}>
+              {viewMode === "grid" ? (
+                <DiveLogGrid
+                  entries={filteredEntries}
+                  onSelect={handleSelectFromGrid}
+                  selectedId={selectedEntry?.id ?? null}
+                />
+              ) : (
+                <DiveLogList
+                  entries={filteredEntries}
+                  onSelect={handleSelectFromList}
+                  selectedId={selectedEntry?.id ?? null}
+                />
+              )}
+            </div>
           </div>
           {sheet}
         </div>
@@ -219,39 +303,45 @@ export function LogbookLayout({
           ← Back to list
         </button>
         <div className={styles.detailPane}>
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-              marginBottom: "var(--space-4)",
-            }}
-          >
-            <h2 style={{ fontSize: "var(--font-size-lg)" }}>Dive details</h2>
-            <button
-              type="button"
-              className={buttonStyles.secondary}
-              onClick={openEditSheet}
-            >
-              Edit
-            </button>
+          <div className={styles.detailHeader}>
+            <h2 className={styles.detailTitle}>Dive details</h2>
+            <div className={styles.detailActions}>
+              <button
+                type="button"
+                className={buttonStyles.secondary}
+                onClick={openEditSheet}
+              >
+                Edit
+              </button>
+            </div>
           </div>
-          <DiveLogDetail
-            entry={selectedEntry}
-            gearLoading={gearLoadingId === selectedEntry.id}
-          />
+          <div className={styles.detailBody}>
+            <DiveLogDetail
+              entry={selectedEntry}
+              gearLoading={gearLoadingId === selectedEntry.id}
+            />
+          </div>
         </div>
         {sheet}
       </div>
     );
   }
 
-  // Desktop / tablet: two-pane layout
+  // Desktop / tablet: two-pane layout when diveId is selected, full-width browse when not
+  const hasSelectedDive = urlDiveId && selectedEntry;
+
   return (
     <div className={styles.container}>
       <div className={styles.content}>
-        <div className={styles.listPane}>
-          <div className={styles.listToolbar}>
+        <div
+          className={`${styles.browsePane} ${
+            !hasSelectedDive ? styles.browsePaneFullWidth : ""
+          }`.trim()}
+        >
+          <div className={styles.browseHeader}>
+            <h2 className={styles.browseTitle}>Logbook</h2>
+          </div>
+          <div className={styles.browseControls}>
             <button
               type="button"
               className={buttonStyles.primaryGradient}
@@ -260,32 +350,55 @@ export function LogbookLayout({
             >
               Add dive
             </button>
-            <input
-              type="search"
-              className={styles.searchInput}
-              placeholder="Search by site, region, or notes"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
-          </div>
-          <DiveLogList
-            entries={filteredEntries}
-            onSelect={handleSelectFromList}
-            selectedId={selectedEntry?.id ?? null}
-          />
-        </div>
-        <div className={styles.detailPane}>
-          {selectedEntry ? (
-            <>
-              <div
-                style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                  marginBottom: "var(--space-4)",
-                }}
+            <div className={styles.viewToggle}>
+              <button
+                type="button"
+                className={`${styles.toggleButton} ${
+                  viewMode === "grid" ? styles.toggleButtonActive : ""
+                }`}
+                onClick={() => setViewMode("grid")}
               >
-                <h2 style={{ fontSize: "var(--font-size-lg)" }}>Dive details</h2>
+                Grid
+              </button>
+              <button
+                type="button"
+                className={`${styles.toggleButton} ${
+                  viewMode === "list" ? styles.toggleButtonActive : ""
+                }`}
+                onClick={() => setViewMode("list")}
+              >
+                List
+              </button>
+            </div>
+          </div>
+          <input
+            type="search"
+            className={styles.searchInput}
+            placeholder="Search by site, region, or notes"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
+          <div className={styles.browseContent}>
+            {viewMode === "grid" ? (
+              <DiveLogGrid
+                entries={filteredEntries}
+                onSelect={handleSelectFromGrid}
+                selectedId={selectedEntry?.id ?? null}
+              />
+            ) : (
+              <DiveLogList
+                entries={filteredEntries}
+                onSelect={handleSelectFromList}
+                selectedId={selectedEntry?.id ?? null}
+              />
+            )}
+          </div>
+        </div>
+        {hasSelectedDive && (
+          <div className={styles.detailPane}>
+            <div className={styles.detailHeader}>
+              <h2 className={styles.detailTitle}>Dive details</h2>
+              <div className={styles.detailActions}>
                 <button
                   type="button"
                   className={buttonStyles.secondary}
@@ -293,21 +406,24 @@ export function LogbookLayout({
                 >
                   Edit
                 </button>
+                <button
+                  type="button"
+                  className={styles.closeButton}
+                  onClick={handleCloseDetail}
+                  aria-label="Close detail"
+                >
+                  ×
+                </button>
               </div>
+            </div>
+            <div className={styles.detailBody}>
               <DiveLogDetail
                 entry={selectedEntry}
                 gearLoading={gearLoadingId === selectedEntry.id}
               />
-            </>
-          ) : (
-            <div className={styles.detailEmptyCard}>
-              <div className={styles.detailEmptyRow} />
-              <div className={styles.detailEmptyRow} />
-              <div className={styles.detailEmptyRow} />
-              <div className={styles.detailEmptyRow} />
             </div>
-          )}
-        </div>
+          </div>
+        )}
       </div>
       {sheet}
     </div>

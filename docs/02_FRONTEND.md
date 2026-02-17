@@ -166,7 +166,8 @@ Reusable UI components used across features:
 Feature-specific components organized by feature:
 
 - `auth/components/` - SignInForm, SignUpForm, AuthModal, GoogleOAuthButton, etc.
-- `dive-log/components/` - DiveLogForm, DiveLogList, LogPageContent, GearSelection
+- `dive-log/components/` - DiveLogForm, DiveLogList, DiveLogGrid, LogbookLayout, LogPageContent, GearSelection
+  - `LogbookLayout` - Master-detail layout with browse pane (grid/list views), detail pane, search, and sort controls (date, site name, region)
 - `dive-plan/components/` - PlanForm, PlanPageContent, AIDiveBriefing, SaveDivePlanButton
 - `gear/components/` - GearPageContent, GearFormModal, KitFormModal, etc.
 - `dashboard/components/` - DashboardPageContent, StatsGrid, CertificationsCard, etc.
