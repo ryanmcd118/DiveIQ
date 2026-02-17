@@ -147,10 +147,10 @@ export function LogbookLayout({
   const handleSelectFromList = (entry: DiveLogEntry) => {
     handleSelectEntry(entry);
 
-    // Only explicit user actions update the URL
+    // Update URL without adding history entry or scrolling the page
     const params = new URLSearchParams(searchParams.toString());
     params.set("diveId", entry.id);
-    router.push(`/dive-logs?${params.toString()}`);
+    router.replace(`/dive-logs?${params.toString()}`, { scroll: false });
   };
 
   const handleSelectFromGrid = (id: string) => {
@@ -161,12 +161,11 @@ export function LogbookLayout({
   };
 
   const handleBackToList = () => {
-    router.push("/dive-logs");
+    router.replace("/dive-logs", { scroll: false });
   };
 
   const handleCloseDetail = () => {
-    // Clear diveId from URL - explicit user action
-    router.push("/dive-logs");
+    router.replace("/dive-logs", { scroll: false });
   };
 
   const openCreateSheet = useCallback(() => {
@@ -209,7 +208,7 @@ export function LogbookLayout({
 
     const params = new URLSearchParams(searchParams.toString());
     params.set("diveId", lastSavedEntry.id);
-    router.push(`/dive-logs?${params.toString()}`);
+    router.replace(`/dive-logs?${params.toString()}`, { scroll: false });
     clearLastSave();
   }, [isSheetOpen, lastSavedEntry, lastAction, router, searchParams, clearLastSave]);
 
