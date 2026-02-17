@@ -28,7 +28,7 @@ Next.js route groups organize layouts without affecting URLs:
 
 3. **Page Components**
    - Most pages are thin server components that render feature client components
-   - Example: `src/app/(app)/dive-logs/page.tsx` just renders `<LogPageContent />`
+   - Example: `src/app/(app)/dive-logs/page.tsx` fetches dive log data via repositories and renders `LogPageContent` (client logbook layout)
 
 ### Pages Pattern
 
@@ -36,8 +36,34 @@ Next.js route groups organize layouts without affecting URLs:
 
 ```typescript
 // src/app/(app)/dive-logs/page.tsx
-export default function LogPage() {
-  return <LogPageContent />; // Client component
+export default async function LogPage({ searchParams }: LogPageProps) {
+  const session = await getServerSession(authOptions);
+  const initialSelectedDiveId = searchParams?.diveId ?? null;
+
+  if (!session?.user?.id) {
+    return (
+      <LogPageContent
+        initialEntries={[]}
+        initialStats={null}
+        initialSelectedDiveId={initialSelectedDiveId}
+        isAuthed={false}
+      />
+    );
+  }
+
+  const [entries, stats] = await Promise.all([
+    diveLogRepository.findMany({ orderBy: "date", userId: session.user.id }),
+    diveLogRepository.getStatistics(session.user.id),
+  ]);
+
+  return (
+    <LogPageContent
+      initialEntries={entries}
+      initialStats={stats}
+      initialSelectedDiveId={initialSelectedDiveId}
+      isAuthed={true}
+    />
+  );
 }
 ```
 
@@ -237,20 +263,19 @@ export default async function DashboardPage() {
 
 ### Client Components
 
-Client components use `fetch()` in `useEffect` or event handlers:
+Client components use `fetch()` in event handlers or for incremental enrichment:
 
-**Pattern 1: Custom Hook with useEffect**
+**Pattern 1: Hydrate from Server Props + Mutations**
 
 ```typescript
-// src/features/dive-log/hooks/useLogPageState.ts:32-55
-useEffect(() => {
-  const loadEntries = async () => {
-    const res = await fetch("/api/dive-logs");
-    const data = await res.json();
-    setEntries(data.entries);
-  };
-  void loadEntries();
-}, []);
+// src/features/dive-log/hooks/useLogPageState.ts:11-35
+export function useLogPageState(initialEntries: DiveLogEntry[]) {
+  const [entries, setEntries] = useState<DiveLogEntry[]>(initialEntries);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  // Mutations still call /api/dive-logs (create/update/delete)
+}
 ```
 
 **Pattern 2: Form Submission Handler**

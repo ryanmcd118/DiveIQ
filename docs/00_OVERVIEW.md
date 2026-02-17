@@ -286,9 +286,9 @@ Hypothesized flows with primary file citations:
 
 ### Dive Logging Flows
 
-- **Create dive log**: `src/app/(app)/dive-logs/page.tsx` → `src/features/dive-log/components/LogPageContent.tsx` → `src/features/dive-log/components/DiveLogForm.tsx` → `src/app/api/dive-logs/route.ts:81-197` (POST with action="create")
-- **List dive logs**: `src/app/(app)/dive-logs/page.tsx` → `src/features/dive-log/components/DiveLogList.tsx` → `src/app/api/dive-logs/route.ts:14-67` (GET)
-- **Edit dive log**: `src/features/dive-log/hooks/useLogPageState.ts` → `src/app/api/dive-logs/route.ts:136-173` (POST with action="update")
+- **Browse logbook**: `src/app/(app)/dive-logs/page.tsx` (Server Component) → fetches initial entries/statistics via `diveLogRepository` and renders `LogPageContent` → `src/features/dive-log/components/LogbookLayout.tsx` (master–detail with `diveId` query param selection)
+- **Create dive log**: `src/features/dive-log/components/AddEditDiveSheet.tsx` → `src/features/dive-log/hooks/useLogPageState.ts` → `src/app/api/dive-logs/route.ts:81-197` (POST with action="create")
+- **Edit dive log**: `src/features/dive-log/components/AddEditDiveSheet.tsx` → `src/features/dive-log/hooks/useLogPageState.ts` → `src/app/api/dive-logs/route.ts:136-173` (POST with action="update")
 
 ### Profile Flows
 

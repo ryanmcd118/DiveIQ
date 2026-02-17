@@ -43,7 +43,7 @@ src/app/api/
 │   ├── [id]/route.ts          # GET/PUT/DELETE /api/certifications/:id
 │   ├── definitions/route.ts   # GET /api/certifications/definitions
 │   └── route.ts               # GET/POST /api/certifications
-├── dive-logs/route.ts         # GET/POST /api/dive-logs
+├── dive-logs/route.ts         # GET/POST /api/dive-logs (list, per-dive fetch, mutations)
 ├── dive-plans/
 │   ├── preview/route.ts       # POST /api/dive-plans/preview
 │   └── route.ts               # GET/POST/PUT/DELETE /api/dive-plans
@@ -99,7 +99,7 @@ src/app/api/
 - **Dive Logs**: `src/app/api/dive-logs/route.ts:89-103`
   - Type assertions: `body as { action, id?, payload? }`
   - Manual presence checks: `if (!payload)`
-  - No schema validation
+  - No schema validation (used for create/update/delete and per-dive gear fetch)
 
 - **Dive Plans**: `src/app/api/dive-plans/route.ts:30-38`
   - Type assertions only: `body as { region: string, ... }`
@@ -383,6 +383,8 @@ if (
 4. **Response**: `NextResponse.json({ entry: created, gearItems })` (line 129-132)
 
 **Data flow**: Client → Route Handler → Repository → Prisma → SQLite → Response
+
+In the refactored logbook, initial dive list and statistics are fetched in the Server Component page via `diveLogRepository.findMany()` and `diveLogRepository.getStatistics()` (`src/app/(app)/dive-logs/page.tsx:12-47`), while `/api/dive-logs` is used primarily for mutations and per-dive gear fetches (via `GET /api/dive-logs?id=...`).
 
 ### Flow 2: Create Dive Plan with AI Briefing
 

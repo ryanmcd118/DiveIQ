@@ -1,4 +1,4 @@
-import { FormEvent, useEffect, useState } from "react";
+import { FormEvent, useState } from "react";
 import type { GearItem } from "@prisma/client";
 import { DiveLogEntry, DiveLogInput } from "@/features/dive-log/types";
 import { useUnitPreferences } from "@/hooks/useUnitPreferences";
@@ -8,13 +8,12 @@ import {
   distanceInputToCm,
 } from "@/lib/units";
 
-export function useLogPageState() {
+export function useLogPageState(initialEntries: DiveLogEntry[]) {
   const { prefs } = useUnitPreferences();
-  const [entries, setEntries] = useState<DiveLogEntry[]>([]);
+  const [entries, setEntries] = useState<DiveLogEntry[]>(initialEntries);
   const [saving, setSaving] = useState(false);
-  const [loading, setLoading] = useState(true);
+  const [loading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [isAuthenticated, setIsAuthenticated] = useState(true);
 
   const [editingEntryId, setEditingEntryId] = useState<string | null>(null);
   const [editingEntry, setEditingEntry] = useState<DiveLogEntry | null>(null);
@@ -22,37 +21,19 @@ export function useLogPageState() {
   const [formKey, setFormKey] = useState<string>("new"); // force remount on edit/new
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
   const [selectedGearIds, setSelectedGearIds] = useState<string[]>([]);
+  const [lastSavedEntry, setLastSavedEntry] = useState<DiveLogEntry | null>(
+    null
+  );
+  const [lastAction, setLastAction] = useState<"create" | "update" | null>(
+    null
+  );
+  const [gearLoadingId, setGearLoadingId] = useState<string | null>(null);
+  const [gearLoadedIds, setGearLoadedIds] = useState<string[]>([]);
 
   const totalBottomTime = entries.reduce(
     (sum, entry) => sum + entry.bottomTime,
     0
   );
-
-  // Load existing entries from API on mount
-  useEffect(() => {
-    const loadEntries = async () => {
-      try {
-        const res = await fetch("/api/dive-logs");
-        if (res.status === 401) {
-          // User is not authenticated - this is not an error, just show empty state
-          setIsAuthenticated(false);
-          setEntries([]);
-          return;
-        }
-        if (!res.ok) throw new Error(`API returned ${res.status}`);
-        const data: { entries: DiveLogEntry[] } = await res.json();
-        setEntries(data.entries);
-        setIsAuthenticated(true);
-      } catch (err) {
-        console.error(err);
-        setError("Failed to load existing dives.");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    void loadEntries();
-  }, []);
 
   const resetFormState = () => {
     setEditingEntryId(null);
@@ -149,6 +130,9 @@ export function useLogPageState() {
           : [entryWithGear, ...prev]
       );
 
+      setLastSavedEntry(entryWithGear);
+      setLastAction(isEditing ? "update" : "create");
+
       // Reset form + edit mode
       form.reset();
       setEditingEntryId(null);
@@ -230,13 +214,59 @@ export function useLogPageState() {
     await performDelete(id);
   };
 
+  const ensureGearLoaded = async (diveId: string) => {
+    const current = entries.find((e) => e.id === diveId);
+    if (!current) return;
+
+    // Already has gear or we've loaded it before
+    if ((current.gearItems && current.gearItems.length > 0) || gearLoadedIds.includes(diveId)) {
+      return;
+    }
+
+    if (gearLoadingId === diveId) return;
+
+    try {
+      setGearLoadingId(diveId);
+      const res = await fetch(`/api/dive-logs?id=${encodeURIComponent(diveId)}`);
+      if (!res.ok) {
+        throw new Error(`API returned ${res.status}`);
+      }
+
+      const data: { entry: DiveLogEntry | null; gearItems?: GearItem[] } =
+        await res.json();
+
+      if (!data.entry || !data.gearItems) {
+        setGearLoadedIds((prev) =>
+          prev.includes(diveId) ? prev : [...prev, diveId]
+        );
+        return;
+      }
+
+      const entryWithGear: DiveLogEntry = {
+        ...data.entry,
+        gearItems: data.gearItems,
+      };
+
+      setEntries((prev) =>
+        prev.map((e) => (e.id === diveId ? entryWithGear : e))
+      );
+
+      setGearLoadedIds((prev) =>
+        prev.includes(diveId) ? prev : [...prev, diveId]
+      );
+    } catch (err) {
+      console.error("Failed to load gear for dive", diveId, err);
+    } finally {
+      setGearLoadingId((currentId) => (currentId === diveId ? null : currentId));
+    }
+  };
+
   return {
     // state
     entries,
     saving,
     loading,
     error,
-    isAuthenticated,
     editingEntryId,
     editingEntry,
     activeEntry,
@@ -245,6 +275,8 @@ export function useLogPageState() {
     totalBottomTime,
     selectedGearIds,
     setSelectedGearIds,
+    lastSavedEntry,
+    lastAction,
 
     // handlers
     handleSubmit,
@@ -252,5 +284,7 @@ export function useLogPageState() {
     handleCancelEdit,
     handleDeleteFromForm,
     handleDeleteFromList,
+    ensureGearLoaded,
+    gearLoadingId,
   };
 }

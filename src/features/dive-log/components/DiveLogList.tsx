@@ -11,9 +11,10 @@ type Props = {
   entries: DiveLogEntry[];
   onSelect?: (entry: DiveLogEntry) => void;
   onDelete?: (id: string) => void;
+  selectedId?: string | null;
 };
 
-function DiveLogList({ entries, onSelect, onDelete }: Props) {
+function DiveLogList({ entries, onSelect, onDelete, selectedId }: Props) {
   const { prefs } = useUnitPreferences();
 
   if (entries.length === 0) {
@@ -53,7 +54,7 @@ function DiveLogList({ entries, onSelect, onDelete }: Props) {
                   </span>
                 </span>
                 <p className={listStyles.diveStats}>
-                  {depth.value}
+                  {entry.date} · {depth.value}
                   {depth.unit} · {entry.bottomTime} min
                   {visibility && ` · ${visibility.value}${visibility.unit} vis`}
                   {waterTemp && ` · ${waterTemp.value}${waterTemp.unit}`}
@@ -61,7 +62,9 @@ function DiveLogList({ entries, onSelect, onDelete }: Props) {
               </div>
 
               <div className={listStyles.actions}>
-                <span className={listStyles.diveDate}>{entry.date}</span>
+                <span className={listStyles.diveDate}>
+                  {selectedId === entry.id ? "Selected" : ""}
+                </span>
                 {onDelete && (
                   <button
                     type="button"
