@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useCallback } from "react";
 import Link from "next/link";
 import type { DiveLogEntry } from "@/features/dive-log/types";
 import { useLogPageState } from "../hooks/useLogPageState";
@@ -93,6 +94,13 @@ export function LogPageContent({
     clearLastSave,
   } = useLogPageState(initialEntries);
 
+  const [openCreateSheetFn, setOpenCreateSheetFn] = useState<(() => void) | null>(null);
+  
+  // Stable callback ref setter to avoid calling state setter during render
+  const handleOpenCreateSheetRef = useCallback((fn: () => void) => {
+    setOpenCreateSheetFn(() => fn);
+  }, []);
+
   return (
     <main
       className={`${layoutStyles.page} ${backgroundStyles.pageGradientSubtle}`}
@@ -114,6 +122,15 @@ export function LogPageContent({
               its details.
             </p>
           </div>
+          {openCreateSheetFn && (
+            <button
+              type="button"
+              className={buttonStyles.primaryGradient}
+              onClick={openCreateSheetFn}
+            >
+              Add dive
+            </button>
+          )}
         </header>
 
         <div style={{ flex: 1, minHeight: 0, display: "flex", flexDirection: "column" }}>
@@ -137,6 +154,7 @@ export function LogPageContent({
             ensureGearLoaded={ensureGearLoaded}
             gearLoadingId={gearLoadingId}
             clearLastSave={clearLastSave}
+            onOpenCreateSheetRef={handleOpenCreateSheetRef}
           />
         </div>
 

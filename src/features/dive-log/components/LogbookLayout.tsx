@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useCallback, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import type { DiveLogEntry } from "@/features/dive-log/types";
 import DiveLogList from "./DiveLogList";
@@ -32,6 +32,7 @@ interface LogbookLayoutProps {
   ensureGearLoaded: (diveId: string) => Promise<void>;
   gearLoadingId: string | null;
   clearLastSave: () => void;
+  onOpenCreateSheetRef?: (fn: () => void) => void;
 }
 
 export function LogbookLayout({
@@ -54,6 +55,7 @@ export function LogbookLayout({
   ensureGearLoaded,
   gearLoadingId,
   clearLastSave,
+  onOpenCreateSheetRef,
 }: LogbookLayoutProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -160,11 +162,29 @@ export function LogbookLayout({
     router.push("/dive-logs");
   };
 
-  const openCreateSheet = () => {
+  const openCreateSheet = useCallback(() => {
     handleCancelEdit();
     setSheetMode("create");
     setIsSheetOpen(true);
-  };
+  }, [handleCancelEdit]);
+
+  // Expose openCreateSheet function to parent via callback ref
+  // Store function in ref to avoid stale closures
+  const openCreateSheetRef = useRef(openCreateSheet);
+  openCreateSheetRef.current = openCreateSheet;
+
+  // Use useEffect to call the callback ref after render, not during
+  useEffect(() => {
+    if (onOpenCreateSheetRef) {
+      // Defer to next tick to ensure we're not updating during render
+      const timeoutId = setTimeout(() => {
+        onOpenCreateSheetRef(() => openCreateSheetRef.current());
+      }, 0);
+      return () => clearTimeout(timeoutId);
+    }
+    // Only depend on onOpenCreateSheetRef, not openCreateSheet
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [onOpenCreateSheetRef]);
 
   const openEditSheet = () => {
     if (selectedEntry) {
@@ -226,14 +246,6 @@ export function LogbookLayout({
               <h2 className={styles.browseTitle}>Logbook</h2>
             </div>
             <div className={styles.browseControls}>
-              <button
-                type="button"
-                className={buttonStyles.primaryGradient}
-                style={{ width: "100%" }}
-                onClick={openCreateSheet}
-              >
-                Add dive
-              </button>
               <div className={styles.viewToggle}>
                 <button
                   type="button"
@@ -332,34 +344,25 @@ export function LogbookLayout({
 
   return (
     <div className={styles.container}>
-      <div className={styles.content}>
+      <div className={`${styles.content} ${hasSelectedDive ? styles.contentTwoPane : ""}`}>
         <div
           className={`${styles.browsePane} ${
             !hasSelectedDive ? styles.browsePaneFullWidth : ""
           }`.trim()}
         >
           <div className={styles.browseHeader}>
-            <div className={styles.browseHeaderRow}>
+            <div className={styles.browseHeaderRow1}>
               <h2 className={styles.browseTitle}>Logbook</h2>
-              <div className={styles.browseHeaderActions}>
-                <select
-                  className={styles.sortSelect}
-                  value={sortKey}
-                  onChange={(e) => setSortKey(e.target.value as typeof sortKey)}
-                >
-                  <option value="date-desc">Newest first</option>
-                  <option value="date-asc">Oldest first</option>
-                  <option value="site-asc">Site name (A → Z)</option>
-                  <option value="region-asc">Region (A → Z)</option>
-                </select>
-                <button
-                  type="button"
-                  className={buttonStyles.primaryGradient}
-                  onClick={openCreateSheet}
-                >
-                  Add dive
-                </button>
-              </div>
+              <select
+                className={styles.sortSelect}
+                value={sortKey}
+                onChange={(e) => setSortKey(e.target.value as typeof sortKey)}
+              >
+                <option value="date-desc">Newest first</option>
+                <option value="date-asc">Oldest first</option>
+                <option value="site-asc">Site name (A → Z)</option>
+                <option value="region-asc">Region (A → Z)</option>
+              </select>
             </div>
             <div className={styles.browseHeaderControls}>
               <input

@@ -14,6 +14,11 @@
   min-height: 0;
 }
 
+.contentTwoPane {
+  overflow: hidden;
+  max-height: 100%;
+}
+
 .listPane {
   flex: 0 0 320px;
   max-width: 360px;
@@ -33,6 +38,11 @@
   transition: flex max-width var(--transition-base);
 }
 
+.contentTwoPane .browsePane {
+  overflow: hidden;
+  max-height: 100%;
+}
+
 .browsePaneFullWidth {
   flex: 1 1 auto;
   max-width: none;
@@ -41,14 +51,17 @@
 .browseHeader {
   margin-bottom: var(--space-4);
   flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
 }
 
-.browseHeaderRow {
-  display: flex;
-  justify-content: space-between;
+.browseHeaderRow1 {
+  display: grid;
+  grid-template-columns: 1fr auto;
   align-items: center;
-  margin-bottom: var(--space-3);
   gap: var(--space-3);
+  min-width: 0;
 }
 
 .browseTitle {
@@ -56,12 +69,17 @@
   font-weight: var(--font-weight-semibold);
   color: var(--color-text-primary);
   margin: 0;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .browseHeaderActions {
   display: flex;
   align-items: center;
   gap: var(--space-2);
+  flex-shrink: 0;
 }
 
 .browseHeaderControls {
@@ -241,6 +259,7 @@
   cursor: pointer;
   transition: all var(--transition-base);
   min-width: 160px;
+  flex-shrink: 0;
 }
 
 .sortSelect:hover {
@@ -295,19 +314,12 @@
     overflow: visible;
   }
 
-  .browseHeaderRow {
-    flex-direction: column;
-    align-items: flex-start;
+  .browseHeaderRow1 {
+    grid-template-columns: 1fr;
     gap: var(--space-3);
   }
 
-  .browseHeaderActions {
-    width: 100%;
-    flex-direction: column;
-    gap: var(--space-2);
-  }
-
-  .sortSelect {
+  .browseHeaderRow1 .sortSelect {
     width: 100%;
   }
 
