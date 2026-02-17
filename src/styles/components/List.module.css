@@ -24,26 +24,64 @@
   /* Inherits from Card.module.css .listItem or .listItemInteractive */
 }
 
+/* Main row: place (left) | date (middle) | stats + actions (right) */
+.diveRowMain {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  gap: var(--space-3) var(--space-4);
+  align-items: center;
+  min-width: 0;
+}
+
+.diveColPlace {
+  min-width: 0;
+}
+
+.diveTitle {
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-primary);
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.diveRegion {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.diveColDate {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  white-space: nowrap;
+}
+
+.diveColStats {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  justify-content: flex-end;
+  flex-wrap: nowrap;
+}
+
+.diveStats {
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-xs);
+  white-space: nowrap;
+  text-align: right;
+}
+
 .diveHeader {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
   gap: var(--space-2);
   margin-bottom: var(--space-1);
-}
-
-.diveTitle {
-  font-weight: var(--font-weight-semibold);
-  color: var(--color-text-primary);
-}
-
-.diveRegion {
-  color: var(--color-text-muted);
-}
-
-.diveStats {
-  color: var(--color-text-secondary);
-  font-size: var(--font-size-sm);
 }
 
 .diveMeta {
@@ -57,11 +95,25 @@
   white-space: nowrap;
 }
 
+/* Single line for buddy/gear; notes with 1-line clamp */
+.diveMetaRow {
+  margin-top: var(--space-1);
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .diveNotes {
-  margin-top: var(--space-2);
+  margin-top: var(--space-1);
   font-size: var(--font-size-xs);
   color: var(--color-text-tertiary);
-  white-space: pre-line;
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  line-clamp: 1;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
 /* Plan list items */

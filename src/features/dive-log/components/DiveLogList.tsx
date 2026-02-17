@@ -30,7 +30,7 @@ function DiveLogList({ entries, searchQuery = "", onSelect, onDelete, selectedId
   }
 
   return (
-    <ul className={listStyles.list}>
+    <ul className={listStyles.listCompact}>
       {entries.map((entry) => {
         const depth = displayDepth(entry.maxDepthCm, prefs.depth);
         const visibility =
@@ -44,6 +44,16 @@ function DiveLogList({ entries, searchQuery = "", onSelect, onDelete, selectedId
 
         const isSelected = selectedId === entry.id;
 
+        const statsParts = [
+          depth.value ? `${depth.value}${depth.unit}` : null,
+          `${entry.bottomTime} min`,
+        ];
+        if (waterTemp) statsParts.push(`${waterTemp.value}${waterTemp.unit}`);
+        if (visibility) statsParts.push(`${visibility.value}${visibility.unit} vis`);
+        const statsLine = statsParts.filter(Boolean).join(" · ");
+
+        const hasMeta = entry.buddyName || (entry.gearItems && entry.gearItems.length > 0);
+
         return (
           <li
             key={entry.id}
@@ -52,26 +62,21 @@ function DiveLogList({ entries, searchQuery = "", onSelect, onDelete, selectedId
             }`}
             onClick={() => onSelect?.(entry)}
           >
-            <div className={listStyles.diveHeader}>
-              <div>
+            <div className={listStyles.diveRowMain}>
+              <div className={listStyles.diveColPlace}>
                 <span className={listStyles.diveTitle}>
-                  {highlightMatch(entry.siteName, searchQuery)}{" "}
-                  <span className={listStyles.diveRegion}>
-                    ({highlightMatch(entry.region, searchQuery)})
-                  </span>
+                  {highlightMatch(entry.siteName, searchQuery)}
                 </span>
-                <p className={listStyles.diveStats}>
-                  {entry.date} · {depth.value}
-                  {depth.unit} · {entry.bottomTime} min
-                  {visibility && ` · ${visibility.value}${visibility.unit} vis`}
-                  {waterTemp && ` · ${waterTemp.value}${waterTemp.unit}`}
-                </p>
+                <span className={listStyles.diveRegion}>
+                  {highlightMatch(entry.region, searchQuery)}
+                </span>
               </div>
-
-              <div className={listStyles.actions}>
-                <span className={listStyles.diveDate}>
-                  {isSelected ? "Selected" : ""}
-                </span>
+              <div className={listStyles.diveColDate}>{entry.date}</div>
+              <div className={listStyles.diveColStats}>
+                <span className={listStyles.diveStats}>{statsLine}</span>
+                {isSelected && (
+                  <span className={listStyles.diveDate}>Selected</span>
+                )}
                 {onDelete && (
                   <button
                     type="button"
@@ -93,16 +98,17 @@ function DiveLogList({ entries, searchQuery = "", onSelect, onDelete, selectedId
                 )}
               </div>
             </div>
-
-            {entry.buddyName && (
-              <p className={listStyles.diveMeta}>Buddy: {highlightMatch(entry.buddyName, searchQuery)}</p>
-            )}
-            {entry.gearItems && entry.gearItems.length > 0 && (
-              <p className={listStyles.diveMeta}>
-                Gear:{" "}
-                {entry.gearItems
-                  .map((g) => g.nickname || `${g.manufacturer} ${g.model}`)
-                  .join(", ")}
+            {hasMeta && (
+              <p className={listStyles.diveMetaRow}>
+                {entry.buddyName && (
+                  <>
+                    Buddy: {highlightMatch(entry.buddyName, searchQuery)}
+                    {entry.gearItems?.length ? " · " : ""}
+                  </>
+                )}
+                {entry.gearItems?.length
+                  ? `Gear: ${entry.gearItems.map((g) => g.nickname || `${g.manufacturer} ${g.model}`).join(", ")}`
+                  : null}
               </p>
             )}
             {entry.notes && (

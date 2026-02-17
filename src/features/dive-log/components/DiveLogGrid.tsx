@@ -41,17 +41,12 @@ export function DiveLogGrid({ entries, searchQuery = "", selectedId, onSelect }:
 
         const isSelected = selectedId === entry.id;
 
-        // Build summary line: depth + bottom time + temp/vis if present
         const summaryParts = [
           depth.value ? `${depth.value}${depth.unit}` : null,
           `${entry.bottomTime} min`,
         ];
-        if (visibility) {
-          summaryParts.push(`${visibility.value}${visibility.unit} vis`);
-        }
-        if (waterTemp) {
-          summaryParts.push(`${waterTemp.value}${waterTemp.unit}`);
-        }
+        if (waterTemp) summaryParts.push(`${waterTemp.value}${waterTemp.unit}`);
+        if (visibility) summaryParts.push(`${visibility.value}${visibility.unit} vis`);
         const summary = summaryParts.filter(Boolean).join(" · ");
 
         return (
@@ -69,6 +64,9 @@ export function DiveLogGrid({ entries, searchQuery = "", selectedId, onSelect }:
               </div>
               <p className={styles.cardDate}>{entry.date}</p>
               <p className={styles.cardSummary}>{summary}</p>
+              {entry.notes && (
+                <p className={styles.cardNotesPreview}>{highlightMatch(entry.notes, searchQuery)}</p>
+              )}
             </div>
           </div>
         );
