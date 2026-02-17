@@ -106,10 +106,10 @@ export function LogbookLayout({
           return 0;
         case "site-asc":
           // Site name A-Z
-          return a.siteName.localeCompare(b.siteName);
+          return (a.siteName || "").localeCompare(b.siteName || "");
         case "region-asc":
           // Region A-Z
-          return a.region.localeCompare(b.region);
+          return (a.region || "").localeCompare(b.region || "");
         default:
           return 0;
       }
@@ -339,45 +339,58 @@ export function LogbookLayout({
           }`.trim()}
         >
           <div className={styles.browseHeader}>
-            <h2 className={styles.browseTitle}>Logbook</h2>
-          </div>
-          <div className={styles.browseControls}>
-            <button
-              type="button"
-              className={buttonStyles.primaryGradient}
-              style={{ width: "100%" }}
-              onClick={openCreateSheet}
-            >
-              Add dive
-            </button>
-            <div className={styles.viewToggle}>
-              <button
-                type="button"
-                className={`${styles.toggleButton} ${
-                  viewMode === "grid" ? styles.toggleButtonActive : ""
-                }`}
-                onClick={() => setViewMode("grid")}
-              >
-                Grid
-              </button>
-              <button
-                type="button"
-                className={`${styles.toggleButton} ${
-                  viewMode === "list" ? styles.toggleButtonActive : ""
-                }`}
-                onClick={() => setViewMode("list")}
-              >
-                List
-              </button>
+            <div className={styles.browseHeaderRow}>
+              <h2 className={styles.browseTitle}>Logbook</h2>
+              <div className={styles.browseHeaderActions}>
+                <select
+                  className={styles.sortSelect}
+                  value={sortKey}
+                  onChange={(e) => setSortKey(e.target.value as typeof sortKey)}
+                >
+                  <option value="date-desc">Newest first</option>
+                  <option value="date-asc">Oldest first</option>
+                  <option value="site-asc">Site name (A → Z)</option>
+                  <option value="region-asc">Region (A → Z)</option>
+                </select>
+                <button
+                  type="button"
+                  className={buttonStyles.primaryGradient}
+                  onClick={openCreateSheet}
+                >
+                  Add dive
+                </button>
+              </div>
+            </div>
+            <div className={styles.browseHeaderControls}>
+              <input
+                type="search"
+                className={styles.searchInput}
+                placeholder="Search by site, region, or notes"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+              <div className={styles.viewToggle}>
+                <button
+                  type="button"
+                  className={`${styles.toggleButton} ${
+                    viewMode === "grid" ? styles.toggleButtonActive : ""
+                  }`}
+                  onClick={() => setViewMode("grid")}
+                >
+                  Grid
+                </button>
+                <button
+                  type="button"
+                  className={`${styles.toggleButton} ${
+                    viewMode === "list" ? styles.toggleButtonActive : ""
+                  }`}
+                  onClick={() => setViewMode("list")}
+                >
+                  List
+                </button>
+              </div>
             </div>
           </div>
-          <input
-            type="search"
-            className={styles.searchInput}
-            placeholder="Search by site, region, or notes"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-          />
           <div className={styles.browseContent}>
             {viewMode === "grid" ? (
               <DiveLogGrid
