@@ -30,6 +30,7 @@ interface LogbookLayoutProps {
   lastAction: "create" | "update" | null;
   ensureGearLoaded: (diveId: string) => Promise<void>;
   gearLoadingId: string | null;
+  clearLastSave: () => void;
 }
 
 export function LogbookLayout({
@@ -51,6 +52,7 @@ export function LogbookLayout({
   lastAction,
   ensureGearLoaded,
   gearLoadingId,
+  clearLastSave,
 }: LogbookLayoutProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -143,7 +145,8 @@ export function LogbookLayout({
     const params = new URLSearchParams(searchParams.toString());
     params.set("diveId", lastSavedEntry.id);
     router.push(`/dive-logs?${params.toString()}`);
-  }, [isSheetOpen, lastSavedEntry, lastAction, router, searchParams]);
+    clearLastSave();
+  }, [isSheetOpen, lastSavedEntry, lastAction, router, searchParams, clearLastSave]);
 
   if (!entries.length) {
     return (

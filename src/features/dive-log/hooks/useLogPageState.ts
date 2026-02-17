@@ -124,11 +124,18 @@ export function useLogPageState(initialEntries: DiveLogEntry[]) {
         gearItems: data.gearItems || [],
       };
 
-      setEntries((prev) =>
-        isEditing
+      setEntries((prev) => {
+        const next = isEditing
           ? prev.map((e) => (e.id === entryWithGear.id ? entryWithGear : e))
-          : [entryWithGear, ...prev]
-      );
+          : [entryWithGear, ...prev];
+
+        // Always enforce newest-by-date-first ordering (ISO YYYY-MM-DD string compare)
+        return [...next].sort((a, b) => {
+          if (a.date < b.date) return 1;
+          if (a.date > b.date) return -1;
+          return 0;
+        });
+      });
 
       setLastSavedEntry(entryWithGear);
       setLastAction(isEditing ? "update" : "create");
@@ -214,6 +221,11 @@ export function useLogPageState(initialEntries: DiveLogEntry[]) {
     await performDelete(id);
   };
 
+  const clearLastSave = () => {
+    setLastSavedEntry(null);
+    setLastAction(null);
+  };
+
   const ensureGearLoaded = async (diveId: string) => {
     const current = entries.find((e) => e.id === diveId);
     if (!current) return;
@@ -286,5 +298,6 @@ export function useLogPageState(initialEntries: DiveLogEntry[]) {
     handleDeleteFromList,
     ensureGearLoaded,
     gearLoadingId,
+    clearLastSave,
   };
 }

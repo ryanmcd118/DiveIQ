@@ -90,6 +90,7 @@ export function LogPageContent({
     lastAction,
     ensureGearLoaded,
     gearLoadingId,
+    clearLastSave,
   } = useLogPageState(initialEntries);
 
   return (
@@ -132,6 +133,7 @@ export function LogPageContent({
           lastAction={lastAction}
           ensureGearLoaded={ensureGearLoaded}
           gearLoadingId={gearLoadingId}
+          clearLastSave={clearLastSave}
         />
 
         {statusMessage && (

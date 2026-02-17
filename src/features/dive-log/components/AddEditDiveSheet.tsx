@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import { createPortal } from "react-dom";
 import type { DiveLogEntry } from "@/features/dive-log/types";
 import { DiveLogForm } from "./DiveLogForm";
 import styles from "./AddEditDiveSheet.module.css";
@@ -63,6 +64,7 @@ export function AddEditDiveSheet({
   }, [isOpen]);
 
   if (!isOpen) return null;
+  if (typeof document === "undefined") return null;
 
   const handleOverlayClick = () => {
     onClose();
@@ -72,10 +74,13 @@ export function AddEditDiveSheet({
     event.stopPropagation();
   };
 
-  return (
+  return createPortal(
     <div className={styles.overlay} onClick={handleOverlayClick}>
       <div className={styles.sheet} onClick={handleSheetClick}>
-        <header className={styles.header}>
+        <header
+          className={styles.header}
+          data-testid="add-edit-sheet-header"
+        >
           <h2 className={styles.title}>
             {mode === "create" ? "Add dive" : "Edit dive"}
           </h2>
@@ -104,7 +109,8 @@ export function AddEditDiveSheet({
           />
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
 
