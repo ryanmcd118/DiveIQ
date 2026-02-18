@@ -63,7 +63,7 @@
   grid-template-columns:
     minmax(180px, 1.2fr)
     minmax(120px, 0.8fr)
-    minmax(92px, 92px)
+    minmax(10ch, 92px)
     minmax(56px, 56px)
     minmax(56px, 56px)
     minmax(56px, 56px)
@@ -76,32 +76,43 @@
   color: var(--color-text-muted);
   font-weight: var(--font-weight-medium);
   align-items: center;
+  justify-items: start;
   border-bottom: 1px solid var(--color-border-subtle, rgba(0, 0, 0, 0.06));
   width: 100%;
   min-width: 0;
   box-sizing: border-box;
 }
 
-/* Shared column alignment: same classes on header and row cells */
-.colSite,
-.colBuddy,
-.colNotes {
-  justify-self: start;
+/* Header cells: block so width:100% applies; all left-aligned */
+.diveListHeaderCell {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
   text-align: left;
 }
 
+/* Expanded row cells: block, fill track, all left-aligned */
+.diveListItem.expandedRow > div {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  text-align: left;
+}
+
+/* All columns left-aligned (no per-column right/center overrides) */
+.colSite,
+.colBuddy,
 .colDate,
 .colDepth,
 .colTime,
 .colTemp,
-.colVisibility {
-  justify-self: end;
-  text-align: right;
-}
-
+.colVisibility,
+.colNotes,
 .colActions {
-  justify-self: end;
-  text-align: right;
+  justify-self: start;
+  text-align: left;
 }
 
 .diveListItem {
@@ -111,12 +122,12 @@
   box-sizing: border-box;
 }
 
-/* Expanded row: identical grid-template-columns to header */
+/* Expanded row: identical grid-template-columns to header; stretch cells to full column */
 .diveListItem.expandedRow {
   grid-template-columns:
     minmax(180px, 1.2fr)
     minmax(120px, 0.8fr)
-    minmax(92px, 92px)
+    minmax(10ch, 92px)
     minmax(56px, 56px)
     minmax(56px, 56px)
     minmax(56px, 56px)
@@ -126,6 +137,8 @@
   column-gap: 12px;
   width: 100%;
   min-width: 0;
+  box-sizing: border-box;
+  justify-items: start;
 }
 
 .diveListItem.expandedRow .diveCellSite {
@@ -136,6 +149,14 @@
   font-size: var(--font-size-sm);
 }
 
+/* Site name can shrink inside flex cell so ellipsis works */
+.diveListItem.expandedRow .diveCellSite .diveSiteName {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .diveListItem.expandedRow .diveCellBuddy {
   min-width: 0;
   overflow: hidden;
@@ -143,6 +164,10 @@
   white-space: nowrap;
   font-size: var(--font-size-xs);
   color: var(--color-text-primary);
+}
+
+.diveListItem.expandedRow .diveCellBuddy > * {
+  min-width: 0;
 }
 
 .diveListItem.expandedRow .diveCellDate,
@@ -163,6 +188,13 @@
   white-space: nowrap;
   font-size: var(--font-size-xs);
   color: var(--color-text-secondary);
+}
+
+.diveListItem.expandedRow .diveCellNotes > * {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .diveListItem.expandedRow .diveCellActions {
@@ -234,6 +266,8 @@
 }
 
 .diveRegionSep {
+  margin: 0 6px;
+  opacity: 0.7;
   color: var(--color-text-muted);
 }
 
@@ -248,14 +282,14 @@
   flex-shrink: 0;
 }
 
-/* Responsive: same column order and alignment, smaller minimums */
+/* Responsive: same column order and alignment, smaller minimums; Date keeps 10ch min */
 @media (max-width: 900px) {
   .diveListHeader,
   .diveListItem.expandedRow {
     grid-template-columns:
       minmax(140px, 1.2fr)
       minmax(100px, 0.8fr)
-      minmax(92px, 92px)
+      minmax(10ch, 92px)
       minmax(56px, 56px)
       minmax(56px, 56px)
       minmax(56px, 56px)
@@ -272,7 +306,7 @@
     grid-template-columns:
       minmax(100px, 1.2fr)
       minmax(80px, 0.8fr)
-      minmax(92px, 92px)
+      minmax(10ch, 92px)
       minmax(48px, 48px)
       minmax(48px, 48px)
       minmax(48px, 48px)
