@@ -31,9 +31,7 @@ function DiveLogList({ entries, searchQuery = "", onSelect, onDelete, selectedId
     );
   }
 
-  return (
-    <ul className={listStyles.listCompact}>
-      {entries.map((entry) => {
+  const listContent = entries.map((entry) => {
         const depth = displayDepth(entry.maxDepthCm, prefs.depth);
         const visibility =
           entry.visibilityCm != null
@@ -60,7 +58,7 @@ function DiveLogList({ entries, searchQuery = "", onSelect, onDelete, selectedId
                 <span>{depth.value ? `${depth.value}${depth.unit}` : "—"}</span>
                 <span>{`${entry.bottomTime}m`}</span>
                 <span>{waterTemp ? `${waterTemp.value}${waterTemp.unit}` : "—"}</span>
-                <span>{visibility ? `${visibility.value}${visibility.unit} vis` : "—"}</span>
+                <span>{visibility ? `${visibility.value}${visibility.unit}` : "—"}</span>
               </div>
               <div className={listStyles.cellPlace}>
                 {highlightMatch(entry.siteName, searchQuery)}
@@ -75,13 +73,12 @@ function DiveLogList({ entries, searchQuery = "", onSelect, onDelete, selectedId
         return (
           <li
             key={entry.id}
-            className={`${cardStyles.listItemInteractive} ${listStyles.diveListItem} ${
+            className={`${cardStyles.listItemInteractive} ${listStyles.diveListItem} ${listStyles.expandedRow} ${
               isSelected ? layoutStyles.listItemSelected : ""
             }`}
             onClick={() => onSelect?.(entry)}
           >
-            {/* Grid (1,1): Site · Region */}
-            <div className={listStyles.diveCellPlace}>
+            <div className={`${listStyles.diveCellSite} ${listStyles.colSite}`}>
               <span className={listStyles.diveSiteName}>
                 {highlightMatch(entry.siteName, searchQuery)}
               </span>
@@ -90,32 +87,24 @@ function DiveLogList({ entries, searchQuery = "", onSelect, onDelete, selectedId
                 {highlightMatch(entry.region, searchQuery)}
               </span>
             </div>
-            {/* Grid (1,2): Right rail (stats + notes) + Selected + delete - spans both rows */}
-            <div className={listStyles.diveCellRight}>
-              <div className={listStyles.rightRail}>
-                {/* Stats rail: always 5 columns so alignment is consistent across rows */}
-                <div className={listStyles.diveCellStats}>
-                  <span className={listStyles.statDate}>{entry.date}</span>
-                  <span className={listStyles.stat}>
-                    {depth.value ? `${depth.value}${depth.unit}` : "—"}
-                  </span>
-                  <span className={listStyles.stat}>{`${entry.bottomTime}m`}</span>
-                  <span className={listStyles.stat}>
-                    {waterTemp ? `${waterTemp.value}${waterTemp.unit}` : "—"}
-                  </span>
-                  <span className={listStyles.statVis}>
-                    {visibility ? `${visibility.value}${visibility.unit} vis` : "—"}
-                  </span>
-                </div>
-                {/* Notes aligned to start of stats rail */}
-                <div className={listStyles.diveCellNotes}>
-                  {entry.notes ? (
-                    <span className={listStyles.diveNotesPreview}>
-                      {highlightMatch(entry.notes, searchQuery)}
-                    </span>
-                  ) : null}
-                </div>
-              </div>
+            <div className={`${listStyles.diveCellBuddy} ${listStyles.colBuddy}`}>
+              {entry.buddyName ? highlightMatch(entry.buddyName, searchQuery) : ""}
+            </div>
+            <div className={`${listStyles.diveCellDate} ${listStyles.colDate}`}>{entry.date}</div>
+            <div className={`${listStyles.diveCellDepth} ${listStyles.colDepth}`}>
+              {depth.value ? `${depth.value}${depth.unit}` : "—"}
+            </div>
+            <div className={`${listStyles.diveCellTime} ${listStyles.colTime}`}>{`${entry.bottomTime}m`}</div>
+            <div className={`${listStyles.diveCellTemp} ${listStyles.colTemp}`}>
+              {waterTemp ? `${waterTemp.value}${waterTemp.unit}` : "—"}
+            </div>
+            <div className={`${listStyles.diveCellVis} ${listStyles.colVisibility}`}>
+              {visibility ? `${visibility.value}${visibility.unit}` : "—"}
+            </div>
+            <div className={`${listStyles.diveCellNotes} ${listStyles.colNotes}`}>
+              {entry.notes ? highlightMatch(entry.notes, searchQuery) : ""}
+            </div>
+            <div className={`${listStyles.diveCellActions} ${listStyles.colActions}`}>
               {isSelected && (
                 <span className={listStyles.diveSelectedBadge}>Selected</span>
               )}
@@ -139,23 +128,29 @@ function DiveLogList({ entries, searchQuery = "", onSelect, onDelete, selectedId
                 </button>
               )}
             </div>
-            {/* Grid (2,1): Buddy: Name */}
-            <div className={listStyles.diveCellBuddy}>
-              {entry.buddyName ? (
-                <>
-                  <span className={listStyles.diveBuddyLabel}>Buddy: </span>
-                  {highlightMatch(entry.buddyName, searchQuery)}
-                </>
-              ) : (
-                <span className={listStyles.diveRow2Placeholder} />
-              )}
-            </div>
-            {/* Grid (2,2): Empty (notes are in rightRail above) */}
-            <div />
           </li>
         );
-      })}
-    </ul>
+  });
+
+  if (isCompact) {
+    return <ul className={listStyles.listCompact}>{listContent}</ul>;
+  }
+
+  return (
+    <div className={listStyles.expandedListWrapper}>
+      <div className={listStyles.diveListHeader} role="presentation" aria-hidden="true">
+        <span className={`${listStyles.diveListHeaderCell} ${listStyles.colSite}`}>Site</span>
+        <span className={`${listStyles.diveListHeaderCell} ${listStyles.colBuddy}`}>Buddy</span>
+        <span className={`${listStyles.diveListHeaderCell} ${listStyles.colDate}`}>Date</span>
+        <span className={`${listStyles.diveListHeaderCell} ${listStyles.colDepth}`}>Depth</span>
+        <span className={`${listStyles.diveListHeaderCell} ${listStyles.colTime}`}>Time</span>
+        <span className={`${listStyles.diveListHeaderCell} ${listStyles.colTemp}`}>Temp</span>
+        <span className={`${listStyles.diveListHeaderCell} ${listStyles.colVisibility}`}>Visibility</span>
+        <span className={`${listStyles.diveListHeaderCell} ${listStyles.colNotes}`}>Notes</span>
+        <span className={`${listStyles.diveListHeaderCell} ${listStyles.colActions}`} />
+      </div>
+      <ul className={listStyles.listCompact}>{listContent}</ul>
+    </div>
   );
 }
 

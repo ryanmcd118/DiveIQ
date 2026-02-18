@@ -36,19 +36,141 @@
   color: var(--color-text-muted);
 }
 
-/* Dive log list items – 2×2 grid with fixed-width right column */
+/* Dive log list items */
 .diveItem {
   /* Inherits from Card.module.css .listItem or .listItemInteractive */
+}
+
+/* Shared column template for expanded header + rows (table-like alignment) */
+.expandedListWrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+}
+
+.expandedListWrapper .listCompact {
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+}
+
+/* Column order: Site | Buddy | Date | Depth | Time | Temp | Visibility | Notes | (actions) – same grid as rows */
+.diveListHeader {
+  display: grid;
+  grid-template-columns:
+    minmax(180px, 1.2fr)
+    minmax(120px, 0.8fr)
+    minmax(92px, 92px)
+    minmax(56px, 56px)
+    minmax(56px, 56px)
+    minmax(56px, 56px)
+    minmax(72px, 72px)
+    minmax(240px, 1fr)
+    auto;
+  column-gap: 12px;
+  padding: var(--space-1) var(--space-3);
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  font-weight: var(--font-weight-medium);
+  align-items: center;
+  border-bottom: 1px solid var(--color-border-subtle, rgba(0, 0, 0, 0.06));
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+}
+
+/* Shared column alignment: same classes on header and row cells */
+.colSite,
+.colBuddy,
+.colNotes {
+  justify-self: start;
+  text-align: left;
+}
+
+.colDate,
+.colDepth,
+.colTime,
+.colTemp,
+.colVisibility {
+  justify-self: end;
+  text-align: right;
+}
+
+.colActions {
+  justify-self: end;
+  text-align: right;
 }
 
 .diveListItem {
   padding: var(--space-2) var(--space-3);
   display: grid;
-  grid-template-columns: 1fr var(--stats-rail-width);
-  grid-template-rows: auto auto;
-  column-gap: 24px;
-  row-gap: 4px;
   align-items: center;
+  box-sizing: border-box;
+}
+
+/* Expanded row: identical grid-template-columns to header */
+.diveListItem.expandedRow {
+  grid-template-columns:
+    minmax(180px, 1.2fr)
+    minmax(120px, 0.8fr)
+    minmax(92px, 92px)
+    minmax(56px, 56px)
+    minmax(56px, 56px)
+    minmax(56px, 56px)
+    minmax(72px, 72px)
+    minmax(240px, 1fr)
+    auto;
+  column-gap: 12px;
+  width: 100%;
+  min-width: 0;
+}
+
+.diveListItem.expandedRow .diveCellSite {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: var(--font-size-sm);
+}
+
+.diveListItem.expandedRow .diveCellBuddy {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: var(--font-size-xs);
+  color: var(--color-text-primary);
+}
+
+.diveListItem.expandedRow .diveCellDate,
+.diveListItem.expandedRow .diveCellDepth,
+.diveListItem.expandedRow .diveCellTime,
+.diveListItem.expandedRow .diveCellTemp,
+.diveListItem.expandedRow .diveCellVis {
+  min-width: 0;
+  white-space: nowrap;
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+}
+
+.diveListItem.expandedRow .diveCellNotes {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+}
+
+.diveListItem.expandedRow .diveCellActions {
+  min-width: 0;
+}
+
+.diveListItem.expandedRow .diveCellActions > * + * {
+  margin-left: var(--space-1);
 }
 
 /* Compact layout when detail pane is open: explicit grid areas, unbreakable */
@@ -105,15 +227,7 @@
   color: var(--color-text-secondary);
 }
 
-/* Grid (1,1): Site name · Region */
-.diveCellPlace {
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  font-size: var(--font-size-sm);
-}
-
+/* Shared: site name + region (used in expanded .diveCellSite) */
 .diveSiteName {
   font-weight: var(--font-weight-medium);
   color: var(--color-text-primary);
@@ -127,55 +241,6 @@
   color: var(--color-text-muted);
 }
 
-/* Grid (1,2): Right rail wrapper (stats + notes) + Selected + delete - spans both rows */
-.diveCellRight {
-  grid-row: span 2;
-  align-self: start;
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
-  justify-content: flex-end;
-  min-width: 0;
-  width: 100%;
-}
-
-.rightRail {
-  width: 100%;
-  justify-self: stretch;
-  display: grid;
-  row-gap: 4px;
-  min-width: 0;
-}
-
-/* Stats rail – fills rail width, fixed column widths + flexible last */
-.diveCellStats {
-  display: grid;
-  grid-template-columns: 110px 64px 64px 64px 1fr;
-  column-gap: 14px;
-  align-items: center;
-  justify-content: stretch;
-  width: 100%;
-  min-width: 0;
-  white-space: nowrap;
-  color: var(--color-text-secondary);
-  font-size: var(--font-size-xs);
-}
-
-.statDate {
-  text-align: left;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  min-width: 0;
-}
-
-.stat {
-  text-align: right;
-}
-
-.statVis {
-  text-align: right;
-}
-
 .diveSelectedBadge {
   font-size: var(--font-size-xs);
   color: var(--color-text-muted);
@@ -183,62 +248,45 @@
   flex-shrink: 0;
 }
 
-/* Grid (2,1): Buddy: Name */
-.diveCellBuddy {
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  font-size: var(--font-size-xs);
-  color: var(--color-text-primary);
+/* Responsive: same column order and alignment, smaller minimums */
+@media (max-width: 900px) {
+  .diveListHeader,
+  .diveListItem.expandedRow {
+    grid-template-columns:
+      minmax(140px, 1.2fr)
+      minmax(100px, 0.8fr)
+      minmax(92px, 92px)
+      minmax(56px, 56px)
+      minmax(56px, 56px)
+      minmax(56px, 56px)
+      minmax(72px, 72px)
+      minmax(180px, 1fr)
+      auto;
+    column-gap: 12px;
+  }
 }
 
-.diveBuddyLabel {
-  color: var(--color-text-muted);
-}
-
-.diveRow2Placeholder {
-  display: inline-block;
-  min-height: 1em;
-}
-
-/* Notes inside rightRail – clamped to rail width, left-aligned under date column */
-.diveCellNotes {
-  width: 100%;
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  text-align: left;
-}
-
-.diveNotesPreview {
-  display: block;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  font-size: var(--font-size-xs);
-  color: var(--color-text-secondary);
-  min-width: 0;
-  max-width: 100%;
-}
-
-@media (max-width: 480px) {
-  .diveListItem {
-    grid-template-columns: 1fr;
+@media (max-width: 600px) {
+  .diveListHeader,
+  .diveListItem.expandedRow {
+    grid-template-columns:
+      minmax(100px, 1.2fr)
+      minmax(80px, 0.8fr)
+      minmax(92px, 92px)
+      minmax(48px, 48px)
+      minmax(48px, 48px)
+      minmax(48px, 48px)
+      minmax(64px, 64px)
+      minmax(140px, 1fr)
+      auto;
+    column-gap: 8px;
+    padding-left: var(--space-2);
+    padding-right: var(--space-2);
   }
 
-  .diveCellRight {
-    justify-content: flex-start;
-  }
-
-  .rightRail {
-    width: 100%;
-    justify-self: stretch;
-  }
-
-  .diveCellStats {
-    width: 100%;
+  .diveListHeader {
+    padding-left: var(--space-2);
+    padding-right: var(--space-2);
   }
 }
 

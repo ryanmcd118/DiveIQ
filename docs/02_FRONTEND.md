@@ -168,7 +168,7 @@ Feature-specific components organized by feature:
 - `auth/components/` - SignInForm, SignUpForm, AuthModal, GoogleOAuthButton, etc.
 - `dive-log/components/` - DiveLogForm, DiveLogList, DiveLogGrid, LogbookLayout, LogPageContent, GearSelection
   - `LogbookLayout` - Master-detail layout with browse pane (grid/list views), detail pane, search, and sort controls (date, site name, region)
-  - `DiveLogList` - List view uses a 2×2 CSS grid per dive: (1,1) site · region, (1,2) stats cluster (date · depth · time · temp · vis), (2,1) Buddy, (2,2) 1-line notes preview. Stats and notes form aligned right-hand columns; notes are 1-line preview only in list and grid, with full notes in the detail pane.
+  - `DiveLogList` - List view has two modes. **Expanded (full-width, detail closed)**: table-like single-row layout with a subtle header row; columns Site, Buddy, Notes, Date, Depth, Time, Temp, Vis (plus actions). CSS Grid with explicit columns keeps all rows aligned; Notes column uses ellipsis and never overflows. **Condensed (detail pane open)**: 2×2 grid per dive (date | metrics, site | notes); buddy/region hidden. Styles in `List.module.css`.
 - `dive-plan/components/` - PlanForm, PlanPageContent, AIDiveBriefing, SaveDivePlanButton
 - `gear/components/` - GearPageContent, GearFormModal, KitFormModal, etc.
 - `dashboard/components/` - DashboardPageContent, StatsGrid, CertificationsCard, etc.
