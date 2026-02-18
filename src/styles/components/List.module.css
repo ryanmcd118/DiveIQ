@@ -56,19 +56,39 @@
   color: var(--color-text-muted);
 }
 
-/* Grid (1,2): Stats cluster (date · depth · time · temp · vis) + Selected + delete */
+/* Grid (1,2): Stats spread across full right column + Selected + delete */
 .diveCellStats {
-  display: flex;
-  align-items: center;
-  gap: 10px;
   min-width: 0;
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
   white-space: nowrap;
+  overflow: hidden;
 }
 
-.diveStatsCluster {
+.diveStatsGroup {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  overflow: hidden;
+}
+
+.statItem {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
   color: var(--color-text-secondary);
   font-size: var(--font-size-xs);
-  white-space: nowrap;
+}
+
+.statItem:last-child {
+  text-align: right;
 }
 
 .diveSelectedBadge {
@@ -121,7 +141,7 @@
     grid-template-columns: 1fr;
   }
 
-  .diveCellStats {
+  .diveStatsGroup {
     justify-content: flex-start;
   }
 

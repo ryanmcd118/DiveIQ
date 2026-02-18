@@ -44,14 +44,12 @@ function DiveLogList({ entries, searchQuery = "", onSelect, onDelete, selectedId
 
         const isSelected = selectedId === entry.id;
 
-        const statsParts = [
-          entry.date,
-          depth.value ? `${depth.value}${depth.unit}` : null,
-          `${entry.bottomTime}m`,
-        ];
-        if (waterTemp) statsParts.push(`${waterTemp.value}${waterTemp.unit}`);
-        if (visibility) statsParts.push(`${visibility.value}${visibility.unit} vis`);
-        const statsLine = statsParts.filter(Boolean).join(" · ");
+        const statItems: string[] = [];
+        statItems.push(entry.date);
+        if (depth.value) statItems.push(`${depth.value}${depth.unit}`);
+        statItems.push(`${entry.bottomTime}m`);
+        if (waterTemp) statItems.push(`${waterTemp.value}${waterTemp.unit}`);
+        if (visibility) statItems.push(`${visibility.value}${visibility.unit} vis`);
 
         return (
           <li
@@ -71,9 +69,15 @@ function DiveLogList({ entries, searchQuery = "", onSelect, onDelete, selectedId
                 {highlightMatch(entry.region, searchQuery)}
               </span>
             </div>
-            {/* Grid (1,2): Stats cluster + Selected + delete */}
+            {/* Grid (1,2): Stats spread across right half + Selected + delete */}
             <div className={listStyles.diveCellStats}>
-              <span className={listStyles.diveStatsCluster}>{statsLine}</span>
+              <div className={listStyles.diveStatsGroup}>
+                {statItems.map((value, i) => (
+                  <span key={i} className={listStyles.statItem}>
+                    {value}
+                  </span>
+                ))}
+              </div>
               {isSelected && (
                 <span className={listStyles.diveSelectedBadge}>Selected</span>
               )}
