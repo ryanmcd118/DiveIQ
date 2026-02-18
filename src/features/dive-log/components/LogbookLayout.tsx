@@ -313,6 +313,7 @@ export function LogbookLayout({
                   searchQuery={searchQuery.trim()}
                   onSelect={handleSelectFromList}
                   selectedId={selectedEntry?.id ?? null}
+                  isCompact={false}
                 />
               )}
             </div>
@@ -422,6 +423,7 @@ export function LogbookLayout({
                 searchQuery={searchQuery.trim()}
                 onSelect={handleSelectFromList}
                 selectedId={selectedEntry?.id ?? null}
+                isCompact={!!isDetailOpen}
               />
             )}
           </div>

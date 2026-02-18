@@ -2,6 +2,23 @@
    LIST COMPONENTS
    ========================================= */
 
+/* Fixed right-column width so long notes never affect stats alignment */
+:root {
+  --stats-rail-width: 420px;
+}
+
+@media (max-width: 900px) {
+  :root {
+    --stats-rail-width: 360px;
+  }
+}
+
+@media (max-width: 720px) {
+  :root {
+    --stats-rail-width: 320px;
+  }
+}
+
 .list {
   display: flex;
   flex-direction: column;
@@ -19,7 +36,7 @@
   color: var(--color-text-muted);
 }
 
-/* Dive log list items – 2×2 CSS grid (stats + notes column-aligned) */
+/* Dive log list items – 2×2 grid with fixed-width right column */
 .diveItem {
   /* Inherits from Card.module.css .listItem or .listItemInteractive */
 }
@@ -27,11 +44,65 @@
 .diveListItem {
   padding: var(--space-2) var(--space-3);
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  grid-template-columns: 1fr var(--stats-rail-width);
   grid-template-rows: auto auto;
-  row-gap: 4px;
   column-gap: 24px;
+  row-gap: 4px;
   align-items: center;
+}
+
+/* Compact layout when detail pane is open: explicit grid areas, unbreakable */
+.diveListItem.compact {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  grid-template-rows: auto auto;
+  grid-template-areas:
+    "date metrics"
+    "place notes";
+  column-gap: 16px;
+  row-gap: 4px;
+  padding: var(--space-2) var(--space-3);
+}
+
+.diveListItem.compact .cellDate {
+  grid-area: date;
+  white-space: nowrap;
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+}
+
+.diveListItem.compact .cellMetrics {
+  grid-area: metrics;
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+  min-width: 0;
+  white-space: nowrap;
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+}
+
+.diveListItem.compact .cellPlace {
+  grid-area: place;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-primary);
+}
+
+.diveListItem.compact .cellNotes {
+  grid-area: notes;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  text-align: right;
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
 }
 
 /* Grid (1,1): Site name · Region */
@@ -56,38 +127,52 @@
   color: var(--color-text-muted);
 }
 
-/* Grid (1,2): Stats spread across full right column + Selected + delete */
-.diveCellStats {
+/* Grid (1,2): Right rail wrapper (stats + notes) + Selected + delete - spans both rows */
+.diveCellRight {
+  grid-row: span 2;
+  align-self: start;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  justify-content: flex-end;
   min-width: 0;
   width: 100%;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 12px;
-  white-space: nowrap;
-  overflow: hidden;
 }
 
-.diveStatsGroup {
-  flex: 1;
+.rightRail {
+  width: 100%;
+  justify-self: stretch;
+  display: grid;
+  row-gap: 4px;
   min-width: 0;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 12px;
-  overflow: hidden;
 }
 
-.statItem {
+/* Stats rail – fills rail width, fixed column widths + flexible last */
+.diveCellStats {
+  display: grid;
+  grid-template-columns: 110px 64px 64px 64px 1fr;
+  column-gap: 14px;
+  align-items: center;
+  justify-content: stretch;
+  width: 100%;
   min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
   white-space: nowrap;
   color: var(--color-text-secondary);
   font-size: var(--font-size-xs);
 }
 
-.statItem:last-child {
+.statDate {
+  text-align: left;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+}
+
+.stat {
+  text-align: right;
+}
+
+.statVis {
   text-align: right;
 }
 
@@ -117,10 +202,13 @@
   min-height: 1em;
 }
 
-/* Grid (2,2): Notes preview (1 line, aligns under stats column) */
+/* Notes inside rightRail – clamped to rail width, left-aligned under date column */
 .diveCellNotes {
+  width: 100%;
   min-width: 0;
   overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
   text-align: left;
 }
 
@@ -133,7 +221,6 @@
   color: var(--color-text-secondary);
   min-width: 0;
   max-width: 100%;
-  word-break: break-word;
 }
 
 @media (max-width: 480px) {
@@ -141,13 +228,17 @@
     grid-template-columns: 1fr;
   }
 
-  .diveStatsGroup {
+  .diveCellRight {
     justify-content: flex-start;
   }
 
-  .diveCellNotes {
-    text-align: left;
-    justify-self: start;
+  .rightRail {
+    width: 100%;
+    justify-self: stretch;
+  }
+
+  .diveCellStats {
+    width: 100%;
   }
 }
 

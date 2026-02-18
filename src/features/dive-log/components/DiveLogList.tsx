@@ -15,9 +15,11 @@ type Props = {
   onSelect?: (entry: DiveLogEntry) => void;
   onDelete?: (id: string) => void;
   selectedId?: string | null;
+  /** When true (detail pane open), use compact 2-row layout and hide buddy/region */
+  isCompact?: boolean;
 };
 
-function DiveLogList({ entries, searchQuery = "", onSelect, onDelete, selectedId }: Props) {
+function DiveLogList({ entries, searchQuery = "", onSelect, onDelete, selectedId, isCompact = false }: Props) {
   const { prefs } = useUnitPreferences();
 
   if (entries.length === 0) {
@@ -44,12 +46,31 @@ function DiveLogList({ entries, searchQuery = "", onSelect, onDelete, selectedId
 
         const isSelected = selectedId === entry.id;
 
-        const statItems: string[] = [];
-        statItems.push(entry.date);
-        if (depth.value) statItems.push(`${depth.value}${depth.unit}`);
-        statItems.push(`${entry.bottomTime}m`);
-        if (waterTemp) statItems.push(`${waterTemp.value}${waterTemp.unit}`);
-        if (visibility) statItems.push(`${visibility.value}${visibility.unit} vis`);
+        if (isCompact) {
+          return (
+            <li
+              key={entry.id}
+              className={`${cardStyles.listItemInteractive} ${listStyles.diveListItem} ${listStyles.compact} ${
+                isSelected ? layoutStyles.listItemSelected : ""
+              }`}
+              onClick={() => onSelect?.(entry)}
+            >
+              <div className={listStyles.cellDate}>{entry.date}</div>
+              <div className={listStyles.cellMetrics}>
+                <span>{depth.value ? `${depth.value}${depth.unit}` : "—"}</span>
+                <span>{`${entry.bottomTime}m`}</span>
+                <span>{waterTemp ? `${waterTemp.value}${waterTemp.unit}` : "—"}</span>
+                <span>{visibility ? `${visibility.value}${visibility.unit} vis` : "—"}</span>
+              </div>
+              <div className={listStyles.cellPlace}>
+                {highlightMatch(entry.siteName, searchQuery)}
+              </div>
+              <div className={listStyles.cellNotes}>
+                {entry.notes ? highlightMatch(entry.notes, searchQuery) : ""}
+              </div>
+            </li>
+          );
+        }
 
         return (
           <li
@@ -69,14 +90,31 @@ function DiveLogList({ entries, searchQuery = "", onSelect, onDelete, selectedId
                 {highlightMatch(entry.region, searchQuery)}
               </span>
             </div>
-            {/* Grid (1,2): Stats spread across right half + Selected + delete */}
-            <div className={listStyles.diveCellStats}>
-              <div className={listStyles.diveStatsGroup}>
-                {statItems.map((value, i) => (
-                  <span key={i} className={listStyles.statItem}>
-                    {value}
+            {/* Grid (1,2): Right rail (stats + notes) + Selected + delete - spans both rows */}
+            <div className={listStyles.diveCellRight}>
+              <div className={listStyles.rightRail}>
+                {/* Stats rail: always 5 columns so alignment is consistent across rows */}
+                <div className={listStyles.diveCellStats}>
+                  <span className={listStyles.statDate}>{entry.date}</span>
+                  <span className={listStyles.stat}>
+                    {depth.value ? `${depth.value}${depth.unit}` : "—"}
                   </span>
-                ))}
+                  <span className={listStyles.stat}>{`${entry.bottomTime}m`}</span>
+                  <span className={listStyles.stat}>
+                    {waterTemp ? `${waterTemp.value}${waterTemp.unit}` : "—"}
+                  </span>
+                  <span className={listStyles.statVis}>
+                    {visibility ? `${visibility.value}${visibility.unit} vis` : "—"}
+                  </span>
+                </div>
+                {/* Notes aligned to start of stats rail */}
+                <div className={listStyles.diveCellNotes}>
+                  {entry.notes ? (
+                    <span className={listStyles.diveNotesPreview}>
+                      {highlightMatch(entry.notes, searchQuery)}
+                    </span>
+                  ) : null}
+                </div>
               </div>
               {isSelected && (
                 <span className={listStyles.diveSelectedBadge}>Selected</span>
@@ -112,14 +150,8 @@ function DiveLogList({ entries, searchQuery = "", onSelect, onDelete, selectedId
                 <span className={listStyles.diveRow2Placeholder} />
               )}
             </div>
-            {/* Grid (2,2): Notes preview (1 line) */}
-            <div className={listStyles.diveCellNotes}>
-              {entry.notes ? (
-                <span className={listStyles.diveNotesPreview}>
-                  {highlightMatch(entry.notes, searchQuery)}
-                </span>
-              ) : null}
-            </div>
+            {/* Grid (2,2): Empty (notes are in rightRail above) */}
+            <div />
           </li>
         );
       })}
