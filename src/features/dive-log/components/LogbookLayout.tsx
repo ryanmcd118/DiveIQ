@@ -63,7 +63,8 @@ export function LogbookLayout({
   const [isMobile, setIsMobile] = useState(false);
   const [isSheetOpen, setIsSheetOpen] = useState(false);
   const [sheetMode, setSheetMode] = useState<"create" | "edit">("create");
-  const [preferredView, setPreferredView] = useState<"grid" | "list">("grid");
+  // Persisted view: URL param ?view=list|grid (default: grid)
+  const preferredView = (searchParams.get("view") === "list" ? "list" : "grid") as "grid" | "list";
   const [sortKey, setSortKey] = useState<"date-desc" | "date-asc" | "site-asc" | "region-asc">("date-desc");
 
   // Basic viewport breakpoint detection
@@ -168,11 +169,23 @@ export function LogbookLayout({
   };
 
   const handleBackToList = () => {
-    router.replace("/dive-logs", { scroll: false });
+    const params = new URLSearchParams(searchParams.toString());
+    params.delete("diveId");
+    const query = params.toString();
+    router.replace(query ? `/dive-logs?${query}` : "/dive-logs", { scroll: false });
   };
 
   const handleCloseDetail = () => {
-    router.replace("/dive-logs", { scroll: false });
+    const params = new URLSearchParams(searchParams.toString());
+    params.delete("diveId");
+    const query = params.toString();
+    router.replace(query ? `/dive-logs?${query}` : "/dive-logs", { scroll: false });
+  };
+
+  const handleViewChange = (view: "grid" | "list") => {
+    const params = new URLSearchParams(searchParams.toString());
+    params.set("view", view);
+    router.replace(`/dive-logs?${params.toString()}`, { scroll: false });
   };
 
   const openCreateSheet = useCallback(() => {
@@ -266,7 +279,7 @@ export function LogbookLayout({
                     className={`${styles.toggleButton} ${
                       effectiveView === "grid" ? styles.toggleButtonActive : ""
                     }`}
-                    onClick={() => setPreferredView("grid")}
+                    onClick={() => handleViewChange("grid")}
                   >
                     Grid
                   </button>
@@ -275,7 +288,7 @@ export function LogbookLayout({
                     className={`${styles.toggleButton} ${
                       effectiveView === "list" ? styles.toggleButtonActive : ""
                     }`}
-                    onClick={() => setPreferredView("list")}
+                    onClick={() => handleViewChange("list")}
                   >
                     List
                   </button>
@@ -393,7 +406,7 @@ export function LogbookLayout({
                     className={`${styles.toggleButton} ${
                       effectiveView === "grid" ? styles.toggleButtonActive : ""
                     }`}
-                    onClick={() => setPreferredView("grid")}
+                    onClick={() => handleViewChange("grid")}
                   >
                     Grid
                   </button>
@@ -402,7 +415,7 @@ export function LogbookLayout({
                     className={`${styles.toggleButton} ${
                       effectiveView === "list" ? styles.toggleButtonActive : ""
                     }`}
-                    onClick={() => setPreferredView("list")}
+                    onClick={() => handleViewChange("list")}
                   >
                     List
                   </button>

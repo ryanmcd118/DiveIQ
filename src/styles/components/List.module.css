@@ -216,7 +216,7 @@
   grid-template-rows: auto auto;
   grid-template-areas:
     "date metrics"
-    "place notes";
+    "place region";
   column-gap: 16px;
   row-gap: 4px;
   padding: var(--space-2) var(--space-3);
@@ -254,6 +254,17 @@
 
 .diveListItem.compact .cellNotes {
   grid-area: notes;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  text-align: right;
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+}
+
+.diveListItem.compact .cellRegion {
+  grid-area: region;
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;

@@ -73,8 +73,8 @@ function DiveLogList({
           <div className={listStyles.cellPlace}>
             {highlightMatch(entry.siteName, searchQuery)}
           </div>
-          <div className={listStyles.cellNotes}>
-            {entry.notes ? highlightMatch(entry.notes, searchQuery) : ""}
+          <div className={listStyles.cellRegion}>
+            {entry.region ? highlightMatch(entry.region, searchQuery) : ""}
           </div>
         </li>
       );
