@@ -314,6 +314,7 @@ export function LogbookLayout({
                   onSelect={handleSelectFromList}
                   selectedId={selectedEntry?.id ?? null}
                   isCompact={false}
+                  isMobile={true}
                 />
               )}
             </div>
@@ -424,6 +425,7 @@ export function LogbookLayout({
                 onSelect={handleSelectFromList}
                 selectedId={selectedEntry?.id ?? null}
                 isCompact={!!isDetailOpen}
+                isMobile={false}
               />
             )}
           </div>

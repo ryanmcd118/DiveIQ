@@ -36,6 +36,25 @@
   color: var(--color-text-muted);
 }
 
+/* Reusable truncation utility */
+.truncate {
+  display: block;
+  min-width: 0;
+  max-width: 100%;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.ellipsis {
+  display: block;
+  min-width: 0;
+  max-width: 100%;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
 /* Dive log list items */
 .diveItem {
   /* Inherits from Card.module.css .listItem or .listItemInteractive */
@@ -60,16 +79,6 @@
 /* Column order: Site | Buddy | Date | Depth | Time | Temp | Visibility | Notes | (actions) – same grid as rows */
 .diveListHeader {
   display: grid;
-  grid-template-columns:
-    minmax(260px, 2.2fr)
-    minmax(140px, 1fr)
-    110px
-    70px
-    70px
-    70px
-    90px
-    minmax(220px, 1.4fr)
-    44px;
   column-gap: 10px;
   padding: var(--space-1) var(--space-3);
   font-size: var(--font-size-xs);
@@ -90,6 +99,13 @@
   min-width: 0;
   box-sizing: border-box;
   text-align: left;
+}
+
+/* Notes header cell: truncate with ellipsis if narrow */
+.diveListHeader .colNotes {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 /* Expanded row cells: block, fill track, all left-aligned */
@@ -115,6 +131,11 @@
   text-align: left;
 }
 
+/* Notes column: ensure it can shrink in grid */
+.colNotes {
+  min-width: 0;
+}
+
 .diveListItem {
   padding: var(--space-2) var(--space-3);
   display: grid;
@@ -124,16 +145,6 @@
 
 /* Expanded row: identical grid-template-columns to header */
 .diveListItem.expandedRow {
-  grid-template-columns:
-    minmax(260px, 2.2fr)
-    minmax(140px, 1fr)
-    110px
-    70px
-    70px
-    70px
-    90px
-    minmax(220px, 1.4fr)
-    44px;
   column-gap: 10px;
   width: 100%;
   min-width: 0;
@@ -184,17 +195,10 @@
 .diveListItem.expandedRow .diveCellNotes {
   min-width: 0;
   overflow: hidden;
-  text-overflow: ellipsis;
   white-space: nowrap;
+  text-overflow: ellipsis;
   font-size: var(--font-size-xs);
   color: var(--color-text-secondary);
-}
-
-.diveListItem.expandedRow .diveCellNotes > * {
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
 }
 
 .diveListItem.expandedRow .diveCellActions {
@@ -283,45 +287,39 @@
 }
 
 /* Responsive: shrink Site/Notes first; keep metric columns fixed */
-@media (max-width: 900px) {
-  .diveListHeader,
-  .diveListItem.expandedRow {
-    grid-template-columns:
-      minmax(200px, 2.2fr)
-      minmax(120px, 1fr)
-      100px
-      64px
-      64px
-      64px
-      80px
-      minmax(180px, 1.4fr)
-      44px;
-    column-gap: 10px;
-  }
-}
-
 @media (max-width: 600px) {
-  .diveListHeader,
-  .diveListItem.expandedRow {
-    grid-template-columns:
-      minmax(160px, 2.2fr)
-      minmax(100px, 1fr)
-      90px
-      56px
-      56px
-      56px
-      70px
-      minmax(140px, 1.4fr)
-      44px;
-    column-gap: 8px;
-    padding-left: var(--space-2);
-    padding-right: var(--space-2);
-  }
-
   .diveListHeader {
     padding-left: var(--space-2);
     padding-right: var(--space-2);
   }
+}
+
+/* Expanded grid templates (8 cols without actions, 9 cols with actions) */
+.expandedGridNoActions .diveListHeader,
+.expandedGridNoActions .diveListItem.expandedRow {
+  grid-template-columns:
+    minmax(340px, 3fr)     /* Site */
+    minmax(140px, 1.2fr)   /* Buddy */
+    110px                  /* Date */
+    70px                   /* Depth */
+    70px                   /* Time */
+    70px                   /* Temp */
+    90px                   /* Visibility */
+    minmax(0, 2.5fr);      /* Notes (FLEX, last) */
+}
+
+.expandedGridWithActions .diveListHeader,
+.expandedGridWithActions .diveListItem.expandedRow {
+  grid-template-columns:
+    minmax(340px, 3fr)     /* Site */
+    minmax(140px, 1.2fr)   /* Buddy */
+    110px                  /* Date */
+    70px                   /* Depth */
+    70px                   /* Time */
+    70px                   /* Temp */
+    90px                   /* Visibility */
+    minmax(0, 2.5fr)       /* Notes (FLEX, last data col) */
+    44px;                  /* Actions */
 }
 
 /* Legacy / plan list (keep for non–dive-log list usage) */
