@@ -209,10 +209,10 @@
   margin-left: var(--space-1);
 }
 
-/* Compact layout when detail pane is open: explicit grid areas, unbreakable */
+/* Compact layout when detail pane is open: 50/50 bottom row for site + region */
 .diveListItem.compact {
   display: grid;
-  grid-template-columns: auto minmax(0, 1fr);
+  grid-template-columns: 1fr 1fr;
   grid-template-rows: auto auto;
   grid-template-areas:
     "date metrics"
@@ -241,30 +241,31 @@
   color: var(--color-text-secondary);
 }
 
-.diveListItem.compact .cellPlace {
-  grid-area: place;
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+.diveListItem.compact .cellPlace,
+.diveListItem.compact .cellRegion {
+  /* Same typography for Site and Region (peers on the bottom row) */
   font-size: var(--font-size-sm);
   font-weight: var(--font-weight-medium);
-  color: var(--color-text-primary);
-}
-
-.diveListItem.compact .cellNotes {
-  grid-area: notes;
+  line-height: var(--line-height-normal);
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  text-align: right;
-  font-size: var(--font-size-xs);
-  color: var(--color-text-secondary);
+}
+
+.diveListItem.compact .cellPlace {
+  grid-area: place;
+  color: var(--color-text-primary);
 }
 
 .diveListItem.compact .cellRegion {
   grid-area: region;
+  color: var(--color-text-secondary);
+  text-align: right;
+}
+
+.diveListItem.compact .cellNotes {
+  grid-area: notes;
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
