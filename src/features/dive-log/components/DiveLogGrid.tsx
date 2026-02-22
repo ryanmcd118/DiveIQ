@@ -43,7 +43,7 @@ export function DiveLogGrid({ entries, searchQuery = "", selectedId, onSelect }:
 
         const summaryParts = [
           depth.value ? `${depth.value}${depth.unit}` : null,
-          `${entry.bottomTime} min`,
+          entry.bottomTime != null ? `${entry.bottomTime} min` : null,
         ];
         if (waterTemp) summaryParts.push(`${waterTemp.value}${waterTemp.unit}`);
         if (visibility) summaryParts.push(`${visibility.value}${visibility.unit} vis`);
@@ -60,7 +60,7 @@ export function DiveLogGrid({ entries, searchQuery = "", selectedId, onSelect }:
             <div className={styles.cardContent}>
               <div className={styles.cardHeader}>
                 <h3 className={styles.cardTitle}>{highlightMatch(entry.siteName, searchQuery)}</h3>
-                <span className={styles.cardRegion}>{highlightMatch(entry.region, searchQuery)}</span>
+                <span className={styles.cardRegion}>{entry.region ? highlightMatch(entry.region, searchQuery) : ""}</span>
               </div>
               <p className={styles.cardDate}>{entry.date}</p>
               <p className={styles.cardSummary}>{summary}</p>

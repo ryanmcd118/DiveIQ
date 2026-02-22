@@ -89,7 +89,7 @@ export function DiveLogTable({
                 </td>
                 <td className={styles.colLocation}>
                   <span className={styles.cellContent}>
-                    {highlightMatch(entry.region, searchQuery)}
+                    {highlightMatch(entry.region ?? "", searchQuery)}
                   </span>
                 </td>
                 <td className={styles.colBuddy}>
@@ -103,7 +103,7 @@ export function DiveLogTable({
                 <td className={styles.colDepth}>
                   {depth.value ? `${depth.value}${depth.unit}` : "—"}
                 </td>
-                <td className={styles.colTime}>{`${entry.bottomTime}m`}</td>
+                <td className={styles.colTime}>{entry.bottomTime != null ? `${entry.bottomTime}m` : "—"}</td>
                 <td className={styles.colTemp}>
                   {waterTemp
                     ? `${waterTemp.value}${waterTemp.unit}`

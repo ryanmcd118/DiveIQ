@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState, useCallback, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import type { DiveLogEntry } from "@/features/dive-log/types";
+import type { SoftWarning } from "@/features/dive-log/types/softWarnings";
 import DiveLogList from "./DiveLogList";
 import { DiveLogGrid } from "./DiveLogGrid";
 import { DiveLogDetail } from "./DiveLogDetail";
@@ -18,6 +19,8 @@ interface LogbookLayoutProps {
   editingEntryId: string | null;
   saving: boolean;
   error: string | null;
+  softWarnings?: SoftWarning[];
+  suggestedDiveNumber?: number;
   formKey: string;
   selectedGearIds: string[];
   setSelectedGearIds: (ids: string[]) => void;
@@ -43,6 +46,8 @@ export function LogbookLayout({
   editingEntryId,
   saving,
   error,
+  softWarnings = [],
+  suggestedDiveNumber = 1,
   formKey,
   selectedGearIds,
   setSelectedGearIds,
@@ -234,9 +239,31 @@ export function LogbookLayout({
 
   if (!entries.length) {
     return (
-      <div className={styles.emptyState}>
-        No dives logged yet. Once you start logging dives, they will appear
-        here.
+      <div className={styles.container}>
+        <div className={styles.emptyState}>
+          No dives logged yet. Once you start logging dives, they will appear
+          here.
+        </div>
+        <AddEditDiveSheet
+          isOpen={isSheetOpen}
+          mode={sheetMode}
+          formKey={formKey}
+          activeEntry={activeEntry}
+          editingEntryId={editingEntryId}
+          suggestedDiveNumber={suggestedDiveNumber}
+          saving={saving}
+          error={error}
+          softWarnings={softWarnings}
+          selectedGearIds={selectedGearIds}
+          onGearSelectionChange={setSelectedGearIds}
+          onSubmit={handleSubmit}
+          onCancelEdit={handleCancelEdit}
+          onDeleteFromForm={handleDeleteFromForm}
+          onClose={() => {
+            setIsSheetOpen(false);
+            handleCancelEdit();
+          }}
+        />
       </div>
     );
   }
@@ -248,8 +275,10 @@ export function LogbookLayout({
       formKey={formKey}
       activeEntry={activeEntry}
       editingEntryId={editingEntryId}
+      suggestedDiveNumber={suggestedDiveNumber}
       saving={saving}
       error={error}
+      softWarnings={softWarnings}
       selectedGearIds={selectedGearIds}
       onGearSelectionChange={setSelectedGearIds}
       onSubmit={handleSubmit}

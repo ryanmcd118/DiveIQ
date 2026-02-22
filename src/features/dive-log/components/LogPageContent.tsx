@@ -77,6 +77,8 @@ export function LogPageContent({
     entries,
     saving,
     error,
+    softWarnings,
+    suggestedDiveNumber,
     editingEntryId,
     activeEntry,
     formKey,
@@ -141,6 +143,8 @@ export function LogPageContent({
             editingEntryId={editingEntryId}
             saving={saving}
             error={error}
+            softWarnings={softWarnings}
+            suggestedDiveNumber={suggestedDiveNumber}
             formKey={formKey}
             selectedGearIds={selectedGearIds}
             setSelectedGearIds={setSelectedGearIds}

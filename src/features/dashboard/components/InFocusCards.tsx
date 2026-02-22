@@ -73,10 +73,12 @@ export function InFocusCards({
             <div className={styles.cardContent}>
               <p className={styles.siteName}>
                 {mostRecentDive.siteName}
-                <span className={styles.region}>
-                  {" "}
-                  ({mostRecentDive.region})
-                </span>
+                {mostRecentDive.region && (
+                  <span className={styles.region}>
+                    {" "}
+                    ({mostRecentDive.region})
+                  </span>
+                )}
               </p>
               <p className={styles.meta}>
                 {(() => {
@@ -90,9 +92,12 @@ export function InFocusCards({
                         prefs.temperature
                       )
                     : null;
-                  return `${depth.value}${depth.unit} · ${mostRecentDive.bottomTime}min${
-                    temp ? ` · ${temp.value}${temp.unit}` : ""
-                  }`;
+                  const parts = [
+                    depth.value ? `${depth.value}${depth.unit}` : null,
+                    mostRecentDive.bottomTime != null ? `${mostRecentDive.bottomTime}min` : null,
+                    temp ? `${temp.value}${temp.unit}` : null,
+                  ].filter(Boolean);
+                  return parts.join(" · ");
                 })()}
               </p>
               <p className={styles.meta}>{mostRecentDive.date}</p>
