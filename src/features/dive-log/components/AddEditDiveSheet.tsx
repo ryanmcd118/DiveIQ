@@ -16,7 +16,9 @@ interface AddEditDiveSheetProps {
   formKey: string;
   activeEntry: DiveLogEntry | null;
   editingEntryId: string | null;
+  entries: DiveLogEntry[];
   suggestedDiveNumber?: number;
+  surfaceIntervalAutoMin?: number | null;
   saving: boolean;
   error: string | null;
   softWarnings?: SoftWarning[];
@@ -34,7 +36,9 @@ export function AddEditDiveSheet({
   formKey,
   activeEntry,
   editingEntryId,
+  entries = [],
   suggestedDiveNumber = 1,
+  surfaceIntervalAutoMin,
   saving,
   error,
   softWarnings = [],
@@ -149,7 +153,9 @@ export function AddEditDiveSheet({
             formKey={formKey}
             activeEntry={activeEntry}
             editingEntryId={editingEntryId}
+            entries={entries}
             suggestedDiveNumber={suggestedDiveNumber}
+            surfaceIntervalAutoMin={surfaceIntervalAutoMin}
             saving={saving}
             error={error}
             softWarnings={softWarnings}

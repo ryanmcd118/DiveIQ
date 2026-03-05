@@ -151,6 +151,45 @@ export function LogbookLayout({
   // When detail pane is open, force List view; otherwise use preferred view
   const effectiveView = isDetailOpen ? "list" : preferredView;
 
+  // Compute auto surface interval (min) for the active entry, if any,
+  // based on chronological previous dive endTime and this dive startTime.
+  const surfaceIntervalAutoMin = useMemo(() => {
+    const entry = activeEntry;
+    if (!entry || !entry.startTime) return null;
+    const userEntries = entries.filter((e) => e.userId === entry.userId);
+    if (!userEntries.length) return null;
+    const chronological = [...userEntries].sort((a, b) => {
+      if (a.date < b.date) return -1;
+      if (a.date > b.date) return 1;
+      const aStart = a.startTime ?? "";
+      const bStart = b.startTime ?? "";
+      if (aStart && bStart && aStart !== bStart) {
+        return aStart < bStart ? -1 : 1;
+      }
+      return a.createdAt < b.createdAt ? -1 : a.createdAt > b.createdAt ? 1 : 0;
+    });
+    const index = chronological.findIndex((e) => e.id === entry.id);
+    if (index <= 0) return null;
+    const prev = chronological[index - 1];
+    if (!prev.endTime) return null;
+
+    const parseMinutes = (t: string | null | undefined): number | null => {
+      if (!t) return null;
+      const match = t.match(/^(\d{2}):(\d{2})$/);
+      if (!match) return null;
+      const hours = Number(match[1]);
+      const minutes = Number(match[2]);
+      if (!Number.isFinite(hours) || !Number.isFinite(minutes)) return null;
+      return hours * 60 + minutes;
+    };
+
+    const startMin = parseMinutes(entry.startTime);
+    const prevEndMin = parseMinutes(prev.endTime);
+    if (startMin == null || prevEndMin == null) return null;
+    const diff = startMin - prevEndMin;
+    return diff > 0 ? diff : null;
+  }, [activeEntry, entries]);
+
   // On selection change, ensure gear is loaded for selected dive
   useEffect(() => {
     if (!selectedEntry) return;
@@ -250,7 +289,9 @@ export function LogbookLayout({
           formKey={formKey}
           activeEntry={activeEntry}
           editingEntryId={editingEntryId}
+          entries={entries}
           suggestedDiveNumber={suggestedDiveNumber}
+          surfaceIntervalAutoMin={surfaceIntervalAutoMin}
           saving={saving}
           error={error}
           softWarnings={softWarnings}
@@ -275,7 +316,9 @@ export function LogbookLayout({
       formKey={formKey}
       activeEntry={activeEntry}
       editingEntryId={editingEntryId}
+      entries={entries}
       suggestedDiveNumber={suggestedDiveNumber}
+      surfaceIntervalAutoMin={surfaceIntervalAutoMin}
       saving={saving}
       error={error}
       softWarnings={softWarnings}

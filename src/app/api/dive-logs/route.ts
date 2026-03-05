@@ -106,10 +106,17 @@ export async function POST(req: NextRequest) {
         gearItemIds?: string[];
       };
 
-      const created = await diveLogRepository.create(
+      const createdRaw = await diveLogRepository.create(
         diveLogData,
         session.user.id
       );
+
+      // Recompute chronological dive numbers after any structural change
+      await diveLogRepository.recomputeDiveNumbersForUser(session.user.id);
+
+      const created =
+        (await diveLogRepository.findById(createdRaw.id, session.user.id)) ??
+        createdRaw;
 
       // Handle gear associations
       if (gearItemIds && Array.isArray(gearItemIds) && gearItemIds.length > 0) {
@@ -145,11 +152,17 @@ export async function POST(req: NextRequest) {
         gearItemIds?: string[];
       };
 
-      const updated = await diveLogRepository.update(
+      const updatedRaw = await diveLogRepository.update(
         id,
         diveLogData,
         session.user.id
       );
+
+      await diveLogRepository.recomputeDiveNumbersForUser(session.user.id);
+
+      const updated =
+        (await diveLogRepository.findById(id, session.user.id)) ??
+        updatedRaw;
 
       // Handle gear associations
       if (gearItemIds !== undefined) {
@@ -182,6 +195,8 @@ export async function POST(req: NextRequest) {
       }
 
       await diveLogRepository.delete(id, session.user.id);
+
+      await diveLogRepository.recomputeDiveNumbersForUser(session.user.id);
       return NextResponse.json({ ok: true });
     }
 

@@ -9,7 +9,7 @@
 .table {
   table-layout: fixed;
   width: 100%;
-  min-width: 1160px; /* sum of col widths when all visible */
+  min-width: 1204px; /* sum of col widths when all visible */
   border-collapse: collapse;
   font-size: var(--font-size-sm);
 }
@@ -48,6 +48,10 @@
 
 .colDate {
   width: 110px;
+}
+
+.colDiveNum {
+  width: 44px;
 }
 
 .colDepth {
@@ -149,6 +153,7 @@
 
 /* Metric columns: no wrap */
 .table td.colDate,
+.table td.colDiveNum,
 .table td.colDepth,
 .table td.colTime,
 .table td.colTemp,

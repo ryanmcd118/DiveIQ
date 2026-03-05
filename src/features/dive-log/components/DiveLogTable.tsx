@@ -38,6 +38,7 @@ export function DiveLogTable({
           <col className={styles.colLocation} />
           <col className={styles.colBuddy} />
           <col className={styles.colDate} />
+          <col className={styles.colDiveNum} />
           <col className={styles.colDepth} />
           <col className={styles.colTime} />
           <col className={styles.colTemp} />
@@ -51,6 +52,7 @@ export function DiveLogTable({
             <th className={styles.colLocation}>Location</th>
             <th className={styles.colBuddy}>Buddy</th>
             <th className={styles.colDate}>Date</th>
+            <th className={styles.colDiveNum}>#</th>
             <th className={styles.colDepth}>Depth</th>
             <th className={styles.colTime}>Time</th>
             <th className={styles.colTemp}>Temp</th>
@@ -100,6 +102,9 @@ export function DiveLogTable({
                   </span>
                 </td>
                 <td className={styles.colDate}>{entry.date}</td>
+                <td className={styles.colDiveNum}>
+                  {entry.diveNumber != null ? entry.diveNumber : "—"}
+                </td>
                 <td className={styles.colDepth}>
                   {depth.value ? `${depth.value}${depth.unit}` : "—"}
                 </td>

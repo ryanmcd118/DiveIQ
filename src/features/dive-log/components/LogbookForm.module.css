@@ -102,6 +102,18 @@
   gap: var(--space-1);
 }
 
+.timeSubLabel {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+}
+
+.timeFieldError {
+  display: block;
+  font-size: var(--font-size-xs);
+  color: var(--color-danger-text, #fecaca);
+  margin-top: var(--space-1);
+}
+
 .fieldNarrowDate {
   max-width: 12rem;
 }
@@ -118,40 +130,194 @@
   max-width: 10rem;
 }
 
-.coreTopRow {
+/* Row 1: Date | Start | End | Bottom | SI | Dive# | Buddy */
+.timeRow1 {
   display: grid;
-  grid-template-columns: repeat(12, 1fr);
+  grid-template-columns:
+    minmax(0, 10rem)
+    auto
+    auto
+    5rem
+    5.5rem
+    minmax(0, 6rem)
+    minmax(0, 1fr);
   gap: var(--space-2) var(--space-3);
   align-items: end;
   margin-bottom: var(--space-3);
 }
 
-.coreTopCellLeft {
-  grid-column: span 3;
-  justify-self: start;
+.timeGroup {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
 }
 
-.coreTopCellCenter {
-  grid-column: span 5;
-  justify-self: center;
+.timeGroup .timeRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
 }
 
-.coreTopCellRight {
-  grid-column: span 4;
-  justify-self: end;
+.fieldNarrowNum {
+  min-width: 0;
+  max-width: 6rem;
+}
+
+.fieldBuddy {
+  min-width: 0;
+}
+
+@media (max-width: 767px) {
+  .timeRow1 {
+    grid-template-columns: 1fr;
+  }
+}
+
+.coreTopRow {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--space-2) var(--space-3);
+  align-items: end;
+  margin-bottom: var(--space-3);
+}
+
+.diveNumberHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
+.diveNumberMeta {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.diveNumberTag {
+  font-size: var(--font-size-2xs, 0.7rem);
+  padding: 0 var(--space-2);
+  border-radius: var(--radius-full);
+  border: 1px solid var(--color-border-input);
+  color: var(--color-text-muted);
+}
+
+.diveNumberReset {
+  font-size: var(--font-size-xs);
+  color: var(--color-accent-primary);
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+.diveNumberReset:focus-visible {
+  outline: 2px solid var(--color-accent-primary);
+  outline-offset: 2px;
 }
 
 @media (max-width: 767px) {
   .coreTopRow {
     grid-template-columns: 1fr;
   }
+}
 
-  .coreTopCellLeft,
-  .coreTopCellCenter,
-  .coreTopCellRight {
-    grid-column: auto;
-    justify-self: stretch;
+/* Site + location row */
+.siteRow {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: minmax(0, 0.45fr) minmax(0, 0.55fr);
+  gap: var(--space-2) var(--space-3);
+  align-items: end;
+}
+
+@media (max-width: 767px) {
+  .siteRow {
+    grid-template-columns: 1fr;
   }
+}
+
+/* Dive profile row: max depth | safety stop */
+.profileRow {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: minmax(0, 10rem) minmax(0, 1fr);
+  gap: var(--space-2) var(--space-3);
+  align-items: end;
+}
+
+@media (max-width: 767px) {
+  .profileRow {
+    grid-template-columns: 1fr;
+  }
+}
+
+.profileCellNarrow {
+  min-width: 0;
+  max-width: 10rem;
+}
+
+.profileCellSafety {
+  min-width: 0;
+}
+
+/* Gas row — content-sized columns so small fields don't stretch; row packs left, space remains for Notes etc. */
+.gasRow {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: minmax(0, 7rem) minmax(0, 10rem) 5.5rem 5.5rem;
+  gap: var(--space-2) var(--space-3);
+  align-items: end;
+  margin-bottom: var(--space-3);
+  width: max-content;
+  max-width: 100%;
+}
+
+.gasRowWithFO2 {
+  grid-template-columns: minmax(0, 7rem) 5rem minmax(0, 10rem) 5.5rem 5.5rem;
+}
+
+.gasCell {
+  min-width: 0;
+}
+
+.gasCell input,
+.gasCell select {
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+.gasCellFO2 {
+  min-width: 0;
+}
+
+.gasCellFO2 input {
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+.gasCellTank {
+  min-width: 0;
+}
+
+.gasCellTank input {
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+.gasCellNarrow {
+  min-width: 0;
+}
+
+.gasCellNarrow input {
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
 .label {
@@ -299,6 +465,26 @@
 .diveTypeChip input:focus-visible + span {
   outline: 2px solid var(--color-accent-primary);
   outline-offset: 2px;
+}
+
+.diveTypeShowMore {
+  font-size: var(--font-size-xs);
+  color: var(--color-accent-primary);
+  cursor: pointer;
+  border: none;
+  background: none;
+  padding: 0;
+  text-decoration: underline;
+}
+
+.diveTypeShowMore:focus-visible {
+  outline: 2px solid var(--color-accent-primary);
+  outline-offset: 2px;
+}
+
+.diveTypeMoreSelected {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
 }
 
 /* Safety stop inline row */

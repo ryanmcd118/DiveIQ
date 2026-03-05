@@ -152,8 +152,14 @@ export function useLogPageState(initialEntries: DiveLogEntry[]) {
     const payload: Omit<DiveLogInput, "userId"> = {
       date: dateValue,
       startTime: str(formData.get("startTime")) || null,
+      endTime: str(formData.get("endTime")) || null,
       diveNumber: (() => {
         const v = str(formData.get("diveNumber"));
+        return v ? parseInt(v, 10) : null;
+      })(),
+      diveNumberAuto: null,
+      diveNumberOverride: (() => {
+        const v = str(formData.get("diveNumberOverride"));
         return v ? parseInt(v, 10) : null;
       })(),
       region: str(formData.get("region")) || null,

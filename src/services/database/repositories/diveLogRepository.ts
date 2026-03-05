@@ -15,7 +15,11 @@ export const diveLogRepository = {
       data: {
         date: data.date,
         startTime: data.startTime ?? null,
+        endTime: data.endTime ?? null,
+        // diveNumber and auto/override will be normalized by recomputeDiveNumbersForUser
         diveNumber: data.diveNumber ?? null,
+        diveNumberAuto: data.diveNumberAuto ?? null,
+        diveNumberOverride: data.diveNumberOverride ?? null,
         region: data.region ?? null,
         siteName: data.siteName,
         buddyName: data.buddyName ?? null,
@@ -99,7 +103,11 @@ export const diveLogRepository = {
       data: {
         date: data.date,
         startTime: data.startTime ?? null,
+        endTime: data.endTime ?? null,
+        // diveNumber and auto/override will be normalized by recomputeDiveNumbersForUser
         diveNumber: data.diveNumber ?? null,
+        diveNumberAuto: data.diveNumberAuto ?? null,
+        diveNumberOverride: data.diveNumberOverride ?? null,
         region: data.region ?? null,
         siteName: data.siteName,
         buddyName: data.buddyName ?? null,
@@ -155,6 +163,41 @@ export const diveLogRepository = {
       where.userId = userId;
     }
     return prisma.diveLog.count({ where });
+  },
+
+  /**
+   * Recompute chronological dive numbers for all dives for a user.
+   * Oldest dive gets auto #1, next #2, etc.
+   * Keeps existing diveNumberOverride values stable while updating
+   * diveNumberAuto and effective diveNumber.
+   */
+  async recomputeDiveNumbersForUser(userId: string): Promise<void> {
+    const dives = await prisma.diveLog.findMany({
+      where: { userId },
+      orderBy: [
+        { date: "asc" },
+        { startTime: "asc" },
+        { createdAt: "asc" },
+        { id: "asc" },
+      ],
+    });
+
+    if (!dives.length) return;
+
+    await prisma.$transaction(
+      dives.map((dive, index) => {
+        const autoNumber = index + 1;
+        const override = dive.diveNumberOverride ?? null;
+        const effective = override ?? autoNumber;
+        return prisma.diveLog.update({
+          where: { id: dive.id },
+          data: {
+            diveNumberAuto: autoNumber,
+            diveNumber: effective,
+          },
+        });
+      })
+    );
   },
 
   /**

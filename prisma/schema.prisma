@@ -106,7 +106,10 @@ model DiveLog {
   userId      String?  // Optional to allow future guest data migration
   date        String
   startTime   String?  // Time in (e.g. "09:30")
-  diveNumber  Int?     // Log dive # (auto-suggested, editable)
+  endTime     String?  // Time in (e.g. "10:15"), optional
+  diveNumber        Int?     // Effective log dive #
+  diveNumberAuto    Int?     // Auto-computed chronological number
+  diveNumberOverride Int?    // User override, if set
   region      String?  // Location/Region (optional)
   siteName    String
   buddyName   String?
