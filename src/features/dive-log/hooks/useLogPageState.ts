@@ -230,8 +230,6 @@ export function useLogPageState(initialEntries: DiveLogEntry[]) {
       setLastSavedEntry(entryWithGear);
       setLastAction(isEditing ? "update" : "create");
 
-      // Reset form + edit mode
-      form.reset();
       setEditingEntryId(null);
       setEditingEntry(null);
       setActiveEntry(null);
@@ -264,7 +262,6 @@ export function useLogPageState(initialEntries: DiveLogEntry[]) {
   };
 
   const handleCancelEdit = (form?: HTMLFormElement | null) => {
-    if (form) form.reset();
     resetFormState();
   };
 
@@ -300,7 +297,6 @@ export function useLogPageState(initialEntries: DiveLogEntry[]) {
     if (!ok) return;
 
     await performDelete(editingEntryId);
-    form.reset();
   };
 
   const handleDeleteFromList = async (id: string) => {

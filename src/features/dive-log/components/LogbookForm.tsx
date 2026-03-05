@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useState, useEffect, useCallback } from "react";
+import { FormEvent, useState, useEffect } from "react";
 import type { DiveLogEntry } from "@/features/dive-log/types";
 import type { SoftWarning } from "@/features/dive-log/types/softWarnings";
 import { useUnitPreferences } from "@/hooks/useUnitPreferences";
@@ -32,6 +32,16 @@ import {
 import formStyles from "@/styles/components/Form.module.css";
 import styles from "./LogbookForm.module.css";
 
+const Field = ({
+  children,
+  col = 6,
+}: {
+  children: React.ReactNode;
+  col?: 6 | 12;
+}) => (
+  <div className={col === 12 ? styles.col12 : styles.col6}>{children}</div>
+);
+
 function parseDiveTypeTags(tags: string | null | undefined): string[] {
   if (!tags) return [];
   try {
@@ -48,14 +58,11 @@ interface LogbookFormProps {
   activeEntry: DiveLogEntry | null;
   editingEntryId: string | null;
   suggestedDiveNumber?: number;
-  saving: boolean;
   error: string | null;
   softWarnings?: SoftWarning[];
   selectedGearIds?: string[];
   onGearSelectionChange: (ids: string[]) => void;
   onSubmit: (e: FormEvent<HTMLFormElement>) => void;
-  onCancelEdit: (form?: HTMLFormElement | null) => void;
-  onDeleteFromForm: (form: HTMLFormElement) => void;
 }
 
 export function LogbookForm({
@@ -64,17 +71,20 @@ export function LogbookForm({
   activeEntry,
   editingEntryId,
   suggestedDiveNumber = 1,
-  saving,
   error,
   softWarnings = [],
   selectedGearIds = [],
   onGearSelectionChange,
   onSubmit,
-  onCancelEdit,
-  onDeleteFromForm,
 }: LogbookFormProps) {
   const { prefs } = useUnitPreferences();
 
+  const [date, setDate] = useState("");
+  const [startTime, setStartTime] = useState("");
+  const [diveNumber, setDiveNumber] = useState("");
+  const [region, setRegion] = useState("");
+  const [buddyName, setBuddyName] = useState("");
+  const [notes, setNotes] = useState("");
   const [siteName, setSiteName] = useState("");
   const [maxDepth, setMaxDepth] = useState("");
   const [bottomTime, setBottomTime] = useState("");
@@ -102,68 +112,78 @@ export function LogbookForm({
   const [selectedDiveTypes, setSelectedDiveTypes] = useState<string[]>([]);
   const [gearKits, setGearKits] = useState<{ id: string; name: string; kitItems: { gearItemId: string }[] }[]>([]);
 
-  const initFromEntry = useCallback(
-    (entry: DiveLogEntry | null) => {
-      if (entry) {
-        setSiteName(entry.siteName ?? "");
-        setMaxDepth(entry.maxDepthCm != null ? displayDepth(entry.maxDepthCm, prefs.depth).value : "");
-        setBottomTime(entry.bottomTime != null ? String(entry.bottomTime) : "");
-        setWaterTempSurface(entry.waterTempCx10 != null ? displayTemperature(entry.waterTempCx10, prefs.temperature).value : "");
-        setWaterTempBottom(entry.waterTempBottomCx10 != null ? displayTemperature(entry.waterTempBottomCx10, prefs.temperature).value : "");
-        setVisibility(entry.visibilityCm != null ? displayDistance(entry.visibilityCm, prefs.depth).value : "");
-        setStartPressure(entry.startPressureBar != null ? formatPressureForDisplay(entry.startPressureBar, prefs.pressure) : "");
-        setEndPressure(entry.endPressureBar != null ? formatPressureForDisplay(entry.endPressureBar, prefs.pressure) : "");
-        setWeightUsed(entry.weightUsedKg != null ? formatWeightForDisplay(entry.weightUsedKg, prefs.weight) : "");
-        setGasType(entry.gasType ?? "Air");
-        setFO2(entry.fO2 != null ? String(entry.fO2) : "32");
-        setSafetyStopEnabled(entry.safetyStopDepthCm != null || entry.safetyStopDurationMin != null);
-        setSafetyStopDepth(safetyStopDepthCmToDisplay(entry.safetyStopDepthCm, prefs.depth));
-        setSafetyStopDuration(entry.safetyStopDurationMin != null ? String(entry.safetyStopDurationMin) : "3");
-        setSurfaceIntervalMin(entry.surfaceIntervalMin != null ? String(entry.surfaceIntervalMin) : "");
-        setCurrent(entry.current ?? "");
-        setExposureProtection(entry.exposureProtection ?? "");
-        setTankCylinder(entry.tankCylinder ?? "");
-        setGearKitId(entry.gearKitId ?? "");
-        setGearNotes(entry.gearNotes ?? "");
-        setIsTrainingDive(entry.isTrainingDive ?? false);
-        setTrainingCourse(entry.trainingCourse ?? "");
-        setTrainingInstructor(entry.trainingInstructor ?? "");
-        setTrainingSkills(entry.trainingSkills ?? "");
-        setSelectedDiveTypes(parseDiveTypeTags(entry.diveTypeTags));
-      } else {
-        setSiteName("");
-        setMaxDepth("");
-        setBottomTime("");
-        setWaterTempSurface("");
-        setWaterTempBottom("");
-        setVisibility("");
-        setStartPressure("");
-        setEndPressure("");
-        setWeightUsed("");
-        setGasType("Air");
-        setFO2("32");
-        setSafetyStopEnabled(false);
-        setSafetyStopDepth(prefs.depth === "m" ? "5" : "15");
-        setSafetyStopDuration("3");
-        setSurfaceIntervalMin("");
-        setCurrent("");
-        setExposureProtection("");
-        setTankCylinder("");
-        setGearKitId("");
-        setGearNotes("");
-        setIsTrainingDive(false);
-        setTrainingCourse("");
-        setTrainingInstructor("");
-        setTrainingSkills("");
-        setSelectedDiveTypes([]);
-      }
-    },
-    [prefs]
-  );
+  const initFromEntry = (entry: DiveLogEntry | null) => {
+    if (entry) {
+      setDate(entry.date ?? "");
+      setStartTime(entry.startTime ?? "");
+      setDiveNumber(entry.diveNumber != null ? String(entry.diveNumber) : "");
+      setRegion(entry.region ?? "");
+      setBuddyName(entry.buddyName ?? "");
+      setNotes(entry.notes ?? "");
+      setSiteName(entry.siteName ?? "");
+      setMaxDepth(entry.maxDepthCm != null ? displayDepth(entry.maxDepthCm, prefs.depth).value : "");
+      setBottomTime(entry.bottomTime != null ? String(entry.bottomTime) : "");
+      setWaterTempSurface(entry.waterTempCx10 != null ? displayTemperature(entry.waterTempCx10, prefs.temperature).value : "");
+      setWaterTempBottom(entry.waterTempBottomCx10 != null ? displayTemperature(entry.waterTempBottomCx10, prefs.temperature).value : "");
+      setVisibility(entry.visibilityCm != null ? displayDistance(entry.visibilityCm, prefs.depth).value : "");
+      setStartPressure(entry.startPressureBar != null ? formatPressureForDisplay(entry.startPressureBar, prefs.pressure) : "");
+      setEndPressure(entry.endPressureBar != null ? formatPressureForDisplay(entry.endPressureBar, prefs.pressure) : "");
+      setWeightUsed(entry.weightUsedKg != null ? formatWeightForDisplay(entry.weightUsedKg, prefs.weight) : "");
+      setGasType(entry.gasType ?? "Air");
+      setFO2(entry.fO2 != null ? String(entry.fO2) : "32");
+      setSafetyStopEnabled(entry.safetyStopDepthCm != null || entry.safetyStopDurationMin != null);
+      setSafetyStopDepth(safetyStopDepthCmToDisplay(entry.safetyStopDepthCm, prefs.depth));
+      setSafetyStopDuration(entry.safetyStopDurationMin != null ? String(entry.safetyStopDurationMin) : "3");
+      setSurfaceIntervalMin(entry.surfaceIntervalMin != null ? String(entry.surfaceIntervalMin) : "");
+      setCurrent(entry.current ?? "");
+      setExposureProtection(entry.exposureProtection ?? "");
+      setTankCylinder(entry.tankCylinder ?? "");
+      setGearKitId(entry.gearKitId ?? "");
+      setGearNotes(entry.gearNotes ?? "");
+      setIsTrainingDive(entry.isTrainingDive ?? false);
+      setTrainingCourse(entry.trainingCourse ?? "");
+      setTrainingInstructor(entry.trainingInstructor ?? "");
+      setTrainingSkills(entry.trainingSkills ?? "");
+      setSelectedDiveTypes(parseDiveTypeTags(entry.diveTypeTags));
+    } else {
+      setDate("");
+      setStartTime("");
+      setDiveNumber("");
+      setRegion("");
+      setBuddyName("");
+      setNotes("");
+      setSiteName("");
+      setMaxDepth("");
+      setBottomTime("");
+      setWaterTempSurface("");
+      setWaterTempBottom("");
+      setVisibility("");
+      setStartPressure("");
+      setEndPressure("");
+      setWeightUsed("");
+      setGasType("Air");
+      setFO2("32");
+      setSafetyStopEnabled(false);
+      setSafetyStopDepth(prefs.depth === "m" ? "5" : "15");
+      setSafetyStopDuration("3");
+      setSurfaceIntervalMin("");
+      setCurrent("");
+      setExposureProtection("");
+      setTankCylinder("");
+      setGearKitId("");
+      setGearNotes("");
+      setIsTrainingDive(false);
+      setTrainingCourse("");
+      setTrainingInstructor("");
+      setTrainingSkills("");
+      setSelectedDiveTypes([]);
+    }
+  };
 
   useEffect(() => {
     initFromEntry(activeEntry);
-  }, [activeEntry, formKey, initFromEntry]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeEntry, formKey]);
 
   useEffect(() => {
     fetch("/api/gear-kits")
@@ -219,14 +239,10 @@ export function LogbookForm({
   const gearSum = gearSummaryFromForm(formValues);
   const trainingSum = trainingSummaryFromForm(formValues);
 
-  const Field = ({ children, col = 6 }: { children: React.ReactNode; col?: 6 | 12 }) => (
-    <div className={col === 12 ? styles.col12 : styles.col6}>{children}</div>
-  );
-
   return (
     <form
       id={formId}
-      key={`${formKey}-${prefs.depth}-${prefs.temperature}-${prefs.pressure}-${prefs.weight}`}
+      key={formKey}
       onSubmit={handleSubmit}
       className={styles.formRoot}
     >
@@ -242,19 +258,43 @@ export function LogbookForm({
               <Field col={6}>
                 <div className={styles.field}>
                   <label htmlFor="date" className={styles.label}>Date *</label>
-                  <input type="date" id="date" name="date" required defaultValue={activeEntry?.date ?? ""} className={styles.input} />
+                  <input
+                    type="date"
+                    id="date"
+                    name="date"
+                    required
+                    value={date}
+                    onChange={(e) => setDate(e.target.value)}
+                    className={styles.input}
+                  />
                 </div>
               </Field>
               <Field col={6}>
                 <div className={styles.field}>
                   <label htmlFor="startTime" className={styles.label}>Start time</label>
-                  <input type="time" id="startTime" name="startTime" defaultValue={activeEntry?.startTime ?? ""} className={styles.input} />
+                  <input
+                    type="time"
+                    id="startTime"
+                    name="startTime"
+                    value={startTime}
+                    onChange={(e) => setStartTime(e.target.value)}
+                    className={styles.input}
+                  />
                 </div>
               </Field>
               <Field col={6}>
                 <div className={styles.field}>
                   <label htmlFor="diveNumber" className={styles.label}>Dive #</label>
-                  <input type="number" id="diveNumber" name="diveNumber" min={1} placeholder={`e.g. ${suggestedDiveNumber}`} defaultValue={activeEntry?.diveNumber ?? ""} className={styles.input} />
+                  <input
+                    type="number"
+                    id="diveNumber"
+                    name="diveNumber"
+                    min={1}
+                    placeholder={`e.g. ${suggestedDiveNumber}`}
+                    value={diveNumber}
+                    onChange={(e) => setDiveNumber(e.target.value)}
+                    className={styles.input}
+                  />
                 </div>
               </Field>
               <Field col={12}>
@@ -266,13 +306,29 @@ export function LogbookForm({
               <Field col={12}>
                 <div className={styles.field}>
                   <label htmlFor="region" className={styles.label}>Location / Region</label>
-                  <input type="text" id="region" name="region" placeholder="Roatán, Red Sea, local quarry…" defaultValue={activeEntry?.region ?? ""} className={styles.input} />
+                  <input
+                    type="text"
+                    id="region"
+                    name="region"
+                    placeholder="Roatán, Red Sea, local quarry…"
+                    value={region}
+                    onChange={(e) => setRegion(e.target.value)}
+                    className={styles.input}
+                  />
                 </div>
               </Field>
               <Field col={12}>
                 <div className={styles.field}>
                   <label htmlFor="buddyName" className={styles.label}>Buddy</label>
-                  <input type="text" id="buddyName" name="buddyName" placeholder="Optional" defaultValue={activeEntry?.buddyName ?? ""} className={styles.input} />
+                  <input
+                    type="text"
+                    id="buddyName"
+                    name="buddyName"
+                    placeholder="Optional"
+                    value={buddyName}
+                    onChange={(e) => setBuddyName(e.target.value)}
+                    className={styles.input}
+                  />
                 </div>
               </Field>
               <Field col={12}>
@@ -372,7 +428,15 @@ export function LogbookForm({
           <div className={styles.sectionBody}>
             <div className={styles.field}>
               <label htmlFor="notes" className={styles.label}>Notes</label>
-              <textarea id="notes" name="notes" rows={3} placeholder="Conditions, wildlife, gear notes…" defaultValue={activeEntry?.notes ?? ""} className={styles.textarea} />
+              <textarea
+                id="notes"
+                name="notes"
+                rows={3}
+                placeholder="Conditions, wildlife, gear notes…"
+                value={notes}
+                onChange={(e) => setNotes(e.target.value)}
+                className={styles.textarea}
+              />
             </div>
         </div>
       </div>
