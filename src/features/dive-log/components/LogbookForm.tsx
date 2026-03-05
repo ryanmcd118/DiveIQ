@@ -9,7 +9,6 @@ import {
   displayTemperature,
   displayDistance,
   getUnitLabel,
-  pressureInputToBar,
   formatPressureForDisplay,
   formatWeightForDisplay,
   safetyStopDepthCmToDisplay,
@@ -23,7 +22,6 @@ import {
   EXPOSURE_PROTECTION_OPTIONS,
 } from "../constants";
 import {
-  profileSummaryFromForm,
   conditionsSummaryFromForm,
   gasSummaryFromForm,
   exposureSummaryFromForm,
@@ -32,6 +30,7 @@ import {
   type FormSummaryValues,
 } from "../utils/formSectionSummaries";
 import formStyles from "@/styles/components/Form.module.css";
+import styles from "./LogbookForm.module.css";
 
 function parseDiveTypeTags(tags: string | null | undefined): string[] {
   if (!tags) return [];
@@ -214,256 +213,344 @@ export function LogbookForm({
     surfaceIntervalMin,
   };
 
-  const coreSum = siteName.trim() || undefined;
-  const profileSum = profileSummaryFromForm(formValues, prefs);
   const conditionsSum = conditionsSummaryFromForm(formValues, prefs);
   const gasSum = gasSummaryFromForm(formValues, prefs);
   const exposureSum = exposureSummaryFromForm(formValues, prefs);
   const gearSum = gearSummaryFromForm(formValues);
   const trainingSum = trainingSummaryFromForm(formValues);
 
+  const Field = ({ children, col = 6 }: { children: React.ReactNode; col?: 6 | 12 }) => (
+    <div className={col === 12 ? styles.col12 : styles.col6}>{children}</div>
+  );
+
   return (
     <form
       id={formId}
       key={`${formKey}-${prefs.depth}-${prefs.temperature}-${prefs.pressure}-${prefs.weight}`}
       onSubmit={handleSubmit}
-      className={formStyles.form}
+      className={styles.formRoot}
     >
-      <AccordionSection id="core" title="Core" defaultOpen summary={coreSum}>
-        <div className={formStyles.formGroup}>
-          <div className={formStyles.formGrid2}>
-            <div className={formStyles.field}>
-              <label htmlFor="date" className={formStyles.label}>Date *</label>
-              <input type="date" id="date" name="date" required defaultValue={activeEntry?.date ?? ""} className={formStyles.input} />
-            </div>
-            <div className={formStyles.field}>
-              <label htmlFor="startTime" className={formStyles.label}>Start time</label>
-              <input type="time" id="startTime" name="startTime" defaultValue={activeEntry?.startTime ?? ""} className={formStyles.input} />
-            </div>
-          </div>
-          <div className={formStyles.field}>
-            <label htmlFor="diveNumber" className={formStyles.label}>Dive #</label>
-            <input type="number" id="diveNumber" name="diveNumber" min={1} placeholder={`e.g. ${suggestedDiveNumber}`} defaultValue={activeEntry?.diveNumber ?? ""} className={formStyles.input} />
-          </div>
-          <div className={formStyles.field}>
-            <label htmlFor="siteName" className={formStyles.label}>Site name *</label>
-            <input type="text" id="siteName" name="siteName" required placeholder="Mary's Place" value={siteName} onChange={(e) => setSiteName(e.target.value)} className={formStyles.input} />
-          </div>
-          <div className={formStyles.field}>
-            <label htmlFor="region" className={formStyles.label}>Location / Region</label>
-            <input type="text" id="region" name="region" placeholder="Roatán, Red Sea, local quarry…" defaultValue={activeEntry?.region ?? ""} className={formStyles.input} />
-          </div>
-          <div className={formStyles.field}>
-            <label htmlFor="buddyName" className={formStyles.label}>Buddy</label>
-            <input type="text" id="buddyName" name="buddyName" placeholder="Optional" defaultValue={activeEntry?.buddyName ?? ""} className={formStyles.input} />
-          </div>
-          <div className={formStyles.field}>
-            <span className={formStyles.label}>Dive type</span>
-            <div style={{ display: "flex", flexWrap: "wrap", gap: "var(--space-2)", marginTop: "var(--space-2)" }}>
-              {DIVE_TYPE_TAGS.map((tag) => (
-                <label key={tag} style={{ display: "flex", alignItems: "center", gap: "var(--space-1)" }}>
-                  <input
-                    type="checkbox"
-                    name="diveTypeTags"
-                    value={tag}
-                    checked={selectedDiveTypes.includes(tag)}
-                    onChange={(e) => {
-                      setSelectedDiveTypes((prev) =>
-                        e.target.checked ? [...prev, tag] : prev.filter((t) => t !== tag)
-                      );
-                    }}
-                    className={formStyles.input}
-                    style={{ width: "auto" }}
-                  />
-                  <span style={{ fontSize: "var(--font-size-sm)" }}>{tag}</span>
-                </label>
-              ))}
+      <div className={styles.columns}>
+        {/* Left column: Core, Profile, Notes */}
+        <div className={styles.leftCol}>
+          <div className={styles.leftColumn}>
+        {/* Core */}
+        <div className={styles.sectionCard}>
+          <h3 className={styles.sectionHeader}>Core</h3>
+          <div className={styles.sectionBody}>
+            <div className={styles.formGrid12}>
+              <Field col={6}>
+                <div className={styles.field}>
+                  <label htmlFor="date" className={styles.label}>Date *</label>
+                  <input type="date" id="date" name="date" required defaultValue={activeEntry?.date ?? ""} className={styles.input} />
+                </div>
+              </Field>
+              <Field col={6}>
+                <div className={styles.field}>
+                  <label htmlFor="startTime" className={styles.label}>Start time</label>
+                  <input type="time" id="startTime" name="startTime" defaultValue={activeEntry?.startTime ?? ""} className={styles.input} />
+                </div>
+              </Field>
+              <Field col={6}>
+                <div className={styles.field}>
+                  <label htmlFor="diveNumber" className={styles.label}>Dive #</label>
+                  <input type="number" id="diveNumber" name="diveNumber" min={1} placeholder={`e.g. ${suggestedDiveNumber}`} defaultValue={activeEntry?.diveNumber ?? ""} className={styles.input} />
+                </div>
+              </Field>
+              <Field col={12}>
+                <div className={styles.field}>
+                  <label htmlFor="siteName" className={styles.label}>Site name *</label>
+                  <input type="text" id="siteName" name="siteName" required placeholder="Mary's Place" value={siteName} onChange={(e) => setSiteName(e.target.value)} className={styles.input} />
+                </div>
+              </Field>
+              <Field col={12}>
+                <div className={styles.field}>
+                  <label htmlFor="region" className={styles.label}>Location / Region</label>
+                  <input type="text" id="region" name="region" placeholder="Roatán, Red Sea, local quarry…" defaultValue={activeEntry?.region ?? ""} className={styles.input} />
+                </div>
+              </Field>
+              <Field col={12}>
+                <div className={styles.field}>
+                  <label htmlFor="buddyName" className={styles.label}>Buddy</label>
+                  <input type="text" id="buddyName" name="buddyName" placeholder="Optional" defaultValue={activeEntry?.buddyName ?? ""} className={styles.input} />
+                </div>
+              </Field>
+              <Field col={12}>
+                <div className={styles.field}>
+                  <span className={styles.label}>Dive type</span>
+                  <div className={styles.diveTypeRow}>
+                    {DIVE_TYPE_TAGS.map((tag) => (
+                      <label key={tag} className={styles.diveTypeChip}>
+                        <input
+                          type="checkbox"
+                          name="diveTypeTags"
+                          value={tag}
+                          checked={selectedDiveTypes.includes(tag)}
+                          onChange={(e) => {
+                            setSelectedDiveTypes((prev) =>
+                              e.target.checked ? [...prev, tag] : prev.filter((t) => t !== tag)
+                            );
+                          }}
+                          style={{ width: "auto" }}
+                        />
+                        <span>{tag}</span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+              </Field>
             </div>
           </div>
         </div>
-      </AccordionSection>
 
-      <AccordionSection id="profile" title="Profile" defaultOpen summary={profileSum}>
-        <div className={formStyles.formGroup}>
-          <div className={formStyles.formGrid2}>
-            <div className={formStyles.field}>
-              <label htmlFor="maxDepth" className={formStyles.label}>Max depth ({getUnitLabel("depth", prefs)})</label>
-              <input type="number" id="maxDepth" name="maxDepth" value={maxDepth} onChange={(e) => setMaxDepth(e.target.value)} placeholder="Optional" className={formStyles.input} />
-            </div>
-            <div className={formStyles.field}>
-              <label htmlFor="bottomTime" className={formStyles.label}>Bottom time (min)</label>
-              <input type="number" id="bottomTime" name="bottomTime" min={0} value={bottomTime} onChange={(e) => setBottomTime(e.target.value)} placeholder="Optional" className={formStyles.input} />
+        {/* Profile */}
+        <div className={styles.sectionCard}>
+          <h3 className={styles.sectionHeader}>Profile</h3>
+          <div className={styles.sectionBody}>
+            <div className={styles.formGrid12}>
+              <Field col={6}>
+                <div className={styles.field}>
+                  <label htmlFor="maxDepth" className={styles.label}>Max depth ({getUnitLabel("depth", prefs)})</label>
+                  <input type="number" id="maxDepth" name="maxDepth" value={maxDepth} onChange={(e) => setMaxDepth(e.target.value)} placeholder="Optional" className={styles.input} />
+                </div>
+              </Field>
+              <Field col={6}>
+                <div className={styles.field}>
+                  <label htmlFor="bottomTime" className={styles.label}>Bottom time (min)</label>
+                  <input type="number" id="bottomTime" name="bottomTime" min={0} value={bottomTime} onChange={(e) => setBottomTime(e.target.value)} placeholder="Optional" className={styles.input} />
+                </div>
+              </Field>
+              <Field col={12}>
+                <div className={styles.field}>
+                  <label className={styles.safetyStopRow} style={{ cursor: "pointer" }}>
+                    <input type="checkbox" checked={safetyStopEnabled} onChange={(e) => setSafetyStopEnabled(e.target.checked)} />
+                    <span className={styles.label}>Safety stop</span>
+                    {safetyStopEnabled && (
+                      <>
+                        <input
+                          type="number"
+                          id="safetyStopDepth"
+                          name="safetyStopDepth"
+                          value={safetyStopDepth}
+                          onChange={(e) => setSafetyStopDepth(e.target.value)}
+                          placeholder={prefs.depth === "m" ? "5" : "15"}
+                          className={styles.input}
+                          style={{ width: "4rem", padding: "var(--space-1) var(--space-2)" }}
+                        />
+                        <span className={styles.label} style={{ margin: 0 }}>{getUnitLabel("depth", prefs)}</span>
+                        <input
+                          type="number"
+                          id="safetyStopDuration"
+                          name="safetyStopDuration"
+                          min={1}
+                          value={safetyStopDuration}
+                          onChange={(e) => setSafetyStopDuration(e.target.value)}
+                          placeholder="3"
+                          className={styles.input}
+                          style={{ width: "3.5rem", padding: "var(--space-1) var(--space-2)" }}
+                        />
+                        <span className={styles.label} style={{ margin: 0 }}>min</span>
+                      </>
+                    )}
+                  </label>
+                  <input type="hidden" name="safetyStopEnabled" value={safetyStopEnabled ? "1" : "0"} />
+                </div>
+              </Field>
+              <Field col={6}>
+                <div className={styles.field}>
+                  <label htmlFor="surfaceIntervalMin" className={styles.label}>Surface interval (min)</label>
+                  <input type="number" id="surfaceIntervalMin" name="surfaceIntervalMin" min={0} value={surfaceIntervalMin} onChange={(e) => setSurfaceIntervalMin(e.target.value)} placeholder="Optional" className={styles.input} />
+                </div>
+              </Field>
             </div>
           </div>
-          <div className={formStyles.field}>
-            <label style={{ display: "flex", alignItems: "center", gap: "var(--space-2)", cursor: "pointer" }}>
-              <input type="checkbox" checked={safetyStopEnabled} onChange={(e) => setSafetyStopEnabled(e.target.checked)} />
-              <span className={formStyles.label}>Safety stop</span>
-            </label>
-            {safetyStopEnabled && (
-              <div className={formStyles.formGrid2} style={{ marginTop: "var(--space-2)" }}>
-                <div className={formStyles.field}>
-                  <label htmlFor="safetyStopDepth" className={formStyles.label}>Depth ({getUnitLabel("depth", prefs)})</label>
-                  <input type="number" id="safetyStopDepth" name="safetyStopDepth" value={safetyStopDepth} onChange={(e) => setSafetyStopDepth(e.target.value)} placeholder={prefs.depth === "m" ? "5" : "15"} className={formStyles.input} />
-                </div>
-                <div className={formStyles.field}>
-                  <label htmlFor="safetyStopDuration" className={formStyles.label}>Duration (min)</label>
-                  <input type="number" id="safetyStopDuration" name="safetyStopDuration" min={1} value={safetyStopDuration} onChange={(e) => setSafetyStopDuration(e.target.value)} placeholder="3" className={formStyles.input} />
-                </div>
+        </div>
+
+        {/* Notes - always visible */}
+        <div className={styles.sectionCard}>
+          <h3 className={styles.sectionHeader}>Notes</h3>
+          <div className={styles.sectionBody}>
+            <div className={styles.field}>
+              <label htmlFor="notes" className={styles.label}>Notes</label>
+              <textarea id="notes" name="notes" rows={3} placeholder="Conditions, wildlife, gear notes…" defaultValue={activeEntry?.notes ?? ""} className={styles.textarea} />
+            </div>
+        </div>
+      </div>
+          </div>
+        </div>
+
+        {/* Right column: Accordion stack */}
+        <div className={styles.rightCol}>
+          <div className={styles.rightColumn}>
+        <AccordionSection id="conditions" title="Conditions" defaultOpen={false} summary={conditionsSum}>
+          <div className={styles.formGrid12}>
+            <Field col={6}>
+              <div className={styles.field}>
+                <label htmlFor="waterTempSurface" className={styles.label}>Water temp surface ({getUnitLabel("temperature", prefs)})</label>
+                <input type="number" id="waterTempSurface" name="waterTempSurface" value={waterTempSurface} onChange={(e) => setWaterTempSurface(e.target.value)} className={styles.input} />
               </div>
+            </Field>
+            <Field col={6}>
+              <div className={styles.field}>
+                <label htmlFor="waterTempBottom" className={styles.label}>Water temp bottom ({getUnitLabel("temperature", prefs)})</label>
+                <input type="number" id="waterTempBottom" name="waterTempBottom" value={waterTempBottom} onChange={(e) => setWaterTempBottom(e.target.value)} className={styles.input} />
+              </div>
+            </Field>
+            <Field col={6}>
+              <div className={styles.field}>
+                <label htmlFor="visibility" className={styles.label}>Visibility ({getUnitLabel("distance", prefs)})</label>
+                <input type="number" id="visibility" name="visibility" value={visibility} onChange={(e) => setVisibility(e.target.value)} className={styles.input} />
+              </div>
+            </Field>
+            <Field col={6}>
+              <div className={styles.field}>
+                <label htmlFor="current" className={styles.label}>Current</label>
+                <select id="current" name="current" className={styles.select} value={current} onChange={(e) => setCurrent(e.target.value)}>
+                  {CURRENT_OPTIONS.map((o) => (
+                    <option key={o.value || "none"} value={o.value}>{o.label}</option>
+                  ))}
+                </select>
+              </div>
+            </Field>
+          </div>
+        </AccordionSection>
+
+        <AccordionSection id="gas" title="Gas" defaultOpen={false} summary={gasSum}>
+          <div className={styles.formGrid12}>
+            <Field col={6}>
+              <div className={styles.field}>
+                <label htmlFor="gasType" className={styles.label}>Gas type</label>
+                <select id="gasType" name="gasType" className={styles.select} value={gasType} onChange={(e) => setGasType(e.target.value)}>
+                  {GAS_TYPE_OPTIONS.map((o) => (
+                    <option key={o.value} value={o.value}>{o.label}</option>
+                  ))}
+                </select>
+              </div>
+            </Field>
+            {gasType === "Nitrox" && (
+              <Field col={6}>
+                <div className={styles.field}>
+                  <label htmlFor="fO2" className={styles.label}>FO2 (%) *</label>
+                  <input type="number" id="fO2" name="fO2" min={21} max={100} value={fO2} onChange={(e) => setFO2(e.target.value)} required className={styles.input} />
+                </div>
+              </Field>
             )}
-            <input type="hidden" name="safetyStopEnabled" value={safetyStopEnabled ? "1" : "0"} />
+            <Field col={12}>
+              <div className={styles.field}>
+                <label htmlFor="tankCylinder" className={styles.label}>Tank / cylinder</label>
+                <input type="text" id="tankCylinder" name="tankCylinder" placeholder="AL80, HP100…" value={tankCylinder} onChange={(e) => setTankCylinder(e.target.value)} className={styles.input} />
+              </div>
+            </Field>
+            <Field col={6}>
+              <div className={styles.field}>
+                <label htmlFor="startPressure" className={styles.label}>Start pressure ({getUnitLabel("pressure", prefs)})</label>
+                <input type="number" id="startPressure" name="startPressure" value={startPressure} onChange={(e) => setStartPressure(e.target.value)} className={styles.input} />
+              </div>
+            </Field>
+            <Field col={6}>
+              <div className={styles.field}>
+                <label htmlFor="endPressure" className={styles.label}>End pressure ({getUnitLabel("pressure", prefs)})</label>
+                <input type="number" id="endPressure" name="endPressure" value={endPressure} onChange={(e) => setEndPressure(e.target.value)} className={styles.input} />
+              </div>
+            </Field>
           </div>
-          <div className={formStyles.field}>
-            <label htmlFor="surfaceIntervalMin" className={formStyles.label}>Surface interval (min)</label>
-            <input type="number" id="surfaceIntervalMin" name="surfaceIntervalMin" min={0} value={surfaceIntervalMin} onChange={(e) => setSurfaceIntervalMin(e.target.value)} placeholder="Optional" className={formStyles.input} />
+        </AccordionSection>
+
+        <AccordionSection id="exposure" title="Exposure & Weight" defaultOpen={false} summary={exposureSum}>
+          <div className={styles.formGrid12}>
+            <Field col={6}>
+              <div className={styles.field}>
+                <label htmlFor="exposureProtection" className={styles.label}>Exposure protection</label>
+                <select id="exposureProtection" name="exposureProtection" className={styles.select} value={exposureProtection} onChange={(e) => setExposureProtection(e.target.value)}>
+                  {EXPOSURE_PROTECTION_OPTIONS.map((o) => (
+                    <option key={o.value || "none"} value={o.value}>{o.label}</option>
+                  ))}
+                </select>
+              </div>
+            </Field>
+            <Field col={6}>
+              <div className={styles.field}>
+                <label htmlFor="weightUsed" className={styles.label}>Weight used ({getUnitLabel("weight", prefs)})</label>
+                <input type="number" id="weightUsed" name="weightUsed" min={0} value={weightUsed} onChange={(e) => setWeightUsed(e.target.value)} className={styles.input} />
+              </div>
+            </Field>
+          </div>
+        </AccordionSection>
+
+        <AccordionSection id="gear" title="Gear used" defaultOpen={false} summary={gearSum}>
+          <div className={styles.formGrid12}>
+            <Field col={12}>
+              <div className={styles.field}>
+                <label htmlFor="gearKitId" className={styles.label}>Gear kit</label>
+                <select id="gearKitId" name="gearKitId" className={styles.select} value={gearKitId} onChange={(e) => handleGearKitSelect(e.target.value)}>
+                  <option value="">None</option>
+                  {gearKits.map((k) => (
+                    <option key={k.id} value={k.id}>{k.name}</option>
+                  ))}
+                </select>
+              </div>
+            </Field>
+            <Field col={12}>
+              <GearSelection selectedGearIds={selectedGearIds} onSelectionChange={onGearSelectionChange} editingEntryId={editingEntryId} />
+            </Field>
+            <Field col={12}>
+              <div className={styles.field}>
+                <label htmlFor="gearNotes" className={styles.label}>Gear notes</label>
+                <input type="text" id="gearNotes" name="gearNotes" placeholder="Exceptions, replacements…" value={gearNotes} onChange={(e) => setGearNotes(e.target.value)} className={styles.input} />
+              </div>
+            </Field>
+          </div>
+        </AccordionSection>
+
+        <AccordionSection id="training" title="Training" defaultOpen={false} summary={trainingSum}>
+          <div className={styles.formGrid12}>
+            <Field col={12}>
+              <label className={styles.safetyStopRow} style={{ cursor: "pointer" }}>
+                <input type="checkbox" name="isTrainingDive" checked={isTrainingDive} onChange={(e) => setIsTrainingDive(e.target.checked)} />
+                <span className={styles.label}>Training dive?</span>
+              </label>
+            </Field>
+            {isTrainingDive && (
+              <>
+                <Field col={6}>
+                  <div className={styles.field}>
+                    <label htmlFor="trainingCourse" className={styles.label}>Course</label>
+                    <input type="text" id="trainingCourse" name="trainingCourse" placeholder="e.g. AOW, Rescue" value={trainingCourse} onChange={(e) => setTrainingCourse(e.target.value)} className={styles.input} />
+                  </div>
+                </Field>
+                <Field col={6}>
+                  <div className={styles.field}>
+                    <label htmlFor="trainingInstructor" className={styles.label}>Instructor / DM</label>
+                    <input type="text" id="trainingInstructor" name="trainingInstructor" value={trainingInstructor} onChange={(e) => setTrainingInstructor(e.target.value)} className={styles.input} />
+                  </div>
+                </Field>
+                <Field col={12}>
+                  <div className={styles.field}>
+                    <label htmlFor="trainingSkills" className={styles.label}>Skills practiced</label>
+                    <input type="text" id="trainingSkills" name="trainingSkills" placeholder="Comma-separated or list" value={trainingSkills} onChange={(e) => setTrainingSkills(e.target.value)} className={styles.input} />
+                  </div>
+                </Field>
+              </>
+            )}
+          </div>
+        </AccordionSection>
           </div>
         </div>
-      </AccordionSection>
+      </div>
 
-      <AccordionSection id="notes" title="Notes" defaultOpen>
-        <div className={formStyles.field}>
-          <label htmlFor="notes" className={formStyles.label}>Notes</label>
-          <textarea id="notes" name="notes" rows={4} placeholder="Conditions, wildlife, gear notes…" defaultValue={activeEntry?.notes ?? ""} className={formStyles.textarea} />
-        </div>
-      </AccordionSection>
-
-      <AccordionSection id="conditions" title="Conditions" defaultOpen={false} summary={conditionsSum}>
-        <div className={formStyles.formGroup}>
-          <div className={formStyles.formGrid2}>
-            <div className={formStyles.field}>
-              <label htmlFor="waterTempSurface" className={formStyles.label}>Water temp surface ({getUnitLabel("temperature", prefs)})</label>
-              <input type="number" id="waterTempSurface" name="waterTempSurface" value={waterTempSurface} onChange={(e) => setWaterTempSurface(e.target.value)} className={formStyles.input} />
-            </div>
-            <div className={formStyles.field}>
-              <label htmlFor="waterTempBottom" className={formStyles.label}>Water temp bottom ({getUnitLabel("temperature", prefs)})</label>
-              <input type="number" id="waterTempBottom" name="waterTempBottom" value={waterTempBottom} onChange={(e) => setWaterTempBottom(e.target.value)} className={formStyles.input} />
-            </div>
-          </div>
-          <div className={formStyles.formGrid2}>
-            <div className={formStyles.field}>
-              <label htmlFor="visibility" className={formStyles.label}>Visibility ({getUnitLabel("distance", prefs)})</label>
-              <input type="number" id="visibility" name="visibility" value={visibility} onChange={(e) => setVisibility(e.target.value)} className={formStyles.input} />
-            </div>
-            <div className={formStyles.field}>
-              <label htmlFor="current" className={formStyles.label}>Current</label>
-              <select id="current" name="current" className={formStyles.select} value={current} onChange={(e) => setCurrent(e.target.value)}>
-                {CURRENT_OPTIONS.map((o) => (
-                  <option key={o.value || "none"} value={o.value}>{o.label}</option>
-                ))}
-              </select>
-            </div>
-          </div>
-        </div>
-      </AccordionSection>
-
-      <AccordionSection id="gas" title="Gas" defaultOpen={false} summary={gasSum}>
-        <div className={formStyles.formGroup}>
-          <div className={formStyles.field}>
-            <label htmlFor="gasType" className={formStyles.label}>Gas type</label>
-            <select id="gasType" name="gasType" className={formStyles.select} value={gasType} onChange={(e) => setGasType(e.target.value)}>
-              {GAS_TYPE_OPTIONS.map((o) => (
-                <option key={o.value} value={o.value}>{o.label}</option>
+      {/* Alerts - span full width */}
+      {(softWarnings.length > 0 || error) && (
+        <div className={styles.formAlerts}>
+          {softWarnings.length > 0 && (
+            <ul className={formStyles.error} style={{ color: "var(--color-warning, #f59e0b)", marginBottom: "var(--space-2)" }}>
+              {softWarnings.map((w) => (
+                <li key={w.fieldKey}>{w.message}</li>
               ))}
-            </select>
-          </div>
-          {gasType === "Nitrox" && (
-            <div className={formStyles.field}>
-              <label htmlFor="fO2" className={formStyles.label}>FO2 (%) *</label>
-              <input type="number" id="fO2" name="fO2" min={21} max={100} value={fO2} onChange={(e) => setFO2(e.target.value)} required className={formStyles.input} />
-            </div>
+            </ul>
           )}
-          <div className={formStyles.field}>
-            <label htmlFor="tankCylinder" className={formStyles.label}>Tank / cylinder</label>
-            <input type="text" id="tankCylinder" name="tankCylinder" placeholder="AL80, HP100…" value={tankCylinder} onChange={(e) => setTankCylinder(e.target.value)} className={formStyles.input} />
-          </div>
-          <div className={formStyles.formGrid2}>
-            <div className={formStyles.field}>
-              <label htmlFor="startPressure" className={formStyles.label}>Start pressure ({getUnitLabel("pressure", prefs)})</label>
-              <input type="number" id="startPressure" name="startPressure" value={startPressure} onChange={(e) => setStartPressure(e.target.value)} className={formStyles.input} />
-            </div>
-            <div className={formStyles.field}>
-              <label htmlFor="endPressure" className={formStyles.label}>End pressure ({getUnitLabel("pressure", prefs)})</label>
-              <input type="number" id="endPressure" name="endPressure" value={endPressure} onChange={(e) => setEndPressure(e.target.value)} className={formStyles.input} />
-            </div>
-          </div>
-        </div>
-      </AccordionSection>
-
-      <AccordionSection id="exposure" title="Exposure & Weight" defaultOpen={false} summary={exposureSum}>
-        <div className={formStyles.formGroup}>
-          <div className={formStyles.field}>
-            <label htmlFor="exposureProtection" className={formStyles.label}>Exposure protection</label>
-            <select id="exposureProtection" name="exposureProtection" className={formStyles.select} value={exposureProtection} onChange={(e) => setExposureProtection(e.target.value)}>
-              {EXPOSURE_PROTECTION_OPTIONS.map((o) => (
-                <option key={o.value || "none"} value={o.value}>{o.label}</option>
-              ))}
-            </select>
-          </div>
-          <div className={formStyles.field}>
-            <label htmlFor="weightUsed" className={formStyles.label}>Weight used ({getUnitLabel("weight", prefs)})</label>
-            <input type="number" id="weightUsed" name="weightUsed" min={0} value={weightUsed} onChange={(e) => setWeightUsed(e.target.value)} className={formStyles.input} />
-          </div>
-        </div>
-      </AccordionSection>
-
-      <AccordionSection id="gear" title="Gear used" defaultOpen={false} summary={gearSum}>
-        <div className={formStyles.formGroup}>
-          <div className={formStyles.field}>
-            <label htmlFor="gearKitId" className={formStyles.label}>Gear kit</label>
-            <select id="gearKitId" name="gearKitId" className={formStyles.select} value={gearKitId} onChange={(e) => handleGearKitSelect(e.target.value)}>
-              <option value="">None</option>
-              {gearKits.map((k) => (
-                <option key={k.id} value={k.id}>{k.name}</option>
-              ))}
-            </select>
-          </div>
-          <GearSelection selectedGearIds={selectedGearIds} onSelectionChange={onGearSelectionChange} editingEntryId={editingEntryId} />
-          <div className={formStyles.field}>
-            <label htmlFor="gearNotes" className={formStyles.label}>Gear notes</label>
-            <input type="text" id="gearNotes" name="gearNotes" placeholder="Exceptions, replacements…" value={gearNotes} onChange={(e) => setGearNotes(e.target.value)} className={formStyles.input} />
-          </div>
-        </div>
-      </AccordionSection>
-
-      <AccordionSection id="training" title="Training" defaultOpen={false} summary={trainingSum}>
-        <div className={formStyles.formGroup}>
-          <div className={formStyles.field}>
-            <label style={{ display: "flex", alignItems: "center", gap: "var(--space-2)", cursor: "pointer" }}>
-              <input type="checkbox" name="isTrainingDive" checked={isTrainingDive} onChange={(e) => setIsTrainingDive(e.target.checked)} />
-              <span className={formStyles.label}>Training dive?</span>
-            </label>
-          </div>
-          {isTrainingDive && (
-            <>
-              <div className={formStyles.field}>
-                <label htmlFor="trainingCourse" className={formStyles.label}>Course</label>
-                <input type="text" id="trainingCourse" name="trainingCourse" placeholder="e.g. AOW, Rescue" value={trainingCourse} onChange={(e) => setTrainingCourse(e.target.value)} className={formStyles.input} />
-              </div>
-              <div className={formStyles.field}>
-                <label htmlFor="trainingInstructor" className={formStyles.label}>Instructor / DM</label>
-                <input type="text" id="trainingInstructor" name="trainingInstructor" value={trainingInstructor} onChange={(e) => setTrainingInstructor(e.target.value)} className={formStyles.input} />
-              </div>
-              <div className={formStyles.field}>
-                <label htmlFor="trainingSkills" className={formStyles.label}>Skills practiced</label>
-                <input type="text" id="trainingSkills" name="trainingSkills" placeholder="Comma-separated or list" value={trainingSkills} onChange={(e) => setTrainingSkills(e.target.value)} className={formStyles.input} />
-              </div>
-            </>
-          )}
-        </div>
-      </AccordionSection>
-
-      {softWarnings.length > 0 && (
-        <div className={formStyles.field} style={{ marginTop: "var(--space-4)" }}>
-          <ul style={{ fontSize: "var(--font-size-sm)", color: "var(--color-warning-text, #f59e0b)" }}>
-            {softWarnings.map((w) => (
-              <li key={w.fieldKey}>{w.message}</li>
-            ))}
-          </ul>
+          {error && <p className={formStyles.error}>{error}</p>}
         </div>
       )}
-
-      {error && <p className={formStyles.error}>{error}</p>}
     </form>
   );
 }

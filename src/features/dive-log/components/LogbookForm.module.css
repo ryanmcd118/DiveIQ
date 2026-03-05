@@ -1,0 +1,233 @@
+/* Logbook form layout: two-column desktop (independent scroll), single-column mobile */
+
+.formRoot {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  width: 100%;
+}
+
+@media (min-width: 1024px) {
+  .formRoot {
+    flex: 1 1 0;
+    min-height: 0;
+    overflow: hidden;
+  }
+}
+
+/* Columns wrapper - grid on desktop, stacks on mobile */
+.columns {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+@media (min-width: 1024px) {
+  .columns {
+    flex: 1 1 0;
+    min-height: 0;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--space-6);
+    align-items: stretch;
+  }
+}
+
+/* Scroll containers - only on desktop */
+.leftCol,
+.rightCol {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+@media (min-width: 1024px) {
+  .leftCol,
+  .rightCol {
+    overflow-y: auto;
+  }
+}
+
+/* Column content - no scroll, flex layout */
+.leftColumn,
+.rightColumn {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+/* Section card - consistent styling for both static and accordion sections */
+.sectionCard {
+  background: var(--color-surface-form, rgba(15, 23, 42, 0.8));
+  border: 1px solid var(--color-border-subtle, rgba(255, 255, 255, 0.08));
+  border-radius: var(--radius-md, 12px);
+  overflow: hidden;
+}
+
+.sectionHeader {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-secondary);
+  margin-bottom: var(--space-2);
+  letter-spacing: 0.02em;
+}
+
+.sectionBody {
+  padding: var(--space-3) var(--space-4);
+}
+
+/* Compact 12-col grid inside sections */
+.formGrid12 {
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  gap: var(--space-2) var(--space-3);
+}
+
+.col6 {
+  grid-column: span 6;
+}
+
+.col12 {
+  grid-column: span 12;
+}
+
+@media (max-width: 767px) {
+  .col6 {
+    grid-column: span 12;
+  }
+}
+
+/* Field within grid - compact */
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  min-width: 0;
+}
+
+.label {
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-muted);
+}
+
+.input,
+.select,
+.textarea {
+  width: 100%;
+  padding: var(--space-2) var(--space-3);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-primary);
+  background: var(--color-surface-input);
+  border: 1px solid var(--color-border-input);
+  border-radius: var(--radius-md);
+  transition: all var(--transition-base);
+}
+
+.input::placeholder,
+.textarea::placeholder {
+  color: var(--color-text-disabled);
+}
+
+.input:focus,
+.select:focus,
+.textarea:focus {
+  outline: none;
+  border-color: var(--color-accent-primary);
+  box-shadow: 0 0 0 2px rgba(6, 182, 212, 0.2);
+}
+
+.textarea {
+  resize: vertical;
+  min-height: 4rem;
+  max-height: 12rem;
+}
+
+/* Accordion header - full-width, clearly clickable */
+.accordionHeader {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  background: transparent;
+  border: none;
+  color: var(--color-text-primary);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  cursor: pointer;
+  text-align: left;
+  transition: background-color 0.15s, color 0.15s;
+}
+
+.accordionHeader:hover {
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--color-accent-primary);
+}
+
+.accordionHeader:focus {
+  outline: 2px solid var(--color-accent-primary);
+  outline-offset: -2px;
+}
+
+.accordionHeader .title {
+  flex-shrink: 0;
+}
+
+.accordionSummary {
+  flex: 1;
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-normal);
+  color: var(--color-text-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  text-align: right;
+}
+
+.accordionChevron {
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+  color: var(--color-text-muted);
+  transition: transform 0.2s ease, color 0.15s;
+}
+
+.accordionChevronOpen {
+  transform: rotate(180deg);
+  color: var(--color-accent-primary);
+}
+
+.accordionHeader:hover .accordionChevron {
+  color: var(--color-accent-primary);
+}
+
+/* Dive type chips row */
+.diveTypeRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1);
+  align-items: center;
+}
+
+.diveTypeChip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  font-size: var(--font-size-xs);
+}
+
+/* Safety stop inline row */
+.safetyStopRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+}
+
+/* Form-level error/warning block */
+.formAlerts {
+  flex-shrink: 0;
+  margin-top: var(--space-2);
+}
