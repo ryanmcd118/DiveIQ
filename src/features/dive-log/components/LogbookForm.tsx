@@ -276,6 +276,19 @@ export function LogbookForm({
   const [showAllDiveTypes, setShowAllDiveTypes] = useState(false);
   const [gearKits, setGearKits] = useState<{ id: string; name: string; kitItems: { gearItemId: string }[] }[]>([]);
 
+  // Gas used (derived): start - end pressure; blank if either missing/invalid or if negative
+  const gasUsedDisplay = (() => {
+    const start = startPressure.trim();
+    const end = endPressure.trim();
+    if (!start || !end) return null;
+    const startNum = parseFloat(start);
+    const endNum = parseFloat(end);
+    if (Number.isNaN(startNum) || Number.isNaN(endNum)) return null;
+    const used = startNum - endNum;
+    if (used < 0) return null;
+    return Math.round(used);
+  })();
+
   const initFromEntry = (entry: DiveLogEntry | null) => {
     if (entry) {
       setDate(entry.date ?? "");
@@ -546,7 +559,7 @@ export function LogbookForm({
             <div className={styles.timeRow1}>
               <div className={`${styles.field} ${styles.fieldNarrowDate}`}>
                 <label htmlFor="date" className={styles.label}>
-                  Date *
+                  Date <span className={styles.labelRequired}>*</span>
                 </label>
                 <input
                   type="date"
@@ -567,7 +580,7 @@ export function LogbookForm({
                   <input
                     type="text"
                     id="startTimeDisplay"
-                    placeholder="09:00"
+                    placeholder="hh:mm"
                     value={startTimeDisplay}
                     onChange={(e) => {
                       setStartTimeDisplay(e.target.value);
@@ -619,7 +632,7 @@ export function LogbookForm({
                   <input
                     type="text"
                     id="endTimeDisplay"
-                    placeholder="09:52"
+                    placeholder="hh:mm"
                     value={endTimeDisplay}
                     onChange={(e) => {
                       setEndTimeDisplay(e.target.value);
@@ -675,21 +688,24 @@ export function LogbookForm({
 
               <div className={styles.fieldNarrowNum}>
                 <label htmlFor="bottomTime" className={styles.label}>
-                  Bottom time (min)
+                  Bottom time
                 </label>
-                <input
-                  type="number"
-                  id="bottomTime"
-                  name="bottomTime"
-                  min={0}
-                  value={bottomTime}
-                  onChange={(e) => {
-                    setBottomTime(e.target.value);
-                    setLastEditedTime("bottom");
-                  }}
-                  placeholder="—"
-                  className={styles.input}
-                />
+                <div className={styles.inputWithUnit}>
+                  <input
+                    type="number"
+                    id="bottomTime"
+                    name="bottomTime"
+                    min={0}
+                    value={bottomTime}
+                    onChange={(e) => {
+                      setBottomTime(e.target.value);
+                      setLastEditedTime("bottom");
+                    }}
+                    placeholder="—"
+                    className={styles.input}
+                  />
+                  <span className={styles.unitSuffix}>min</span>
+                </div>
               </div>
 
               <div className={styles.fieldNarrowNum}>
@@ -697,18 +713,21 @@ export function LogbookForm({
                   htmlFor="surfaceIntervalMin"
                   className={styles.label}
                 >
-                  Surface interval (min)
+                  Surface interval
                 </label>
-                <input
-                  type="number"
-                  id="surfaceIntervalMin"
-                  name="surfaceIntervalMin"
-                  min={0}
-                  value={surfaceIntervalMin}
-                  onChange={(e) => setSurfaceIntervalMin(e.target.value)}
-                  placeholder="—"
-                  className={styles.input}
-                />
+                <div className={styles.inputWithUnit}>
+                  <input
+                    type="number"
+                    id="surfaceIntervalMin"
+                    name="surfaceIntervalMin"
+                    min={0}
+                    value={surfaceIntervalMin}
+                    onChange={(e) => setSurfaceIntervalMin(e.target.value)}
+                    placeholder="—"
+                    className={styles.input}
+                  />
+                  <span className={styles.unitSuffix}>min</span>
+                </div>
               </div>
 
               <div className={`${styles.field} ${styles.fieldNarrowNumber}`}>
@@ -773,7 +792,6 @@ export function LogbookForm({
                   type="text"
                   id="buddyName"
                   name="buddyName"
-                  placeholder="Optional"
                   value={buddyName}
                   onChange={(e) => setBuddyName(e.target.value)}
                   className={styles.input}
@@ -786,7 +804,7 @@ export function LogbookForm({
               <div className={styles.siteRow}>
                 <div className={styles.field}>
                   <label htmlFor="siteName" className={styles.label}>
-                    Site name *
+                    Site name <span className={styles.labelRequired}>*</span>
                   </label>
                   <input
                     type="text"
@@ -820,86 +838,86 @@ export function LogbookForm({
                 <div className={styles.profileCellNarrow}>
                   <div className={styles.field}>
                     <label htmlFor="maxDepth" className={styles.label}>
-                      Max depth ({getUnitLabel("depth", prefs)})
+                      Max depth
                     </label>
-                    <input
-                      type="number"
-                      id="maxDepth"
-                      name="maxDepth"
-                      value={maxDepth}
-                      onChange={(e) => setMaxDepth(e.target.value)}
-                      placeholder="Optional"
-                      className={styles.input}
-                    />
+                    <div className={styles.inputWithUnit}>
+                      <input
+                        type="number"
+                        id="maxDepth"
+                        name="maxDepth"
+                        value={maxDepth}
+                        onChange={(e) => setMaxDepth(e.target.value)}
+                        className={styles.input}
+                      />
+                      <span className={styles.unitSuffix}>{getUnitLabel("depth", prefs)}</span>
+                    </div>
                   </div>
                 </div>
                 <div className={styles.profileCellSafety}>
                   <div className={styles.field}>
-                    <label
-                      className={styles.safetyStopRow}
-                      style={{ cursor: "pointer" }}
-                    >
-                      <input
-                        type="checkbox"
-                        checked={safetyStopEnabled}
-                        onChange={(e) => {
-                          const checked = e.target.checked;
-                          if (!checked) {
-                            setSafetyStopEnabled(false);
-                            setSafetyStopDepth("");
-                            setSafetyStopDuration("");
-                          } else {
-                            setSafetyStopEnabled(true);
-                          }
-                        }}
-                      />
-                      <span className={styles.label}>Safety stop</span>
-                      <input
-                        type="number"
-                        id="safetyStopDepth"
-                        name="safetyStopDepth"
-                        value={safetyStopDepth}
-                        onChange={(e) => {
-                          const value = e.target.value;
-                          setSafetyStopDepth(value);
-                          if (value.trim() !== "" && !safetyStopEnabled) {
-                            setSafetyStopEnabled(true);
-                          }
-                        }}
-                        placeholder={prefs.depth === "m" ? "5" : "15"}
-                        className={styles.input}
-                        style={{
-                          width: "4rem",
-                          padding: "var(--space-1) var(--space-2)",
-                        }}
-                      />
-                      <span className={styles.label} style={{ margin: 0 }}>
-                        {getUnitLabel("depth", prefs)}
-                      </span>
-                      <input
-                        type="number"
-                        id="safetyStopDuration"
-                        name="safetyStopDuration"
-                        min={1}
-                        value={safetyStopDuration}
-                        onChange={(e) => {
-                          const value = e.target.value;
-                          setSafetyStopDuration(value);
-                          if (value.trim() !== "" && !safetyStopEnabled) {
-                            setSafetyStopEnabled(true);
-                          }
-                        }}
-                        placeholder="3"
-                        className={styles.input}
-                        style={{
-                          width: "3.5rem",
-                          padding: "var(--space-1) var(--space-2)",
-                        }}
-                      />
-                      <span className={styles.label} style={{ margin: 0 }}>
-                        min
-                      </span>
-                    </label>
+                    <div className={styles.safetyStopGroup}>
+                      <label
+                        className={styles.safetyStopRow}
+                        style={{ cursor: "pointer" }}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={safetyStopEnabled}
+                          onChange={(e) => {
+                            const checked = e.target.checked;
+                            if (!checked) {
+                              setSafetyStopEnabled(false);
+                              setSafetyStopDepth("");
+                              setSafetyStopDuration("");
+                            } else {
+                              setSafetyStopEnabled(true);
+                            }
+                          }}
+                        />
+                        <span className={styles.label}>Safety stop</span>
+                      </label>
+                      <div className={styles.safetyStopFields}>
+                        <input
+                          type="number"
+                          id="safetyStopDepth"
+                          name="safetyStopDepth"
+                          value={safetyStopDepth}
+                          onChange={(e) => {
+                            const value = e.target.value;
+                            setSafetyStopDepth(value);
+                            if (value.trim() !== "" && !safetyStopEnabled) {
+                              setSafetyStopEnabled(true);
+                            }
+                          }}
+                          className={styles.input}
+                          style={{
+                            width: "4rem",
+                            padding: "var(--space-1) var(--space-2)",
+                          }}
+                        />
+                        <span className={styles.unitSuffix}>{getUnitLabel("depth", prefs)}</span>
+                        <input
+                          type="number"
+                          id="safetyStopDuration"
+                          name="safetyStopDuration"
+                          min={1}
+                          value={safetyStopDuration}
+                          onChange={(e) => {
+                            const value = e.target.value;
+                            setSafetyStopDuration(value);
+                            if (value.trim() !== "" && !safetyStopEnabled) {
+                              setSafetyStopEnabled(true);
+                            }
+                          }}
+                          className={styles.input}
+                          style={{
+                            width: "3.5rem",
+                            padding: "var(--space-1) var(--space-2)",
+                          }}
+                        />
+                        <span className={styles.unitSuffix}>min</span>
+                      </div>
+                    </div>
                     <input
                       type="hidden"
                       name="safetyStopEnabled"
@@ -939,7 +957,7 @@ export function LogbookForm({
                   <div className={styles.gasCellFO2}>
                     <div className={styles.field}>
                       <label htmlFor="fO2" className={styles.label}>
-                        FO2 (%) *
+                        FO2 (%)
                       </label>
                       <input
                         type="number"
@@ -949,7 +967,6 @@ export function LogbookForm({
                         max={100}
                         value={fO2}
                         onChange={(e) => setFO2(e.target.value)}
-                        required
                         className={styles.input}
                       />
                     </div>
@@ -974,36 +991,127 @@ export function LogbookForm({
                 <div className={styles.gasCellNarrow}>
                   <div className={styles.field}>
                     <label htmlFor="startPressure" className={styles.label}>
-                      Start pressure ({getUnitLabel("pressure", prefs)})
+                      Start pressure
                     </label>
-                    <input
-                      type="number"
-                      id="startPressure"
-                      name="startPressure"
-                      value={startPressure}
-                      onChange={(e) => setStartPressure(e.target.value)}
-                      className={styles.input}
-                    />
+                    <div className={styles.inputWithUnit}>
+                      <input
+                        type="number"
+                        id="startPressure"
+                        name="startPressure"
+                        value={startPressure}
+                        onChange={(e) => setStartPressure(e.target.value)}
+                        className={styles.input}
+                      />
+                      <span className={styles.unitSuffix}>{getUnitLabel("pressure", prefs)}</span>
+                    </div>
                   </div>
                 </div>
                 <div className={styles.gasCellNarrow}>
                   <div className={styles.field}>
                     <label htmlFor="endPressure" className={styles.label}>
-                      End pressure ({getUnitLabel("pressure", prefs)})
+                      End pressure
                     </label>
-                    <input
-                      type="number"
-                      id="endPressure"
-                      name="endPressure"
-                      value={endPressure}
-                      onChange={(e) => setEndPressure(e.target.value)}
-                      className={styles.input}
-                    />
+                    <div className={styles.inputWithUnit}>
+                      <input
+                        type="number"
+                        id="endPressure"
+                        name="endPressure"
+                        value={endPressure}
+                        onChange={(e) => setEndPressure(e.target.value)}
+                        className={styles.input}
+                      />
+                      <span className={styles.unitSuffix}>{getUnitLabel("pressure", prefs)}</span>
+                    </div>
+                  </div>
+                </div>
+                <div className={styles.gasCellGasUsed}>
+                  <div className={styles.field}>
+                    <span className={styles.label}>Gas used</span>
+                    <div className={styles.inputWithUnit}>
+                      <div
+                        className={styles.gasUsedReadOnly}
+                        aria-live="polite"
+                        aria-label={`Gas used: ${gasUsedDisplay != null ? `${gasUsedDisplay} ${getUnitLabel("pressure", prefs)}` : "—"}`}
+                      >
+                        {gasUsedDisplay != null ? gasUsedDisplay : "—"}
+                      </div>
+                      <span className={styles.unitSuffix}>{getUnitLabel("pressure", prefs)}</span>
+                    </div>
                   </div>
                 </div>
               </div>
 
-              {/* Row 5: Dive type pills — Most common + Show more (Saltwater/Freshwater/Pool are pills, not a separate water-type field) */}
+              {/* Row 5: Conditions — Water temp surface, bottom, visibility, current (single line) */}
+              <div className={styles.conditionsRow}>
+                <div className={styles.field}>
+                  <label htmlFor="waterTempSurface" className={styles.label}>
+                    Water temp surface
+                  </label>
+                  <div className={styles.inputWithUnit}>
+                    <input
+                      type="number"
+                      id="waterTempSurface"
+                      name="waterTempSurface"
+                      value={waterTempSurface}
+                      onChange={(e) => setWaterTempSurface(e.target.value)}
+                      className={styles.input}
+                    />
+                    <span className={styles.unitSuffix}>{getUnitLabel("temperature", prefs)}</span>
+                  </div>
+                </div>
+                <div className={styles.field}>
+                  <label htmlFor="waterTempBottom" className={styles.label}>
+                    Water temp bottom
+                  </label>
+                  <div className={styles.inputWithUnit}>
+                    <input
+                      type="number"
+                      id="waterTempBottom"
+                      name="waterTempBottom"
+                      value={waterTempBottom}
+                      onChange={(e) => setWaterTempBottom(e.target.value)}
+                      className={styles.input}
+                    />
+                    <span className={styles.unitSuffix}>{getUnitLabel("temperature", prefs)}</span>
+                  </div>
+                </div>
+                <div className={styles.field}>
+                  <label htmlFor="visibility" className={styles.label}>
+                    Visibility
+                  </label>
+                  <div className={styles.inputWithUnit}>
+                    <input
+                      type="number"
+                      id="visibility"
+                      name="visibility"
+                      value={visibility}
+                      onChange={(e) => setVisibility(e.target.value)}
+                      className={styles.input}
+                    />
+                    <span className={styles.unitSuffix}>{getUnitLabel("distance", prefs)}</span>
+                  </div>
+                </div>
+                <div className={styles.field}>
+                  <label htmlFor="current" className={styles.label}>
+                    Current
+                  </label>
+                  <select
+                    id="current"
+                    name="current"
+                    className={styles.select}
+                    value={current}
+                    onChange={(e) => setCurrent(e.target.value)}
+                  >
+                    {CURRENT_OPTIONS.map((o) => (
+                      <option key={o.value || "none"} value={o.value}>
+                        {o.label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              {/* Row 6: Dive type pills + Show more inline */}
               <Field col={12}>
                 <div className={styles.field}>
                   <span className={styles.label}>Dive type</span>
@@ -1093,7 +1201,7 @@ export function LogbookForm({
                 </div>
               </Field>
 
-              {/* Row 6: Notes */}
+              {/* Row 7: Notes */}
               <Field col={12}>
                 <div className={styles.field}>
                   <label htmlFor="notes" className={styles.label}>
@@ -1102,8 +1210,8 @@ export function LogbookForm({
                   <textarea
                     id="notes"
                     name="notes"
-                    rows={3}
-                    placeholder="Conditions, wildlife, gear notes…"
+                    rows={4}
+                    placeholder="Wildlife, conditions, gear notes, memorable moments…"
                     value={notes}
                     onChange={(e) => setNotes(e.target.value)}
                     className={styles.textarea}
@@ -1114,98 +1222,15 @@ export function LogbookForm({
               </div>
             </div>
 
-        {/* Advanced accordion */}
+        {/* Advanced accordion — divider above so it doesn't float */}
+        <div className={styles.advancedSectionWrap}>
         <AccordionSection
           id="advanced"
           title="Advanced"
           defaultOpen={false}
-          summary="Conditions, gear, exposure, training"
+          summary="Gear, exposure, training"
         >
           <div className={styles.sectionBody}>
-                <h4 className={styles.subsectionHeader}>Conditions</h4>
-                <div className={styles.formGrid12}>
-                  <Field col={6}>
-                    <div className={styles.field}>
-                      <label
-                        htmlFor="waterTempSurface"
-                        className={styles.label}
-                      >
-                        Water temp surface (
-                        {getUnitLabel("temperature", prefs)})
-                      </label>
-                      <input
-                        type="number"
-                        id="waterTempSurface"
-                        name="waterTempSurface"
-                        value={waterTempSurface}
-                        onChange={(e) =>
-                          setWaterTempSurface(e.target.value)
-                        }
-                        className={styles.input}
-                      />
-                    </div>
-                  </Field>
-                  <Field col={6}>
-                    <div className={styles.field}>
-                      <label
-                        htmlFor="waterTempBottom"
-                        className={styles.label}
-                      >
-                        Water temp bottom (
-                        {getUnitLabel("temperature", prefs)})
-                      </label>
-                      <input
-                        type="number"
-                        id="waterTempBottom"
-                        name="waterTempBottom"
-                        value={waterTempBottom}
-                        onChange={(e) =>
-                          setWaterTempBottom(e.target.value)
-                        }
-                        className={styles.input}
-                      />
-                    </div>
-                  </Field>
-                  <Field col={6}>
-                    <div className={styles.field}>
-                      <label htmlFor="visibility" className={styles.label}>
-                        Visibility ({getUnitLabel("distance", prefs)})
-                      </label>
-                      <input
-                        type="number"
-                        id="visibility"
-                        name="visibility"
-                        value={visibility}
-                        onChange={(e) => setVisibility(e.target.value)}
-                        className={styles.input}
-                      />
-                    </div>
-                  </Field>
-                  <Field col={6}>
-                    <div className={styles.field}>
-                      <label htmlFor="current" className={styles.label}>
-                        Current
-                      </label>
-                      <select
-                        id="current"
-                        name="current"
-                        className={styles.select}
-                        value={current}
-                        onChange={(e) => setCurrent(e.target.value)}
-                      >
-                        {CURRENT_OPTIONS.map((o) => (
-                          <option
-                            key={o.value || "none"}
-                            value={o.value}
-                          >
-                            {o.label}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-                  </Field>
-                </div>
-
                 <h4 className={styles.subsectionHeader}>Exposure &amp; Weight</h4>
                 <div className={styles.formGrid12}>
                   <Field col={6}>
@@ -1387,6 +1412,7 @@ export function LogbookForm({
                 </div>
               </div>
             </AccordionSection>
+        </div>
       </div>
 
       {/* Alerts - span full width */}
