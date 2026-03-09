@@ -792,7 +792,60 @@ export function LogbookForm({
                   <input type="hidden" name="safetyStopEnabled" value={safetyStopEnabled ? "1" : "0"} />
                 </div>
               </div>
-              {/* Row 5: Dive type pills */}
+              {/* Row 5: Weight / Exposure / Surface interval */}
+              <div className={styles.exposureRow}>
+                <div className={`${styles.field} ${styles.inputSmall}`}>
+                  <label htmlFor="weightUsed" className={styles.label}>
+                    Weight used ({getUnitLabel("weight", prefs)})
+                  </label>
+                  <input
+                    type="number"
+                    id="weightUsed"
+                    name="weightUsed"
+                    min={0}
+                    value={weightUsed}
+                    onChange={(e) => setWeightUsed(e.target.value)}
+                    className={styles.input}
+                  />
+                </div>
+                <div className={`${styles.field} ${styles.inputMedium}`}>
+                  <label htmlFor="exposureProtection" className={styles.label}>
+                    Exposure protection
+                  </label>
+                  <select
+                    id="exposureProtection"
+                    name="exposureProtection"
+                    className={styles.select}
+                    value={exposureProtection}
+                    onChange={(e) => setExposureProtection(e.target.value)}
+                  >
+                    {EXPOSURE_PROTECTION_OPTIONS.map((o) => (
+                      <option key={o.value || "none"} value={o.value}>
+                        {o.label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div className={`${styles.field} ${styles.inputSmall}`}>
+                  <label htmlFor="surfaceIntervalMin" className={styles.label}>
+                    Surface interval (min)
+                  </label>
+                  <div className={styles.inputWithUnit}>
+                    <input
+                      type="number"
+                      id="surfaceIntervalMin"
+                      name="surfaceIntervalMin"
+                      min={0}
+                      value={surfaceIntervalMin}
+                      onChange={(e) => setSurfaceIntervalMin(e.target.value)}
+                      placeholder="—"
+                      className={styles.input}
+                    />
+                    <span className={styles.unitSuffix}>min</span>
+                  </div>
+                </div>
+              </div>
+              {/* Row 6: Dive type pills */}
               <div className={styles.field}>
                 <span className={styles.label}>Dive type</span>
                 <div className={styles.diveTypeRow}>
@@ -837,74 +890,6 @@ export function LogbookForm({
           summary="Gear, exposure, training"
         >
           <div className={styles.sectionBody}>
-                <h4 className={styles.subsectionHeader}>Surface interval, exposure &amp; weight</h4>
-                <div className={styles.formGrid12}>
-                  <Field col={6}>
-                    <div className={styles.field}>
-                      <label htmlFor="surfaceIntervalMin" className={styles.label}>
-                        Surface interval (min)
-                      </label>
-                      <div className={styles.inputWithUnit}>
-                        <input
-                          type="number"
-                          id="surfaceIntervalMin"
-                          name="surfaceIntervalMin"
-                          min={0}
-                          value={surfaceIntervalMin}
-                          onChange={(e) => setSurfaceIntervalMin(e.target.value)}
-                          placeholder="—"
-                          className={styles.input}
-                        />
-                        <span className={styles.unitSuffix}>min</span>
-                      </div>
-                    </div>
-                  </Field>
-                  <Field col={6}>
-                    <div className={styles.field}>
-                      <label
-                        htmlFor="exposureProtection"
-                        className={styles.label}
-                      >
-                        Exposure protection
-                      </label>
-                      <select
-                        id="exposureProtection"
-                        name="exposureProtection"
-                        className={styles.select}
-                        value={exposureProtection}
-                        onChange={(e) =>
-                          setExposureProtection(e.target.value)
-                        }
-                      >
-                        {EXPOSURE_PROTECTION_OPTIONS.map((o) => (
-                          <option
-                            key={o.value || "none"}
-                            value={o.value}
-                          >
-                            {o.label}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-                  </Field>
-                  <Field col={6}>
-                    <div className={styles.field}>
-                      <label htmlFor="weightUsed" className={styles.label}>
-                        Weight used ({getUnitLabel("weight", prefs)})
-                      </label>
-                      <input
-                        type="number"
-                        id="weightUsed"
-                        name="weightUsed"
-                        min={0}
-                        value={weightUsed}
-                        onChange={(e) => setWeightUsed(e.target.value)}
-                        className={styles.input}
-                      />
-                    </div>
-                  </Field>
-                </div>
-
                 <h4 className={styles.subsectionHeader}>Gear used</h4>
                 <div className={styles.formGrid12}>
                   <Field col={12}>
@@ -928,29 +913,30 @@ export function LogbookForm({
                       </select>
                     </div>
                   </Field>
-                  <Field col={12}>
+                </div>
+                <div className={styles.gearTwoCol}>
+                  <div className={styles.gearColumn}>
                     <GearSelection
                       selectedGearIds={selectedGearIds}
                       onSelectionChange={onGearSelectionChange}
                       editingEntryId={editingEntryId}
                     />
-                  </Field>
-                  <Field col={12}>
-                    <div className={styles.field}>
+                  </div>
+                  <div className={styles.gearColumn}>
+                    <div className={styles.gearNotesPanel}>
                       <label htmlFor="gearNotes" className={styles.label}>
                         Gear notes
                       </label>
-                      <input
-                        type="text"
+                      <textarea
                         id="gearNotes"
                         name="gearNotes"
                         placeholder="Exceptions, replacements…"
                         value={gearNotes}
                         onChange={(e) => setGearNotes(e.target.value)}
-                        className={styles.input}
+                        className={styles.textarea}
                       />
                     </div>
-                  </Field>
+                  </div>
                 </div>
 
                 <h4 className={styles.subsectionHeader}>Training</h4>
