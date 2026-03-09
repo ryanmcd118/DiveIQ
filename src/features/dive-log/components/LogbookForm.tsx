@@ -552,675 +552,281 @@ export function LogbookForm({
       noValidate
     >
       <div className={styles.columns}>
-        {/* Core */}
         <div className={styles.sectionCard}>
           <div className={styles.sectionBody}>
-            {/* Row 1: Date | Start time | End time | Bottom (min) | Surface interval (min) | Dive # | Buddy */}
-            <div className={styles.timeRow1}>
-              <div className={`${styles.field} ${styles.fieldNarrowDate}`}>
-                <label htmlFor="date" className={styles.label}>
-                  Date <span className={styles.labelRequired}>*</span>
-                </label>
-                <input
-                  type="date"
-                  id="date"
-                  name="date"
-                  required
-                  value={date}
-                  onChange={(e) => setDate(e.target.value)}
-                  className={styles.input}
-                />
-              </div>
-
-              <div className={styles.timeGroup}>
-                <label htmlFor="startTimeDisplay" className={styles.label}>
-                  Start time
-                </label>
-                <div className={styles.timeRow}>
-                  <input
-                    type="text"
-                    id="startTimeDisplay"
-                    placeholder="hh:mm"
-                    value={startTimeDisplay}
-                    onChange={(e) => {
-                      setStartTimeDisplay(e.target.value);
-                      setLastEditedTime("start");
-                      if (startTimeError) setStartTimeError(null);
-                    }}
-                    onBlur={(e) => {
-                      const raw = e.target.value.trim();
-                      const normalized = normalizeTime(raw);
-                      if (normalized && normalized !== raw) {
-                        setStartTimeDisplay(normalized);
-                      }
-                      const valueToCheck = normalized || raw;
-                      if (valueToCheck && !to24HourTime(valueToCheck, startTimePeriod)) {
-                        setStartTimeError("Enter a valid time (e.g. 9:00 or 9:30)");
-                      } else {
-                        setStartTimeError(null);
-                      }
-                    }}
-                    className={`${styles.input} ${styles.fieldNarrowTime}`}
-                  />
-                  <select
-                    aria-label="AM or PM for start time"
-                    className={`${styles.select} ${styles.fieldNarrowPeriod}`}
-                    value={startTimePeriod}
-                    onChange={(e) => {
-                      setStartTimePeriod(
-                        e.target.value === "PM" ? "PM" : "AM"
-                      );
-                      setLastEditedTime("start");
-                    }}
-                  >
-                    <option value="AM">AM</option>
-                    <option value="PM">PM</option>
-                  </select>
-                </div>
-                {startTimeError && (
-                  <span className={styles.timeFieldError} role="alert">
-                    {startTimeError}
-                  </span>
-                )}
-              </div>
-
-              <div className={styles.timeGroup}>
-                <label htmlFor="endTimeDisplay" className={styles.label}>
-                  End time
-                </label>
-                <div className={styles.timeRow}>
-                  <input
-                    type="text"
-                    id="endTimeDisplay"
-                    placeholder="hh:mm"
-                    value={endTimeDisplay}
-                    onChange={(e) => {
-                      setEndTimeDisplay(e.target.value);
-                      setLastEditedTime("end");
-                      if (endTimeError) setEndTimeError(null);
-                    }}
-                    onBlur={(e) => {
-                      const raw = e.target.value.trim();
-                      const normalized = normalizeTime(raw);
-                      if (normalized && normalized !== raw) {
-                        setEndTimeDisplay(normalized);
-                      }
-                      const valueToCheck = normalized || raw;
-                      if (valueToCheck && !to24HourTime(valueToCheck, endTimePeriod)) {
-                        setEndTimeError("Enter a valid time (e.g. 9:52 or 10:00)");
-                      } else {
-                        setEndTimeError(null);
-                      }
-                    }}
-                    className={`${styles.input} ${styles.fieldNarrowTime}`}
-                  />
-                  <select
-                    aria-label="AM or PM for end time"
-                    className={`${styles.select} ${styles.fieldNarrowPeriod}`}
-                    value={endTimePeriod}
-                    onChange={(e) => {
-                      setEndTimePeriod(
-                        e.target.value === "PM" ? "PM" : "AM"
-                      );
-                      setLastEditedTime("end");
-                    }}
-                  >
-                    <option value="AM">AM</option>
-                    <option value="PM">PM</option>
-                  </select>
-                </div>
-                {endTimeError && (
-                  <span className={styles.timeFieldError} role="alert">
-                    {endTimeError}
-                  </span>
-                )}
-              </div>
-              <input
-                type="hidden"
-                name="startTime"
-                value={to24HourTime(startTimeDisplay, startTimePeriod)}
-              />
-              <input
-                type="hidden"
-                name="endTime"
-                value={to24HourTime(endTimeDisplay, endTimePeriod)}
-              />
-
-              <div className={styles.fieldNarrowNum}>
-                <label htmlFor="bottomTime" className={styles.label}>
-                  Bottom time
-                </label>
-                <div className={styles.inputWithUnit}>
+            {/* SECTION 1: Dive basics */}
+            <section className={styles.coreSubsection}>
+              <h3 className={styles.coreSubsectionHeader}>Dive basics</h3>
+              {/* Row 1: Dive # | Date* | Start time + AM/PM | End time + AM/PM | Bottom time (min) — no Surface interval */}
+              <div className={styles.timelineRow}>
+                <div className={`${styles.field} ${styles.inputSmall}`}>
+                  <div className={styles.diveNumberHeader}>
+                    <label htmlFor="diveNumber" className={styles.label}>
+                      Dive #
+                    </label>
+                    {isDiveNumberOverridden && (
+                      <span className={styles.diveNumberMeta}>
+                        <span className={styles.diveNumberTag}>Manual</span>
+                        <button
+                          type="button"
+                          className={styles.diveNumberReset}
+                          onClick={() => {
+                            const next = diveNumberAuto != null ? String(diveNumberAuto) : "";
+                            setDiveNumber(next);
+                            setIsDiveNumberOverridden(false);
+                          }}
+                        >
+                          Reset to auto
+                        </button>
+                      </span>
+                    )}
+                  </div>
                   <input
                     type="number"
-                    id="bottomTime"
-                    name="bottomTime"
-                    min={0}
-                    value={bottomTime}
+                    id="diveNumber"
+                    name="diveNumber"
+                    min={1}
+                    placeholder={`e.g. ${suggestedDiveNumber}`}
+                    value={diveNumber}
                     onChange={(e) => {
-                      setBottomTime(e.target.value);
-                      setLastEditedTime("bottom");
+                      const v = e.target.value;
+                      setDiveNumber(v);
+                      if (diveNumberAuto != null && v) setIsDiveNumberOverridden(v !== String(diveNumberAuto));
+                      else setIsDiveNumberOverridden(Boolean(v));
                     }}
-                    placeholder="—"
                     className={styles.input}
                   />
-                  <span className={styles.unitSuffix}>min</span>
+                  <input type="hidden" name="diveNumberOverride" value={isDiveNumberOverridden && diveNumber ? diveNumber : ""} />
                 </div>
-              </div>
-
-              <div className={styles.fieldNarrowNum}>
-                <label
-                  htmlFor="surfaceIntervalMin"
-                  className={styles.label}
-                >
-                  Surface interval
-                </label>
-                <div className={styles.inputWithUnit}>
-                  <input
-                    type="number"
-                    id="surfaceIntervalMin"
-                    name="surfaceIntervalMin"
-                    min={0}
-                    value={surfaceIntervalMin}
-                    onChange={(e) => setSurfaceIntervalMin(e.target.value)}
-                    placeholder="—"
-                    className={styles.input}
-                  />
-                  <span className={styles.unitSuffix}>min</span>
-                </div>
-              </div>
-
-              <div className={`${styles.field} ${styles.fieldNarrowNumber}`}>
-                <div className={styles.diveNumberHeader}>
-                  <label htmlFor="diveNumber" className={styles.label}>
-                    Dive #
+                <div className={`${styles.field} ${styles.inputSmall} ${styles.inputDate}`}>
+                  <label htmlFor="date" className={styles.label}>
+                    Date <span className={styles.labelRequired}>*</span>
                   </label>
-                  {isDiveNumberOverridden && (
-                    <span className={styles.diveNumberMeta}>
-                      <span className={styles.diveNumberTag}>Manual</span>
-                      <button
-                        type="button"
-                        className={styles.diveNumberReset}
-                        onClick={() => {
-                          const next =
-                            diveNumberAuto != null
-                              ? String(diveNumberAuto)
-                              : "";
-                          setDiveNumber(next);
-                          setIsDiveNumberOverridden(false);
-                        }}
-                      >
-                        Reset to auto
-                      </button>
-                    </span>
-                  )}
+                  <input type="date" id="date" name="date" required value={date} onChange={(e) => setDate(e.target.value)} className={styles.input} />
                 </div>
-                <input
-                  type="number"
-                  id="diveNumber"
-                  name="diveNumber"
-                  min={1}
-                  placeholder={`e.g. ${suggestedDiveNumber}`}
-                  value={diveNumber}
-                  onChange={(e) => {
-                    const v = e.target.value;
-                    setDiveNumber(v);
-                    if (diveNumberAuto != null && v) {
-                      setIsDiveNumberOverridden(
-                        v !== String(diveNumberAuto)
-                      );
-                    } else {
-                      setIsDiveNumberOverridden(Boolean(v));
-                    }
-                  }}
-                  className={styles.input}
-                />
-                <input
-                  type="hidden"
-                  name="diveNumberOverride"
-                  value={
-                    isDiveNumberOverridden && diveNumber ? diveNumber : ""
-                  }
-                />
-              </div>
-
-              <div className={styles.fieldBuddy}>
-                <label htmlFor="buddyName" className={styles.label}>
-                  Buddy
-                </label>
-                <input
-                  type="text"
-                  id="buddyName"
-                  name="buddyName"
-                  value={buddyName}
-                  onChange={(e) => setBuddyName(e.target.value)}
-                  className={styles.input}
-                />
-              </div>
-            </div>
-
-            <div className={styles.formGrid12}>
-              {/* Row 2: Site name | Location / Region */}
-              <div className={styles.siteRow}>
-                <div className={styles.field}>
-                  <label htmlFor="siteName" className={styles.label}>
-                    Site name <span className={styles.labelRequired}>*</span>
-                  </label>
-                  <input
-                    type="text"
-                    id="siteName"
-                    name="siteName"
-                    required
-                    placeholder="Mary's Place"
-                    value={siteName}
-                    onChange={(e) => setSiteName(e.target.value)}
-                    className={styles.input}
-                  />
-                </div>
-                <div className={styles.field}>
-                  <label htmlFor="region" className={styles.label}>
-                    Location / Region
-                  </label>
-                  <input
-                    type="text"
-                    id="region"
-                    name="region"
-                    placeholder="Roatán, Red Sea, local quarry…"
-                    value={region}
-                    onChange={(e) => setRegion(e.target.value)}
-                    className={styles.input}
-                  />
-                </div>
-              </div>
-
-              {/* Row 3: Max depth | Safety stop */}
-              <div className={styles.profileRow}>
-                <div className={styles.profileCellNarrow}>
-                  <div className={styles.field}>
-                    <label htmlFor="maxDepth" className={styles.label}>
-                      Max depth
-                    </label>
-                    <div className={styles.inputWithUnit}>
-                      <input
-                        type="number"
-                        id="maxDepth"
-                        name="maxDepth"
-                        value={maxDepth}
-                        onChange={(e) => setMaxDepth(e.target.value)}
-                        className={styles.input}
-                      />
-                      <span className={styles.unitSuffix}>{getUnitLabel("depth", prefs)}</span>
-                    </div>
-                  </div>
-                </div>
-                <div className={styles.profileCellSafety}>
-                  <div className={styles.field}>
-                    <div className={styles.safetyStopGroup}>
-                      <label
-                        className={styles.safetyStopRow}
-                        style={{ cursor: "pointer" }}
-                      >
-                        <input
-                          type="checkbox"
-                          checked={safetyStopEnabled}
-                          onChange={(e) => {
-                            const checked = e.target.checked;
-                            if (!checked) {
-                              setSafetyStopEnabled(false);
-                              setSafetyStopDepth("");
-                              setSafetyStopDuration("");
-                            } else {
-                              setSafetyStopEnabled(true);
-                            }
-                          }}
-                        />
-                        <span className={styles.label}>Safety stop</span>
-                      </label>
-                      <div className={styles.safetyStopFields}>
-                        <input
-                          type="number"
-                          id="safetyStopDepth"
-                          name="safetyStopDepth"
-                          value={safetyStopDepth}
-                          onChange={(e) => {
-                            const value = e.target.value;
-                            setSafetyStopDepth(value);
-                            if (value.trim() !== "" && !safetyStopEnabled) {
-                              setSafetyStopEnabled(true);
-                            }
-                          }}
-                          className={styles.input}
-                          style={{
-                            width: "4rem",
-                            padding: "var(--space-1) var(--space-2)",
-                          }}
-                        />
-                        <span className={styles.unitSuffix}>{getUnitLabel("depth", prefs)}</span>
-                        <input
-                          type="number"
-                          id="safetyStopDuration"
-                          name="safetyStopDuration"
-                          min={1}
-                          value={safetyStopDuration}
-                          onChange={(e) => {
-                            const value = e.target.value;
-                            setSafetyStopDuration(value);
-                            if (value.trim() !== "" && !safetyStopEnabled) {
-                              setSafetyStopEnabled(true);
-                            }
-                          }}
-                          className={styles.input}
-                          style={{
-                            width: "3.5rem",
-                            padding: "var(--space-1) var(--space-2)",
-                          }}
-                        />
-                        <span className={styles.unitSuffix}>min</span>
-                      </div>
-                    </div>
-                    <input
-                      type="hidden"
-                      name="safetyStopEnabled"
-                      value={safetyStopEnabled ? "1" : "0"}
-                    />
-                  </div>
-                </div>
-              </div>
-
-              {/* Row 4: Gas row — one compact row */}
-              <div
-                className={`${styles.gasRow} ${
-                  gasType === "Nitrox" ? styles.gasRowWithFO2 : ""
-                }`}
-              >
-                <div className={styles.gasCell}>
-                  <div className={styles.field}>
-                    <label htmlFor="gasType" className={styles.label}>
-                      Gas type
-                    </label>
-                    <select
-                      id="gasType"
-                      name="gasType"
-                      className={styles.select}
-                      value={gasType}
-                      onChange={(e) => setGasType(e.target.value)}
-                    >
-                      {GAS_TYPE_OPTIONS.map((o) => (
-                        <option key={o.value} value={o.value}>
-                          {o.label}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                </div>
-                {gasType === "Nitrox" && (
-                  <div className={styles.gasCellFO2}>
-                    <div className={styles.field}>
-                      <label htmlFor="fO2" className={styles.label}>
-                        FO2 (%)
-                      </label>
-                      <input
-                        type="number"
-                        id="fO2"
-                        name="fO2"
-                        min={21}
-                        max={100}
-                        value={fO2}
-                        onChange={(e) => setFO2(e.target.value)}
-                        className={styles.input}
-                      />
-                    </div>
-                  </div>
-                )}
-                <div className={styles.gasCellTank}>
-                  <div className={styles.field}>
-                    <label htmlFor="tankCylinder" className={styles.label}>
-                      Tank / cylinder
-                    </label>
+                <div className={styles.timeGroup}>
+                  <label htmlFor="startTimeDisplay" className={styles.label}>Start time</label>
+                  <div className={styles.timeRow}>
                     <input
                       type="text"
-                      id="tankCylinder"
-                      name="tankCylinder"
-                      placeholder="AL80, HP100…"
-                      value={tankCylinder}
-                      onChange={(e) => setTankCylinder(e.target.value)}
-                      className={styles.input}
+                      id="startTimeDisplay"
+                      placeholder="hh:mm"
+                      value={startTimeDisplay}
+                      onChange={(e) => { setStartTimeDisplay(e.target.value); setLastEditedTime("start"); if (startTimeError) setStartTimeError(null); }}
+                      onBlur={(e) => {
+                        const raw = e.target.value.trim();
+                        const normalized = normalizeTime(raw);
+                        if (normalized && normalized !== raw) setStartTimeDisplay(normalized);
+                        const valueToCheck = normalized || raw;
+                        if (valueToCheck && !to24HourTime(valueToCheck, startTimePeriod)) setStartTimeError("Enter a valid time (e.g. 9:00 or 9:30)");
+                        else setStartTimeError(null);
+                      }}
+                      className={`${styles.input} ${styles.inputSmall}`}
                     />
+                    <select aria-label="AM or PM for start time" className={`${styles.select} ${styles.inputTiny}`} value={startTimePeriod} onChange={(e) => { setStartTimePeriod(e.target.value === "PM" ? "PM" : "AM"); setLastEditedTime("start"); }}>
+                      <option value="AM">AM</option>
+                      <option value="PM">PM</option>
+                    </select>
                   </div>
+                  {startTimeError && <span className={styles.timeFieldError} role="alert">{startTimeError}</span>}
                 </div>
-                <div className={styles.gasCellNarrow}>
-                  <div className={styles.field}>
-                    <label htmlFor="startPressure" className={styles.label}>
-                      Start pressure
-                    </label>
-                    <div className={styles.inputWithUnit}>
-                      <input
-                        type="number"
-                        id="startPressure"
-                        name="startPressure"
-                        value={startPressure}
-                        onChange={(e) => setStartPressure(e.target.value)}
-                        className={styles.input}
-                      />
-                      <span className={styles.unitSuffix}>{getUnitLabel("pressure", prefs)}</span>
-                    </div>
+                <div className={styles.timeGroup}>
+                  <label htmlFor="endTimeDisplay" className={styles.label}>End time</label>
+                  <div className={styles.timeRow}>
+                    <input
+                      type="text"
+                      id="endTimeDisplay"
+                      placeholder="hh:mm"
+                      value={endTimeDisplay}
+                      onChange={(e) => { setEndTimeDisplay(e.target.value); setLastEditedTime("end"); if (endTimeError) setEndTimeError(null); }}
+                      onBlur={(e) => {
+                        const raw = e.target.value.trim();
+                        const normalized = normalizeTime(raw);
+                        if (normalized && normalized !== raw) setEndTimeDisplay(normalized);
+                        const valueToCheck = normalized || raw;
+                        if (valueToCheck && !to24HourTime(valueToCheck, endTimePeriod)) setEndTimeError("Enter a valid time (e.g. 9:52 or 10:00)");
+                        else setEndTimeError(null);
+                      }}
+                      className={`${styles.input} ${styles.inputSmall}`}
+                    />
+                    <select aria-label="AM or PM for end time" className={`${styles.select} ${styles.inputTiny}`} value={endTimePeriod} onChange={(e) => { setEndTimePeriod(e.target.value === "PM" ? "PM" : "AM"); setLastEditedTime("end"); }}>
+                      <option value="AM">AM</option>
+                      <option value="PM">PM</option>
+                    </select>
                   </div>
+                  {endTimeError && <span className={styles.timeFieldError} role="alert">{endTimeError}</span>}
                 </div>
-                <div className={styles.gasCellNarrow}>
-                  <div className={styles.field}>
-                    <label htmlFor="endPressure" className={styles.label}>
-                      End pressure
-                    </label>
-                    <div className={styles.inputWithUnit}>
-                      <input
-                        type="number"
-                        id="endPressure"
-                        name="endPressure"
-                        value={endPressure}
-                        onChange={(e) => setEndPressure(e.target.value)}
-                        className={styles.input}
-                      />
-                      <span className={styles.unitSuffix}>{getUnitLabel("pressure", prefs)}</span>
-                    </div>
-                  </div>
-                </div>
-                <div className={styles.gasCellGasUsed}>
-                  <div className={styles.field}>
-                    <span className={styles.label}>Gas used</span>
-                    <div className={styles.inputWithUnit}>
-                      <div
-                        className={styles.gasUsedReadOnly}
-                        aria-live="polite"
-                        aria-label={`Gas used: ${gasUsedDisplay != null ? `${gasUsedDisplay} ${getUnitLabel("pressure", prefs)}` : "—"}`}
-                      >
-                        {gasUsedDisplay != null ? gasUsedDisplay : "—"}
-                      </div>
-                      <span className={styles.unitSuffix}>{getUnitLabel("pressure", prefs)}</span>
-                    </div>
+                <input type="hidden" name="startTime" value={to24HourTime(startTimeDisplay, startTimePeriod)} />
+                <input type="hidden" name="endTime" value={to24HourTime(endTimeDisplay, endTimePeriod)} />
+                <div className={`${styles.field} ${styles.inputSmall}`}>
+                  <label htmlFor="bottomTime" className={styles.label}>Bottom time</label>
+                  <div className={styles.inputWithUnit}>
+                    <input type="number" id="bottomTime" name="bottomTime" min={0} value={bottomTime} onChange={(e) => { setBottomTime(e.target.value); setLastEditedTime("bottom"); }} placeholder="—" className={styles.input} />
+                    <span className={styles.unitSuffix}>min</span>
                   </div>
                 </div>
               </div>
+              {/* Row 2: Site name* | Location / Region | Buddy */}
+              <div className={styles.locationRow}>
+                <div className={styles.field}>
+                  <label htmlFor="siteName" className={styles.label}>Site name <span className={styles.labelRequired}>*</span></label>
+                  <input type="text" id="siteName" name="siteName" required placeholder="Mary's Place" value={siteName} onChange={(e) => setSiteName(e.target.value)} className={styles.input} />
+                </div>
+                <div className={styles.field}>
+                  <label htmlFor="region" className={styles.label}>Location / Region</label>
+                  <input type="text" id="region" name="region" placeholder="Roatán, Red Sea, local quarry…" value={region} onChange={(e) => setRegion(e.target.value)} className={styles.input} />
+                </div>
+                <div className={styles.field}>
+                  <label htmlFor="buddyName" className={styles.label}>Buddy</label>
+                  <input type="text" id="buddyName" name="buddyName" value={buddyName} onChange={(e) => setBuddyName(e.target.value)} className={styles.input} />
+                </div>
+              </div>
+            </section>
 
-              {/* Row 5: Conditions — Water temp surface, bottom, visibility, current (single line) */}
-              <div className={styles.conditionsRow}>
-                <div className={styles.field}>
-                  <label htmlFor="waterTempSurface" className={styles.label}>
-                    Water temp surface
-                  </label>
+            {/* SECTION 2: Dive metrics */}
+            <section className={styles.coreSubsection}>
+              <h3 className={styles.coreSubsectionHeader}>Dive metrics</h3>
+              {/* Row 3: Environment — Max depth, Water temp surface, Water temp bottom, Visibility, Current (all one line) */}
+              <div className={styles.metricsRow}>
+                <div className={`${styles.field} ${styles.inputSmall}`}>
+                  <label htmlFor="maxDepth" className={styles.label}>Max depth</label>
                   <div className={styles.inputWithUnit}>
-                    <input
-                      type="number"
-                      id="waterTempSurface"
-                      name="waterTempSurface"
-                      value={waterTempSurface}
-                      onChange={(e) => setWaterTempSurface(e.target.value)}
-                      className={styles.input}
-                    />
+                    <input type="number" id="maxDepth" name="maxDepth" value={maxDepth} onChange={(e) => setMaxDepth(e.target.value)} className={styles.input} />
+                    <span className={styles.unitSuffix}>{getUnitLabel("depth", prefs)}</span>
+                  </div>
+                </div>
+                <div className={`${styles.field} ${styles.inputSmall}`}>
+                  <label htmlFor="waterTempSurface" className={styles.label}>Water temp surface</label>
+                  <div className={styles.inputWithUnit}>
+                    <input type="number" id="waterTempSurface" name="waterTempSurface" value={waterTempSurface} onChange={(e) => setWaterTempSurface(e.target.value)} className={styles.input} />
                     <span className={styles.unitSuffix}>{getUnitLabel("temperature", prefs)}</span>
                   </div>
                 </div>
-                <div className={styles.field}>
-                  <label htmlFor="waterTempBottom" className={styles.label}>
-                    Water temp bottom
-                  </label>
+                <div className={`${styles.field} ${styles.inputSmall}`}>
+                  <label htmlFor="waterTempBottom" className={styles.label}>Water temp bottom</label>
                   <div className={styles.inputWithUnit}>
-                    <input
-                      type="number"
-                      id="waterTempBottom"
-                      name="waterTempBottom"
-                      value={waterTempBottom}
-                      onChange={(e) => setWaterTempBottom(e.target.value)}
-                      className={styles.input}
-                    />
+                    <input type="number" id="waterTempBottom" name="waterTempBottom" value={waterTempBottom} onChange={(e) => setWaterTempBottom(e.target.value)} className={styles.input} />
                     <span className={styles.unitSuffix}>{getUnitLabel("temperature", prefs)}</span>
                   </div>
                 </div>
-                <div className={styles.field}>
-                  <label htmlFor="visibility" className={styles.label}>
-                    Visibility
-                  </label>
+                <div className={`${styles.field} ${styles.inputSmall}`}>
+                  <label htmlFor="visibility" className={styles.label}>Visibility</label>
                   <div className={styles.inputWithUnit}>
-                    <input
-                      type="number"
-                      id="visibility"
-                      name="visibility"
-                      value={visibility}
-                      onChange={(e) => setVisibility(e.target.value)}
-                      className={styles.input}
-                    />
+                    <input type="number" id="visibility" name="visibility" value={visibility} onChange={(e) => setVisibility(e.target.value)} className={styles.input} />
                     <span className={styles.unitSuffix}>{getUnitLabel("distance", prefs)}</span>
                   </div>
                 </div>
-                <div className={styles.field}>
-                  <label htmlFor="current" className={styles.label}>
-                    Current
-                  </label>
-                  <select
-                    id="current"
-                    name="current"
-                    className={styles.select}
-                    value={current}
-                    onChange={(e) => setCurrent(e.target.value)}
-                  >
+                <div className={`${styles.field} ${styles.inputMedium}`}>
+                  <label htmlFor="current" className={styles.label}>Current</label>
+                  <select id="current" name="current" className={styles.select} value={current} onChange={(e) => setCurrent(e.target.value)}>
                     {CURRENT_OPTIONS.map((o) => (
-                      <option key={o.value || "none"} value={o.value}>
-                        {o.label}
-                      </option>
+                      <option key={o.value || "none"} value={o.value}>{o.label}</option>
                     ))}
                   </select>
                 </div>
               </div>
-
-              {/* Row 6: Dive type pills + Show more inline */}
-              <Field col={12}>
-                <div className={styles.field}>
-                  <span className={styles.label}>Dive type</span>
-                  <div className={styles.diveTypeRow}>
-                    {MOST_COMMON_DIVE_TYPES.map((tag) => (
-                      <label
-                        key={tag}
-                        className={`${styles.diveTypeChip} ${
-                          selectedDiveTypes.includes(tag)
-                            ? styles.diveTypeChipSelected
-                            : ""
-                        }`}
-                      >
-                        <input
-                          type="checkbox"
-                          name="diveTypeTags"
-                          value={tag}
-                          checked={selectedDiveTypes.includes(tag)}
-                          onChange={(e) => {
-                            setSelectedDiveTypes((prev) =>
-                              e.target.checked
-                                ? [...prev, tag]
-                                : prev.filter((t) => t !== tag),
-                            );
-                          }}
-                        />
-                        <span>{tag}</span>
-                      </label>
+              {/* Row 4: Gas + Safety stop — all on one line; checkbox aligned with input baselines */}
+              <div className={`${styles.gasRow} ${gasType === "Nitrox" ? styles.gasRowWithFO2 : ""}`}>
+                <div className={`${styles.field} ${styles.inputMedium}`}>
+                  <label htmlFor="gasType" className={styles.label}>Gas type</label>
+                  <select id="gasType" name="gasType" className={styles.select} value={gasType} onChange={(e) => setGasType(e.target.value)}>
+                    {GAS_TYPE_OPTIONS.map((o) => (
+                      <option key={o.value} value={o.value}>{o.label}</option>
                     ))}
-                    {!showAllDiveTypes && (
-                      <>
-                        <button
-                          type="button"
-                          className={styles.diveTypeShowMore}
-                          onClick={() => setShowAllDiveTypes(true)}
-                        >
-                          Show more
-                        </button>
-                        {(() => {
-                          const moreSelected = selectedDiveTypes.filter((t) =>
-                            EXPANDED_DIVE_TYPES.includes(t),
-                          ).length;
-                          return moreSelected > 0 ? (
-                            <span className={styles.diveTypeMoreSelected}>
-                              +{moreSelected} more selected
-                            </span>
-                          ) : null;
-                        })()}
-                      </>
-                    )}
-                    {showAllDiveTypes &&
-                      EXPANDED_DIVE_TYPES.map((tag) => (
-                        <label
-                          key={tag}
-                          className={`${styles.diveTypeChip} ${
-                            selectedDiveTypes.includes(tag)
-                              ? styles.diveTypeChipSelected
-                              : ""
-                          }`}
-                        >
-                          <input
-                            type="checkbox"
-                            name="diveTypeTags"
-                            value={tag}
-                            checked={selectedDiveTypes.includes(tag)}
-                            onChange={(e) => {
-                              setSelectedDiveTypes((prev) =>
-                                e.target.checked
-                                  ? [...prev, tag]
-                                  : prev.filter((t) => t !== tag),
-                              );
-                            }}
-                          />
-                          <span>{tag}</span>
-                        </label>
-                      ))}
-                    {showAllDiveTypes && (
-                      <button
-                        type="button"
-                        className={styles.diveTypeShowMore}
-                        onClick={() => setShowAllDiveTypes(false)}
-                      >
-                        Show less
-                      </button>
-                    )}
+                  </select>
+                </div>
+                {gasType === "Nitrox" && (
+                  <div className={`${styles.field} ${styles.inputSmall}`}>
+                    <label htmlFor="fO2" className={styles.label}>FO2 (%)</label>
+                    <input type="number" id="fO2" name="fO2" min={21} max={100} value={fO2} onChange={(e) => setFO2(e.target.value)} className={styles.input} />
+                  </div>
+                )}
+                <div className={`${styles.field} ${styles.inputMedium}`}>
+                  <label htmlFor="tankCylinder" className={styles.label}>Tank / cylinder</label>
+                  <input type="text" id="tankCylinder" name="tankCylinder" placeholder="AL80, HP100…" value={tankCylinder} onChange={(e) => setTankCylinder(e.target.value)} className={styles.input} />
+                </div>
+                <div className={`${styles.field} ${styles.inputSmall}`}>
+                  <label htmlFor="startPressure" className={styles.label}>Start pressure</label>
+                  <div className={styles.inputWithUnit}>
+                    <input type="number" id="startPressure" name="startPressure" value={startPressure} onChange={(e) => setStartPressure(e.target.value)} className={styles.input} />
+                    <span className={styles.unitSuffix}>{getUnitLabel("pressure", prefs)}</span>
                   </div>
                 </div>
-              </Field>
-
-              {/* Row 7: Notes */}
-              <Field col={12}>
-                <div className={styles.field}>
-                  <label htmlFor="notes" className={styles.label}>
-                    Notes
-                  </label>
-                  <textarea
-                    id="notes"
-                    name="notes"
-                    rows={4}
-                    placeholder="Wildlife, conditions, gear notes, memorable moments…"
-                    value={notes}
-                    onChange={(e) => setNotes(e.target.value)}
-                    className={styles.textarea}
-                  />
+                <div className={`${styles.field} ${styles.inputSmall}`}>
+                  <label htmlFor="endPressure" className={styles.label}>End pressure</label>
+                  <div className={styles.inputWithUnit}>
+                    <input type="number" id="endPressure" name="endPressure" value={endPressure} onChange={(e) => setEndPressure(e.target.value)} className={styles.input} />
+                    <span className={styles.unitSuffix}>{getUnitLabel("pressure", prefs)}</span>
+                  </div>
                 </div>
-              </Field>
+                <div className={`${styles.field} ${styles.inputSmall}`}>
+                  <span className={styles.label}>Gas used</span>
+                  <div className={styles.inputWithUnit}>
+                    <div className={styles.gasUsedReadOnly} aria-live="polite" aria-label={`Gas used: ${gasUsedDisplay != null ? `${gasUsedDisplay} ${getUnitLabel("pressure", prefs)}` : "—"}`}>
+                      {gasUsedDisplay != null ? gasUsedDisplay : "—"}
+                    </div>
+                    <span className={styles.unitSuffix}>{getUnitLabel("pressure", prefs)}</span>
+                  </div>
+                </div>
+                <div className={styles.fieldSafetyStop}>
+                  <div className={styles.safetyStopInline}>
+                    <label className={styles.safetyStopLabel} style={{ cursor: "pointer" }}>
+                      <input
+                        type="checkbox"
+                        checked={safetyStopEnabled}
+                        onChange={(e) => {
+                          const checked = e.target.checked;
+                          if (!checked) { setSafetyStopEnabled(false); setSafetyStopDepth(""); setSafetyStopDuration(""); }
+                          else setSafetyStopEnabled(true);
+                        }}
+                      />
+                      <span className={styles.label}>Safety stop</span>
+                    </label>
+                    <div className={styles.safetyStopInputs}>
+                      <input type="number" id="safetyStopDepth" name="safetyStopDepth" value={safetyStopDepth} onChange={(e) => { const v = e.target.value; setSafetyStopDepth(v); if (v.trim() !== "" && !safetyStopEnabled) setSafetyStopEnabled(true); }} className={styles.input} />
+                      <span className={styles.unitSuffix}>{getUnitLabel("depth", prefs)}</span>
+                      <input type="number" id="safetyStopDuration" name="safetyStopDuration" min={1} value={safetyStopDuration} onChange={(e) => { const v = e.target.value; setSafetyStopDuration(v); if (v.trim() !== "" && !safetyStopEnabled) setSafetyStopEnabled(true); }} className={styles.input} />
+                      <span className={styles.unitSuffix}>min</span>
+                    </div>
+                  </div>
+                  <input type="hidden" name="safetyStopEnabled" value={safetyStopEnabled ? "1" : "0"} />
                 </div>
               </div>
-            </div>
+              {/* Row 5: Dive type pills */}
+              <div className={styles.field}>
+                <span className={styles.label}>Dive type</span>
+                <div className={styles.diveTypeRow}>
+                  {MOST_COMMON_DIVE_TYPES.map((tag) => (
+                    <label key={tag} className={`${styles.diveTypeChip} ${selectedDiveTypes.includes(tag) ? styles.diveTypeChipSelected : ""}`}>
+                      <input type="checkbox" name="diveTypeTags" value={tag} checked={selectedDiveTypes.includes(tag)} onChange={(e) => setSelectedDiveTypes((prev) => e.target.checked ? [...prev, tag] : prev.filter((t) => t !== tag))} />
+                      <span>{tag}</span>
+                    </label>
+                  ))}
+                  {!showAllDiveTypes && (
+                    <>
+                      <button type="button" className={styles.diveTypeShowMore} onClick={() => setShowAllDiveTypes(true)}>Show more</button>
+                      {selectedDiveTypes.filter((t) => EXPANDED_DIVE_TYPES.includes(t)).length > 0 && (
+                        <span className={styles.diveTypeMoreSelected}>+{selectedDiveTypes.filter((t) => EXPANDED_DIVE_TYPES.includes(t)).length} more selected</span>
+                      )}
+                    </>
+                  )}
+                  {showAllDiveTypes && EXPANDED_DIVE_TYPES.map((tag) => (
+                    <label key={tag} className={`${styles.diveTypeChip} ${selectedDiveTypes.includes(tag) ? styles.diveTypeChipSelected : ""}`}>
+                      <input type="checkbox" name="diveTypeTags" value={tag} checked={selectedDiveTypes.includes(tag)} onChange={(e) => setSelectedDiveTypes((prev) => e.target.checked ? [...prev, tag] : prev.filter((t) => t !== tag))} />
+                      <span>{tag}</span>
+                    </label>
+                  ))}
+                  {showAllDiveTypes && <button type="button" className={styles.diveTypeShowMore} onClick={() => setShowAllDiveTypes(false)}>Show less</button>}
+                </div>
+              </div>
+              {/* Row 6: Notes — ~2 lines, resizable */}
+              <div className={styles.field}>
+                <label htmlFor="notes" className={styles.label}>Notes</label>
+                <textarea id="notes" name="notes" rows={2} placeholder="Wildlife, conditions, gear notes, memorable moments…" value={notes} onChange={(e) => setNotes(e.target.value)} className={styles.textarea} />
+              </div>
+            </section>
+          </div>
+        </div>
 
         {/* Advanced accordion — divider above so it doesn't float */}
         <div className={styles.advancedSectionWrap}>
@@ -1231,8 +837,28 @@ export function LogbookForm({
           summary="Gear, exposure, training"
         >
           <div className={styles.sectionBody}>
-                <h4 className={styles.subsectionHeader}>Exposure &amp; Weight</h4>
+                <h4 className={styles.subsectionHeader}>Surface interval, exposure &amp; weight</h4>
                 <div className={styles.formGrid12}>
+                  <Field col={6}>
+                    <div className={styles.field}>
+                      <label htmlFor="surfaceIntervalMin" className={styles.label}>
+                        Surface interval (min)
+                      </label>
+                      <div className={styles.inputWithUnit}>
+                        <input
+                          type="number"
+                          id="surfaceIntervalMin"
+                          name="surfaceIntervalMin"
+                          min={0}
+                          value={surfaceIntervalMin}
+                          onChange={(e) => setSurfaceIntervalMin(e.target.value)}
+                          placeholder="—"
+                          className={styles.input}
+                        />
+                        <span className={styles.unitSuffix}>min</span>
+                      </div>
+                    </div>
+                  </Field>
                   <Field col={6}>
                     <div className={styles.field}>
                       <label

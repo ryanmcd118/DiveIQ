@@ -44,6 +44,114 @@
   padding: var(--space-3) var(--space-4);
 }
 
+/* Core subsections: Dive basics + Dive metrics (no "Core" label in UI) */
+.coreSubsection {
+  margin-bottom: var(--space-4);
+}
+
+.coreSubsection:last-child {
+  margin-bottom: 0;
+}
+
+.coreSubsectionHeader {
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-muted);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  margin: 0 0 var(--space-3);
+  padding-bottom: var(--space-2);
+  border-bottom: 1px solid var(--color-border-subtle, rgba(255, 255, 255, 0.08));
+}
+
+.coreSubsection:first-child .coreSubsectionHeader {
+  margin-top: 0;
+}
+
+/* Input sizing: do not stretch unless large */
+.inputTiny {
+  width: auto;
+  min-width: 4rem;
+  max-width: 5rem;
+}
+
+.inputSmall {
+  max-width: 6rem;
+}
+
+.inputSmall .input,
+.inputSmall .inputWithUnit {
+  max-width: 100%;
+}
+
+.inputDate {
+  max-width: 9.5rem; /* ensure full date + icon fit */
+}
+
+.inputMedium {
+  max-width: 11rem;
+}
+
+.inputLarge {
+  min-width: 0;
+  /* no max-width so site/location can grow */
+}
+
+/* Row 1: Dive # | Date | Start+AM/PM | End+AM/PM | Bottom time */
+.timelineRow {
+  display: grid;
+  grid-template-columns:
+    max-content             /* Dive # */
+    max-content             /* Date */
+    max-content             /* Start time + AM/PM */
+    max-content             /* End time + AM/PM */
+    max-content;            /* Bottom time */
+  gap: var(--space-2) var(--space-4);
+  align-items: end;
+  justify-content: space-between;
+  margin-bottom: var(--space-3);
+}
+
+@media (max-width: 767px) {
+  .timelineRow {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Row 2: Site name | Location | Buddy */
+.locationRow {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--space-2) var(--space-3);
+  align-items: end;
+  margin-bottom: var(--space-3);
+}
+
+@media (max-width: 767px) {
+  .locationRow {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Row 3: Max depth | Water temp surface | Water temp bottom | Visibility | Current */
+.metricsRow {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: var(--space-2) var(--space-3);
+  align-items: end;
+  margin-bottom: var(--space-3);
+}
+
+.metricsRow .field {
+  min-width: 0;
+}
+
+@media (max-width: 767px) {
+  .metricsRow {
+    grid-template-columns: 1fr;
+  }
+}
+
 /* Compact 12-col grid inside sections */
 .formGrid12 {
   display: grid;
@@ -263,20 +371,76 @@
   min-width: 0;
 }
 
-/* Gas row — tight columns; tank/cylinder much narrower (~11rem); gas used derived */
+/* Gas + Safety stop row — tight columns; tank not huge; safety stop baseline-aligned */
 .gasRow {
-  grid-column: 1 / -1;
   display: grid;
-  grid-template-columns: minmax(0, 7rem) minmax(0, 11rem) 5.5rem 5.5rem 5.5rem;
-  gap: var(--space-2) var(--space-3);
+  grid-template-columns:
+    minmax(7rem, 8rem)      /* Gas type */
+    minmax(8rem, 10rem)     /* Tank */
+    minmax(0, 1fr)          /* Start pressure */
+    minmax(0, 1fr)          /* End pressure */
+    minmax(0, 1fr)          /* Gas used */
+    minmax(12rem, 16rem);   /* Safety stop */
+  gap: var(--space-2) var(--space-4);
   align-items: end;
   margin-bottom: var(--space-3);
-  width: max-content;
-  max-width: 100%;
+  width: 100%;
 }
 
 .gasRowWithFO2 {
-  grid-template-columns: minmax(0, 7rem) 5rem minmax(0, 11rem) 5.5rem 5.5rem 5.5rem;
+  grid-template-columns:
+    minmax(7rem, 8rem)      /* Gas type */
+    minmax(4rem, 5rem)      /* FO2 */
+    minmax(8rem, 10rem)     /* Tank */
+    minmax(0, 1fr)          /* Start pressure */
+    minmax(0, 1fr)          /* End pressure */
+    minmax(0, 1fr)          /* Gas used */
+    minmax(12rem, 16rem);   /* Safety stop */
+}
+
+.gasRow .inputSmall,
+.gasRow .inputMedium {
+  max-width: 100%;
+}
+
+.fieldSafetyStop {
+  min-width: 0;
+  display: flex;
+  align-items: flex-end;
+}
+
+.safetyStopInline {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+
+.safetyStopLabel {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.safetyStopLabel input[type="checkbox"] {
+  margin: 0;
+  vertical-align: middle;
+}
+
+.safetyStopInputs {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.safetyStopInputs .input {
+  width: 4rem;
+  padding: var(--space-1) var(--space-2);
+  box-sizing: border-box;
+}
+
+.safetyStopInputs .input:last-of-type {
+  width: 3.5rem;
 }
 
 .gasCellGasUsed {
@@ -342,7 +506,7 @@
 .label {
   font-size: var(--font-size-xs);
   font-weight: var(--font-weight-medium);
-  color: var(--color-text-muted);
+  color: var(--color-text-secondary, var(--color-text-muted));
 }
 
 .labelRequired {
@@ -379,7 +543,7 @@
 
 .textarea {
   resize: vertical;
-  min-height: 7.5rem; /* ~120px */
+  min-height: 3.75rem; /* ~60px, ~2 lines */
   max-height: 16rem;
 }
 
