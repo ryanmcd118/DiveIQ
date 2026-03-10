@@ -341,7 +341,7 @@ export function LogbookLayout({
         <div className={styles.container}>
           <div className={styles.browsePane}>
             <div className={styles.browseHeader}>
-              <h2 className={styles.browseTitle}>Logbook</h2>
+              <h2 className={styles.browseTitle}>Previously logged dives</h2>
             </div>
             <div className={styles.browseControls}>
               {!isDetailOpen && (
@@ -451,7 +451,7 @@ export function LogbookLayout({
         <div className={styles.browsePane}>
           <div className={styles.browseHeader}>
             <div className={styles.browseHeaderRow1}>
-              <h2 className={styles.browseTitle}>Logbook</h2>
+              <h2 className={styles.browseTitle}>Previously logged dives</h2>
               <select
                 className={styles.sortSelect}
                 value={sortKey}

@@ -119,10 +119,6 @@ export function LogPageContent({
         >
           <div>
             <h1 className={layoutStyles.pageTitle}>Dive Log</h1>
-            <p className={layoutStyles.pageSubtitle}>
-              Browse your dives in a logbook-style view. Select a dive to see
-              its details.
-            </p>
           </div>
           {openCreateSheetFn && (
             <button
