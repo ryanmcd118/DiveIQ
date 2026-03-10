@@ -20,14 +20,6 @@ import {
   GAS_TYPE_OPTIONS,
   EXPOSURE_PROTECTION_OPTIONS,
 } from "../constants";
-import {
-  conditionsSummaryFromForm,
-  gasSummaryFromForm,
-  exposureSummaryFromForm,
-  gearSummaryFromForm,
-  trainingSummaryFromForm,
-  type FormSummaryValues,
-} from "../utils/formSectionSummaries";
 import formStyles from "@/styles/components/Form.module.css";
 import styles from "./LogbookForm.module.css";
 
@@ -81,11 +73,6 @@ const EXPANDED_DIVE_TYPES: string[] = [
   "Other",
 ];
 
-const ALL_DIVE_TYPE_TAGS: string[] = [
-  ...MOST_COMMON_DIVE_TYPES,
-  ...EXPANDED_DIVE_TYPES,
-];
-
 function parseDiveTypeTags(tags: string | null | undefined): string[] {
   if (!tags) return [];
   try {
@@ -96,7 +83,6 @@ function parseDiveTypeTags(tags: string | null | undefined): string[] {
   }
 }
 
-type TimeSource = "empty" | "user" | "auto";
 type LastEditedTime = "start" | "end" | "bottom" | null;
 
 /**
@@ -175,7 +161,7 @@ function timeToMinutes(value: string, period: "AM" | "PM"): number | null {
 function minutesToDisplayTime(
   totalMinutes: number
 ): { value: string; period: "AM" | "PM" } {
-  let minutes = Math.max(0, Math.floor(totalMinutes));
+  const minutes = Math.max(0, Math.floor(totalMinutes));
   const hours24 = Math.floor(minutes / 60) % 24;
   const mins = minutes % 60;
   const period: "AM" | "PM" = hours24 >= 12 ? "PM" : "AM";
@@ -200,7 +186,6 @@ interface LogbookFormProps {
   editingEntryId: string | null;
   entries?: DiveLogEntry[];
   suggestedDiveNumber?: number;
-  surfaceIntervalAutoMin?: number | null;
   error: string | null;
   softWarnings?: SoftWarning[];
   selectedGearIds?: string[];
@@ -215,7 +200,6 @@ export function LogbookForm({
   editingEntryId,
   entries = [],
   suggestedDiveNumber = 1,
-  surfaceIntervalAutoMin,
   error,
   softWarnings = [],
   selectedGearIds = [],
@@ -261,8 +245,6 @@ export function LogbookForm({
   const [safetyStopDepth, setSafetyStopDepth] = useState("");
   const [safetyStopDuration, setSafetyStopDuration] = useState("");
   const [surfaceIntervalMin, setSurfaceIntervalMin] = useState("");
-  const [surfaceIntervalSource, setSurfaceIntervalSource] =
-    useState<TimeSource>("empty");
   const [current, setCurrent] = useState("");
   const [exposureProtection, setExposureProtection] = useState("");
   const [tankCylinder, setTankCylinder] = useState("");
@@ -293,12 +275,12 @@ export function LogbookForm({
     if (entry) {
       setDate(entry.date ?? "");
       const startParts = splitTimeForDisplay(
-        (entry as any).startTime ?? null
+        entry.startTime ?? null
       );
       setStartTimeDisplay(startParts.value);
       setStartTimePeriod(startParts.period);
       const endParts = splitTimeForDisplay(
-        (entry as any).endTime ?? null
+        entry.endTime ?? null
       );
       setEndTimeDisplay(endParts.value);
       setEndTimePeriod(endParts.period);
@@ -307,9 +289,8 @@ export function LogbookForm({
       setEndTimeError(null);
 
       const autoFromEntry =
-        (entry as any).diveNumberAuto ?? entry.diveNumber ?? null;
-      const overrideFromEntry =
-        (entry as any).diveNumberOverride ?? null;
+        entry.diveNumberAuto ?? entry.diveNumber ?? null;
+      const overrideFromEntry = entry.diveNumberOverride ?? null;
       setDiveNumberAuto(autoFromEntry);
       if (overrideFromEntry != null) {
         setDiveNumber(String(overrideFromEntry));
@@ -401,7 +382,6 @@ export function LogbookForm({
       setSafetyStopDepth("");
       setSafetyStopDuration("");
       setSurfaceIntervalMin("");
-      setSurfaceIntervalSource("empty");
       setCurrent("");
       setExposureProtection("");
       setTankCylinder("");
@@ -508,40 +488,6 @@ export function LogbookForm({
   const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
     onSubmit(e);
   };
-
-  const gearKitName = gearKitId ? gearKits.find((k) => k.id === gearKitId)?.name ?? undefined : undefined;
-
-  const formValues: FormSummaryValues = {
-    siteName,
-    maxDepth,
-    bottomTime,
-    waterTempSurface,
-    waterTempBottom,
-    visibility,
-    current,
-    gasType,
-    fO2,
-    tankCylinder,
-    startPressure,
-    endPressure,
-    exposureProtection,
-    weightUsed,
-    gearKitName,
-    gearItemCount: selectedGearIds?.length ?? 0,
-    gearNotes,
-    isTrainingDive,
-    trainingCourse,
-    trainingSkills,
-    safetyStopDepth: safetyStopEnabled ? safetyStopDepth : undefined,
-    safetyStopDuration: safetyStopEnabled ? safetyStopDuration : undefined,
-    surfaceIntervalMin,
-  };
-
-  const conditionsSum = conditionsSummaryFromForm(formValues, prefs);
-  const gasSum = gasSummaryFromForm(formValues, prefs);
-  const exposureSum = exposureSummaryFromForm(formValues, prefs);
-  const gearSum = gearSummaryFromForm(formValues);
-  const trainingSum = trainingSummaryFromForm(formValues);
 
   return (
     <form

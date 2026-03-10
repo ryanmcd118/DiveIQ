@@ -20,7 +20,7 @@ function str(v: FormDataEntryValue | null): string | null {
   return typeof v === "string" ? v : null;
 }
 
-export function useLogPageState(initialEntries: DiveLogEntry[]) {
+export function useLogPageState(initialEntries: DiveLogEntry[] = []) {
   const { prefs } = useUnitPreferences();
   const [entries, setEntries] = useState<DiveLogEntry[]>(initialEntries);
   const [saving, setSaving] = useState(false);
@@ -267,7 +267,7 @@ export function useLogPageState(initialEntries: DiveLogEntry[]) {
     setFormKey(`edit-${entry.id}-${Date.now()}`);
   };
 
-  const handleCancelEdit = (form?: HTMLFormElement | null) => {
+  const handleCancelEdit = () => {
     resetFormState();
   };
 
@@ -295,7 +295,7 @@ export function useLogPageState(initialEntries: DiveLogEntry[]) {
     }
   };
 
-  const handleDeleteFromForm = async (form: HTMLFormElement) => {
+  const handleDeleteFromForm = async () => {
     if (!editingEntryId) return;
     const ok = window.confirm(
       "Delete this dive from your log? This action cannot be undone."
@@ -303,15 +303,6 @@ export function useLogPageState(initialEntries: DiveLogEntry[]) {
     if (!ok) return;
 
     await performDelete(editingEntryId);
-  };
-
-  const handleDeleteFromList = async (id: string) => {
-    const ok = window.confirm(
-      "Delete this dive from your log? This action cannot be undone."
-    );
-    if (!ok) return;
-
-    await performDelete(id);
   };
 
   const clearLastSave = () => {
@@ -390,7 +381,6 @@ export function useLogPageState(initialEntries: DiveLogEntry[]) {
     handleSelectEntry,
     handleCancelEdit,
     handleDeleteFromForm,
-    handleDeleteFromList,
     ensureGearLoaded,
     gearLoadingId,
     clearLastSave,

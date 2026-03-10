@@ -18,15 +18,14 @@ interface AddEditDiveSheetProps {
   editingEntryId: string | null;
   entries: DiveLogEntry[];
   suggestedDiveNumber?: number;
-  surfaceIntervalAutoMin?: number | null;
   saving: boolean;
   error: string | null;
   softWarnings?: SoftWarning[];
   selectedGearIds: string[];
   onGearSelectionChange: (ids: string[]) => void;
   onSubmit: (e: React.FormEvent<HTMLFormElement>) => void;
-  onCancelEdit: (form?: HTMLFormElement | null) => void;
-  onDeleteFromForm: (form: HTMLFormElement) => void;
+  onCancelEdit: () => void;
+  onDeleteFromForm: () => void;
   onClose: () => void;
 }
 
@@ -38,7 +37,6 @@ export function AddEditDiveSheet({
   editingEntryId,
   entries = [],
   suggestedDiveNumber = 1,
-  surfaceIntervalAutoMin,
   saving,
   error,
   softWarnings = [],
@@ -87,14 +85,12 @@ export function AddEditDiveSheet({
   };
 
   const handleCancel = () => {
-    const form = document.getElementById(FORM_ID) as HTMLFormElement | null;
-    onCancelEdit(form ?? undefined);
+    onCancelEdit();
     onClose();
   };
 
   const handleDelete = () => {
-    const form = document.getElementById(FORM_ID) as HTMLFormElement | null;
-    if (form) onDeleteFromForm(form);
+    onDeleteFromForm();
   };
 
   return createPortal(
@@ -155,7 +151,6 @@ export function AddEditDiveSheet({
             editingEntryId={editingEntryId}
             entries={entries}
             suggestedDiveNumber={suggestedDiveNumber}
-            surfaceIntervalAutoMin={surfaceIntervalAutoMin}
             saving={saving}
             error={error}
             softWarnings={softWarnings}

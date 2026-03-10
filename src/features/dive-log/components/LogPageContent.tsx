@@ -29,6 +29,35 @@ export function LogPageContent({
   isAuthed,
 }: LogPageContentProps) {
   void initialStats;
+  const {
+    entries,
+    saving,
+    error,
+    softWarnings,
+    suggestedDiveNumber,
+    editingEntryId,
+    activeEntry,
+    formKey,
+    statusMessage,
+    selectedGearIds,
+    setSelectedGearIds,
+    handleSubmit,
+    handleSelectEntry,
+    handleCancelEdit,
+    handleDeleteFromForm,
+    lastSavedEntry,
+    lastAction,
+    ensureGearLoaded,
+    gearLoadingId,
+    clearLastSave,
+  } = useLogPageState(initialEntries);
+
+  const [openCreateSheetFn, setOpenCreateSheetFn] = useState<(() => void) | null>(null);
+  
+  // Stable callback ref setter to avoid calling state setter during render
+  const handleOpenCreateSheetRef = useCallback((fn: () => void) => {
+    setOpenCreateSheetFn(() => fn);
+  }, []);
 
   // Unauthenticated view: preserve existing sign-in prompt
   if (!isAuthed) {
@@ -72,37 +101,6 @@ export function LogPageContent({
       </main>
     );
   }
-
-  const {
-    entries,
-    saving,
-    error,
-    softWarnings,
-    suggestedDiveNumber,
-    editingEntryId,
-    activeEntry,
-    formKey,
-    statusMessage,
-    selectedGearIds,
-    setSelectedGearIds,
-    handleSubmit,
-    handleSelectEntry,
-    handleCancelEdit,
-    handleDeleteFromForm,
-    handleDeleteFromList,
-    lastSavedEntry,
-    lastAction,
-    ensureGearLoaded,
-    gearLoadingId,
-    clearLastSave,
-  } = useLogPageState(initialEntries);
-
-  const [openCreateSheetFn, setOpenCreateSheetFn] = useState<(() => void) | null>(null);
-  
-  // Stable callback ref setter to avoid calling state setter during render
-  const handleOpenCreateSheetRef = useCallback((fn: () => void) => {
-    setOpenCreateSheetFn(() => fn);
-  }, []);
 
   return (
     <main
@@ -148,7 +146,6 @@ export function LogPageContent({
             handleSelectEntry={handleSelectEntry}
             handleCancelEdit={handleCancelEdit}
             handleDeleteFromForm={handleDeleteFromForm}
-            handleDeleteFromList={handleDeleteFromList}
             lastSavedEntry={lastSavedEntry}
             lastAction={lastAction}
             ensureGearLoaded={ensureGearLoaded}
