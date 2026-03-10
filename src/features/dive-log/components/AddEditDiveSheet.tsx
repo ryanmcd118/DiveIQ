@@ -151,14 +151,11 @@ export function AddEditDiveSheet({
             editingEntryId={editingEntryId}
             entries={entries}
             suggestedDiveNumber={suggestedDiveNumber}
-            saving={saving}
             error={error}
             softWarnings={softWarnings}
             selectedGearIds={selectedGearIds}
             onGearSelectionChange={onGearSelectionChange}
             onSubmit={onSubmit}
-            onCancelEdit={onCancelEdit}
-            onDeleteFromForm={onDeleteFromForm}
           />
         </div>
       </div>
