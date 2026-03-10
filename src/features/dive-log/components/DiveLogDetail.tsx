@@ -26,7 +26,10 @@ function parseDiveTypeTags(tags: string | null | undefined): string[] {
 
 function parseTrainingSkills(skills: string | null | undefined): string[] {
   if (!skills) return [];
-  return skills.split(/[,;]/).map((s) => s.trim()).filter(Boolean);
+  return skills
+    .split(/[,;]/)
+    .map((s) => s.trim())
+    .filter(Boolean);
 }
 
 interface DetailSectionProps {
@@ -66,7 +69,10 @@ interface DiveLogDetailProps {
   gearLoading?: boolean;
 }
 
-export function DiveLogDetail({ entry, gearLoading = false }: DiveLogDetailProps) {
+export function DiveLogDetail({
+  entry,
+  gearLoading = false,
+}: DiveLogDetailProps) {
   const { prefs } = useUnitPreferences();
 
   const depth = displayDepth(entry.maxDepthCm, prefs.depth);
@@ -88,7 +94,11 @@ export function DiveLogDetail({ entry, gearLoading = false }: DiveLogDetailProps
   const atGlanceParts = [
     depth.value ? `${depth.value}${depth.unit}` : null,
     entry.bottomTime != null ? `${entry.bottomTime} min` : null,
-    waterTemp ? `${waterTemp.value}${waterTemp.unit}` : waterTempBottom ? `${waterTempBottom.value}${waterTempBottom.unit}` : null,
+    waterTemp
+      ? `${waterTemp.value}${waterTemp.unit}`
+      : waterTempBottom
+        ? `${waterTempBottom.value}${waterTempBottom.unit}`
+        : null,
     visibility ? `${visibility.value}${visibility.unit} vis` : null,
     gasLabel,
   ].filter(Boolean);
@@ -105,8 +115,7 @@ export function DiveLogDetail({ entry, gearLoading = false }: DiveLogDetailProps
     entry.startPressureBar != null ||
     entry.endPressureBar != null;
 
-  const hasExposure =
-    entry.exposureProtection || entry.weightUsedKg != null;
+  const hasExposure = entry.exposureProtection || entry.weightUsedKg != null;
 
   const hasTraining =
     entry.isTrainingDive &&
@@ -163,7 +172,14 @@ export function DiveLogDetail({ entry, gearLoading = false }: DiveLogDetailProps
           </p>
         )}
         {diveTypeTags.length > 0 && (
-          <div style={{ display: "flex", flexWrap: "wrap", gap: "var(--space-1)", marginTop: "var(--space-2)" }}>
+          <div
+            style={{
+              display: "flex",
+              flexWrap: "wrap",
+              gap: "var(--space-1)",
+              marginTop: "var(--space-2)",
+            }}
+          >
             {diveTypeTags.map((tag) => (
               <span
                 key={tag}
@@ -199,7 +215,12 @@ export function DiveLogDetail({ entry, gearLoading = false }: DiveLogDetailProps
       {/* Profile */}
       <DetailSection
         title="Profile"
-        isEmpty={!depth.value && entry.bottomTime == null && !entry.safetyStopDepthCm && !entry.surfaceIntervalMin}
+        isEmpty={
+          !depth.value &&
+          entry.bottomTime == null &&
+          !entry.safetyStopDepthCm &&
+          !entry.surfaceIntervalMin
+        }
       >
         <div
           style={{
@@ -217,29 +238,39 @@ export function DiveLogDetail({ entry, gearLoading = false }: DiveLogDetailProps
           )}
           {entry.bottomTime != null && (
             <div>
-              <div style={{ color: "var(--color-text-muted)" }}>Bottom time</div>
+              <div style={{ color: "var(--color-text-muted)" }}>
+                Bottom time
+              </div>
               <div>{entry.bottomTime} min</div>
             </div>
           )}
           {entry.safetyStopDepthCm != null && (
             <div>
-              <div style={{ color: "var(--color-text-muted)" }}>Safety stop</div>
+              <div style={{ color: "var(--color-text-muted)" }}>
+                Safety stop
+              </div>
               <div>
                 {displayDepth(entry.safetyStopDepthCm, prefs.depth).value}
                 {displayDepth(entry.safetyStopDepthCm, prefs.depth).unit}
-                {entry.safetyStopDurationMin != null && ` · ${entry.safetyStopDurationMin} min`}
+                {entry.safetyStopDurationMin != null &&
+                  ` · ${entry.safetyStopDurationMin} min`}
               </div>
             </div>
           )}
           {entry.surfaceIntervalMin != null && (
             <div>
-              <div style={{ color: "var(--color-text-muted)" }}>Surface interval</div>
+              <div style={{ color: "var(--color-text-muted)" }}>
+                Surface interval
+              </div>
               <div>{entry.surfaceIntervalMin} min</div>
             </div>
           )}
-          {!depth.value && entry.bottomTime == null && !entry.safetyStopDepthCm && !entry.surfaceIntervalMin && (
-            <div style={{ color: "var(--color-text-muted)" }}>—</div>
-          )}
+          {!depth.value &&
+            entry.bottomTime == null &&
+            !entry.safetyStopDepthCm &&
+            !entry.surfaceIntervalMin && (
+              <div style={{ color: "var(--color-text-muted)" }}>—</div>
+            )}
         </div>
       </DetailSection>
 
@@ -259,7 +290,11 @@ export function DiveLogDetail({ entry, gearLoading = false }: DiveLogDetailProps
               <div>
                 {waterTemp ? `${waterTemp.value}${waterTemp.unit}` : "—"}
                 {waterTempBottom && (
-                  <span> / {waterTempBottom.value}{waterTempBottom.unit} (bottom)</span>
+                  <span>
+                    {" "}
+                    / {waterTempBottom.value}
+                    {waterTempBottom.unit} (bottom)
+                  </span>
                 )}
               </div>
             </div>
@@ -297,7 +332,9 @@ export function DiveLogDetail({ entry, gearLoading = false }: DiveLogDetailProps
           )}
           {entry.tankCylinder && (
             <div>
-              <div style={{ color: "var(--color-text-muted)" }}>Tank / cylinder</div>
+              <div style={{ color: "var(--color-text-muted)" }}>
+                Tank / cylinder
+              </div>
               <div>{entry.tankCylinder}</div>
             </div>
           )}
@@ -330,15 +367,20 @@ export function DiveLogDetail({ entry, gearLoading = false }: DiveLogDetailProps
         >
           {entry.exposureProtection && (
             <div>
-              <div style={{ color: "var(--color-text-muted)" }}>Exposure protection</div>
+              <div style={{ color: "var(--color-text-muted)" }}>
+                Exposure protection
+              </div>
               <div>{entry.exposureProtection}</div>
             </div>
           )}
           {entry.weightUsedKg != null && (
             <div>
-              <div style={{ color: "var(--color-text-muted)" }}>Weight used</div>
+              <div style={{ color: "var(--color-text-muted)" }}>
+                Weight used
+              </div>
               <div>
-                {formatWeightForDisplay(entry.weightUsedKg, prefs.weight)} {getUnitLabel("weight", prefs)}
+                {formatWeightForDisplay(entry.weightUsedKg, prefs.weight)}{" "}
+                {getUnitLabel("weight", prefs)}
               </div>
             </div>
           )}
@@ -348,11 +390,22 @@ export function DiveLogDetail({ entry, gearLoading = false }: DiveLogDetailProps
       {/* Gear used */}
       <DetailSection title="Gear used" isEmpty={!hasGear}>
         {gearLoading ? (
-          <p style={{ fontSize: "var(--font-size-sm)", color: "var(--color-text-muted)" }}>
+          <p
+            style={{
+              fontSize: "var(--font-size-sm)",
+              color: "var(--color-text-muted)",
+            }}
+          >
             Loading gear…
           </p>
         ) : entry.gearItems && entry.gearItems.length > 0 ? (
-          <ul style={{ listStyle: "disc", paddingLeft: "1.25rem", fontSize: "var(--font-size-sm)" }}>
+          <ul
+            style={{
+              listStyle: "disc",
+              paddingLeft: "1.25rem",
+              fontSize: "var(--font-size-sm)",
+            }}
+          >
             {entry.gearItems.map((gear) => (
               <li key={gear.id} style={{ marginBottom: "var(--space-1)" }}>
                 {gear.nickname || `${gear.manufacturer} ${gear.model}`.trim()}
@@ -363,7 +416,13 @@ export function DiveLogDetail({ entry, gearLoading = false }: DiveLogDetailProps
           <p className={detailStyles.emptyState}>No gear recorded.</p>
         )}
         {entry.gearNotes && (
-          <p style={{ fontSize: "var(--font-size-sm)", marginTop: "var(--space-2)", color: "var(--color-text-secondary)" }}>
+          <p
+            style={{
+              fontSize: "var(--font-size-sm)",
+              marginTop: "var(--space-2)",
+              color: "var(--color-text-secondary)",
+            }}
+          >
             {entry.gearNotes}
           </p>
         )}
@@ -380,16 +439,21 @@ export function DiveLogDetail({ entry, gearLoading = false }: DiveLogDetailProps
           )}
           {entry.trainingInstructor && (
             <p style={{ marginBottom: "var(--space-2)" }}>
-              <span style={{ color: "var(--color-text-muted)" }}>Instructor / DM: </span>
+              <span style={{ color: "var(--color-text-muted)" }}>
+                Instructor / DM:{" "}
+              </span>
               {entry.trainingInstructor}
             </p>
           )}
-          {entry.trainingSkills && parseTrainingSkills(entry.trainingSkills).length > 0 && (
-            <p>
-              <span style={{ color: "var(--color-text-muted)" }}>Skills: </span>
-              {parseTrainingSkills(entry.trainingSkills).join(", ")}
-            </p>
-          )}
+          {entry.trainingSkills &&
+            parseTrainingSkills(entry.trainingSkills).length > 0 && (
+              <p>
+                <span style={{ color: "var(--color-text-muted)" }}>
+                  Skills:{" "}
+                </span>
+                {parseTrainingSkills(entry.trainingSkills).join(", ")}
+              </p>
+            )}
         </div>
       </DetailSection>
 
@@ -416,7 +480,9 @@ export function DiveLogDetail({ entry, gearLoading = false }: DiveLogDetailProps
           style={{
             whiteSpace: "pre-wrap",
             fontSize: "var(--font-size-sm)",
-            color: entry.notes ? "var(--color-text-primary)" : "var(--color-text-muted)",
+            color: entry.notes
+              ? "var(--color-text-primary)"
+              : "var(--color-text-muted)",
           }}
         >
           {entry.notes || "No notes recorded."}

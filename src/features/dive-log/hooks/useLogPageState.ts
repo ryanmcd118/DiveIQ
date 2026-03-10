@@ -34,8 +34,12 @@ export function useLogPageState(initialEntries: DiveLogEntry[] = []) {
   const [formKey, setFormKey] = useState<string>("new");
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
   const [selectedGearIds, setSelectedGearIds] = useState<string[]>([]);
-  const [lastSavedEntry, setLastSavedEntry] = useState<DiveLogEntry | null>(null);
-  const [lastAction, setLastAction] = useState<"create" | "update" | null>(null);
+  const [lastSavedEntry, setLastSavedEntry] = useState<DiveLogEntry | null>(
+    null
+  );
+  const [lastAction, setLastAction] = useState<"create" | "update" | null>(
+    null
+  );
   const [gearLoadingId, setGearLoadingId] = useState<string | null>(null);
   const [gearLoadedIds, setGearLoadedIds] = useState<string[]>([]);
 
@@ -109,7 +113,9 @@ export function useLogPageState(initialEntries: DiveLogEntry[] = []) {
     const diveTypeTags =
       diveTypeTagsArr.length > 0
         ? JSON.stringify(
-            Array.isArray(diveTypeTagsArr) ? diveTypeTagsArr : [String(diveTypeTagsArr)]
+            Array.isArray(diveTypeTagsArr)
+              ? diveTypeTagsArr
+              : [String(diveTypeTagsArr)]
           )
         : null;
 
@@ -118,14 +124,17 @@ export function useLogPageState(initialEntries: DiveLogEntry[] = []) {
     const safetyStopDurationVal = str(formData.get("safetyStopDuration"));
     const safetyStopDepthCm =
       safetyStopEnabled && safetyStopDepthUI
-        ? depthInputToCm(safetyStopDepthUI, prefs.depth) ?? feetToCm(15)
+        ? (depthInputToCm(safetyStopDepthUI, prefs.depth) ?? feetToCm(15))
         : null;
     const safetyStopDurationMin =
       safetyStopEnabled && safetyStopDurationVal
         ? parseInt(safetyStopDurationVal, 10)
         : null;
 
-    const maxDepthCm = depthInputToCm(str(formData.get("maxDepth")), prefs.depth);
+    const maxDepthCm = depthInputToCm(
+      str(formData.get("maxDepth")),
+      prefs.depth
+    );
     const bottomTime = bottomTimeVal ? parseInt(bottomTimeVal, 10) : null;
     const waterTempCx10 = tempInputToCx10(
       str(formData.get("waterTempSurface")),
@@ -135,7 +144,10 @@ export function useLogPageState(initialEntries: DiveLogEntry[] = []) {
       str(formData.get("waterTempBottom")),
       prefs.temperature
     );
-    const visibilityCm = distanceInputToCm(str(formData.get("visibility")), prefs.depth);
+    const visibilityCm = distanceInputToCm(
+      str(formData.get("visibility")),
+      prefs.depth
+    );
     const startPressureBar = pressureInputToBar(
       str(formData.get("startPressure")),
       prefs.pressure
@@ -179,7 +191,10 @@ export function useLogPageState(initialEntries: DiveLogEntry[] = []) {
       visibilityCm,
       current: str(formData.get("current")) || null,
       gasType: gasType || null,
-      fO2: gasType === "Nitrox" ? parseInt(str(formData.get("fO2")) || "32", 10) : null,
+      fO2:
+        gasType === "Nitrox"
+          ? parseInt(str(formData.get("fO2")) || "32", 10)
+          : null,
       tankCylinder: str(formData.get("tankCylinder")) || null,
       startPressureBar,
       endPressureBar,
@@ -315,7 +330,10 @@ export function useLogPageState(initialEntries: DiveLogEntry[] = []) {
     if (!current) return;
 
     // Already has gear or we've loaded it before
-    if ((current.gearItems && current.gearItems.length > 0) || gearLoadedIds.includes(diveId)) {
+    if (
+      (current.gearItems && current.gearItems.length > 0) ||
+      gearLoadedIds.includes(diveId)
+    ) {
       return;
     }
 
@@ -323,7 +341,9 @@ export function useLogPageState(initialEntries: DiveLogEntry[] = []) {
 
     try {
       setGearLoadingId(diveId);
-      const res = await fetch(`/api/dive-logs?id=${encodeURIComponent(diveId)}`);
+      const res = await fetch(
+        `/api/dive-logs?id=${encodeURIComponent(diveId)}`
+      );
       if (!res.ok) {
         throw new Error(`API returned ${res.status}`);
       }
@@ -353,7 +373,9 @@ export function useLogPageState(initialEntries: DiveLogEntry[] = []) {
     } catch (err) {
       console.error("Failed to load gear for dive", diveId, err);
     } finally {
-      setGearLoadingId((currentId) => (currentId === diveId ? null : currentId));
+      setGearLoadingId((currentId) =>
+        currentId === diveId ? null : currentId
+      );
     }
   };
 

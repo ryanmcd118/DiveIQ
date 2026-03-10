@@ -66,9 +66,15 @@ function DiveLogList({
           <div className={listStyles.cellDate}>{entry.date}</div>
           <div className={listStyles.cellMetrics}>
             <span>{depth.value ? `${depth.value}${depth.unit}` : "—"}</span>
-            <span>{entry.bottomTime != null ? `${entry.bottomTime}m` : "—"}</span>
-            <span>{waterTemp ? `${waterTemp.value}${waterTemp.unit}` : "—"}</span>
-            <span>{visibility ? `${visibility.value}${visibility.unit}` : "—"}</span>
+            <span>
+              {entry.bottomTime != null ? `${entry.bottomTime}m` : "—"}
+            </span>
+            <span>
+              {waterTemp ? `${waterTemp.value}${waterTemp.unit}` : "—"}
+            </span>
+            <span>
+              {visibility ? `${visibility.value}${visibility.unit}` : "—"}
+            </span>
           </div>
           <div className={listStyles.cellPlace}>
             {highlightMatch(entry.siteName, searchQuery)}
@@ -107,9 +113,15 @@ function DiveLogList({
           <div className={listStyles.cellDate}>{entry.date}</div>
           <div className={listStyles.cellMetrics}>
             <span>{depth.value ? `${depth.value}${depth.unit}` : "—"}</span>
-            <span>{entry.bottomTime != null ? `${entry.bottomTime}m` : "—"}</span>
-            <span>{waterTemp ? `${waterTemp.value}${waterTemp.unit}` : "—"}</span>
-            <span>{visibility ? `${visibility.value}${visibility.unit}` : "—"}</span>
+            <span>
+              {entry.bottomTime != null ? `${entry.bottomTime}m` : "—"}
+            </span>
+            <span>
+              {waterTemp ? `${waterTemp.value}${waterTemp.unit}` : "—"}
+            </span>
+            <span>
+              {visibility ? `${visibility.value}${visibility.unit}` : "—"}
+            </span>
           </div>
           <div className={listStyles.cellPlace}>
             {entry.region ? (

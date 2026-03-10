@@ -161,8 +161,7 @@ export async function POST(req: NextRequest) {
       await diveLogRepository.recomputeDiveNumbersForUser(session.user.id);
 
       const updated =
-        (await diveLogRepository.findById(id, session.user.id)) ??
-        updatedRaw;
+        (await diveLogRepository.findById(id, session.user.id)) ?? updatedRaw;
 
       // Handle gear associations
       if (gearItemIds !== undefined) {

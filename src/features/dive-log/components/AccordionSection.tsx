@@ -13,7 +13,9 @@ interface AccordionSectionProps {
 
 function ChevronIcon({ open }: { open: boolean }) {
   return (
-    <span className={`${styles.accordionChevron} ${open ? styles.accordionChevronOpen : ""}`}>
+    <span
+      className={`${styles.accordionChevron} ${open ? styles.accordionChevronOpen : ""}`}
+    >
       <svg
         xmlns="http://www.w3.org/2000/svg"
         width="20"

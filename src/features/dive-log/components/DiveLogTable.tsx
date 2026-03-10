@@ -2,11 +2,7 @@
 
 import { DiveLogEntry } from "@/features/dive-log/types";
 import { useUnitPreferences } from "@/hooks/useUnitPreferences";
-import {
-  displayDepth,
-  displayTemperature,
-  displayDistance,
-} from "@/lib/units";
+import { displayDepth, displayTemperature, displayDistance } from "@/lib/units";
 import buttonStyles from "@/styles/components/Button.module.css";
 import layoutStyles from "./LogbookLayout.module.css";
 import { highlightMatch } from "./SearchHighlight";
@@ -31,7 +27,11 @@ export function DiveLogTable({
   const showActions = Boolean(onDelete) || Boolean(selectedId);
 
   return (
-    <div className={styles.tableScroll} role="region" aria-label="Dive log table">
+    <div
+      className={styles.tableScroll}
+      role="region"
+      aria-label="Dive log table"
+    >
       <table className={styles.table}>
         <colgroup>
           <col className={styles.colSite} />
@@ -108,21 +108,17 @@ export function DiveLogTable({
                 <td className={styles.colDepth}>
                   {depth.value ? `${depth.value}${depth.unit}` : "—"}
                 </td>
-                <td className={styles.colTime}>{entry.bottomTime != null ? `${entry.bottomTime}m` : "—"}</td>
+                <td className={styles.colTime}>
+                  {entry.bottomTime != null ? `${entry.bottomTime}m` : "—"}
+                </td>
                 <td className={styles.colTemp}>
-                  {waterTemp
-                    ? `${waterTemp.value}${waterTemp.unit}`
-                    : "—"}
+                  {waterTemp ? `${waterTemp.value}${waterTemp.unit}` : "—"}
                 </td>
                 <td className={styles.colVis}>
-                  {visibility
-                    ? `${visibility.value}${visibility.unit}`
-                    : "—"}
+                  {visibility ? `${visibility.value}${visibility.unit}` : "—"}
                 </td>
                 <td className={styles.colNotes}>
-                  <span className={styles.notesCell}>
-                    {entry.notes ?? ""}
-                  </span>
+                  <span className={styles.notesCell}>{entry.notes ?? ""}</span>
                 </td>
                 {showActions && (
                   <td className={styles.colActions}>

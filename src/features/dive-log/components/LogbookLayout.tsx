@@ -65,8 +65,12 @@ export function LogbookLayout({
   const [isSheetOpen, setIsSheetOpen] = useState(false);
   const [sheetMode, setSheetMode] = useState<"create" | "edit">("create");
   // Persisted view: URL param ?view=list|grid (default: grid)
-  const preferredView = (searchParams.get("view") === "list" ? "list" : "grid") as "grid" | "list";
-  const [sortKey, setSortKey] = useState<"date-desc" | "date-asc" | "site-asc" | "region-asc">("date-desc");
+  const preferredView = (
+    searchParams.get("view") === "list" ? "list" : "grid"
+  ) as "grid" | "list";
+  const [sortKey, setSortKey] = useState<
+    "date-desc" | "date-asc" | "site-asc" | "region-asc"
+  >("date-desc");
 
   // Basic viewport breakpoint detection
   useEffect(() => {
@@ -143,7 +147,7 @@ export function LogbookLayout({
   // Determine if detail pane is open (desktop) or detail view is shown (mobile)
   const hasSelectedDive = urlDiveId && selectedEntry;
   const isDetailOpen = hasSelectedDive;
-  
+
   // When detail pane is open, force List view; otherwise use preferred view
   const effectiveView = isDetailOpen ? "list" : preferredView;
 
@@ -173,14 +177,18 @@ export function LogbookLayout({
     const params = new URLSearchParams(searchParams.toString());
     params.delete("diveId");
     const query = params.toString();
-    router.replace(query ? `/dive-logs?${query}` : "/dive-logs", { scroll: false });
+    router.replace(query ? `/dive-logs?${query}` : "/dive-logs", {
+      scroll: false,
+    });
   };
 
   const handleCloseDetail = () => {
     const params = new URLSearchParams(searchParams.toString());
     params.delete("diveId");
     const query = params.toString();
-    router.replace(query ? `/dive-logs?${query}` : "/dive-logs", { scroll: false });
+    router.replace(query ? `/dive-logs?${query}` : "/dive-logs", {
+      scroll: false,
+    });
   };
 
   const handleViewChange = (view: "grid" | "list") => {
@@ -235,7 +243,14 @@ export function LogbookLayout({
     return () => {
       clearTimeout(timeoutId);
     };
-  }, [isSheetOpen, lastSavedEntry, lastAction, router, searchParams, clearLastSave]);
+  }, [
+    isSheetOpen,
+    lastSavedEntry,
+    lastAction,
+    router,
+    searchParams,
+    clearLastSave,
+  ]);
 
   if (!entries.length) {
     return (
@@ -406,7 +421,9 @@ export function LogbookLayout({
 
   return (
     <div className={styles.container}>
-      <div className={`${styles.content} ${!hasSelectedDive ? styles.contentSinglePane : ""}`}>
+      <div
+        className={`${styles.content} ${!hasSelectedDive ? styles.contentSinglePane : ""}`}
+      >
         <div className={styles.browsePane}>
           <div className={styles.browseHeader}>
             <div className={styles.browseHeaderRow1}>
@@ -509,4 +526,3 @@ export function LogbookLayout({
     </div>
   );
 }
-

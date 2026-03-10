@@ -310,28 +310,28 @@
 .expandedGridNoActions .diveListHeader,
 .expandedGridNoActions .diveListItem.expandedRow {
   grid-template-columns:
-    minmax(340px, 3fr)     /* Site */
-    minmax(140px, 1.2fr)   /* Buddy */
-    110px                  /* Date */
-    70px                   /* Depth */
-    70px                   /* Time */
-    70px                   /* Temp */
-    90px                   /* Visibility */
-    minmax(0, 2.5fr);      /* Notes (FLEX, last) */
+    minmax(340px, 3fr) /* Site */
+    minmax(140px, 1.2fr) /* Buddy */
+    110px /* Date */
+    70px /* Depth */
+    70px /* Time */
+    70px /* Temp */
+    90px /* Visibility */
+    minmax(0, 2.5fr); /* Notes (FLEX, last) */
 }
 
 .expandedGridWithActions .diveListHeader,
 .expandedGridWithActions .diveListItem.expandedRow {
   grid-template-columns:
-    minmax(340px, 3fr)     /* Site */
-    minmax(140px, 1.2fr)   /* Buddy */
-    110px                  /* Date */
-    70px                   /* Depth */
-    70px                   /* Time */
-    70px                   /* Temp */
-    90px                   /* Visibility */
-    minmax(0, 2.5fr)       /* Notes (FLEX, last data col) */
-    44px;                  /* Actions */
+    minmax(340px, 3fr) /* Site */
+    minmax(140px, 1.2fr) /* Buddy */
+    110px /* Date */
+    70px /* Depth */
+    70px /* Time */
+    70px /* Temp */
+    90px /* Visibility */
+    minmax(0, 2.5fr) /* Notes (FLEX, last data col) */
+    44px; /* Actions */
 }
 
 /* Legacy / plan list (keep for non–dive-log list usage) */

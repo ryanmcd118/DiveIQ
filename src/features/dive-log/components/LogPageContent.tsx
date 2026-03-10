@@ -52,8 +52,10 @@ export function LogPageContent({
     clearLastSave,
   } = useLogPageState(initialEntries);
 
-  const [openCreateSheetFn, setOpenCreateSheetFn] = useState<(() => void) | null>(null);
-  
+  const [openCreateSheetFn, setOpenCreateSheetFn] = useState<
+    (() => void) | null
+  >(null);
+
   // Stable callback ref setter to avoid calling state setter during render
   const handleOpenCreateSheetRef = useCallback((fn: () => void) => {
     setOpenCreateSheetFn(() => fn);
@@ -156,10 +158,11 @@ export function LogPageContent({
         </div>
 
         {statusMessage && (
-          <div className={layoutStyles.pageFooter} style={{ flexShrink: 0 }}>{statusMessage}</div>
+          <div className={layoutStyles.pageFooter} style={{ flexShrink: 0 }}>
+            {statusMessage}
+          </div>
         )}
       </div>
     </main>
   );
 }
-

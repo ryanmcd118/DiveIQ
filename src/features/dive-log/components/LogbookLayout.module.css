@@ -1,4 +1,4 @@
- .container {
+.container {
   display: flex;
   flex-direction: column;
   height: 100%;
@@ -224,7 +224,8 @@
 
 .listItemSelected {
   border: 1px solid var(--color-accent-primary);
-  background: radial-gradient(
+  background:
+    radial-gradient(
       circle at top left,
       rgba(6, 182, 212, 0.12),
       transparent 60%
@@ -336,4 +337,3 @@
     display: none;
   }
 }
-

@@ -101,11 +101,11 @@
 .timelineRow {
   display: grid;
   grid-template-columns:
-    max-content             /* Dive # */
-    max-content             /* Date */
-    max-content             /* Start time + AM/PM */
-    max-content             /* End time + AM/PM */
-    max-content;            /* Bottom time */
+    max-content /* Dive # */
+    max-content /* Date */
+    max-content /* Start time + AM/PM */
+    max-content /* End time + AM/PM */
+    max-content; /* Bottom time */
   gap: var(--space-2) var(--space-4);
   align-items: end;
   justify-content: space-between;
@@ -656,7 +656,9 @@
   font-weight: var(--font-weight-semibold);
   cursor: pointer;
   text-align: left;
-  transition: background-color 0.15s, color 0.15s;
+  transition:
+    background-color 0.15s,
+    color 0.15s;
 }
 
 .accordionHeader:hover {
@@ -689,7 +691,9 @@
   width: 20px;
   height: 20px;
   color: var(--color-text-muted);
-  transition: transform 0.2s ease, color 0.15s;
+  transition:
+    transform 0.2s ease,
+    color 0.15s;
 }
 
 .accordionChevronOpen {
@@ -740,8 +744,10 @@
   background: var(--color-surface-input);
   color: var(--color-text-primary);
   cursor: pointer;
-  transition: background-color var(--transition-base),
-    border-color var(--transition-base), color var(--transition-base),
+  transition:
+    background-color var(--transition-base),
+    border-color var(--transition-base),
+    color var(--transition-base),
     box-shadow var(--transition-base);
   user-select: none;
 }

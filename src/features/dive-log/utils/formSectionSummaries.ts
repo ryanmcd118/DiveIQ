@@ -97,9 +97,11 @@ export function exposureSummaryFromForm(
 export function gearSummaryFromForm(v: FormSummaryValues): string | null {
   const parts: string[] = [];
   if (v.gearKitName) parts.push(`Kit: ${v.gearKitName}`);
-  if (v.gearItemCount && v.gearItemCount > 0) parts.push(`${v.gearItemCount} items`);
+  if (v.gearItemCount && v.gearItemCount > 0)
+    parts.push(`${v.gearItemCount} items`);
   if (v.gearNotes) {
-    const short = v.gearNotes.length > 20 ? v.gearNotes.slice(0, 17) + "…" : v.gearNotes;
+    const short =
+      v.gearNotes.length > 20 ? v.gearNotes.slice(0, 17) + "…" : v.gearNotes;
     parts.push(`Notes: ${short}`);
   }
   return parts.length > 0 ? parts.join(" · ") : null;
@@ -110,8 +112,14 @@ export function trainingSummaryFromForm(v: FormSummaryValues): string | null {
   const parts: string[] = [];
   if (v.trainingCourse) parts.push(v.trainingCourse);
   if (v.trainingSkills) {
-    const skills = v.trainingSkills.split(/[,;]/).map((s) => s.trim()).filter(Boolean);
-    if (skills.length > 0) parts.push(`Skills: ${skills.slice(0, 3).join(", ")}${skills.length > 3 ? "…" : ""}`);
+    const skills = v.trainingSkills
+      .split(/[,;]/)
+      .map((s) => s.trim())
+      .filter(Boolean);
+    if (skills.length > 0)
+      parts.push(
+        `Skills: ${skills.slice(0, 3).join(", ")}${skills.length > 3 ? "…" : ""}`
+      );
   }
   return parts.length > 0 ? parts.join(" · ") : null;
 }

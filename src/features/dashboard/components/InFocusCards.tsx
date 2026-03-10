@@ -94,7 +94,9 @@ export function InFocusCards({
                     : null;
                   const parts = [
                     depth.value ? `${depth.value}${depth.unit}` : null,
-                    mostRecentDive.bottomTime != null ? `${mostRecentDive.bottomTime}min` : null,
+                    mostRecentDive.bottomTime != null
+                      ? `${mostRecentDive.bottomTime}min`
+                      : null,
                     temp ? `${temp.value}${temp.unit}` : null,
                   ].filter(Boolean);
                   return parts.join(" · ");

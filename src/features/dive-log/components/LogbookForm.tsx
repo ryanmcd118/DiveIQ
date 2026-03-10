@@ -35,12 +35,12 @@ const Field = ({
       col === 12
         ? styles.col12
         : col === 6
-        ? styles.col6
-        : col === 4
-        ? styles.col4
-        : col === 3
-        ? styles.col3
-        : styles.col2
+          ? styles.col6
+          : col === 4
+            ? styles.col4
+            : col === 3
+              ? styles.col3
+              : styles.col2
     }
   >
     {children}
@@ -95,7 +95,8 @@ function normalizeTime(value: string): string {
   const parts = trimmed.split(":");
   const first = parts[0]?.replace(/\s/g, "") ?? "";
   let hour = parseInt(first, 10);
-  let minute = parts[1] != null ? parseInt(String(parts[1]).replace(/\s/g, ""), 10) : 0;
+  let minute =
+    parts[1] != null ? parseInt(String(parts[1]).replace(/\s/g, ""), 10) : 0;
   if (Number.isNaN(hour)) return "";
   if (Number.isNaN(minute)) minute = 0;
   hour = Math.max(0, Math.min(hour, 12));
@@ -105,9 +106,10 @@ function normalizeTime(value: string): string {
   return `${h}:${m}`;
 }
 
-function splitTimeForDisplay(
-  time: string | null | undefined
-): { value: string; period: "AM" | "PM" } {
+function splitTimeForDisplay(time: string | null | undefined): {
+  value: string;
+  period: "AM" | "PM";
+} {
   if (!time) return { value: "", period: "AM" };
   const match = time.match(/^(\d{2}):(\d{2})$/);
   if (!match) return { value: "", period: "AM" };
@@ -158,9 +160,10 @@ function timeToMinutes(value: string, period: "AM" | "PM"): number | null {
   return hours * 60 + minutes;
 }
 
-function minutesToDisplayTime(
-  totalMinutes: number
-): { value: string; period: "AM" | "PM" } {
+function minutesToDisplayTime(totalMinutes: number): {
+  value: string;
+  period: "AM" | "PM";
+} {
   const minutes = Math.max(0, Math.floor(totalMinutes));
   const hours24 = Math.floor(minutes / 60) % 24;
   const mins = minutes % 60;
@@ -219,8 +222,7 @@ export function LogbookForm({
   const [endTimeError, setEndTimeError] = useState<string | null>(null);
   const [diveNumber, setDiveNumber] = useState("");
   const [diveNumberAuto, setDiveNumberAuto] = useState<number | null>(null);
-  const [isDiveNumberOverridden, setIsDiveNumberOverridden] =
-    useState(false);
+  const [isDiveNumberOverridden, setIsDiveNumberOverridden] = useState(false);
 
   // When creating a new dive, suggested # = 1 + count of existing dives with date < form date (chronological position).
   const suggestedForNewDive =
@@ -256,7 +258,9 @@ export function LogbookForm({
   const [trainingSkills, setTrainingSkills] = useState("");
   const [selectedDiveTypes, setSelectedDiveTypes] = useState<string[]>([]);
   const [showAllDiveTypes, setShowAllDiveTypes] = useState(false);
-  const [gearKits, setGearKits] = useState<{ id: string; name: string; kitItems: { gearItemId: string }[] }[]>([]);
+  const [gearKits, setGearKits] = useState<
+    { id: string; name: string; kitItems: { gearItemId: string }[] }[]
+  >([]);
 
   // Gas used (derived): start - end pressure; blank if either missing/invalid or if negative
   const gasUsedDisplay = (() => {
@@ -274,22 +278,17 @@ export function LogbookForm({
   const initFromEntry = (entry: DiveLogEntry | null) => {
     if (entry) {
       setDate(entry.date ?? "");
-      const startParts = splitTimeForDisplay(
-        entry.startTime ?? null
-      );
+      const startParts = splitTimeForDisplay(entry.startTime ?? null);
       setStartTimeDisplay(startParts.value);
       setStartTimePeriod(startParts.period);
-      const endParts = splitTimeForDisplay(
-        entry.endTime ?? null
-      );
+      const endParts = splitTimeForDisplay(entry.endTime ?? null);
       setEndTimeDisplay(endParts.value);
       setEndTimePeriod(endParts.period);
       setLastEditedTime(null);
       setStartTimeError(null);
       setEndTimeError(null);
 
-      const autoFromEntry =
-        entry.diveNumberAuto ?? entry.diveNumber ?? null;
+      const autoFromEntry = entry.diveNumberAuto ?? entry.diveNumber ?? null;
       const overrideFromEntry = entry.diveNumberOverride ?? null;
       setDiveNumberAuto(autoFromEntry);
       if (overrideFromEntry != null) {
@@ -311,15 +310,38 @@ export function LogbookForm({
           ? displayDepth(entry.maxDepthCm, prefs.depth).value
           : ""
       );
-      setBottomTime(
-        entry.bottomTime != null ? String(entry.bottomTime) : ""
+      setBottomTime(entry.bottomTime != null ? String(entry.bottomTime) : "");
+      setWaterTempSurface(
+        entry.waterTempCx10 != null
+          ? displayTemperature(entry.waterTempCx10, prefs.temperature).value
+          : ""
       );
-      setWaterTempSurface(entry.waterTempCx10 != null ? displayTemperature(entry.waterTempCx10, prefs.temperature).value : "");
-      setWaterTempBottom(entry.waterTempBottomCx10 != null ? displayTemperature(entry.waterTempBottomCx10, prefs.temperature).value : "");
-      setVisibility(entry.visibilityCm != null ? displayDistance(entry.visibilityCm, prefs.depth).value : "");
-      setStartPressure(entry.startPressureBar != null ? formatPressureForDisplay(entry.startPressureBar, prefs.pressure) : "");
-      setEndPressure(entry.endPressureBar != null ? formatPressureForDisplay(entry.endPressureBar, prefs.pressure) : "");
-      setWeightUsed(entry.weightUsedKg != null ? formatWeightForDisplay(entry.weightUsedKg, prefs.weight) : "");
+      setWaterTempBottom(
+        entry.waterTempBottomCx10 != null
+          ? displayTemperature(entry.waterTempBottomCx10, prefs.temperature)
+              .value
+          : ""
+      );
+      setVisibility(
+        entry.visibilityCm != null
+          ? displayDistance(entry.visibilityCm, prefs.depth).value
+          : ""
+      );
+      setStartPressure(
+        entry.startPressureBar != null
+          ? formatPressureForDisplay(entry.startPressureBar, prefs.pressure)
+          : ""
+      );
+      setEndPressure(
+        entry.endPressureBar != null
+          ? formatPressureForDisplay(entry.endPressureBar, prefs.pressure)
+          : ""
+      );
+      setWeightUsed(
+        entry.weightUsedKg != null
+          ? formatWeightForDisplay(entry.weightUsedKg, prefs.weight)
+          : ""
+      );
       setGasType(entry.gasType ?? "Air");
       setFO2(entry.fO2 != null ? String(entry.fO2) : "32");
       const hasSafetyStop =
@@ -336,9 +358,7 @@ export function LogbookForm({
           : ""
       );
       setSurfaceIntervalMin(
-        entry.surfaceIntervalMin != null
-          ? String(entry.surfaceIntervalMin)
-          : ""
+        entry.surfaceIntervalMin != null ? String(entry.surfaceIntervalMin) : ""
       );
       setCurrent(entry.current ?? "");
       setExposureProtection(entry.exposureProtection ?? "");
@@ -403,8 +423,7 @@ export function LogbookForm({
   // When creating: as soon as date is set, suggest dive # by chronology (other dives only renumber on save).
   useEffect(() => {
     if (activeEntry || isDiveNumberOverridden) return;
-    const next =
-      suggestedForNewDive ?? suggestedDiveNumber ?? null;
+    const next = suggestedForNewDive ?? suggestedDiveNumber ?? null;
     const nextStr = next != null ? String(next) : "";
     setDiveNumberAuto(next);
     if (diveNumber !== nextStr) {
@@ -435,11 +454,7 @@ export function LogbookForm({
       return Number.isFinite(n) && n >= 0 ? n : null;
     })();
 
-    if (
-      startMinutes != null &&
-      bottomNum != null &&
-      lastEditedTime !== "end"
-    ) {
+    if (startMinutes != null && bottomNum != null && lastEditedTime !== "end") {
       const totalMin = startMinutes + bottomNum;
       const endMin = totalMin % (24 * 60);
       const { value, period } = minutesToDisplayTime(endMin);
@@ -517,7 +532,10 @@ export function LogbookForm({
                           type="button"
                           className={styles.diveNumberReset}
                           onClick={() => {
-                            const next = diveNumberAuto != null ? String(diveNumberAuto) : "";
+                            const next =
+                              diveNumberAuto != null
+                                ? String(diveNumberAuto)
+                                : "";
                             setDiveNumber(next);
                             setIsDiveNumberOverridden(false);
                           }}
@@ -537,77 +555,168 @@ export function LogbookForm({
                     onChange={(e) => {
                       const v = e.target.value;
                       setDiveNumber(v);
-                      if (diveNumberAuto != null && v) setIsDiveNumberOverridden(v !== String(diveNumberAuto));
+                      if (diveNumberAuto != null && v)
+                        setIsDiveNumberOverridden(v !== String(diveNumberAuto));
                       else setIsDiveNumberOverridden(Boolean(v));
                     }}
                     className={styles.input}
                   />
-                  <input type="hidden" name="diveNumberOverride" value={isDiveNumberOverridden && diveNumber ? diveNumber : ""} />
+                  <input
+                    type="hidden"
+                    name="diveNumberOverride"
+                    value={
+                      isDiveNumberOverridden && diveNumber ? diveNumber : ""
+                    }
+                  />
                 </div>
-                <div className={`${styles.field} ${styles.inputSmall} ${styles.inputDate}`}>
+                <div
+                  className={`${styles.field} ${styles.inputSmall} ${styles.inputDate}`}
+                >
                   <label htmlFor="date" className={styles.label}>
                     Date <span className={styles.labelRequired}>*</span>
                   </label>
-                  <input type="date" id="date" name="date" required value={date} onChange={(e) => setDate(e.target.value)} className={styles.input} />
+                  <input
+                    type="date"
+                    id="date"
+                    name="date"
+                    required
+                    value={date}
+                    onChange={(e) => setDate(e.target.value)}
+                    className={styles.input}
+                  />
                 </div>
                 <div className={styles.timeGroup}>
-                  <label htmlFor="startTimeDisplay" className={styles.label}>Start time</label>
+                  <label htmlFor="startTimeDisplay" className={styles.label}>
+                    Start time
+                  </label>
                   <div className={styles.timeRow}>
                     <input
                       type="text"
                       id="startTimeDisplay"
                       placeholder="hh:mm"
                       value={startTimeDisplay}
-                      onChange={(e) => { setStartTimeDisplay(e.target.value); setLastEditedTime("start"); if (startTimeError) setStartTimeError(null); }}
+                      onChange={(e) => {
+                        setStartTimeDisplay(e.target.value);
+                        setLastEditedTime("start");
+                        if (startTimeError) setStartTimeError(null);
+                      }}
                       onBlur={(e) => {
                         const raw = e.target.value.trim();
                         const normalized = normalizeTime(raw);
-                        if (normalized && normalized !== raw) setStartTimeDisplay(normalized);
+                        if (normalized && normalized !== raw)
+                          setStartTimeDisplay(normalized);
                         const valueToCheck = normalized || raw;
-                        if (valueToCheck && !to24HourTime(valueToCheck, startTimePeriod)) setStartTimeError("Enter a valid time (e.g. 9:00 or 9:30)");
+                        if (
+                          valueToCheck &&
+                          !to24HourTime(valueToCheck, startTimePeriod)
+                        )
+                          setStartTimeError(
+                            "Enter a valid time (e.g. 9:00 or 9:30)"
+                          );
                         else setStartTimeError(null);
                       }}
                       className={`${styles.input} ${styles.inputSmall}`}
                     />
-                    <select aria-label="AM or PM for start time" className={`${styles.select} ${styles.inputTiny}`} value={startTimePeriod} onChange={(e) => { setStartTimePeriod(e.target.value === "PM" ? "PM" : "AM"); setLastEditedTime("start"); }}>
+                    <select
+                      aria-label="AM or PM for start time"
+                      className={`${styles.select} ${styles.inputTiny}`}
+                      value={startTimePeriod}
+                      onChange={(e) => {
+                        setStartTimePeriod(
+                          e.target.value === "PM" ? "PM" : "AM"
+                        );
+                        setLastEditedTime("start");
+                      }}
+                    >
                       <option value="AM">AM</option>
                       <option value="PM">PM</option>
                     </select>
                   </div>
-                  {startTimeError && <span className={styles.timeFieldError} role="alert">{startTimeError}</span>}
+                  {startTimeError && (
+                    <span className={styles.timeFieldError} role="alert">
+                      {startTimeError}
+                    </span>
+                  )}
                 </div>
                 <div className={styles.timeGroup}>
-                  <label htmlFor="endTimeDisplay" className={styles.label}>End time</label>
+                  <label htmlFor="endTimeDisplay" className={styles.label}>
+                    End time
+                  </label>
                   <div className={styles.timeRow}>
                     <input
                       type="text"
                       id="endTimeDisplay"
                       placeholder="hh:mm"
                       value={endTimeDisplay}
-                      onChange={(e) => { setEndTimeDisplay(e.target.value); setLastEditedTime("end"); if (endTimeError) setEndTimeError(null); }}
+                      onChange={(e) => {
+                        setEndTimeDisplay(e.target.value);
+                        setLastEditedTime("end");
+                        if (endTimeError) setEndTimeError(null);
+                      }}
                       onBlur={(e) => {
                         const raw = e.target.value.trim();
                         const normalized = normalizeTime(raw);
-                        if (normalized && normalized !== raw) setEndTimeDisplay(normalized);
+                        if (normalized && normalized !== raw)
+                          setEndTimeDisplay(normalized);
                         const valueToCheck = normalized || raw;
-                        if (valueToCheck && !to24HourTime(valueToCheck, endTimePeriod)) setEndTimeError("Enter a valid time (e.g. 9:52 or 10:00)");
+                        if (
+                          valueToCheck &&
+                          !to24HourTime(valueToCheck, endTimePeriod)
+                        )
+                          setEndTimeError(
+                            "Enter a valid time (e.g. 9:52 or 10:00)"
+                          );
                         else setEndTimeError(null);
                       }}
                       className={`${styles.input} ${styles.inputSmall}`}
                     />
-                    <select aria-label="AM or PM for end time" className={`${styles.select} ${styles.inputTiny}`} value={endTimePeriod} onChange={(e) => { setEndTimePeriod(e.target.value === "PM" ? "PM" : "AM"); setLastEditedTime("end"); }}>
+                    <select
+                      aria-label="AM or PM for end time"
+                      className={`${styles.select} ${styles.inputTiny}`}
+                      value={endTimePeriod}
+                      onChange={(e) => {
+                        setEndTimePeriod(e.target.value === "PM" ? "PM" : "AM");
+                        setLastEditedTime("end");
+                      }}
+                    >
                       <option value="AM">AM</option>
                       <option value="PM">PM</option>
                     </select>
                   </div>
-                  {endTimeError && <span className={styles.timeFieldError} role="alert">{endTimeError}</span>}
+                  {endTimeError && (
+                    <span className={styles.timeFieldError} role="alert">
+                      {endTimeError}
+                    </span>
+                  )}
                 </div>
-                <input type="hidden" name="startTime" value={to24HourTime(startTimeDisplay, startTimePeriod)} />
-                <input type="hidden" name="endTime" value={to24HourTime(endTimeDisplay, endTimePeriod)} />
+                <input
+                  type="hidden"
+                  name="startTime"
+                  value={to24HourTime(startTimeDisplay, startTimePeriod)}
+                />
+                <input
+                  type="hidden"
+                  name="endTime"
+                  value={to24HourTime(endTimeDisplay, endTimePeriod)}
+                />
                 <div className={`${styles.field} ${styles.inputSmall}`}>
-                  <label htmlFor="bottomTime" className={styles.label}>Bottom time</label>
+                  <label htmlFor="bottomTime" className={styles.label}>
+                    Bottom time
+                  </label>
                   <div className={styles.inputWithUnit}>
-                    <input type="number" id="bottomTime" name="bottomTime" min={0} value={bottomTime} onChange={(e) => { setBottomTime(e.target.value); setLastEditedTime("bottom"); }} placeholder="—" className={styles.input} />
+                    <input
+                      type="number"
+                      id="bottomTime"
+                      name="bottomTime"
+                      min={0}
+                      value={bottomTime}
+                      onChange={(e) => {
+                        setBottomTime(e.target.value);
+                        setLastEditedTime("bottom");
+                      }}
+                      placeholder="—"
+                      className={styles.input}
+                    />
                     <span className={styles.unitSuffix}>min</span>
                   </div>
                 </div>
@@ -615,16 +724,46 @@ export function LogbookForm({
               {/* Row 2: Site name* | Location / Region | Buddy */}
               <div className={styles.locationRow}>
                 <div className={styles.field}>
-                  <label htmlFor="siteName" className={styles.label}>Site name <span className={styles.labelRequired}>*</span></label>
-                  <input type="text" id="siteName" name="siteName" required placeholder="Mary's Place" value={siteName} onChange={(e) => setSiteName(e.target.value)} className={styles.input} />
+                  <label htmlFor="siteName" className={styles.label}>
+                    Site name <span className={styles.labelRequired}>*</span>
+                  </label>
+                  <input
+                    type="text"
+                    id="siteName"
+                    name="siteName"
+                    required
+                    placeholder="Mary's Place"
+                    value={siteName}
+                    onChange={(e) => setSiteName(e.target.value)}
+                    className={styles.input}
+                  />
                 </div>
                 <div className={styles.field}>
-                  <label htmlFor="region" className={styles.label}>Location / Region</label>
-                  <input type="text" id="region" name="region" placeholder="Roatán, Red Sea, local quarry…" value={region} onChange={(e) => setRegion(e.target.value)} className={styles.input} />
+                  <label htmlFor="region" className={styles.label}>
+                    Location / Region
+                  </label>
+                  <input
+                    type="text"
+                    id="region"
+                    name="region"
+                    placeholder="Roatán, Red Sea, local quarry…"
+                    value={region}
+                    onChange={(e) => setRegion(e.target.value)}
+                    className={styles.input}
+                  />
                 </div>
                 <div className={styles.field}>
-                  <label htmlFor="buddyName" className={styles.label}>Buddy</label>
-                  <input type="text" id="buddyName" name="buddyName" value={buddyName} onChange={(e) => setBuddyName(e.target.value)} className={styles.input} />
+                  <label htmlFor="buddyName" className={styles.label}>
+                    Buddy
+                  </label>
+                  <input
+                    type="text"
+                    id="buddyName"
+                    name="buddyName"
+                    value={buddyName}
+                    onChange={(e) => setBuddyName(e.target.value)}
+                    className={styles.input}
+                  />
                 </div>
               </div>
             </section>
@@ -635,83 +774,198 @@ export function LogbookForm({
               {/* Row 3: Environment — Max depth, Water temp surface, Water temp bottom, Visibility, Current (all one line) */}
               <div className={styles.metricsRow}>
                 <div className={`${styles.field} ${styles.inputSmall}`}>
-                  <label htmlFor="maxDepth" className={styles.label}>Max depth</label>
+                  <label htmlFor="maxDepth" className={styles.label}>
+                    Max depth
+                  </label>
                   <div className={styles.inputWithUnit}>
-                    <input type="number" id="maxDepth" name="maxDepth" value={maxDepth} onChange={(e) => setMaxDepth(e.target.value)} className={styles.input} />
-                    <span className={styles.unitSuffix}>{getUnitLabel("depth", prefs)}</span>
+                    <input
+                      type="number"
+                      id="maxDepth"
+                      name="maxDepth"
+                      value={maxDepth}
+                      onChange={(e) => setMaxDepth(e.target.value)}
+                      className={styles.input}
+                    />
+                    <span className={styles.unitSuffix}>
+                      {getUnitLabel("depth", prefs)}
+                    </span>
                   </div>
                 </div>
                 <div className={`${styles.field} ${styles.inputSmall}`}>
-                  <label htmlFor="waterTempSurface" className={styles.label}>Water temp surface</label>
+                  <label htmlFor="waterTempSurface" className={styles.label}>
+                    Water temp surface
+                  </label>
                   <div className={styles.inputWithUnit}>
-                    <input type="number" id="waterTempSurface" name="waterTempSurface" value={waterTempSurface} onChange={(e) => setWaterTempSurface(e.target.value)} className={styles.input} />
-                    <span className={styles.unitSuffix}>{getUnitLabel("temperature", prefs)}</span>
+                    <input
+                      type="number"
+                      id="waterTempSurface"
+                      name="waterTempSurface"
+                      value={waterTempSurface}
+                      onChange={(e) => setWaterTempSurface(e.target.value)}
+                      className={styles.input}
+                    />
+                    <span className={styles.unitSuffix}>
+                      {getUnitLabel("temperature", prefs)}
+                    </span>
                   </div>
                 </div>
                 <div className={`${styles.field} ${styles.inputSmall}`}>
-                  <label htmlFor="waterTempBottom" className={styles.label}>Water temp bottom</label>
+                  <label htmlFor="waterTempBottom" className={styles.label}>
+                    Water temp bottom
+                  </label>
                   <div className={styles.inputWithUnit}>
-                    <input type="number" id="waterTempBottom" name="waterTempBottom" value={waterTempBottom} onChange={(e) => setWaterTempBottom(e.target.value)} className={styles.input} />
-                    <span className={styles.unitSuffix}>{getUnitLabel("temperature", prefs)}</span>
+                    <input
+                      type="number"
+                      id="waterTempBottom"
+                      name="waterTempBottom"
+                      value={waterTempBottom}
+                      onChange={(e) => setWaterTempBottom(e.target.value)}
+                      className={styles.input}
+                    />
+                    <span className={styles.unitSuffix}>
+                      {getUnitLabel("temperature", prefs)}
+                    </span>
                   </div>
                 </div>
                 <div className={`${styles.field} ${styles.inputSmall}`}>
-                  <label htmlFor="visibility" className={styles.label}>Visibility</label>
+                  <label htmlFor="visibility" className={styles.label}>
+                    Visibility
+                  </label>
                   <div className={styles.inputWithUnit}>
-                    <input type="number" id="visibility" name="visibility" value={visibility} onChange={(e) => setVisibility(e.target.value)} className={styles.input} />
-                    <span className={styles.unitSuffix}>{getUnitLabel("distance", prefs)}</span>
+                    <input
+                      type="number"
+                      id="visibility"
+                      name="visibility"
+                      value={visibility}
+                      onChange={(e) => setVisibility(e.target.value)}
+                      className={styles.input}
+                    />
+                    <span className={styles.unitSuffix}>
+                      {getUnitLabel("distance", prefs)}
+                    </span>
                   </div>
                 </div>
                 <div className={`${styles.field} ${styles.inputMedium}`}>
-                  <label htmlFor="current" className={styles.label}>Current</label>
-                  <select id="current" name="current" className={styles.select} value={current} onChange={(e) => setCurrent(e.target.value)}>
+                  <label htmlFor="current" className={styles.label}>
+                    Current
+                  </label>
+                  <select
+                    id="current"
+                    name="current"
+                    className={styles.select}
+                    value={current}
+                    onChange={(e) => setCurrent(e.target.value)}
+                  >
                     {CURRENT_OPTIONS.map((o) => (
-                      <option key={o.value || "none"} value={o.value}>{o.label}</option>
+                      <option key={o.value || "none"} value={o.value}>
+                        {o.label}
+                      </option>
                     ))}
                   </select>
                 </div>
               </div>
               {/* Row 4: Gas + Safety stop — all on one line; checkbox aligned with input baselines */}
-              <div className={`${styles.gasRow} ${gasType === "Nitrox" ? styles.gasRowWithFO2 : ""}`}>
+              <div
+                className={`${styles.gasRow} ${gasType === "Nitrox" ? styles.gasRowWithFO2 : ""}`}
+              >
                 <div className={`${styles.field} ${styles.inputMedium}`}>
-                  <label htmlFor="gasType" className={styles.label}>Gas type</label>
-                  <select id="gasType" name="gasType" className={styles.select} value={gasType} onChange={(e) => setGasType(e.target.value)}>
+                  <label htmlFor="gasType" className={styles.label}>
+                    Gas type
+                  </label>
+                  <select
+                    id="gasType"
+                    name="gasType"
+                    className={styles.select}
+                    value={gasType}
+                    onChange={(e) => setGasType(e.target.value)}
+                  >
                     {GAS_TYPE_OPTIONS.map((o) => (
-                      <option key={o.value} value={o.value}>{o.label}</option>
+                      <option key={o.value} value={o.value}>
+                        {o.label}
+                      </option>
                     ))}
                   </select>
                 </div>
                 {gasType === "Nitrox" && (
                   <div className={`${styles.field} ${styles.inputSmall}`}>
-                    <label htmlFor="fO2" className={styles.label}>FO2 (%)</label>
-                    <input type="number" id="fO2" name="fO2" min={21} max={100} value={fO2} onChange={(e) => setFO2(e.target.value)} className={styles.input} />
+                    <label htmlFor="fO2" className={styles.label}>
+                      FO2 (%)
+                    </label>
+                    <input
+                      type="number"
+                      id="fO2"
+                      name="fO2"
+                      min={21}
+                      max={100}
+                      value={fO2}
+                      onChange={(e) => setFO2(e.target.value)}
+                      className={styles.input}
+                    />
                   </div>
                 )}
                 <div className={`${styles.field} ${styles.inputMedium}`}>
-                  <label htmlFor="tankCylinder" className={styles.label}>Tank / cylinder</label>
-                  <input type="text" id="tankCylinder" name="tankCylinder" placeholder="AL80, HP100…" value={tankCylinder} onChange={(e) => setTankCylinder(e.target.value)} className={styles.input} />
+                  <label htmlFor="tankCylinder" className={styles.label}>
+                    Tank / cylinder
+                  </label>
+                  <input
+                    type="text"
+                    id="tankCylinder"
+                    name="tankCylinder"
+                    placeholder="AL80, HP100…"
+                    value={tankCylinder}
+                    onChange={(e) => setTankCylinder(e.target.value)}
+                    className={styles.input}
+                  />
                 </div>
                 <div className={`${styles.field} ${styles.inputSmall}`}>
-                  <label htmlFor="startPressure" className={styles.label}>Start pressure</label>
+                  <label htmlFor="startPressure" className={styles.label}>
+                    Start pressure
+                  </label>
                   <div className={styles.inputWithUnit}>
-                    <input type="number" id="startPressure" name="startPressure" value={startPressure} onChange={(e) => setStartPressure(e.target.value)} className={styles.input} />
-                    <span className={styles.unitSuffix}>{getUnitLabel("pressure", prefs)}</span>
+                    <input
+                      type="number"
+                      id="startPressure"
+                      name="startPressure"
+                      value={startPressure}
+                      onChange={(e) => setStartPressure(e.target.value)}
+                      className={styles.input}
+                    />
+                    <span className={styles.unitSuffix}>
+                      {getUnitLabel("pressure", prefs)}
+                    </span>
                   </div>
                 </div>
                 <div className={`${styles.field} ${styles.inputSmall}`}>
-                  <label htmlFor="endPressure" className={styles.label}>End pressure</label>
+                  <label htmlFor="endPressure" className={styles.label}>
+                    End pressure
+                  </label>
                   <div className={styles.inputWithUnit}>
-                    <input type="number" id="endPressure" name="endPressure" value={endPressure} onChange={(e) => setEndPressure(e.target.value)} className={styles.input} />
-                    <span className={styles.unitSuffix}>{getUnitLabel("pressure", prefs)}</span>
+                    <input
+                      type="number"
+                      id="endPressure"
+                      name="endPressure"
+                      value={endPressure}
+                      onChange={(e) => setEndPressure(e.target.value)}
+                      className={styles.input}
+                    />
+                    <span className={styles.unitSuffix}>
+                      {getUnitLabel("pressure", prefs)}
+                    </span>
                   </div>
                 </div>
                 <div className={`${styles.field} ${styles.inputSmall}`}>
                   <span className={styles.label}>Gas used</span>
                   <div className={styles.inputWithUnit}>
-                    <div className={styles.gasUsedReadOnly} aria-live="polite" aria-label={`Gas used: ${gasUsedDisplay != null ? `${gasUsedDisplay} ${getUnitLabel("pressure", prefs)}` : "—"}`}>
+                    <div
+                      className={styles.gasUsedReadOnly}
+                      aria-live="polite"
+                      aria-label={`Gas used: ${gasUsedDisplay != null ? `${gasUsedDisplay} ${getUnitLabel("pressure", prefs)}` : "—"}`}
+                    >
                       {gasUsedDisplay != null ? gasUsedDisplay : "—"}
                     </div>
-                    <span className={styles.unitSuffix}>{getUnitLabel("pressure", prefs)}</span>
+                    <span className={styles.unitSuffix}>
+                      {getUnitLabel("pressure", prefs)}
+                    </span>
                   </div>
                 </div>
               </div>
@@ -769,14 +1023,20 @@ export function LogbookForm({
                 </div>
                 <div className={styles.fieldSafetyStop}>
                   <div className={styles.safetyStopInline}>
-                    <label className={styles.safetyStopLabel} style={{ cursor: "pointer" }}>
+                    <label
+                      className={styles.safetyStopLabel}
+                      style={{ cursor: "pointer" }}
+                    >
                       <input
                         type="checkbox"
                         checked={safetyStopEnabled}
                         onChange={(e) => {
                           const checked = e.target.checked;
-                          if (!checked) { setSafetyStopEnabled(false); setSafetyStopDepth(""); setSafetyStopDuration(""); }
-                          else setSafetyStopEnabled(true);
+                          if (!checked) {
+                            setSafetyStopEnabled(false);
+                            setSafetyStopDepth("");
+                            setSafetyStopDuration("");
+                          } else setSafetyStopEnabled(true);
                         }}
                       />
                       <span className={styles.label}>Safety stop</span>
@@ -790,11 +1050,14 @@ export function LogbookForm({
                         onChange={(e) => {
                           const v = e.target.value;
                           setSafetyStopDepth(v);
-                          if (v.trim() !== "" && !safetyStopEnabled) setSafetyStopEnabled(true);
+                          if (v.trim() !== "" && !safetyStopEnabled)
+                            setSafetyStopEnabled(true);
                         }}
                         className={styles.input}
                       />
-                      <span className={styles.unitSuffix}>{getUnitLabel("depth", prefs)}</span>
+                      <span className={styles.unitSuffix}>
+                        {getUnitLabel("depth", prefs)}
+                      </span>
                       <input
                         type="number"
                         id="safetyStopDuration"
@@ -804,14 +1067,19 @@ export function LogbookForm({
                         onChange={(e) => {
                           const v = e.target.value;
                           setSafetyStopDuration(v);
-                          if (v.trim() !== "" && !safetyStopEnabled) setSafetyStopEnabled(true);
+                          if (v.trim() !== "" && !safetyStopEnabled)
+                            setSafetyStopEnabled(true);
                         }}
                         className={styles.input}
                       />
                       <span className={styles.unitSuffix}>min</span>
                     </div>
                   </div>
-                  <input type="hidden" name="safetyStopEnabled" value={safetyStopEnabled ? "1" : "0"} />
+                  <input
+                    type="hidden"
+                    name="safetyStopEnabled"
+                    value={safetyStopEnabled ? "1" : "0"}
+                  />
                 </div>
               </div>
               {/* Row 6: Dive type + Notes two-column layout */}
@@ -820,7 +1088,10 @@ export function LogbookForm({
                   <span className={styles.label}>Dive type</span>
                   <div className={styles.diveTypeRow}>
                     {MOST_COMMON_DIVE_TYPES.map((tag) => (
-                      <label key={tag} className={`${styles.diveTypeChip} ${selectedDiveTypes.includes(tag) ? styles.diveTypeChipSelected : ""}`}>
+                      <label
+                        key={tag}
+                        className={`${styles.diveTypeChip} ${selectedDiveTypes.includes(tag) ? styles.diveTypeChipSelected : ""}`}
+                      >
                         <input
                           type="checkbox"
                           name="diveTypeTags"
@@ -828,7 +1099,9 @@ export function LogbookForm({
                           checked={selectedDiveTypes.includes(tag)}
                           onChange={(e) =>
                             setSelectedDiveTypes((prev) =>
-                              e.target.checked ? [...prev, tag] : prev.filter((t) => t !== tag),
+                              e.target.checked
+                                ? [...prev, tag]
+                                : prev.filter((t) => t !== tag)
                             )
                           }
                         />
@@ -844,9 +1117,17 @@ export function LogbookForm({
                         >
                           Show more
                         </button>
-                        {selectedDiveTypes.filter((t) => EXPANDED_DIVE_TYPES.includes(t)).length > 0 && (
+                        {selectedDiveTypes.filter((t) =>
+                          EXPANDED_DIVE_TYPES.includes(t)
+                        ).length > 0 && (
                           <span className={styles.diveTypeMoreSelected}>
-                            +{selectedDiveTypes.filter((t) => EXPANDED_DIVE_TYPES.includes(t)).length} more selected
+                            +
+                            {
+                              selectedDiveTypes.filter((t) =>
+                                EXPANDED_DIVE_TYPES.includes(t)
+                              ).length
+                            }{" "}
+                            more selected
                           </span>
                         )}
                       </>
@@ -856,7 +1137,9 @@ export function LogbookForm({
                         <label
                           key={tag}
                           className={`${styles.diveTypeChip} ${
-                            selectedDiveTypes.includes(tag) ? styles.diveTypeChipSelected : ""
+                            selectedDiveTypes.includes(tag)
+                              ? styles.diveTypeChipSelected
+                              : ""
                           }`}
                         >
                           <input
@@ -866,7 +1149,9 @@ export function LogbookForm({
                             checked={selectedDiveTypes.includes(tag)}
                             onChange={(e) =>
                               setSelectedDiveTypes((prev) =>
-                                e.target.checked ? [...prev, tag] : prev.filter((t) => t !== tag),
+                                e.target.checked
+                                  ? [...prev, tag]
+                                  : prev.filter((t) => t !== tag)
                               )
                             }
                           />
@@ -904,149 +1189,145 @@ export function LogbookForm({
 
         {/* Advanced accordion — divider above so it doesn't float */}
         <div className={styles.advancedSectionWrap}>
-        <AccordionSection
-          id="advanced"
-          title="Advanced"
-          defaultOpen={false}
-          summary="Gear, exposure, training"
-        >
-          <div className={styles.sectionBody}>
-                <h4 className={styles.subsectionHeader}>Gear used</h4>
-                <div className={styles.formGrid12}>
-                  <Field col={12}>
-                    <div className={styles.field}>
-                      <label htmlFor="gearKitId" className={styles.label}>
-                        Gear kit
-                      </label>
-                      <select
-                        id="gearKitId"
-                        name="gearKitId"
-                        className={styles.select}
-                        value={gearKitId}
-                        onChange={(e) => handleGearKitSelect(e.target.value)}
-                      >
-                        <option value="">None</option>
-                        {gearKits.map((k) => (
-                          <option key={k.id} value={k.id}>
-                            {k.name}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-                  </Field>
-                </div>
-                <div className={styles.gearTwoCol}>
-                  <div className={styles.gearColumn}>
-                    <div className={styles.gearListPanel}>
-                      <GearSelection
-                        selectedGearIds={selectedGearIds}
-                        onSelectionChange={onGearSelectionChange}
-                        editingEntryId={editingEntryId}
-                      />
-                    </div>
-                  </div>
-                  <div className={styles.gearColumn}>
-                    <div className={styles.gearNotesPanel}>
-                      <label htmlFor="gearNotes" className={styles.label}>
-                        Gear notes
-                      </label>
-                      <textarea
-                        id="gearNotes"
-                        name="gearNotes"
-                        placeholder="Exceptions, replacements…"
-                        value={gearNotes}
-                        onChange={(e) => setGearNotes(e.target.value)}
-                        className={styles.textarea}
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                <h4 className={styles.subsectionHeader}>Training</h4>
-                <div className={styles.formGrid12}>
-                  <Field col={12}>
-                    <label
-                      className={styles.safetyStopRow}
-                      style={{ cursor: "pointer" }}
-                    >
-                      <input
-                        type="checkbox"
-                        name="isTrainingDive"
-                        checked={isTrainingDive}
-                        onChange={(e) => setIsTrainingDive(e.target.checked)}
-                      />
-                      <span className={styles.label}>Training dive?</span>
+          <AccordionSection
+            id="advanced"
+            title="Advanced"
+            defaultOpen={false}
+            summary="Gear, exposure, training"
+          >
+            <div className={styles.sectionBody}>
+              <h4 className={styles.subsectionHeader}>Gear used</h4>
+              <div className={styles.formGrid12}>
+                <Field col={12}>
+                  <div className={styles.field}>
+                    <label htmlFor="gearKitId" className={styles.label}>
+                      Gear kit
                     </label>
-                  </Field>
-                  {isTrainingDive && (
-                    <>
-                      <Field col={6}>
-                        <div className={styles.field}>
-                          <label
-                            htmlFor="trainingCourse"
-                            className={styles.label}
-                          >
-                            Course
-                          </label>
-                          <input
-                            type="text"
-                            id="trainingCourse"
-                            name="trainingCourse"
-                            placeholder="e.g. AOW, Rescue"
-                            value={trainingCourse}
-                            onChange={(e) =>
-                              setTrainingCourse(e.target.value)
-                            }
-                            className={styles.input}
-                          />
-                        </div>
-                      </Field>
-                      <Field col={6}>
-                        <div className={styles.field}>
-                          <label
-                            htmlFor="trainingInstructor"
-                            className={styles.label}
-                          >
-                            Instructor / DM
-                          </label>
-                          <input
-                            type="text"
-                            id="trainingInstructor"
-                            name="trainingInstructor"
-                            value={trainingInstructor}
-                            onChange={(e) =>
-                              setTrainingInstructor(e.target.value)
-                            }
-                            className={styles.input}
-                          />
-                        </div>
-                      </Field>
-                      <Field col={12}>
-                        <div className={styles.field}>
-                          <label
-                            htmlFor="trainingSkills"
-                            className={styles.label}
-                          >
-                            Skills practiced
-                          </label>
-                          <input
-                            type="text"
-                            id="trainingSkills"
-                            name="trainingSkills"
-                            placeholder="Comma-separated or list"
-                            value={trainingSkills}
-                            onChange={(e) =>
-                              setTrainingSkills(e.target.value)
-                            }
-                            className={styles.input}
-                          />
-                        </div>
-                      </Field>
-                    </>
-                  )}
+                    <select
+                      id="gearKitId"
+                      name="gearKitId"
+                      className={styles.select}
+                      value={gearKitId}
+                      onChange={(e) => handleGearKitSelect(e.target.value)}
+                    >
+                      <option value="">None</option>
+                      {gearKits.map((k) => (
+                        <option key={k.id} value={k.id}>
+                          {k.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </Field>
+              </div>
+              <div className={styles.gearTwoCol}>
+                <div className={styles.gearColumn}>
+                  <div className={styles.gearListPanel}>
+                    <GearSelection
+                      selectedGearIds={selectedGearIds}
+                      onSelectionChange={onGearSelectionChange}
+                      editingEntryId={editingEntryId}
+                    />
+                  </div>
+                </div>
+                <div className={styles.gearColumn}>
+                  <div className={styles.gearNotesPanel}>
+                    <label htmlFor="gearNotes" className={styles.label}>
+                      Gear notes
+                    </label>
+                    <textarea
+                      id="gearNotes"
+                      name="gearNotes"
+                      placeholder="Exceptions, replacements…"
+                      value={gearNotes}
+                      onChange={(e) => setGearNotes(e.target.value)}
+                      className={styles.textarea}
+                    />
+                  </div>
                 </div>
               </div>
-            </AccordionSection>
+
+              <h4 className={styles.subsectionHeader}>Training</h4>
+              <div className={styles.formGrid12}>
+                <Field col={12}>
+                  <label
+                    className={styles.safetyStopRow}
+                    style={{ cursor: "pointer" }}
+                  >
+                    <input
+                      type="checkbox"
+                      name="isTrainingDive"
+                      checked={isTrainingDive}
+                      onChange={(e) => setIsTrainingDive(e.target.checked)}
+                    />
+                    <span className={styles.label}>Training dive?</span>
+                  </label>
+                </Field>
+                {isTrainingDive && (
+                  <>
+                    <Field col={6}>
+                      <div className={styles.field}>
+                        <label
+                          htmlFor="trainingCourse"
+                          className={styles.label}
+                        >
+                          Course
+                        </label>
+                        <input
+                          type="text"
+                          id="trainingCourse"
+                          name="trainingCourse"
+                          placeholder="e.g. AOW, Rescue"
+                          value={trainingCourse}
+                          onChange={(e) => setTrainingCourse(e.target.value)}
+                          className={styles.input}
+                        />
+                      </div>
+                    </Field>
+                    <Field col={6}>
+                      <div className={styles.field}>
+                        <label
+                          htmlFor="trainingInstructor"
+                          className={styles.label}
+                        >
+                          Instructor / DM
+                        </label>
+                        <input
+                          type="text"
+                          id="trainingInstructor"
+                          name="trainingInstructor"
+                          value={trainingInstructor}
+                          onChange={(e) =>
+                            setTrainingInstructor(e.target.value)
+                          }
+                          className={styles.input}
+                        />
+                      </div>
+                    </Field>
+                    <Field col={12}>
+                      <div className={styles.field}>
+                        <label
+                          htmlFor="trainingSkills"
+                          className={styles.label}
+                        >
+                          Skills practiced
+                        </label>
+                        <input
+                          type="text"
+                          id="trainingSkills"
+                          name="trainingSkills"
+                          placeholder="Comma-separated or list"
+                          value={trainingSkills}
+                          onChange={(e) => setTrainingSkills(e.target.value)}
+                          className={styles.input}
+                        />
+                      </div>
+                    </Field>
+                  </>
+                )}
+              </div>
+            </div>
+          </AccordionSection>
         </div>
       </div>
 
@@ -1054,7 +1335,13 @@ export function LogbookForm({
       {(softWarnings.length > 0 || error) && (
         <div className={styles.formAlerts}>
           {softWarnings.length > 0 && (
-            <ul className={formStyles.error} style={{ color: "var(--color-warning, #f59e0b)", marginBottom: "var(--space-2)" }}>
+            <ul
+              className={formStyles.error}
+              style={{
+                color: "var(--color-warning, #f59e0b)",
+                marginBottom: "var(--space-2)",
+              }}
+            >
               {softWarnings.map((w) => (
                 <li key={w.fieldKey}>{w.message}</li>
               ))}
