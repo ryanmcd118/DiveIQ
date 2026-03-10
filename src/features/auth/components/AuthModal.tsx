@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, FormEvent, useEffect } from "react";
+import { useState, FormEvent, useEffect, useRef } from "react";
 import { signIn } from "next-auth/react";
 import styles from "./AuthModal.module.css";
 import oauthStyles from "./GoogleOAuthButton.module.css";
@@ -25,6 +25,13 @@ function AuthModalContent({
   onAuthSuccess,
   initialMode,
 }: AuthModalContentProps) {
+  // Keep a ref to the latest onAuthSuccess so that async handlers always
+  // call the current version even if the parent re-renders mid-flight.
+  const onAuthSuccessRef = useRef(onAuthSuccess);
+  useEffect(() => {
+    onAuthSuccessRef.current = onAuthSuccess;
+  }, [onAuthSuccess]);
+
   const [mode, setMode] = useState<AuthMode>(initialMode);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
@@ -81,7 +88,7 @@ function AuthModalContent({
       }
 
       // Success - trigger callback
-      onAuthSuccess();
+      onAuthSuccessRef.current();
     } catch {
       setError("An unexpected error occurred");
       setIsLoading(false);
@@ -111,7 +118,7 @@ function AuthModalContent({
       }
 
       // Success - trigger callback
-      onAuthSuccess();
+      onAuthSuccessRef.current();
     } catch {
       setError("An unexpected error occurred");
       setIsLoading(false);

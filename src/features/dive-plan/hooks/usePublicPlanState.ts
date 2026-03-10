@@ -72,8 +72,8 @@ export function usePublicPlanState() {
   };
 
   const saveDraftPlan = useCallback(async (): Promise<void> => {
-    if (!draftPlan || !isAuthenticated) {
-      throw new Error("Cannot save: no draft plan or not authenticated");
+    if (!draftPlan) {
+      throw new Error("Cannot save: no draft plan");
     }
 
     setSaving(true);
@@ -118,7 +118,6 @@ export function usePublicPlanState() {
     }
   }, [
     draftPlan,
-    isAuthenticated,
     prefs,
     setApiError,
     setAiBriefing,
@@ -144,8 +143,6 @@ export function usePublicPlanState() {
 
   const handleAuthSuccess = useCallback(async () => {
     setShowAuthModal(false);
-
-    router.refresh();
 
     const sessionReady = await waitForSession();
 

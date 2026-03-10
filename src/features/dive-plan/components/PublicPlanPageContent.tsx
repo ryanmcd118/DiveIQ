@@ -36,16 +36,26 @@ export function PublicPlanPageContent() {
 
   if (isSessionLoading) {
     return (
-      <main
-        className={`${layoutStyles.page} ${backgroundStyles.pageGradientSubtle}`}
-      >
-        <div className={gridStyles.planPageContainer}>
-          <header className={gridStyles.planPageHeader}>
-            <h1 className={layoutStyles.pageTitle}>Dive Plan</h1>
-            <p className={layoutStyles.pageSubtitle}>Loading...</p>
-          </header>
-        </div>
-      </main>
+      <>
+        <main
+          className={`${layoutStyles.page} ${backgroundStyles.pageGradientSubtle}`}
+        >
+          <div className={gridStyles.planPageContainer}>
+            <header className={gridStyles.planPageHeader}>
+              <h1 className={layoutStyles.pageTitle}>Dive Plan</h1>
+              <p className={layoutStyles.pageSubtitle}>Loading...</p>
+            </header>
+          </div>
+        </main>
+        {/* Keep AuthModal mounted during session loading so async signup
+            callbacks aren't dropped when the session briefly enters "loading" */}
+        <AuthModal
+          isOpen={showAuthModal}
+          onClose={() => setShowAuthModal(false)}
+          onAuthSuccess={handleAuthSuccess}
+          initialMode={authModalMode}
+        />
+      </>
     );
   }
 

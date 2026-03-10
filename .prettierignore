@@ -24,6 +24,9 @@ prisma/migrations
 .vscode
 .idea
 
+# Claude Code internals
+.claude
+
 # Lock files
 package-lock.json
 pnpm-lock.yaml
