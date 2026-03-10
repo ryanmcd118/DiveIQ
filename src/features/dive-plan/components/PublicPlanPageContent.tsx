@@ -32,6 +32,7 @@ export function PublicPlanPageContent() {
     handleCreateAccount,
     handleLogIn,
     handleAuthSuccess,
+    handleGoogleSignIn,
   } = usePublicPlanState();
 
   if (isSessionLoading) {
@@ -54,6 +55,7 @@ export function PublicPlanPageContent() {
           onClose={() => setShowAuthModal(false)}
           onAuthSuccess={handleAuthSuccess}
           initialMode={authModalMode}
+          onGoogleSignIn={handleGoogleSignIn}
         />
       </>
     );
@@ -238,6 +240,7 @@ export function PublicPlanPageContent() {
         onClose={() => setShowAuthModal(false)}
         onAuthSuccess={handleAuthSuccess}
         initialMode={authModalMode}
+        onGoogleSignIn={handleGoogleSignIn}
       />
 
       {statusMessage && (

@@ -1,5 +1,5 @@
 import { FormEvent, useState, useCallback, useEffect, useRef } from "react";
-import { useSession } from "next-auth/react";
+import { useSession, signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { PastPlan, AIBriefing, RiskLevel } from "@/features/dive-plan/types";
 import { depthInputToCm } from "@/lib/units";
@@ -141,6 +141,24 @@ export function usePublicPlanState() {
     setShowAuthModal(true);
   }, []);
 
+  // Persist the current draft to sessionStorage then navigate to Google OAuth.
+  // The authed plan page recovers this after the redirect completes.
+  const handleGoogleSignIn = useCallback(() => {
+    try {
+      sessionStorage.setItem(
+        "diveiq:pendingDraft",
+        JSON.stringify({
+          draftPlan: draftPlan ?? null,
+          cachedBriefing: cachedBriefingRef.current?.aiBriefing ?? null,
+          prefs,
+        })
+      );
+    } catch {
+      // sessionStorage may be unavailable — proceed without persisting
+    }
+    void signIn("google", { callbackUrl: "/plan" });
+  }, [draftPlan, prefs]);
+
   const handleAuthSuccess = useCallback(async () => {
     setShowAuthModal(false);
 
@@ -191,6 +209,7 @@ export function usePublicPlanState() {
     handleCreateAccount,
     handleLogIn,
     handleAuthSuccess,
+    handleGoogleSignIn,
     // pastPlans not returned — only used internally
   };
 }

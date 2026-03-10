@@ -14,16 +14,19 @@ interface AuthModalProps {
   onClose: () => void;
   onAuthSuccess: () => void;
   initialMode?: AuthMode;
+  onGoogleSignIn?: () => void;
 }
 
 interface AuthModalContentProps {
   onAuthSuccess: () => void;
   initialMode: AuthMode;
+  onGoogleSignIn?: () => void;
 }
 
 function AuthModalContent({
   onAuthSuccess,
   initialMode,
+  onGoogleSignIn,
 }: AuthModalContentProps) {
   // Keep a ref to the latest onAuthSuccess so that async handlers always
   // call the current version even if the parent re-renders mid-flight.
@@ -150,7 +153,11 @@ function AuthModalContent({
 
       <button
         type="button"
-        onClick={() => signIn("google", { callbackUrl: "/plan" })}
+        onClick={() =>
+          onGoogleSignIn
+            ? onGoogleSignIn()
+            : signIn("google", { callbackUrl: "/plan" })
+        }
         disabled={isLoading}
         className={oauthStyles.googleButton}
       >
@@ -342,6 +349,7 @@ export function AuthModal({
   onClose,
   onAuthSuccess,
   initialMode = "signup",
+  onGoogleSignIn,
 }: AuthModalProps) {
   // Handle escape key
   useEffect(() => {
@@ -382,6 +390,7 @@ export function AuthModal({
         <AuthModalContent
           onAuthSuccess={onAuthSuccess}
           initialMode={initialMode}
+          onGoogleSignIn={onGoogleSignIn}
         />
       </div>
     </div>

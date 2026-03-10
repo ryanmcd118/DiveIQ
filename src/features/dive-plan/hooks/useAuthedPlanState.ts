@@ -1,6 +1,6 @@
-import { FormEvent, useEffect, useState, useCallback } from "react";
+import { FormEvent, useEffect, useRef, useState, useCallback } from "react";
 import { useSession } from "next-auth/react";
-import { PastPlan } from "@/features/dive-plan/types";
+import { PastPlan, PlanData, AIBriefing } from "@/features/dive-plan/types";
 import { depthInputToCm, cmToUI } from "@/lib/units";
 import { usePlanSubmission } from "./usePlanSubmission";
 import { useDivePlanProfileContext } from "./useDivePlanProfileContext";
@@ -36,6 +36,91 @@ export function useAuthedPlanState() {
   const [saving, setSaving] = useState(false);
 
   const hasDraftPlan = Boolean(draftPlan && submission.aiBriefing);
+
+  // Recover a pending draft saved to sessionStorage before a Google OAuth redirect.
+  // Runs once after the session settles to "authenticated".
+  const pendingDraftRecoveredRef = useRef(false);
+  useEffect(() => {
+    if (isSessionLoading || pendingDraftRecoveredRef.current) return;
+    pendingDraftRecoveredRef.current = true;
+
+    if (!isAuthenticated) return;
+
+    let stored: string | null = null;
+    try {
+      stored = sessionStorage.getItem("diveiq:pendingDraft");
+    } catch {
+      return;
+    }
+    if (!stored) return;
+
+    try {
+      sessionStorage.removeItem("diveiq:pendingDraft");
+    } catch {
+      // ignore
+    }
+
+    type PendingDraft = {
+      draftPlan: PlanData | null;
+      cachedBriefing: AIBriefing | null;
+      prefs: { depth: "m" | "ft" };
+    };
+    let parsed: PendingDraft | null = null;
+    try {
+      parsed = JSON.parse(stored) as PendingDraft;
+    } catch {
+      return;
+    }
+
+    if (!parsed?.draftPlan) return;
+
+    const {
+      draftPlan: pendingDraft,
+      cachedBriefing,
+      prefs: storedPrefs,
+    } = parsed as Required<PendingDraft> & { draftPlan: PlanData };
+    const maxDepthCm =
+      depthInputToCm(pendingDraft.maxDepth, storedPrefs.depth) ?? 0;
+
+    setSaving(true);
+    setApiError(null);
+
+    void fetch("/api/dive-plans", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        ...pendingDraft,
+        maxDepthCm,
+        unitPreferences: storedPrefs,
+        cachedBriefing: cachedBriefing ?? undefined,
+      }),
+    })
+      .then((res) => {
+        if (!res.ok) throw new Error(`${res.status}`);
+        return res.json() as Promise<{
+          plan?: PastPlan;
+          aiAdvice?: string;
+          aiBriefing?: AIBriefing;
+        }>;
+      })
+      .then((data) => {
+        if (data.plan) {
+          setPastPlans((prev) => [data.plan as PastPlan, ...prev]);
+        }
+        setStatusMessage("Plan saved ✅");
+        setTimeout(() => setStatusMessage(null), 3000);
+      })
+      .catch((err: unknown) => {
+        console.error(
+          "Failed to recover pending draft after Google OAuth:",
+          err
+        );
+        setApiError(
+          "We couldn't automatically save your plan. Please try submitting it again."
+        );
+      })
+      .finally(() => setSaving(false));
+  }, [isAuthenticated, isSessionLoading, setApiError]);
 
   // Load past plans on mount (only for authenticated users)
   useEffect(() => {
