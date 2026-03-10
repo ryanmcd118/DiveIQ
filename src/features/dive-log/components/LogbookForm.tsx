@@ -768,29 +768,6 @@ export function LogbookForm({
                     <span className={styles.unitSuffix}>{getUnitLabel("pressure", prefs)}</span>
                   </div>
                 </div>
-                <div className={styles.fieldSafetyStop}>
-                  <div className={styles.safetyStopInline}>
-                    <label className={styles.safetyStopLabel} style={{ cursor: "pointer" }}>
-                      <input
-                        type="checkbox"
-                        checked={safetyStopEnabled}
-                        onChange={(e) => {
-                          const checked = e.target.checked;
-                          if (!checked) { setSafetyStopEnabled(false); setSafetyStopDepth(""); setSafetyStopDuration(""); }
-                          else setSafetyStopEnabled(true);
-                        }}
-                      />
-                      <span className={styles.label}>Safety stop</span>
-                    </label>
-                    <div className={styles.safetyStopInputs}>
-                      <input type="number" id="safetyStopDepth" name="safetyStopDepth" value={safetyStopDepth} onChange={(e) => { const v = e.target.value; setSafetyStopDepth(v); if (v.trim() !== "" && !safetyStopEnabled) setSafetyStopEnabled(true); }} className={styles.input} />
-                      <span className={styles.unitSuffix}>{getUnitLabel("depth", prefs)}</span>
-                      <input type="number" id="safetyStopDuration" name="safetyStopDuration" min={1} value={safetyStopDuration} onChange={(e) => { const v = e.target.value; setSafetyStopDuration(v); if (v.trim() !== "" && !safetyStopEnabled) setSafetyStopEnabled(true); }} className={styles.input} />
-                      <span className={styles.unitSuffix}>min</span>
-                    </div>
-                  </div>
-                  <input type="hidden" name="safetyStopEnabled" value={safetyStopEnabled ? "1" : "0"} />
-                </div>
               </div>
               {/* Row 5: Weight / Exposure / Surface interval */}
               <div className={styles.exposureRow}>
@@ -844,38 +821,136 @@ export function LogbookForm({
                     <span className={styles.unitSuffix}>min</span>
                   </div>
                 </div>
-              </div>
-              {/* Row 6: Dive type pills */}
-              <div className={styles.field}>
-                <span className={styles.label}>Dive type</span>
-                <div className={styles.diveTypeRow}>
-                  {MOST_COMMON_DIVE_TYPES.map((tag) => (
-                    <label key={tag} className={`${styles.diveTypeChip} ${selectedDiveTypes.includes(tag) ? styles.diveTypeChipSelected : ""}`}>
-                      <input type="checkbox" name="diveTypeTags" value={tag} checked={selectedDiveTypes.includes(tag)} onChange={(e) => setSelectedDiveTypes((prev) => e.target.checked ? [...prev, tag] : prev.filter((t) => t !== tag))} />
-                      <span>{tag}</span>
+                <div className={styles.fieldSafetyStop}>
+                  <div className={styles.safetyStopInline}>
+                    <label className={styles.safetyStopLabel} style={{ cursor: "pointer" }}>
+                      <input
+                        type="checkbox"
+                        checked={safetyStopEnabled}
+                        onChange={(e) => {
+                          const checked = e.target.checked;
+                          if (!checked) { setSafetyStopEnabled(false); setSafetyStopDepth(""); setSafetyStopDuration(""); }
+                          else setSafetyStopEnabled(true);
+                        }}
+                      />
+                      <span className={styles.label}>Safety stop</span>
                     </label>
-                  ))}
-                  {!showAllDiveTypes && (
-                    <>
-                      <button type="button" className={styles.diveTypeShowMore} onClick={() => setShowAllDiveTypes(true)}>Show more</button>
-                      {selectedDiveTypes.filter((t) => EXPANDED_DIVE_TYPES.includes(t)).length > 0 && (
-                        <span className={styles.diveTypeMoreSelected}>+{selectedDiveTypes.filter((t) => EXPANDED_DIVE_TYPES.includes(t)).length} more selected</span>
-                      )}
-                    </>
-                  )}
-                  {showAllDiveTypes && EXPANDED_DIVE_TYPES.map((tag) => (
-                    <label key={tag} className={`${styles.diveTypeChip} ${selectedDiveTypes.includes(tag) ? styles.diveTypeChipSelected : ""}`}>
-                      <input type="checkbox" name="diveTypeTags" value={tag} checked={selectedDiveTypes.includes(tag)} onChange={(e) => setSelectedDiveTypes((prev) => e.target.checked ? [...prev, tag] : prev.filter((t) => t !== tag))} />
-                      <span>{tag}</span>
-                    </label>
-                  ))}
-                  {showAllDiveTypes && <button type="button" className={styles.diveTypeShowMore} onClick={() => setShowAllDiveTypes(false)}>Show less</button>}
+                    <div className={styles.safetyStopInputs}>
+                      <input
+                        type="number"
+                        id="safetyStopDepth"
+                        name="safetyStopDepth"
+                        value={safetyStopDepth}
+                        onChange={(e) => {
+                          const v = e.target.value;
+                          setSafetyStopDepth(v);
+                          if (v.trim() !== "" && !safetyStopEnabled) setSafetyStopEnabled(true);
+                        }}
+                        className={styles.input}
+                      />
+                      <span className={styles.unitSuffix}>{getUnitLabel("depth", prefs)}</span>
+                      <input
+                        type="number"
+                        id="safetyStopDuration"
+                        name="safetyStopDuration"
+                        min={1}
+                        value={safetyStopDuration}
+                        onChange={(e) => {
+                          const v = e.target.value;
+                          setSafetyStopDuration(v);
+                          if (v.trim() !== "" && !safetyStopEnabled) setSafetyStopEnabled(true);
+                        }}
+                        className={styles.input}
+                      />
+                      <span className={styles.unitSuffix}>min</span>
+                    </div>
+                  </div>
+                  <input type="hidden" name="safetyStopEnabled" value={safetyStopEnabled ? "1" : "0"} />
                 </div>
               </div>
-              {/* Row 6: Notes — ~2 lines, resizable */}
-              <div className={styles.field}>
-                <label htmlFor="notes" className={styles.label}>Notes</label>
-                <textarea id="notes" name="notes" rows={2} placeholder="Wildlife, conditions, gear notes, memorable moments…" value={notes} onChange={(e) => setNotes(e.target.value)} className={styles.textarea} />
+              {/* Row 6: Dive type + Notes two-column layout */}
+              <div className={styles.diveTypeNotesRow}>
+                <div className={styles.diveTypePanel}>
+                  <span className={styles.label}>Dive type</span>
+                  <div className={styles.diveTypeRow}>
+                    {MOST_COMMON_DIVE_TYPES.map((tag) => (
+                      <label key={tag} className={`${styles.diveTypeChip} ${selectedDiveTypes.includes(tag) ? styles.diveTypeChipSelected : ""}`}>
+                        <input
+                          type="checkbox"
+                          name="diveTypeTags"
+                          value={tag}
+                          checked={selectedDiveTypes.includes(tag)}
+                          onChange={(e) =>
+                            setSelectedDiveTypes((prev) =>
+                              e.target.checked ? [...prev, tag] : prev.filter((t) => t !== tag),
+                            )
+                          }
+                        />
+                        <span>{tag}</span>
+                      </label>
+                    ))}
+                    {!showAllDiveTypes && (
+                      <>
+                        <button
+                          type="button"
+                          className={styles.diveTypeShowMore}
+                          onClick={() => setShowAllDiveTypes(true)}
+                        >
+                          Show more
+                        </button>
+                        {selectedDiveTypes.filter((t) => EXPANDED_DIVE_TYPES.includes(t)).length > 0 && (
+                          <span className={styles.diveTypeMoreSelected}>
+                            +{selectedDiveTypes.filter((t) => EXPANDED_DIVE_TYPES.includes(t)).length} more selected
+                          </span>
+                        )}
+                      </>
+                    )}
+                    {showAllDiveTypes &&
+                      EXPANDED_DIVE_TYPES.map((tag) => (
+                        <label
+                          key={tag}
+                          className={`${styles.diveTypeChip} ${
+                            selectedDiveTypes.includes(tag) ? styles.diveTypeChipSelected : ""
+                          }`}
+                        >
+                          <input
+                            type="checkbox"
+                            name="diveTypeTags"
+                            value={tag}
+                            checked={selectedDiveTypes.includes(tag)}
+                            onChange={(e) =>
+                              setSelectedDiveTypes((prev) =>
+                                e.target.checked ? [...prev, tag] : prev.filter((t) => t !== tag),
+                              )
+                            }
+                          />
+                          <span>{tag}</span>
+                        </label>
+                      ))}
+                    {showAllDiveTypes && (
+                      <button
+                        type="button"
+                        className={styles.diveTypeShowMore}
+                        onClick={() => setShowAllDiveTypes(false)}
+                      >
+                        Show less
+                      </button>
+                    )}
+                  </div>
+                </div>
+                <div className={styles.notesPanel}>
+                  <label htmlFor="notes" className={styles.label}>
+                    Notes
+                  </label>
+                  <textarea
+                    id="notes"
+                    name="notes"
+                    placeholder="Wildlife, conditions, gear notes, memorable moments…"
+                    value={notes}
+                    onChange={(e) => setNotes(e.target.value)}
+                    className={styles.textarea}
+                  />
+                </div>
               </div>
             </section>
           </div>
@@ -916,11 +991,13 @@ export function LogbookForm({
                 </div>
                 <div className={styles.gearTwoCol}>
                   <div className={styles.gearColumn}>
-                    <GearSelection
-                      selectedGearIds={selectedGearIds}
-                      onSelectionChange={onGearSelectionChange}
-                      editingEntryId={editingEntryId}
-                    />
+                    <div className={styles.gearListPanel}>
+                      <GearSelection
+                        selectedGearIds={selectedGearIds}
+                        onSelectionChange={onGearSelectionChange}
+                        editingEntryId={editingEntryId}
+                      />
+                    </div>
                   </div>
                   <div className={styles.gearColumn}>
                     <div className={styles.gearNotesPanel}>

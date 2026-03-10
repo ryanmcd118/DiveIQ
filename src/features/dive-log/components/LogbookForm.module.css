@@ -154,16 +154,23 @@
 
 /* Row 5: Weight / Exposure / Surface interval */
 .exposureRow {
-  display: grid;
-  grid-template-columns: minmax(0, 6rem) minmax(0, 11rem) minmax(0, 6rem);
-  gap: var(--space-2) var(--space-3);
-  align-items: end;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2) var(--space-4);
+  align-items: flex-end;
+  justify-content: space-between;
   margin-bottom: var(--space-3);
+}
+
+.exposureRow .inputSmall,
+.exposureRow .inputMedium {
+  max-width: 100%;
 }
 
 @media (max-width: 767px) {
   .exposureRow {
-    grid-template-columns: 1fr;
+    flex-direction: column;
+    align-items: stretch;
   }
 }
 
@@ -386,31 +393,19 @@
   min-width: 0;
 }
 
-/* Gas + Safety stop row — tight columns; tank not huge; safety stop baseline-aligned */
+/* Gas row — evenly spaced across line; tank not huge */
 .gasRow {
-  display: grid;
-  grid-template-columns:
-    minmax(7rem, 8rem)      /* Gas type */
-    minmax(8rem, 10rem)     /* Tank */
-    minmax(0, 1fr)          /* Start pressure */
-    minmax(0, 1fr)          /* End pressure */
-    minmax(0, 1fr)          /* Gas used */
-    minmax(12rem, 16rem);   /* Safety stop */
+  display: flex;
+  flex-wrap: wrap;
   gap: var(--space-2) var(--space-4);
-  align-items: end;
+  align-items: flex-end;
+  justify-content: space-between;
   margin-bottom: var(--space-3);
   width: 100%;
 }
 
 .gasRowWithFO2 {
-  grid-template-columns:
-    minmax(7rem, 8rem)      /* Gas type */
-    minmax(4rem, 5rem)      /* FO2 */
-    minmax(8rem, 10rem)     /* Tank */
-    minmax(0, 1fr)          /* Start pressure */
-    minmax(0, 1fr)          /* End pressure */
-    minmax(0, 1fr)          /* Gas used */
-    minmax(12rem, 16rem);   /* Safety stop */
+  /* same flex layout; FO2 just becomes an extra compact item in the row */
 }
 
 .gasRow .inputSmall,
@@ -580,15 +575,50 @@
   min-width: 0;
 }
 
+.gearListPanel {
+  min-height: 14rem;
+  max-height: 14rem;
+}
+
 .gearNotesPanel {
   display: flex;
   flex-direction: column;
   gap: var(--space-1);
-  min-height: 12rem;
+  min-height: 14rem;
+  max-height: 14rem;
 }
 
 .gearNotesPanel .textarea {
   flex: 1 1 auto;
+}
+
+/* Dive type + Notes side-by-side */
+.diveTypeNotesRow {
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+  gap: var(--space-3);
+  align-items: stretch;
+}
+
+@media (max-width: 767px) {
+  .diveTypeNotesRow {
+    grid-template-columns: 1fr;
+  }
+}
+
+.diveTypePanel,
+.notesPanel {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.notesPanel .textarea {
+  flex: 1 1 auto;
+  min-height: 6rem;
+  max-height: 10rem;
+  overflow: auto;
 }
 
 .inputWithUnit {
