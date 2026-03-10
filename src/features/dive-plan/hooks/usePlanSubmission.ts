@@ -1,5 +1,10 @@
 import { FormEvent, useState } from "react";
-import { PlanData, AIBriefing, RiskLevel } from "@/features/dive-plan/types";
+import {
+  PlanData,
+  AIBriefing,
+  RiskLevel,
+  ProfileContext,
+} from "@/features/dive-plan/types";
 import { useUnitPreferences } from "@/hooks/useUnitPreferences";
 import { depthInputToCm } from "@/lib/units";
 
@@ -15,7 +20,10 @@ export function usePlanSubmission() {
   const [apiError, setApiError] = useState<string | null>(null);
   const [formKey, setFormKey] = useState<string>("new");
 
-  const handlePreviewSubmit = async (e: FormEvent<HTMLFormElement>) => {
+  const handlePreviewSubmit = async (
+    e: FormEvent<HTMLFormElement>,
+    profile?: ProfileContext
+  ) => {
     e.preventDefault();
 
     setAiAdvice(null);
@@ -35,6 +43,10 @@ export function usePlanSubmission() {
     const bottomTimeValue = formData.get("bottomTime");
     const experienceLevelValue = formData.get("experienceLevel");
 
+    const diveCountRangeValue = formData.get("diveCountRange");
+    const lastDiveRecencyValue = formData.get("lastDiveRecency");
+    const highestCertValue = formData.get("highestCert");
+
     const values: PlanData = {
       region: typeof regionValue === "string" ? regionValue : "",
       siteName: typeof siteNameValue === "string" ? siteNameValue : "",
@@ -49,6 +61,25 @@ export function usePlanSubmission() {
         : "Beginner") as PlanData["experienceLevel"],
     };
 
+    const manualExperience =
+      diveCountRangeValue || lastDiveRecencyValue || highestCertValue
+        ? {
+            diveCountRange:
+              typeof diveCountRangeValue === "string" && diveCountRangeValue
+                ? diveCountRangeValue
+                : null,
+            lastDiveRecency:
+              typeof lastDiveRecencyValue === "string" && lastDiveRecencyValue
+                ? lastDiveRecencyValue
+                : null,
+            highestCert:
+              typeof highestCertValue === "string" && highestCertValue
+                ? highestCertValue
+                : null,
+            experienceLevel: values.experienceLevel,
+          }
+        : undefined;
+
     setSubmittedPlan(values);
     setDraftPlan(values);
 
@@ -60,6 +91,8 @@ export function usePlanSubmission() {
           ...values,
           maxDepthCm,
           unitPreferences: prefs,
+          profile,
+          manualExperience,
         }),
       });
 

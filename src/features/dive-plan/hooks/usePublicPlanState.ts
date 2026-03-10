@@ -1,9 +1,26 @@
-import { FormEvent, useState, useCallback } from "react";
+import { FormEvent, useState, useCallback, useEffect, useRef } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
-import { PastPlan } from "@/features/dive-plan/types";
+import { PastPlan, AIBriefing, RiskLevel } from "@/features/dive-plan/types";
 import { depthInputToCm } from "@/lib/units";
 import { usePlanSubmission } from "./usePlanSubmission";
+
+async function waitForSession(
+  maxAttempts = 5,
+  intervalMs = 300
+): Promise<boolean> {
+  for (let i = 0; i < maxAttempts; i++) {
+    try {
+      const res = await fetch("/api/auth/session");
+      const session = (await res.json()) as { user?: { id?: string } };
+      if (session?.user?.id) return true;
+    } catch {
+      // Response may be HTML during router.refresh() — treat as not ready yet
+    }
+    await new Promise((resolve) => setTimeout(resolve, intervalMs));
+  }
+  return false;
+}
 
 export function usePublicPlanState() {
   const submission = usePlanSubmission();
@@ -29,9 +46,24 @@ export function usePublicPlanState() {
   const [authModalMode, setAuthModalMode] = useState<"signup" | "login">(
     "signup"
   );
+  const [statusMessage, setStatusMessage] = useState<string | null>(null);
 
   // Local pastPlans setter — not rendered, but fetched after auth for behavioral parity
   const [, setPastPlans] = useState<PastPlan[]>([]);
+
+  // Cache the latest preview briefing so guest save avoids a second OpenAI call
+  const cachedBriefingRef = useRef<{
+    aiBriefing: AIBriefing;
+    riskLevel: RiskLevel;
+  } | null>(null);
+
+  const { aiBriefing, draftRiskLevel } = submission;
+
+  useEffect(() => {
+    if (aiBriefing && draftRiskLevel) {
+      cachedBriefingRef.current = { aiBriefing, riskLevel: draftRiskLevel };
+    }
+  }, [aiBriefing, draftRiskLevel]);
 
   const hasDraftPlan = Boolean(draftPlan && submission.aiBriefing);
 
@@ -58,6 +90,7 @@ export function usePublicPlanState() {
           ...draftPlan,
           maxDepthCm: draftMaxDepthCm,
           unitPreferences: prefs,
+          cachedBriefing: cachedBriefingRef.current?.aiBriefing,
         }),
       });
 
@@ -72,6 +105,10 @@ export function usePublicPlanState() {
 
       setDraftPlan(null);
       setDraftRiskLevel(null);
+
+      setStatusMessage(
+        "Plan saved. Create a personalized plan next time by signing up — DiveIQ will factor in your logbook history, certifications, and gear."
+      );
     } catch (err) {
       console.error(err);
       setApiError("Failed to save plan.");
@@ -110,7 +147,14 @@ export function usePublicPlanState() {
 
     router.refresh();
 
-    await new Promise((resolve) => setTimeout(resolve, 500));
+    const sessionReady = await waitForSession();
+
+    if (!sessionReady) {
+      setApiError(
+        "Your account was created but we couldn't save your plan automatically. Please click Save Dive Plan to try again."
+      );
+      return;
+    }
 
     // Fetch past plans for behavioral parity (not rendered)
     try {
@@ -125,10 +169,14 @@ export function usePublicPlanState() {
 
     try {
       await saveDraftPlan();
+      router.push("/plan");
     } catch (err) {
       console.error("Auto-save after auth failed:", err);
+      setApiError(
+        "Your account was created but we couldn't save your plan automatically. Please click Save Dive Plan to try again."
+      );
     }
-  }, [router, saveDraftPlan]);
+  }, [router, saveDraftPlan, setApiError]);
 
   return {
     ...submission,
@@ -139,6 +187,7 @@ export function usePublicPlanState() {
     setShowAuthModal,
     authModalMode,
     hasDraftPlan,
+    statusMessage,
     handleSubmit,
     saveDraftPlan,
     handleRequireAuth,

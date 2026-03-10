@@ -5,6 +5,7 @@ import { AIDiveBriefing } from "./AIDiveBriefing";
 import { PlanForm } from "./PlanForm";
 import { PastPlansList } from "./PastPlansList";
 import { SaveDivePlanButton } from "./SaveDivePlanButton";
+import { ProfileContextCard } from "./ProfileContextCard";
 import layoutStyles from "@/styles/components/Layout.module.css";
 import gridStyles from "@/styles/components/PageGrid.module.css";
 import backgroundStyles from "@/styles/components/Background.module.css";
@@ -25,6 +26,9 @@ export function AuthedPlanPageContent() {
     formKey,
     isAuthenticated,
     isSessionLoading,
+    profileContext,
+    profileLoading,
+    profileError,
     handleSubmit,
     saveDraftPlan,
     handleSelectPastPlan,
@@ -80,6 +84,11 @@ export function AuthedPlanPageContent() {
         <div className={gridStyles.planPageMiddle}>
           {/* Left column: Form */}
           <section className={gridStyles.planFormColumn}>
+            <ProfileContextCard
+              profileContext={profileContext}
+              loading={profileLoading}
+              error={profileError}
+            />
             <PlanForm
               mode="authed"
               formKey={formKey}
@@ -104,6 +113,22 @@ export function AuthedPlanPageContent() {
                   compact={false}
                   scrollable={true}
                 />
+                {(aiBriefing ?? submittedPlan) && (
+                  <p
+                    style={{
+                      fontSize: "var(--font-size-xs)",
+                      color: "var(--color-text-muted)",
+                      marginTop: "var(--space-4)",
+                      lineHeight: "1.5",
+                    }}
+                  >
+                    DiveIQ provides regional and conditions-based guidance. For
+                    site-specific information, consult local dive operators.
+                    Site-level conditions data isn&apos;t reliably available in
+                    any digital platform — we focus on what we can assess with
+                    confidence.
+                  </p>
+                )}
               </div>
             ) : (
               <div className={gridStyles.aiBriefingPlaceholder}>

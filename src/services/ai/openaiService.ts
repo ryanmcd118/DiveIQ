@@ -20,6 +20,27 @@ export type DivePlanAnalysisRequest = {
   experienceLevel: "Beginner" | "Intermediate" | "Advanced";
   riskLevel: RiskLevel;
   unitSystem?: UnitSystem; // 'metric' | 'imperial' - defaults to 'metric' if not provided
+  profile?: {
+    totalDives: number;
+    lastDiveDate: string | null;
+    experienceLevel: string | null;
+    yearsDiving: number | null;
+    homeDiveRegion: string | null;
+    primaryDiveTypes: string[];
+    certifications: { agency: string; name: string; levelRank: number }[];
+    gear: {
+      type: string;
+      manufacturer: string | null;
+      model: string | null;
+      nickname: string | null;
+    }[];
+  };
+  manualExperience?: {
+    diveCountRange: string | null;
+    lastDiveRecency: string | null;
+    highestCert: string | null;
+    experienceLevel: string;
+  };
 };
 
 function buildSystemPrompt(unitSystem: UnitSystem = "metric"): string {
@@ -51,8 +72,14 @@ Your job is to analyze a dive plan and return a structured JSON briefing that is
 - Research-informed: use real-world knowledge of dive sites, seasonal conditions, and common hazards
 - Honest about uncertainty: label data sources as "Forecast" (if real-time), "Seasonal" (historical norms), or "Inferred" (educated guess)
 
-NEVER include generic safety paragraphs like "always remember to check your gear" or "ascend slowly". 
+NEVER include generic safety paragraphs like "always remember to check your gear" or "ascend slowly".
 Only mention something if it's specifically relevant to THIS dive at THIS place at THIS time.
+
+When the diver's certifications are provided, identify any certification gaps for this specific dive and recommend specific certifications they should consider. Name the cert directly and explain in one sentence why it matters for this dive. Be direct — do not hedge.
+
+When gear inventory is provided, reference it specifically in the gear section. If they have suitable gear for the conditions, say so by name. If there are gaps (e.g. no drysuit for cold water, no dive computer), flag it directly.
+
+If the diver's last dive was more than 6 months ago, recommend a refresher or checkout dive before this plan. State this clearly in the Profile notes section — do not bury it.
 
 Return ONLY valid JSON matching this exact schema (no markdown, no code fences):
 
@@ -140,6 +167,23 @@ ${basePrompt.split("Rules:")[1] ? `Rules:${basePrompt.split("Rules:")[1]}` : ""}
 `.trim();
 }
 
+function humanReadableDuration(
+  fromDateStr: string | null,
+  toDateStr: string
+): string {
+  if (!fromDateStr) return "unknown";
+  const from = new Date(fromDateStr);
+  const to = new Date(toDateStr);
+  const diffMs = to.getTime() - from.getTime();
+  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+  if (diffDays < 0) return "in the future";
+  if (diffDays < 14) return `${diffDays} days ago`;
+  if (diffDays < 60) return `${Math.floor(diffDays / 7)} weeks ago`;
+  if (diffDays < 365) return `${Math.floor(diffDays / 30)} months ago`;
+  const years = Math.floor(diffDays / 365);
+  return `${years} year${years > 1 ? "s" : ""} ago`;
+}
+
 function buildUserPrompt(
   plan: DivePlanAnalysisRequest,
   isUpdate = false
@@ -157,6 +201,76 @@ function buildUserPrompt(
       ? `${Math.round(mToFt(plan.maxDepth))}ft (${plan.maxDepth}m)`
       : `${plan.maxDepth}m`;
 
+  let profileSection = "";
+
+  if (plan.profile) {
+    const p = plan.profile;
+    const lines: string[] = [];
+    lines.push(`- Total logged dives: ${p.totalDives}`);
+    if (p.lastDiveDate) {
+      lines.push(
+        `- Last dive: ${p.lastDiveDate} (approximately ${humanReadableDuration(p.lastDiveDate, plan.date)})`
+      );
+    }
+    if (p.experienceLevel)
+      lines.push(`- Experience level: ${p.experienceLevel}`);
+    if (p.yearsDiving != null) lines.push(`- Years diving: ${p.yearsDiving}`);
+    if (p.homeDiveRegion) lines.push(`- Home dive region: ${p.homeDiveRegion}`);
+    if (p.primaryDiveTypes.length > 0) {
+      lines.push(`- Primary dive types: ${p.primaryDiveTypes.join(", ")}`);
+    }
+
+    // Group certifications by agency, ordered by levelRank
+    if (p.certifications.length > 0) {
+      const agencyGroups: Record<
+        string,
+        { name: string; levelRank: number }[]
+      > = {};
+      for (const cert of p.certifications) {
+        if (!agencyGroups[cert.agency]) agencyGroups[cert.agency] = [];
+        agencyGroups[cert.agency].push({
+          name: cert.name,
+          levelRank: cert.levelRank,
+        });
+      }
+      for (const agency of Object.keys(agencyGroups)) {
+        const sorted = agencyGroups[agency].sort(
+          (a, b) => a.levelRank - b.levelRank
+        );
+        lines.push(`\nCertifications (${agency}):`);
+        for (const cert of sorted) {
+          lines.push(`  - ${cert.name}`);
+        }
+      }
+    }
+
+    if (p.gear.length > 0) {
+      lines.push(`\nGear inventory:`);
+      for (const g of p.gear) {
+        if (g.nickname) {
+          lines.push(`  - ${g.type}: ${g.nickname}`);
+        } else if (g.manufacturer || g.model) {
+          lines.push(
+            `  - ${g.type}: ${[g.manufacturer, g.model].filter(Boolean).join(" ")}`
+          );
+        } else {
+          lines.push(`  - ${g.type}`);
+        }
+      }
+    }
+
+    profileSection = `\n---\nDiver Profile:\n${lines.join("\n")}`;
+  } else if (plan.manualExperience) {
+    const m = plan.manualExperience;
+    const lines: string[] = [];
+    lines.push(`- Experience level: ${m.experienceLevel}`);
+    if (m.diveCountRange)
+      lines.push(`- Approximate total dives: ${m.diveCountRange}`);
+    if (m.lastDiveRecency) lines.push(`- Last dive: ${m.lastDiveRecency}`);
+    lines.push(`- Highest certification: ${m.highestCert ?? "Not provided"}`);
+    profileSection = `\n---\nDiver Experience (self-reported):\n${lines.join("\n")}`;
+  }
+
   return `
 Dive Plan${isUpdate ? " (UPDATED)" : ""}:
 - Location/Region: ${plan.region}
@@ -170,7 +284,7 @@ Dive Plan${isUpdate ? " (UPDATED)" : ""}:
 
 ${isUpdate ? "This is an updated plan. Focus on the implications of the changes." : "Provide a complete dive briefing for this plan."}
 
-IMPORTANT: All numeric values in your response (depths, temperatures, distances, visibility) MUST use ${unitSystem === "imperial" ? "Imperial units (feet, °F)" : "Metric units (meters, °C)"}. Do NOT mix unit systems.
+IMPORTANT: All numeric values in your response (depths, temperatures, distances, visibility) MUST use ${unitSystem === "imperial" ? "Imperial units (feet, °F)" : "Metric units (meters, °C)"}. Do NOT mix unit systems.${profileSection}
 `.trim();
 }
 

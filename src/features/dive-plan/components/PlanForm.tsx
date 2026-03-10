@@ -5,6 +5,7 @@ import { PlanData } from "@/features/dive-plan/types";
 import { useUnitPreferences } from "@/hooks/useUnitPreferences";
 import { getUnitLabel } from "@/lib/units";
 import { FormUnitToggle } from "@/components/FormUnitToggle";
+import { useCertificationDefinitions } from "../hooks/useCertificationDefinitions";
 import cardStyles from "@/styles/components/Card.module.css";
 import formStyles from "@/styles/components/Form.module.css";
 import buttonStyles from "@/styles/components/Button.module.css";
@@ -37,6 +38,8 @@ export function PlanForm({
   // Use guest mode for public pages, auto/authed for authenticated pages
   const unitMode = mode === "public" ? "guest" : "authed";
   const { prefs } = useUnitPreferences({ mode: unitMode });
+  const { definitions: certDefs, loading: certDefsLoading } =
+    useCertificationDefinitions();
 
   // Controlled state for unit-bearing fields (in UI units)
   // Initialize from submittedPlan if it exists (PlanData.maxDepth is already in UI units)
@@ -126,6 +129,66 @@ export function PlanForm({
             </select>
           </div>
         </div>
+
+        {/* Manual experience fields — public mode only */}
+        {mode === "public" && (
+          <>
+            <div className={formStyles.field}>
+              <label htmlFor="diveCountRange" className={formStyles.label}>
+                Approximate total dives (optional)
+              </label>
+              <select
+                id="diveCountRange"
+                name="diveCountRange"
+                className={formStyles.select}
+              >
+                <option value="">Select...</option>
+                <option value="0–24 dives">0–24 dives</option>
+                <option value="25–99 dives">25–99 dives</option>
+                <option value="100–499 dives">100–499 dives</option>
+                <option value="500+ dives">500+ dives</option>
+              </select>
+            </div>
+
+            <div className={formStyles.field}>
+              <label htmlFor="lastDiveRecency" className={formStyles.label}>
+                Last dive (optional)
+              </label>
+              <select
+                id="lastDiveRecency"
+                name="lastDiveRecency"
+                className={formStyles.select}
+              >
+                <option value="">Select...</option>
+                <option value="Within 3 months">Within 3 months</option>
+                <option value="3–12 months ago">3–12 months ago</option>
+                <option value="1–2 years ago">1–2 years ago</option>
+                <option value="2+ years ago">2+ years ago</option>
+              </select>
+            </div>
+
+            <div className={formStyles.field}>
+              <label htmlFor="highestCert" className={formStyles.label}>
+                Highest certification (optional)
+              </label>
+              <select
+                id="highestCert"
+                name="highestCert"
+                disabled={certDefsLoading}
+                className={formStyles.select}
+              >
+                <option value="">
+                  {certDefsLoading ? "Loading..." : "Select..."}
+                </option>
+                {certDefs.map((def) => (
+                  <option key={`${def.agency}-${def.slug}`} value={def.name}>
+                    {def.agency} — {def.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </>
+        )}
 
         <div className={formStyles.formGrid}>
           <div className={formStyles.field}>

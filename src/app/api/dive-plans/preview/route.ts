@@ -1,5 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
-import { generateDivePlanBriefing } from "@/services/ai/openaiService";
+import {
+  generateDivePlanBriefing,
+  type DivePlanAnalysisRequest,
+} from "@/services/ai/openaiService";
 import { calculateRiskLevel } from "@/features/dive-plan/services/riskCalculator";
 import type { UnitSystem, UnitPreferences } from "@/lib/units";
 import { cmToMeters } from "@/lib/units";
@@ -19,6 +22,8 @@ export async function POST(req: NextRequest) {
       bottomTime: number;
       experienceLevel: "Beginner" | "Intermediate" | "Advanced";
       unitPreferences?: UnitPreferences; // User's unit preferences for AI formatting
+      profile?: DivePlanAnalysisRequest["profile"];
+      manualExperience?: DivePlanAnalysisRequest["manualExperience"];
     };
 
     // Convert to meters for risk calculation
@@ -45,6 +50,8 @@ export async function POST(req: NextRequest) {
       experienceLevel: body.experienceLevel,
       riskLevel,
       unitSystem,
+      profile: body.profile,
+      manualExperience: body.manualExperience,
     });
 
     // Also include legacy aiAdvice for backward compatibility

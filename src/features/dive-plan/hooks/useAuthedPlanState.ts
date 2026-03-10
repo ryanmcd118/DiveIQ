@@ -3,6 +3,7 @@ import { useSession } from "next-auth/react";
 import { PastPlan } from "@/features/dive-plan/types";
 import { depthInputToCm, cmToUI } from "@/lib/units";
 import { usePlanSubmission } from "./usePlanSubmission";
+import { useDivePlanProfileContext } from "./useDivePlanProfileContext";
 
 export function useAuthedPlanState() {
   const submission = usePlanSubmission();
@@ -23,6 +24,9 @@ export function useAuthedPlanState() {
   const { status: sessionStatus } = useSession();
   const isAuthenticated = sessionStatus === "authenticated";
   const isSessionLoading = sessionStatus === "loading";
+
+  const { profileContext, profileLoading, profileError } =
+    useDivePlanProfileContext();
 
   const [pastPlans, setPastPlans] = useState<PastPlan[]>([]);
   const [plansLoading, setPlansLoading] = useState(true);
@@ -116,6 +120,7 @@ export function useAuthedPlanState() {
             ...values,
             maxDepthCm,
             unitPreferences: prefs,
+            profile: profileContext ?? undefined,
           }),
         });
 
@@ -151,7 +156,7 @@ export function useAuthedPlanState() {
         setLoading(false);
       }
     } else {
-      await handlePreviewSubmit(e);
+      await handlePreviewSubmit(e, profileContext ?? undefined);
     }
   };
 
@@ -332,6 +337,9 @@ export function useAuthedPlanState() {
     editingPlanId,
     statusMessage,
     hasDraftPlan,
+    profileContext,
+    profileLoading,
+    profileError,
     handleSubmit,
     saveDraftPlan,
     handleSelectPastPlan,

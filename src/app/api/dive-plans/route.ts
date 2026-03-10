@@ -4,10 +4,11 @@ import { authOptions } from "@/features/auth/lib/auth";
 import {
   generateDivePlanBriefing,
   generateUpdatedDivePlanBriefing,
+  type DivePlanAnalysisRequest,
 } from "@/services/ai/openaiService";
 import { calculateRiskLevel } from "@/features/dive-plan/services/riskCalculator";
 import { divePlanRepository } from "@/services/database/repositories/divePlanRepository";
-import type { PlanInput } from "@/features/dive-plan/types";
+import type { AIBriefing, PlanInput } from "@/features/dive-plan/types";
 import type { UnitSystem, UnitPreferences } from "@/lib/units";
 import { cmToMeters } from "@/lib/units";
 
@@ -35,6 +36,8 @@ export async function POST(req: NextRequest) {
       bottomTime: number;
       experienceLevel: "Beginner" | "Intermediate" | "Advanced";
       unitPreferences?: UnitPreferences; // User's unit preferences for AI formatting
+      cachedBriefing?: AIBriefing;
+      profile?: DivePlanAnalysisRequest["profile"];
     };
 
     // Convert to meters for risk calculation
@@ -51,17 +54,21 @@ export async function POST(req: NextRequest) {
         : "imperial"
       : "metric";
 
-    // Generate AI structured briefing with unit system
-    const aiBriefing = await generateDivePlanBriefing({
-      region: body.region,
-      siteName: body.siteName,
-      date: body.date,
-      maxDepth: maxDepthMeters, // Pass meters to AI service (it expects meters)
-      bottomTime: body.bottomTime,
-      experienceLevel: body.experienceLevel,
-      riskLevel,
-      unitSystem,
-    });
+    // Use cached briefing if valid (avoids double OpenAI call on guest save)
+    const aiBriefing: AIBriefing =
+      body.cachedBriefing?.conditionsSnapshot && body.cachedBriefing?.sections
+        ? body.cachedBriefing
+        : await generateDivePlanBriefing({
+            region: body.region,
+            siteName: body.siteName,
+            date: body.date,
+            maxDepth: maxDepthMeters, // Pass meters to AI service (it expects meters)
+            bottomTime: body.bottomTime,
+            experienceLevel: body.experienceLevel,
+            riskLevel,
+            unitSystem,
+            profile: body.profile,
+          });
 
     // Extract a summary for legacy aiAdvice field
     const aiAdvice = aiBriefing.whatMattersMost;
@@ -122,6 +129,7 @@ export async function PUT(req: NextRequest) {
       bottomTime: number;
       experienceLevel: "Beginner" | "Intermediate" | "Advanced";
       unitPreferences?: UnitPreferences; // User's unit preferences for AI formatting
+      profile?: DivePlanAnalysisRequest["profile"];
     };
 
     if (!body.id) {
@@ -155,6 +163,7 @@ export async function PUT(req: NextRequest) {
       experienceLevel: body.experienceLevel,
       riskLevel,
       unitSystem,
+      profile: body.profile,
     });
 
     // Extract a summary for legacy aiAdvice field

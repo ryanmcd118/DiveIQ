@@ -25,6 +25,7 @@ export function PublicPlanPageContent() {
     showAuthModal,
     setShowAuthModal,
     authModalMode,
+    statusMessage,
     handleSubmit,
     saveDraftPlan,
     handleRequireAuth,
@@ -102,6 +103,55 @@ export function PublicPlanPageContent() {
                   compact={false}
                   scrollable={true}
                 />
+                {(aiBriefing ?? submittedPlan) && (
+                  <>
+                    {hasDraftPlan && (
+                      <div
+                        style={{
+                          marginTop: "var(--space-4)",
+                          padding: "var(--space-4)",
+                          background: "var(--color-surface-alt)",
+                          border: "1px solid var(--color-border-default)",
+                          borderRadius: "var(--radius-lg)",
+                        }}
+                      >
+                        <p
+                          style={{
+                            fontSize: "var(--font-size-sm)",
+                            color: "var(--color-text-secondary)",
+                            marginBottom: "var(--space-3)",
+                            lineHeight: "1.5",
+                          }}
+                        >
+                          Want a more personalized plan? Create a free account
+                          and DiveIQ will factor in your actual logbook history,
+                          certifications, and gear.
+                        </p>
+                        <button
+                          type="button"
+                          onClick={handleCreateAccount}
+                          className={buttonStyles.primaryGradient}
+                        >
+                          Create account
+                        </button>
+                      </div>
+                    )}
+                    <p
+                      style={{
+                        fontSize: "var(--font-size-xs)",
+                        color: "var(--color-text-muted)",
+                        marginTop: "var(--space-4)",
+                        lineHeight: "1.5",
+                      }}
+                    >
+                      DiveIQ provides regional and conditions-based guidance.
+                      For site-specific information, consult local dive
+                      operators. Site-level conditions data isn&apos;t reliably
+                      available in any digital platform — we focus on what we
+                      can assess with confidence.
+                    </p>
+                  </>
+                )}
               </div>
             ) : (
               <div className={gridStyles.aiBriefingPlaceholder}>
@@ -179,6 +229,15 @@ export function PublicPlanPageContent() {
         onAuthSuccess={handleAuthSuccess}
         initialMode={authModalMode}
       />
+
+      {statusMessage && (
+        <div className={gridStyles.statusToast}>
+          <div className={gridStyles.statusToastContent}>
+            <span style={{ fontSize: "var(--font-size-lg)" }}>✅</span>
+            <span>{statusMessage}</span>
+          </div>
+        </div>
+      )}
     </main>
   );
 }

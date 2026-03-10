@@ -95,3 +95,27 @@ export type PreviewResult = {
   aiBriefing: AIBriefing;
   riskLevel: RiskLevel;
 };
+
+// Profile context fetched from /api/dive-plans/profile-context
+export type ProfileContext = {
+  totalDives: number;
+  lastDiveDate: string | null;
+  experienceLevel: string | null;
+  yearsDiving: number | null;
+  homeDiveRegion: string | null;
+  primaryDiveTypes: string[];
+  certifications: {
+    agency: string;
+    name: string;
+    slug: string;
+    levelRank: number;
+    category: string;
+  }[];
+  gear: {
+    id: string;
+    type: string;
+    manufacturer: string | null;
+    model: string | null;
+    nickname: string | null;
+  }[];
+};
