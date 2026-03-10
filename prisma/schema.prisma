@@ -105,19 +105,43 @@ model DiveLog {
   id          String   @id @default(cuid())
   userId      String?  // Optional to allow future guest data migration
   date        String
-  region      String
+  startTime   String?  // Time in (e.g. "09:30")
+  endTime     String?  // Time in (e.g. "10:15"), optional
+  diveNumber        Int?     // Effective log dive #
+  diveNumberAuto    Int?     // Auto-computed chronological number
+  diveNumberOverride Int?    // User override, if set
+  region      String?  // Location/Region (optional)
   siteName    String
-  maxDepthCm  Int      // Depth in centimeters (fixed-point canonical)
-  bottomTime  Int
-  waterTempCx10 Int?   // Temperature in tenths of Celsius (fixed-point canonical)
-  visibilityCm Int?    // Visibility in centimeters (fixed-point canonical)
   buddyName   String?
+  diveTypeTags String? // JSON array: ["Shore","Boat","Night",...]
+  maxDepthCm  Int?     // Soft required; null = not recorded
+  bottomTime  Int?     // Soft required; null = not recorded
+  safetyStopDepthCm   Int?   // e.g. 457 = 15ft / 4.57m
+  safetyStopDurationMin Int?
+  surfaceIntervalMin  Int?
+  waterTempCx10       Int?   // Surface temp (tenths Celsius)
+  waterTempBottomCx10 Int?   // Bottom temp (tenths Celsius)
+  visibilityCm        Int?
+  current             String? // None|Light|Moderate|Strong
+  gasType             String? // Air|Nitrox|Other
+  fO2                 Int?    // Nitrox O2 % (e.g. 32)
+  tankCylinder        String? // "AL80", "HP100"
+  startPressureBar    Float?  // Start pressure in bar
+  endPressureBar      Float?  // End pressure in bar
+  exposureProtection  String? // Rashguard|3mm|5mm|7mm|Drysuit|Other
+  weightUsedKg        Float?  // Weight in kg
+  gearKitId           String? // Optional FK to GearKit
+  gearNotes           String? // Exceptions / notes about gear
+  isTrainingDive      Boolean @default(false)
+  trainingCourse      String?
+  trainingInstructor  String?
+  trainingSkills      String? // JSON array or comma-separated
   notes       String?
   createdAt   DateTime @default(now())
-  
+
   user        User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
   gearItems   DiveGearItem[]
-  
+
   @@index([userId])
 }
 

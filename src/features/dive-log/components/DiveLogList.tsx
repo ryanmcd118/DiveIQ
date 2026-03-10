@@ -5,15 +5,31 @@ import { useUnitPreferences } from "@/hooks/useUnitPreferences";
 import { displayDepth, displayTemperature, displayDistance } from "@/lib/units";
 import cardStyles from "@/styles/components/Card.module.css";
 import listStyles from "@/styles/components/List.module.css";
-import buttonStyles from "@/styles/components/Button.module.css";
+import layoutStyles from "./LogbookLayout.module.css";
+import { highlightMatch } from "./SearchHighlight";
+import { DiveLogTable } from "./DiveLogTable";
 
 type Props = {
   entries: DiveLogEntry[];
+  searchQuery?: string;
   onSelect?: (entry: DiveLogEntry) => void;
   onDelete?: (id: string) => void;
+  selectedId?: string | null;
+  /** When true (detail pane open), use compact 2-row layout and hide buddy/region */
+  isCompact?: boolean;
+  /** When true, use mobile stacked list (site+location) instead of table */
+  isMobile?: boolean;
 };
 
-function DiveLogList({ entries, onSelect, onDelete }: Props) {
+function DiveLogList({
+  entries,
+  searchQuery = "",
+  onSelect,
+  onDelete,
+  selectedId,
+  isCompact = false,
+  isMobile = false,
+}: Props) {
   const { prefs } = useUnitPreferences();
 
   if (entries.length === 0) {
@@ -25,83 +41,117 @@ function DiveLogList({ entries, onSelect, onDelete }: Props) {
     );
   }
 
+  /* Desktop, detail pane OPEN: compact list (unchanged) */
+  if (isCompact) {
+    const compactContent = entries.map((entry) => {
+      const depth = displayDepth(entry.maxDepthCm, prefs.depth);
+      const visibility =
+        entry.visibilityCm != null
+          ? displayDistance(entry.visibilityCm, prefs.depth)
+          : null;
+      const waterTemp =
+        entry.waterTempCx10 != null
+          ? displayTemperature(entry.waterTempCx10, prefs.temperature)
+          : null;
+      const isSelected = selectedId === entry.id;
+
+      return (
+        <li
+          key={entry.id}
+          className={`${cardStyles.listItemInteractive} ${listStyles.diveListItem} ${listStyles.compact} ${
+            isSelected ? layoutStyles.listItemSelected : ""
+          }`}
+          onClick={() => onSelect?.(entry)}
+        >
+          <div className={listStyles.cellDate}>{entry.date}</div>
+          <div className={listStyles.cellMetrics}>
+            <span>{depth.value ? `${depth.value}${depth.unit}` : "—"}</span>
+            <span>
+              {entry.bottomTime != null ? `${entry.bottomTime}m` : "—"}
+            </span>
+            <span>
+              {waterTemp ? `${waterTemp.value}${waterTemp.unit}` : "—"}
+            </span>
+            <span>
+              {visibility ? `${visibility.value}${visibility.unit}` : "—"}
+            </span>
+          </div>
+          <div className={listStyles.cellPlace}>
+            {highlightMatch(entry.siteName, searchQuery)}
+          </div>
+          <div className={listStyles.cellRegion}>
+            {entry.region ? highlightMatch(entry.region, searchQuery) : ""}
+          </div>
+        </li>
+      );
+    });
+    return <ul className={listStyles.listCompact}>{compactContent}</ul>;
+  }
+
+  /* Mobile: stacked list with site + location */
+  if (isMobile) {
+    const mobileContent = entries.map((entry) => {
+      const depth = displayDepth(entry.maxDepthCm, prefs.depth);
+      const visibility =
+        entry.visibilityCm != null
+          ? displayDistance(entry.visibilityCm, prefs.depth)
+          : null;
+      const waterTemp =
+        entry.waterTempCx10 != null
+          ? displayTemperature(entry.waterTempCx10, prefs.temperature)
+          : null;
+      const isSelected = selectedId === entry.id;
+
+      return (
+        <li
+          key={entry.id}
+          className={`${cardStyles.listItemInteractive} ${listStyles.diveListItem} ${listStyles.compact} ${
+            isSelected ? layoutStyles.listItemSelected : ""
+          }`}
+          onClick={() => onSelect?.(entry)}
+        >
+          <div className={listStyles.cellDate}>{entry.date}</div>
+          <div className={listStyles.cellMetrics}>
+            <span>{depth.value ? `${depth.value}${depth.unit}` : "—"}</span>
+            <span>
+              {entry.bottomTime != null ? `${entry.bottomTime}m` : "—"}
+            </span>
+            <span>
+              {waterTemp ? `${waterTemp.value}${waterTemp.unit}` : "—"}
+            </span>
+            <span>
+              {visibility ? `${visibility.value}${visibility.unit}` : "—"}
+            </span>
+          </div>
+          <div className={listStyles.cellPlace}>
+            {entry.region ? (
+              <>
+                {highlightMatch(entry.siteName, searchQuery)}
+                <span className={listStyles.diveRegionSep}> · </span>
+                {highlightMatch(entry.region, searchQuery)}
+              </>
+            ) : (
+              highlightMatch(entry.siteName, searchQuery)
+            )}
+          </div>
+          <div className={listStyles.cellNotes}>
+            {entry.notes ? highlightMatch(entry.notes, searchQuery) : ""}
+          </div>
+        </li>
+      );
+    });
+    return <ul className={listStyles.listCompact}>{mobileContent}</ul>;
+  }
+
+  /* Desktop, detail pane CLOSED: table */
   return (
-    <ul className={listStyles.list}>
-      {entries.map((entry) => {
-        const depth = displayDepth(entry.maxDepthCm, prefs.depth);
-        const visibility =
-          entry.visibilityCm != null
-            ? displayDistance(entry.visibilityCm, prefs.depth)
-            : null;
-        const waterTemp =
-          entry.waterTempCx10 != null
-            ? displayTemperature(entry.waterTempCx10, prefs.temperature)
-            : null;
-
-        return (
-          <li
-            key={entry.id}
-            className={cardStyles.listItemInteractive}
-            onClick={() => onSelect?.(entry)}
-          >
-            <div className={listStyles.diveHeader}>
-              <div>
-                <span className={listStyles.diveTitle}>
-                  {entry.siteName}{" "}
-                  <span className={listStyles.diveRegion}>
-                    ({entry.region})
-                  </span>
-                </span>
-                <p className={listStyles.diveStats}>
-                  {depth.value}
-                  {depth.unit} · {entry.bottomTime} min
-                  {visibility && ` · ${visibility.value}${visibility.unit} vis`}
-                  {waterTemp && ` · ${waterTemp.value}${waterTemp.unit}`}
-                </p>
-              </div>
-
-              <div className={listStyles.actions}>
-                <span className={listStyles.diveDate}>{entry.date}</span>
-                {onDelete && (
-                  <button
-                    type="button"
-                    aria-label="Delete dive"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      onDelete(entry.id);
-                    }}
-                    className={buttonStyles.iconDelete}
-                    style={{
-                      borderRadius: "var(--radius-full)",
-                      borderColor: "var(--color-bg-elevated)",
-                      padding: "var(--space-1)",
-                      fontSize: "var(--font-size-xs)",
-                    }}
-                  >
-                    ×
-                  </button>
-                )}
-              </div>
-            </div>
-
-            {entry.buddyName && (
-              <p className={listStyles.diveMeta}>Buddy: {entry.buddyName}</p>
-            )}
-            {entry.gearItems && entry.gearItems.length > 0 && (
-              <p className={listStyles.diveMeta}>
-                Gear:{" "}
-                {entry.gearItems
-                  .map((g) => g.nickname || `${g.manufacturer} ${g.model}`)
-                  .join(", ")}
-              </p>
-            )}
-            {entry.notes && (
-              <p className={listStyles.diveNotes}>{entry.notes}</p>
-            )}
-          </li>
-        );
-      })}
-    </ul>
+    <DiveLogTable
+      entries={entries}
+      searchQuery={searchQuery}
+      onSelect={onSelect}
+      onDelete={onDelete}
+      selectedId={selectedId}
+    />
   );
 }
 

@@ -33,12 +33,12 @@ export function DashboardPageContent({
   // Calculate additional stats
   const avgDepth =
     recentDives.length > 0
-      ? recentDives.reduce((sum, dive) => sum + dive.maxDepthCm, 0) /
+      ? recentDives.reduce((sum, dive) => sum + (dive.maxDepthCm ?? 0), 0) /
         recentDives.length
       : undefined;
   const avgBottomTime =
     recentDives.length > 0
-      ? recentDives.reduce((sum, dive) => sum + dive.bottomTime, 0) /
+      ? recentDives.reduce((sum, dive) => sum + (dive.bottomTime ?? 0), 0) /
         recentDives.length
       : undefined;
 

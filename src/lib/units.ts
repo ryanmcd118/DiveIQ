@@ -99,6 +99,21 @@ export function cmToMeters(cm: number): number {
   return cm / METERS_TO_CM;
 }
 
+/**
+ * Convert canonical depth (cm) to display value for safety stop default.
+ * Deterministic, no rounding drift on reopen.
+ */
+export function safetyStopDepthCmToDisplay(
+  depthCm: number | null | undefined,
+  depthUnit: DepthUnit
+): string {
+  if (depthCm == null || isNaN(depthCm)) {
+    return depthUnit === "m" ? "5" : "15";
+  }
+  const val = depthUnit === "ft" ? cmToFeet(depthCm) : cmToMeters(depthCm);
+  return Math.round(val).toString();
+}
+
 // === Temperature conversions (canonical: Cx10 - tenths of Celsius) ===
 
 /**
@@ -328,7 +343,7 @@ export function cx10ToUI(
  * Get unit label for a measurement type
  */
 export function getUnitLabel(
-  type: "depth" | "temperature" | "distance",
+  type: "depth" | "temperature" | "distance" | "pressure" | "weight",
   prefs: UnitPreferences
 ): string {
   switch (type) {
@@ -337,9 +352,109 @@ export function getUnitLabel(
       return prefs.depth === "m" ? "m" : "ft";
     case "temperature":
       return prefs.temperature === "c" ? "°C" : "°F";
+    case "pressure":
+      return prefs.pressure === "bar" ? "bar" : "psi";
+    case "weight":
+      return prefs.weight === "kg" ? "kg" : "lb";
     default:
       return "";
   }
+}
+
+// === Pressure conversions (canonical: bar) ===
+const PSI_TO_BAR = 0.0689476;
+
+export function psiToBar(psi: number): number {
+  return psi * PSI_TO_BAR;
+}
+
+export function barToPsi(bar: number): number {
+  return bar / PSI_TO_BAR;
+}
+
+/**
+ * Convert UI pressure input to canonical bar
+ */
+export function pressureInputToBar(
+  value: number | string | null | undefined,
+  unit: PressureUnit
+): number | null {
+  if (value == null || value === "") return null;
+  const numValue = typeof value === "string" ? parseFloat(value) : value;
+  if (isNaN(numValue)) return null;
+  return unit === "bar" ? numValue : psiToBar(numValue);
+}
+
+/**
+ * Convert canonical bar to UI display value
+ */
+export function barToUI(
+  bar: number | null | undefined,
+  unit: PressureUnit
+): number | null {
+  if (bar == null || isNaN(bar)) return null;
+  return unit === "bar" ? bar : barToPsi(bar);
+}
+
+/**
+ * Format pressure for stable display (avoids jitter on reopen)
+ * Rounds to integer for both bar and psi
+ */
+export function formatPressureForDisplay(
+  bar: number | null | undefined,
+  unit: PressureUnit
+): string {
+  const val = barToUI(bar, unit);
+  if (val == null) return "";
+  return formatInteger(val);
+}
+
+/**
+ * Format weight for stable display (avoids jitter on reopen)
+ * Rounds appropriately for unit
+ */
+export function formatWeightForDisplay(
+  kg: number | null | undefined,
+  unit: WeightUnit
+): string {
+  const val = kgToUI(kg, unit);
+  if (val == null) return "";
+  return unit === "kg" ? formatValue(val, 1) : formatInteger(val);
+}
+
+// === Weight conversions (canonical: kg) ===
+const LB_TO_KG = 0.453592;
+
+export function lbToKg(lb: number): number {
+  return lb * LB_TO_KG;
+}
+
+export function kgToLb(kg: number): number {
+  return kg / LB_TO_KG;
+}
+
+/**
+ * Convert UI weight input to canonical kg
+ */
+export function weightInputToKg(
+  value: number | string | null | undefined,
+  unit: WeightUnit
+): number | null {
+  if (value == null || value === "") return null;
+  const numValue = typeof value === "string" ? parseFloat(value) : value;
+  if (isNaN(numValue)) return null;
+  return unit === "kg" ? numValue : lbToKg(numValue);
+}
+
+/**
+ * Convert canonical kg to UI display value
+ */
+export function kgToUI(
+  kg: number | null | undefined,
+  unit: WeightUnit
+): number | null {
+  if (kg == null || isNaN(kg)) return null;
+  return unit === "kg" ? kg : kgToLb(kg);
 }
 
 // === Legacy helpers (for backward compatibility with existing code) ===

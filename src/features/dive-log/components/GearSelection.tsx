@@ -143,11 +143,7 @@ export function GearSelection({
           </button>
         </div>
       )}
-      {selectedGearIdsSafe.length === 0 && defaultKitGearIds.length === 0 && (
-        <p className={styles.helpText}>
-          Select the gear you used on this dive.
-        </p>
-      )}
+      {selectedGearIdsSafe.length === 0 && defaultKitGearIds.length === 0}
     </div>
   );
 }

@@ -84,8 +84,8 @@
 **Where it lives**:
 
 - **Controlled inputs**: `useState` for unit-bearing fields (e.g., `maxDepth`, `waterTemp`) (`src/features/dive-plan/components/PlanForm.tsx:43-46`, `src/features/dive-log/components/DiveLogForm.tsx:54-67`)
-- **Uncontrolled inputs**: `defaultValue` + `FormData` extraction on submit (`src/features/dive-plan/components/PlanForm.tsx:76,91`, `src/features/dive-log/hooks/useLogPageState.ts:78-102`)
-- **Form reset pattern**: `formKey` prop forces remount to reset uncontrolled inputs (`src/features/dive-log/hooks/useLogPageState.ts:22,62,158`)
+- **Uncontrolled inputs**: `defaultValue` + `FormData` extraction on submit (`src/features/dive-plan/components/PlanForm.tsx:76,91`, `src/features/dive-log/hooks/useLogPageState.ts:56-82`)
+- **Form reset pattern**: `formKey` prop forces remount to reset uncontrolled inputs (`src/features/dive-log/hooks/useLogPageState.ts:21,135,162`)
 
 **Who owns it**:
 
@@ -120,8 +120,8 @@
 
 **Where it lives**:
 
-- **Server Components**: Direct repository calls, passed as props (`src/app/(app)/dashboard/page.tsx:23-35`)
-- **Client Components**: `useState` for data + loading + error (`src/features/dive-log/hooks/useLogPageState.ts:13-16`, `src/features/dive-plan/hooks/usePlanPageState.ts:30-33`)
+- **Server Components**: Direct repository calls, passed as props (`src/app/(app)/dashboard/page.tsx:23-35`, `src/app/(app)/dive-logs/page.tsx:12-47`)
+- **Client Components**: `useState` for data + loading + error (`src/features/dive-log/hooks/useLogPageState.ts:11-35`, `src/features/dive-plan/hooks/usePlanPageState.ts:30-33`)
 - **Custom hooks**: Encapsulate fetch logic (`useLogPageState`, `usePlanPageState`, `useMe`)
 
 **Who owns it**:
@@ -131,8 +131,8 @@
 
 **How it changes**:
 
-- On mount: `useEffect` → `fetch()` → `setState` (`src/features/dive-log/hooks/useLogPageState.ts:32-55`)
-- After mutations: Optimistic update or refetch (`src/features/dive-log/hooks/useLogPageState.ts:146-150`)
+- On page render: Server Component fetches data via repositories and passes as props (`src/app/(app)/dive-logs/page.tsx:12-47`)
+- After mutations: Client hook updates local state and calls `/api/dive-logs` for create/update/delete and on-demand gear enrichment (`src/features/dive-log/hooks/useLogPageState.ts:51-154,171-204`)
 - Manual refresh: `useMe().refreshMe()` (`src/features/auth/hooks/useMe.ts:72-74`)
 
 **How it persists**:

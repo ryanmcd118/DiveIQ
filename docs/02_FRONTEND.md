@@ -28,7 +28,7 @@ Next.js route groups organize layouts without affecting URLs:
 
 3. **Page Components**
    - Most pages are thin server components that render feature client components
-   - Example: `src/app/(app)/dive-logs/page.tsx` just renders `<LogPageContent />`
+   - Example: `src/app/(app)/dive-logs/page.tsx` fetches dive log data via repositories and renders `LogPageContent` (client logbook layout)
 
 ### Pages Pattern
 
@@ -36,8 +36,34 @@ Next.js route groups organize layouts without affecting URLs:
 
 ```typescript
 // src/app/(app)/dive-logs/page.tsx
-export default function LogPage() {
-  return <LogPageContent />; // Client component
+export default async function LogPage({ searchParams }: LogPageProps) {
+  const session = await getServerSession(authOptions);
+  const initialSelectedDiveId = searchParams?.diveId ?? null;
+
+  if (!session?.user?.id) {
+    return (
+      <LogPageContent
+        initialEntries={[]}
+        initialStats={null}
+        initialSelectedDiveId={initialSelectedDiveId}
+        isAuthed={false}
+      />
+    );
+  }
+
+  const [entries, stats] = await Promise.all([
+    diveLogRepository.findMany({ orderBy: "date", userId: session.user.id }),
+    diveLogRepository.getStatistics(session.user.id),
+  ]);
+
+  return (
+    <LogPageContent
+      initialEntries={entries}
+      initialStats={stats}
+      initialSelectedDiveId={initialSelectedDiveId}
+      isAuthed={true}
+    />
+  );
 }
 ```
 
@@ -140,7 +166,9 @@ Reusable UI components used across features:
 Feature-specific components organized by feature:
 
 - `auth/components/` - SignInForm, SignUpForm, AuthModal, GoogleOAuthButton, etc.
-- `dive-log/components/` - DiveLogForm, DiveLogList, LogPageContent, GearSelection
+- `dive-log/components/` - DiveLogForm, DiveLogList, DiveLogGrid, LogbookLayout, LogPageContent, GearSelection
+  - `LogbookLayout` - Master-detail layout with browse pane (grid/list views), detail pane, search, and sort controls (date, site name, region)
+  - `DiveLogList` - List view has two modes. **Expanded (full-width, detail closed)**: table-like single-row layout with a subtle header row; columns Site, Buddy, Notes, Date, Depth, Time, Temp, Vis (plus actions). CSS Grid with explicit columns keeps all rows aligned; Notes column uses ellipsis and never overflows. **Condensed (detail pane open)**: 2×2 grid per dive (date | metrics, site | notes); buddy/region hidden. Styles in `List.module.css`.
 - `dive-plan/components/` - PlanForm, PlanPageContent, AIDiveBriefing, SaveDivePlanButton
 - `gear/components/` - GearPageContent, GearFormModal, KitFormModal, etc.
 - `dashboard/components/` - DashboardPageContent, StatsGrid, CertificationsCard, etc.
@@ -237,20 +265,19 @@ export default async function DashboardPage() {
 
 ### Client Components
 
-Client components use `fetch()` in `useEffect` or event handlers:
+Client components use `fetch()` in event handlers or for incremental enrichment:
 
-**Pattern 1: Custom Hook with useEffect**
+**Pattern 1: Hydrate from Server Props + Mutations**
 
 ```typescript
-// src/features/dive-log/hooks/useLogPageState.ts:32-55
-useEffect(() => {
-  const loadEntries = async () => {
-    const res = await fetch("/api/dive-logs");
-    const data = await res.json();
-    setEntries(data.entries);
-  };
-  void loadEntries();
-}, []);
+// src/features/dive-log/hooks/useLogPageState.ts:11-35
+export function useLogPageState(initialEntries: DiveLogEntry[]) {
+  const [entries, setEntries] = useState<DiveLogEntry[]>(initialEntries);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  // Mutations still call /api/dive-logs (create/update/delete)
+}
 ```
 
 **Pattern 2: Form Submission Handler**

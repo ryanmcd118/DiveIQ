@@ -14,13 +14,38 @@ export const diveLogRepository = {
     return prisma.diveLog.create({
       data: {
         date: data.date,
-        region: data.region,
+        startTime: data.startTime ?? null,
+        endTime: data.endTime ?? null,
+        // diveNumber and auto/override will be normalized by recomputeDiveNumbersForUser
+        diveNumber: data.diveNumber ?? null,
+        diveNumberAuto: data.diveNumberAuto ?? null,
+        diveNumberOverride: data.diveNumberOverride ?? null,
+        region: data.region ?? null,
         siteName: data.siteName,
-        maxDepthCm: data.maxDepthCm,
-        bottomTime: data.bottomTime,
-        waterTempCx10: data.waterTempCx10 ?? null,
-        visibilityCm: data.visibilityCm ?? null,
         buddyName: data.buddyName ?? null,
+        diveTypeTags: data.diveTypeTags ?? null,
+        maxDepthCm: data.maxDepthCm ?? null,
+        bottomTime: data.bottomTime ?? null,
+        safetyStopDepthCm: data.safetyStopDepthCm ?? null,
+        safetyStopDurationMin: data.safetyStopDurationMin ?? null,
+        surfaceIntervalMin: data.surfaceIntervalMin ?? null,
+        waterTempCx10: data.waterTempCx10 ?? null,
+        waterTempBottomCx10: data.waterTempBottomCx10 ?? null,
+        visibilityCm: data.visibilityCm ?? null,
+        current: data.current ?? null,
+        gasType: data.gasType ?? null,
+        fO2: data.fO2 ?? null,
+        tankCylinder: data.tankCylinder ?? null,
+        startPressureBar: data.startPressureBar ?? null,
+        endPressureBar: data.endPressureBar ?? null,
+        exposureProtection: data.exposureProtection ?? null,
+        weightUsedKg: data.weightUsedKg ?? null,
+        gearKitId: data.gearKitId ?? null,
+        gearNotes: data.gearNotes ?? null,
+        isTrainingDive: data.isTrainingDive ?? false,
+        trainingCourse: data.trainingCourse ?? null,
+        trainingInstructor: data.trainingInstructor ?? null,
+        trainingSkills: data.trainingSkills ?? null,
         notes: data.notes ?? null,
         userId: userId ?? null,
       },
@@ -77,13 +102,38 @@ export const diveLogRepository = {
       where: { id },
       data: {
         date: data.date,
-        region: data.region,
+        startTime: data.startTime ?? null,
+        endTime: data.endTime ?? null,
+        // diveNumber and auto/override will be normalized by recomputeDiveNumbersForUser
+        diveNumber: data.diveNumber ?? null,
+        diveNumberAuto: data.diveNumberAuto ?? null,
+        diveNumberOverride: data.diveNumberOverride ?? null,
+        region: data.region ?? null,
         siteName: data.siteName,
-        maxDepthCm: data.maxDepthCm,
-        bottomTime: data.bottomTime,
-        waterTempCx10: data.waterTempCx10 ?? null,
-        visibilityCm: data.visibilityCm ?? null,
         buddyName: data.buddyName ?? null,
+        diveTypeTags: data.diveTypeTags ?? null,
+        maxDepthCm: data.maxDepthCm ?? null,
+        bottomTime: data.bottomTime ?? null,
+        safetyStopDepthCm: data.safetyStopDepthCm ?? null,
+        safetyStopDurationMin: data.safetyStopDurationMin ?? null,
+        surfaceIntervalMin: data.surfaceIntervalMin ?? null,
+        waterTempCx10: data.waterTempCx10 ?? null,
+        waterTempBottomCx10: data.waterTempBottomCx10 ?? null,
+        visibilityCm: data.visibilityCm ?? null,
+        current: data.current ?? null,
+        gasType: data.gasType ?? null,
+        fO2: data.fO2 ?? null,
+        tankCylinder: data.tankCylinder ?? null,
+        startPressureBar: data.startPressureBar ?? null,
+        endPressureBar: data.endPressureBar ?? null,
+        exposureProtection: data.exposureProtection ?? null,
+        weightUsedKg: data.weightUsedKg ?? null,
+        gearKitId: data.gearKitId ?? null,
+        gearNotes: data.gearNotes ?? null,
+        isTrainingDive: data.isTrainingDive ?? false,
+        trainingCourse: data.trainingCourse ?? null,
+        trainingInstructor: data.trainingInstructor ?? null,
+        trainingSkills: data.trainingSkills ?? null,
         notes: data.notes ?? null,
       },
     });
@@ -113,6 +163,41 @@ export const diveLogRepository = {
       where.userId = userId;
     }
     return prisma.diveLog.count({ where });
+  },
+
+  /**
+   * Recompute chronological dive numbers for all dives for a user.
+   * Oldest dive gets auto #1, next #2, etc.
+   * Keeps existing diveNumberOverride values stable while updating
+   * diveNumberAuto and effective diveNumber.
+   */
+  async recomputeDiveNumbersForUser(userId: string): Promise<void> {
+    const dives = await prisma.diveLog.findMany({
+      where: { userId },
+      orderBy: [
+        { date: "asc" },
+        { startTime: "asc" },
+        { createdAt: "asc" },
+        { id: "asc" },
+      ],
+    });
+
+    if (!dives.length) return;
+
+    await prisma.$transaction(
+      dives.map((dive, index) => {
+        const autoNumber = index + 1;
+        const override = dive.diveNumberOverride ?? null;
+        const effective = override ?? autoNumber;
+        return prisma.diveLog.update({
+          where: { id: dive.id },
+          data: {
+            diveNumberAuto: autoNumber,
+            diveNumber: effective,
+          },
+        });
+      })
+    );
   },
 
   /**

@@ -2,6 +2,23 @@
    LIST COMPONENTS
    ========================================= */
 
+/* Fixed right-column width so long notes never affect stats alignment */
+:root {
+  --stats-rail-width: 420px;
+}
+
+@media (max-width: 900px) {
+  :root {
+    --stats-rail-width: 360px;
+  }
+}
+
+@media (max-width: 720px) {
+  :root {
+    --stats-rail-width: 320px;
+  }
+}
+
 .list {
   display: flex;
   flex-direction: column;
@@ -19,11 +36,305 @@
   color: var(--color-text-muted);
 }
 
+/* Reusable truncation utility */
+.truncate {
+  display: block;
+  min-width: 0;
+  max-width: 100%;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.ellipsis {
+  display: block;
+  min-width: 0;
+  max-width: 100%;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
 /* Dive log list items */
 .diveItem {
   /* Inherits from Card.module.css .listItem or .listItemInteractive */
 }
 
+/* Shared column template for expanded header + rows (table-like alignment) */
+.expandedListWrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+}
+
+.expandedListWrapper .listCompact {
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+}
+
+/* Column order: Site | Buddy | Date | Depth | Time | Temp | Visibility | Notes | (actions) – same grid as rows */
+.diveListHeader {
+  display: grid;
+  column-gap: 10px;
+  padding: var(--space-1) var(--space-3);
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  font-weight: var(--font-weight-medium);
+  align-items: center;
+  justify-items: start;
+  border-bottom: 1px solid var(--color-border-subtle, rgba(0, 0, 0, 0.06));
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+}
+
+/* Header cells: block so width:100% applies; all left-aligned */
+.diveListHeaderCell {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  text-align: left;
+}
+
+/* Notes header cell: truncate with ellipsis if narrow */
+.diveListHeader .colNotes {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Expanded row cells: block, fill track, all left-aligned */
+.diveListItem.expandedRow > div {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  text-align: left;
+}
+
+/* All columns left-aligned (no per-column right/center overrides) */
+.colSite,
+.colBuddy,
+.colDate,
+.colDepth,
+.colTime,
+.colTemp,
+.colVisibility,
+.colNotes,
+.colActions {
+  justify-self: start;
+  text-align: left;
+}
+
+/* Notes column: ensure it can shrink in grid */
+.colNotes {
+  min-width: 0;
+}
+
+.diveListItem {
+  padding: var(--space-2) var(--space-3);
+  display: grid;
+  align-items: center;
+  box-sizing: border-box;
+}
+
+/* Expanded row: identical grid-template-columns to header */
+.diveListItem.expandedRow {
+  column-gap: 10px;
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  justify-items: start;
+}
+
+.diveListItem.expandedRow .diveCellSite {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: var(--font-size-sm);
+}
+
+/* Site name can shrink inside flex cell so ellipsis works */
+.diveListItem.expandedRow .diveCellSite .diveSiteName {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.diveListItem.expandedRow .diveCellBuddy {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: var(--font-size-xs);
+  color: var(--color-text-primary);
+}
+
+.diveListItem.expandedRow .diveCellBuddy > * {
+  min-width: 0;
+}
+
+.diveListItem.expandedRow .diveCellDate,
+.diveListItem.expandedRow .diveCellDepth,
+.diveListItem.expandedRow .diveCellTime,
+.diveListItem.expandedRow .diveCellTemp,
+.diveListItem.expandedRow .diveCellVis {
+  min-width: 0;
+  white-space: nowrap;
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+}
+
+.diveListItem.expandedRow .diveCellNotes {
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+}
+
+.diveListItem.expandedRow .diveCellActions {
+  min-width: 0;
+}
+
+.diveListItem.expandedRow .diveCellActions > * + * {
+  margin-left: var(--space-1);
+}
+
+/* Compact layout when detail pane is open: 50/50 bottom row for site + region */
+.diveListItem.compact {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: auto auto;
+  grid-template-areas:
+    "date metrics"
+    "place region";
+  column-gap: 16px;
+  row-gap: 4px;
+  padding: var(--space-2) var(--space-3);
+}
+
+.diveListItem.compact .cellDate {
+  grid-area: date;
+  white-space: nowrap;
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+}
+
+.diveListItem.compact .cellMetrics {
+  grid-area: metrics;
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+  min-width: 0;
+  white-space: nowrap;
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+}
+
+.diveListItem.compact .cellPlace,
+.diveListItem.compact .cellRegion {
+  /* Same typography for Site and Region (peers on the bottom row) */
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  line-height: var(--line-height-normal);
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.diveListItem.compact .cellPlace {
+  grid-area: place;
+  color: var(--color-text-primary);
+}
+
+.diveListItem.compact .cellRegion {
+  grid-area: region;
+  color: var(--color-text-secondary);
+  text-align: right;
+}
+
+.diveListItem.compact .cellNotes {
+  grid-area: notes;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  text-align: right;
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+}
+
+/* Shared: site name + region (used in expanded .diveCellSite) */
+.diveSiteName {
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-primary);
+}
+
+.diveRegionSep {
+  margin: 0 6px;
+  opacity: 0.7;
+  color: var(--color-text-muted);
+}
+
+.diveRegion {
+  color: var(--color-text-muted);
+}
+
+.diveSelectedBadge {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+/* Responsive: shrink Site/Notes first; keep metric columns fixed */
+@media (max-width: 600px) {
+  .diveListHeader {
+    padding-left: var(--space-2);
+    padding-right: var(--space-2);
+  }
+}
+
+/* Expanded grid templates (8 cols without actions, 9 cols with actions) */
+.expandedGridNoActions .diveListHeader,
+.expandedGridNoActions .diveListItem.expandedRow {
+  grid-template-columns:
+    minmax(340px, 3fr) /* Site */
+    minmax(140px, 1.2fr) /* Buddy */
+    110px /* Date */
+    70px /* Depth */
+    70px /* Time */
+    70px /* Temp */
+    90px /* Visibility */
+    minmax(0, 2.5fr); /* Notes (FLEX, last) */
+}
+
+.expandedGridWithActions .diveListHeader,
+.expandedGridWithActions .diveListItem.expandedRow {
+  grid-template-columns:
+    minmax(340px, 3fr) /* Site */
+    minmax(140px, 1.2fr) /* Buddy */
+    110px /* Date */
+    70px /* Depth */
+    70px /* Time */
+    70px /* Temp */
+    90px /* Visibility */
+    minmax(0, 2.5fr) /* Notes (FLEX, last data col) */
+    44px; /* Actions */
+}
+
+/* Legacy / plan list (keep for non–dive-log list usage) */
 .diveHeader {
   display: flex;
   align-items: flex-start;
@@ -37,15 +348,6 @@
   color: var(--color-text-primary);
 }
 
-.diveRegion {
-  color: var(--color-text-muted);
-}
-
-.diveStats {
-  color: var(--color-text-secondary);
-  font-size: var(--font-size-sm);
-}
-
 .diveMeta {
   font-size: var(--font-size-xs);
   color: var(--color-text-muted);
@@ -55,13 +357,6 @@
   font-size: var(--font-size-xs);
   color: var(--color-text-muted);
   white-space: nowrap;
-}
-
-.diveNotes {
-  margin-top: var(--space-2);
-  font-size: var(--font-size-xs);
-  color: var(--color-text-tertiary);
-  white-space: pre-line;
 }
 
 /* Plan list items */

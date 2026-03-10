@@ -18,7 +18,8 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "check": "npm run lint && npm run format:check && npm run typecheck && npm run test && npm run build",
-    "db:reset": "prisma migrate reset --force --skip-seed"
+    "db:reset": "prisma migrate reset --force --skip-seed",
+    "db:seed-logbook-fixture": "tsx prisma/seed-logbook-fixture.ts"
   },
   "dependencies": {
     "@next-auth/prisma-adapter": "^1.0.7",
@@ -42,6 +43,7 @@
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "babel-plugin-react-compiler": "1.0.0",
+    "baseline-browser-mapping": "^2.10.0",
     "eslint": "^9",
     "eslint-config-next": "16.0.7",
     "eslint-config-prettier": "^10.1.8",
