@@ -211,6 +211,8 @@ export function LogbookForm({
 }: LogbookFormProps) {
   const { prefs } = useUnitPreferences();
 
+  const [todayStr, setTodayStr] = useState<string | null>(null);
+  const [dateError, setDateError] = useState<string | null>(null);
   const [date, setDate] = useState("");
   const [startTimeDisplay, setStartTimeDisplay] = useState("");
   const [startTimePeriod, setStartTimePeriod] = useState<"AM" | "PM">("AM");
@@ -484,12 +486,29 @@ export function LogbookForm({
     lastEditedTime,
   ]);
 
+  // Compute today's date client-side only to avoid SSR hydration mismatch
+  useEffect(() => {
+    const d = new Date();
+    const yyyy = d.getFullYear();
+    const mm = String(d.getMonth() + 1).padStart(2, "0");
+    const dd = String(d.getDate()).padStart(2, "0");
+    setTodayStr(`${yyyy}-${mm}-${dd}`);
+  }, []);
+
   useEffect(() => {
     fetch("/api/gear-kits")
       .then((r) => (r.ok ? r.json() : { kits: [] }))
       .then((data) => setGearKits(data.kits || []))
       .catch(() => setGearKits([]));
   }, []);
+
+  const validateDate = (value: string) => {
+    if (todayStr && value && value > todayStr) {
+      setDateError("Future dates invalid.");
+    } else {
+      setDateError(null);
+    }
+  };
 
   const handleGearKitSelect = (kitId: string) => {
     setGearKitId(kitId);
@@ -501,6 +520,11 @@ export function LogbookForm({
   };
 
   const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
+    if (todayStr && date && date > todayStr) {
+      e.preventDefault();
+      setDateError("Future dates invalid.");
+      return;
+    }
     onSubmit(e);
   };
 
@@ -580,10 +604,20 @@ export function LogbookForm({
                     id="date"
                     name="date"
                     required
+                    max={todayStr ?? undefined}
                     value={date}
-                    onChange={(e) => setDate(e.target.value)}
+                    onChange={(e) => {
+                      setDate(e.target.value);
+                      validateDate(e.target.value);
+                    }}
+                    onBlur={(e) => validateDate(e.target.value)}
                     className={styles.input}
                   />
+                  {dateError && (
+                    <span className={styles.timeFieldError} role="alert">
+                      {dateError}
+                    </span>
+                  )}
                 </div>
                 <div className={styles.timeGroup}>
                   <label htmlFor="startTimeDisplay" className={styles.label}>
@@ -609,11 +643,33 @@ export function LogbookForm({
                         if (
                           valueToCheck &&
                           !to24HourTime(valueToCheck, startTimePeriod)
-                        )
+                        ) {
                           setStartTimeError(
                             "Enter a valid time (e.g. 9:00 or 9:30)"
                           );
-                        else setStartTimeError(null);
+                        } else if (
+                          todayStr &&
+                          date === todayStr &&
+                          valueToCheck
+                        ) {
+                          const time24 = to24HourTime(
+                            valueToCheck,
+                            startTimePeriod
+                          );
+                          if (time24) {
+                            const now = new Date();
+                            const nowTime = `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`;
+                            if (time24 > nowTime)
+                              setStartTimeError(
+                                "Start time cannot be in the future."
+                              );
+                            else setStartTimeError(null);
+                          } else {
+                            setStartTimeError(null);
+                          }
+                        } else {
+                          setStartTimeError(null);
+                        }
                       }}
                       className={`${styles.input} ${styles.inputSmall}`}
                     />
@@ -662,11 +718,33 @@ export function LogbookForm({
                         if (
                           valueToCheck &&
                           !to24HourTime(valueToCheck, endTimePeriod)
-                        )
+                        ) {
                           setEndTimeError(
                             "Enter a valid time (e.g. 9:52 or 10:00)"
                           );
-                        else setEndTimeError(null);
+                        } else if (
+                          todayStr &&
+                          date === todayStr &&
+                          valueToCheck
+                        ) {
+                          const time24 = to24HourTime(
+                            valueToCheck,
+                            endTimePeriod
+                          );
+                          if (time24) {
+                            const now = new Date();
+                            const nowTime = `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`;
+                            if (time24 > nowTime)
+                              setEndTimeError(
+                                "End time cannot be in the future."
+                              );
+                            else setEndTimeError(null);
+                          } else {
+                            setEndTimeError(null);
+                          }
+                        } else {
+                          setEndTimeError(null);
+                        }
                       }}
                       className={`${styles.input} ${styles.inputSmall}`}
                     />

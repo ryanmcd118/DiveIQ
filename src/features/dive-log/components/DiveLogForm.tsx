@@ -70,6 +70,8 @@ export function DiveLogForm({
     return display.value;
   });
   const prevActiveEntryRef = useRef<typeof activeEntry>(activeEntry);
+  const [todayStr, setTodayStr] = useState<string | null>(null);
+  const [dateError, setDateError] = useState<string | null>(null);
 
   // Track activeEntry changes using ref (no setState in effect)
   useEffect(() => {
@@ -78,8 +80,36 @@ export function DiveLogForm({
     }
   }, [activeEntry]);
 
+  // Compute today's date client-side only to avoid SSR hydration mismatch
+  useEffect(() => {
+    const d = new Date();
+    const yyyy = d.getFullYear();
+    const mm = String(d.getMonth() + 1).padStart(2, "0");
+    const dd = String(d.getDate()).padStart(2, "0");
+    setTodayStr(`${yyyy}-${mm}-${dd}`);
+  }, []);
+
+  const validateDate = (value: string) => {
+    if (todayStr && value && value > todayStr) {
+      setDateError("Future dates invalid.");
+    } else {
+      setDateError(null);
+    }
+  };
+
   // Custom submit handler that sets hidden inputs with UI values
   const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
+    if (todayStr) {
+      const dateInput = e.currentTarget.elements.namedItem(
+        "date"
+      ) as HTMLInputElement | null;
+      if (dateInput?.value && dateInput.value > todayStr) {
+        e.preventDefault();
+        setDateError("Future dates invalid.");
+        return;
+      }
+    }
+    setDateError(null);
     // The actual conversion to metric will happen in useLogPageState
     onSubmit(e);
   };
@@ -103,9 +133,13 @@ export function DiveLogForm({
             id="date"
             name="date"
             required
+            max={todayStr ?? undefined}
             defaultValue={activeEntry?.date ?? ""}
             className={formStyles.input}
+            onChange={(e) => validateDate(e.target.value)}
+            onBlur={(e) => validateDate(e.target.value)}
           />
+          {dateError && <p className={formStyles.error}>{dateError}</p>}
         </div>
 
         <div className={formStyles.field}>
