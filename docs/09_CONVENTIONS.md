@@ -72,7 +72,7 @@ features/{feature}/
 
 **PascalCase**, descriptive names:
 
-- `DiveLogForm.tsx`
+- `LogbookForm.tsx`
 - `PlanPageContent.tsx`
 - `DashboardPageContent.tsx`
 - `CertificationCard.tsx`
@@ -80,8 +80,8 @@ features/{feature}/
 **Props interface**: `{ComponentName}Props`
 
 ```typescript
-interface DiveLogFormProps {
-  formKey: string;
+interface LogbookFormProps {
+  formId: string;
   activeEntry: DiveLogEntry | null;
   // ...
 }
@@ -89,7 +89,7 @@ interface DiveLogFormProps {
 
 **Cited from**:
 
-- `src/features/dive-log/components/DiveLogForm.tsx`
+- `src/features/dive-log/components/LogbookForm.tsx`
 - `src/features/dive-plan/components/PlanPageContent.tsx`
 
 ### Hooks
@@ -543,7 +543,7 @@ import styles from "./ComponentName.module.css";
 </div>
 ```
 
-**Cited from**: Component files (e.g., `src/features/dive-log/components/DiveLogForm.tsx`)
+**Cited from**: Component files (e.g., `src/features/dive-log/components/LogbookForm.tsx`)
 
 ### Shared Styles
 
@@ -659,7 +659,7 @@ import formStyles from "@/styles/components/Form.module.css";
 
 4. **Extract business logic**: Put complex logic in services or utilities, not route handlers
 
-5. **Name components PascalCase**: `DiveLogForm.tsx`, `PlanPageContent.tsx`
+5. **Name components PascalCase**: `LogbookForm.tsx`, `PlanPageContent.tsx`
 
 6. **Name hooks camelCase with `use` prefix**: `useLogPageState.ts`, `useAuth.ts`
 

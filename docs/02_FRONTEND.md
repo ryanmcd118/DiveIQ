@@ -166,7 +166,7 @@ Reusable UI components used across features:
 Feature-specific components organized by feature:
 
 - `auth/components/` - SignInForm, SignUpForm, AuthModal, GoogleOAuthButton, etc.
-- `dive-log/components/` - DiveLogForm, DiveLogList, DiveLogGrid, LogbookLayout, LogPageContent, GearSelection
+- `dive-log/components/` - LogbookForm, AddEditDiveSheet, DiveLogList, DiveLogGrid, LogbookLayout, LogPageContent, GearSelection
   - `LogbookLayout` - Master-detail layout with browse pane (grid/list views), detail pane, search, and sort controls (date, site name, region)
   - `DiveLogList` - List view has two modes. **Expanded (full-width, detail closed)**: table-like single-row layout with a subtle header row; columns Site, Buddy, Notes, Date, Depth, Time, Temp, Vis (plus actions). CSS Grid with explicit columns keeps all rows aligned; Notes column uses ellipsis and never overflows. **Condensed (detail pane open)**: 2×2 grid per dive (date | metrics, site | notes); buddy/region hidden. Styles in `List.module.css`.
 - `dive-plan/components/` - PlanForm, PlanPageContent, AIDiveBriefing, SaveDivePlanButton
@@ -183,7 +183,7 @@ FeatureComponent.tsx          # Component file
 FeatureComponent.module.css   # Co-located CSS Module (same name)
 ```
 
-Example: `src/features/dive-log/components/DiveLogForm.tsx` + `GearSelection.module.css`
+Example: `src/features/dive-log/components/LogbookForm.tsx` + `LogbookForm.module.css`
 
 ## Styling Approach
 

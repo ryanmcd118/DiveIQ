@@ -83,7 +83,7 @@
 
 **Where it lives**:
 
-- **Controlled inputs**: `useState` for unit-bearing fields (e.g., `maxDepth`, `waterTemp`) (`src/features/dive-plan/components/PlanForm.tsx:43-46`, `src/features/dive-log/components/DiveLogForm.tsx:54-67`)
+- **Controlled inputs**: `useState` for unit-bearing fields (e.g., `maxDepth`, `waterTemp`) (`src/features/dive-plan/components/PlanForm.tsx:43-46`, `src/features/dive-log/components/LogbookForm.tsx:237-260`)
 - **Uncontrolled inputs**: `defaultValue` + `FormData` extraction on submit (`src/features/dive-plan/components/PlanForm.tsx:76,91`, `src/features/dive-log/hooks/useLogPageState.ts:56-82`)
 - **Form reset pattern**: `formKey` prop forces remount to reset uncontrolled inputs (`src/features/dive-log/hooks/useLogPageState.ts:21,135,162`)
 
@@ -250,7 +250,7 @@
 
 **Flow**:
 
-1. **User submits form**: `DiveLogForm` calls `handleSubmit` (`src/features/dive-log/hooks/useLogPageState.ts:72`)
+1. **User submits form**: `LogbookForm` calls `handleSubmit` (`src/features/dive-log/hooks/useLogPageState.ts:72`)
 2. **API call**: `fetch("/api/dive-logs", { method: "POST", body: JSON.stringify({ action: "create", payload }) })` (`src/features/dive-log/hooks/useLogPageState.ts:124-132`)
 3. **UI update**: On success, `setEntries((prev) => [entryWithGear, ...prev])` (optimistic update) (`src/features/dive-log/hooks/useLogPageState.ts:146-150`)
 4. **Form reset**: `form.reset()`, `setFormKey()` to remount form (`src/features/dive-log/hooks/useLogPageState.ts:153-158`)
