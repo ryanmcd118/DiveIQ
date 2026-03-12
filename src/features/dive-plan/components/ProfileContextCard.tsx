@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import type { ProfileContext } from "@/features/dive-plan/types";
 import cardStyles from "@/styles/components/Card.module.css";
 import styles from "./ProfileContextCard.module.css";
@@ -231,6 +231,18 @@ export function ProfileContextCard({
       // ignore
     }
   };
+
+  // Close modal on unmount (e.g. user navigates away via an edit link while modal is open)
+  useEffect(() => {
+    return () => {
+      setCollapsed(true);
+      try {
+        localStorage.setItem("diveiq:profileCardCollapsed", "true");
+      } catch {
+        // ignore
+      }
+    };
+  }, []);
 
   const summaryText = buildSummaryText(ctx, loading, error);
 
