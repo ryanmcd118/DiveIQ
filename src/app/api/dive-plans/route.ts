@@ -83,6 +83,7 @@ export async function POST(req: NextRequest) {
       experienceLevel: body.experienceLevel,
       riskLevel,
       aiAdvice,
+      aiBriefing,
     };
 
     const savedPlan = await divePlanRepository.create(
@@ -179,6 +180,7 @@ export async function PUT(req: NextRequest) {
       experienceLevel: body.experienceLevel,
       riskLevel,
       aiAdvice,
+      aiBriefing,
     };
 
     const updatedPlan = await divePlanRepository.update(

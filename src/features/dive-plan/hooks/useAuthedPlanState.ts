@@ -245,7 +245,7 @@ export function useAuthedPlanState() {
     }
   };
 
-  const saveDraftPlan = useCallback(async (): Promise<void> => {
+  const saveDraftPlan = useCallback(async (): Promise<PastPlan | null> => {
     if (!draftPlan || !isAuthenticated) {
       throw new Error("Cannot save: no draft plan or not authenticated");
     }
@@ -273,9 +273,10 @@ export function useAuthedPlanState() {
 
       const data = await res.json();
 
+      let savedPlan: PastPlan | null = null;
       if (data.plan) {
-        const savedPlan = data.plan as PastPlan;
-        setPastPlans((prev) => [savedPlan, ...prev]);
+        savedPlan = data.plan as PastPlan;
+        setPastPlans((prev) => [savedPlan as PastPlan, ...prev]);
       }
 
       setAiAdvice(data.aiAdvice);
@@ -286,6 +287,8 @@ export function useAuthedPlanState() {
 
       setStatusMessage("Plan saved ✅");
       setTimeout(() => setStatusMessage(null), 3000);
+
+      return savedPlan;
     } catch (err) {
       console.error(err);
       setApiError("Failed to save plan.");
@@ -333,6 +336,40 @@ export function useAuthedPlanState() {
     setFormKey(`plan-${id}-${Date.now()}`);
   };
 
+  // Pre-fill the form from a past plan so the user can resubmit as a NEW plan.
+  // Does not set editingPlanId, so handleSubmit falls through to handlePreviewSubmit (POST).
+  const handleEditFromView = useCallback(
+    (plan: PastPlan) => {
+      const maxDepthUI = cmToUI(plan.maxDepthCm, prefs.depth) ?? 0;
+      const planData: PlanData = {
+        region: plan.region,
+        siteName: plan.siteName,
+        date: plan.date,
+        maxDepth: maxDepthUI,
+        bottomTime: plan.bottomTime,
+        experienceLevel: plan.experienceLevel,
+      };
+      setSubmittedPlan(planData);
+      setDraftPlan(null);
+      setAiBriefing(null);
+      setAiAdvice(null);
+      setDraftRiskLevel(null);
+      setApiError(null);
+      setEditingPlanId(null);
+      setFormKey(`edit-view-${plan.id}-${Date.now()}`);
+    },
+    [
+      prefs.depth,
+      setSubmittedPlan,
+      setDraftPlan,
+      setAiBriefing,
+      setAiAdvice,
+      setDraftRiskLevel,
+      setApiError,
+      setFormKey,
+    ]
+  );
+
   const handleCancelEdit = () => {
     setEditingPlanId(null);
     setSubmittedPlan(null);
@@ -345,11 +382,11 @@ export function useAuthedPlanState() {
     setFormKey(`cancel-${Date.now()}`);
   };
 
-  const deletePlan = async (id: string) => {
+  const deletePlan = async (id: string): Promise<boolean> => {
     const confirmed = window.confirm(
       "Delete this plan? This action cannot be undone."
     );
-    if (!confirmed) return;
+    if (!confirmed) return false;
 
     try {
       setLoading(true);
@@ -375,9 +412,11 @@ export function useAuthedPlanState() {
       }
 
       setStatusMessage("Plan deleted ✅");
+      return true;
     } catch (err) {
       console.error(err);
       setApiError("Failed to delete plan.");
+      return false;
     } finally {
       setLoading(false);
     }
@@ -398,6 +437,13 @@ export function useAuthedPlanState() {
     setEditingPlanId(null);
     setFormKey(`new-${Date.now()}`);
   };
+
+  // Clears only the briefing so the page transitions back to the form view
+  // without clearing the submitted plan data (pre-fills form on return).
+  const clearBriefing = useCallback(() => {
+    setAiBriefing(null);
+    setApiError(null);
+  }, [setAiBriefing, setApiError]);
 
   const refreshAfterAuth = useCallback(async () => {
     try {
@@ -429,6 +475,8 @@ export function useAuthedPlanState() {
     saveDraftPlan,
     handleSelectPastPlan,
     handleCancelEdit,
+    handleEditFromView,
+    clearBriefing,
     deletePlan,
     handleDeletePlan,
     handleNewPlan,

@@ -1,0 +1,240 @@
+/* =========================================
+   AUTHED PLAN PAGE — NEW LAYOUT
+   ========================================= */
+
+.pageContainer {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: 80rem;
+  gap: var(--space-4);
+}
+
+/* ── Two-column body grid ── */
+.bodyGrid {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+}
+
+@media (min-width: 768px) {
+  .bodyGrid {
+    display: grid;
+    grid-template-columns: 1fr 280px;
+    gap: var(--space-6);
+    align-items: start;
+  }
+}
+
+/* ── Main content area ── */
+.mainArea {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  min-width: 0;
+}
+
+/* ── Briefing wrapper (View 2 & 3) ── */
+.briefingWrapper {
+  overflow-y: auto;
+  border-radius: var(--radius-xl);
+  background: rgba(6, 24, 40, 0.3);
+  border: 1px solid rgba(51, 65, 85, 0.3);
+  min-height: 20rem;
+  max-height: calc(100vh - 22rem);
+}
+
+@media (max-width: 767px) {
+  .briefingWrapper {
+    max-height: 70vh;
+  }
+}
+
+.briefingWrapper::-webkit-scrollbar {
+  width: 6px;
+}
+
+.briefingWrapper::-webkit-scrollbar-track {
+  background: rgba(15, 23, 42, 0.3);
+  border-radius: var(--radius-full);
+}
+
+.briefingWrapper::-webkit-scrollbar-thumb {
+  background: rgba(6, 182, 212, 0.3);
+  border-radius: var(--radius-full);
+}
+
+.briefingWrapper::-webkit-scrollbar-thumb:hover {
+  background: rgba(6, 182, 212, 0.5);
+}
+
+/* ── Plan view header (View 3) ── */
+.planViewHeader {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+}
+
+.planViewSiteName {
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-primary);
+}
+
+.planViewMeta {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+}
+
+/* ── CTA row ── */
+.ctaRow {
+  display: flex;
+  gap: var(--space-3);
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.ctaRowEnd {
+  margin-left: auto;
+}
+
+.disclaimer {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  line-height: 1.5;
+  padding: 0 var(--space-1);
+}
+
+/* ── Sidebar ── */
+.sidebar {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border-default);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-lg);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+@media (min-width: 768px) {
+  .sidebar {
+    position: sticky;
+    top: var(--space-4);
+    max-height: calc(100vh - 10rem);
+  }
+}
+
+.sidebarHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-3) var(--space-4);
+  border-bottom: 1px solid var(--color-border-default);
+  flex-shrink: 0;
+}
+
+.sidebarTitle {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-primary);
+}
+
+.sidebarList {
+  overflow-y: auto;
+  flex: 1;
+  min-height: 0;
+}
+
+.sidebarList::-webkit-scrollbar {
+  width: 4px;
+}
+
+.sidebarList::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.sidebarList::-webkit-scrollbar-thumb {
+  background: rgba(6, 182, 212, 0.25);
+  border-radius: var(--radius-full);
+}
+
+.sidebarEmptyState {
+  padding: var(--space-6) var(--space-4);
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  text-align: center;
+  line-height: 1.6;
+}
+
+/* ── Sidebar plan item ── */
+.sidebarItem {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: var(--space-3) var(--space-4);
+  border: none;
+  border-bottom: 1px solid rgba(51, 65, 85, 0.2);
+  background: none;
+  cursor: pointer;
+  transition: background 0.15s;
+  border-left: 2px solid transparent;
+}
+
+.sidebarItem:hover {
+  background: var(--color-surface-hover);
+}
+
+.sidebarItemSelected {
+  background: rgba(6, 182, 212, 0.07);
+  border-left-color: var(--color-accent-primary);
+}
+
+.sidebarItemTop {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: var(--space-2);
+  margin-bottom: 2px;
+}
+
+.sidebarSiteName {
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-primary);
+  line-height: 1.3;
+}
+
+.sidebarDate {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.sidebarRegion {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  margin-bottom: var(--space-1);
+}
+
+.sidebarItemBottom {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.sidebarStats {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+}
+
+.sidebarRiskBadge {
+  font-size: 10px;
+  font-weight: var(--font-weight-medium);
+  padding: 1px 6px;
+  border-radius: var(--radius-full);
+  white-space: nowrap;
+  flex-shrink: 0;
+}

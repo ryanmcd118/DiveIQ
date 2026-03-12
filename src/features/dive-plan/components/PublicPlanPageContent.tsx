@@ -8,7 +8,6 @@ import { AuthModal } from "@/features/auth/components/AuthModal";
 import layoutStyles from "@/styles/components/Layout.module.css";
 import gridStyles from "@/styles/components/PageGrid.module.css";
 import backgroundStyles from "@/styles/components/Background.module.css";
-import cardStyles from "@/styles/components/Card.module.css";
 import buttonStyles from "@/styles/components/Button.module.css";
 
 export function PublicPlanPageContent() {
@@ -30,7 +29,6 @@ export function PublicPlanPageContent() {
     saveDraftPlan,
     handleRequireAuth,
     handleCreateAccount,
-    handleLogIn,
     handleAuthSuccess,
     handleGoogleSignIn,
   } = usePublicPlanState();
@@ -174,65 +172,6 @@ export function PublicPlanPageContent() {
             )}
           </section>
         </div>
-
-        {/* Bottom zone: signup callout */}
-        {!isAuthenticated && (
-          <section className={gridStyles.planPageBottom}>
-            <div className={cardStyles.elevatedForm}>
-              <div style={{ padding: "var(--space-6)" }}>
-                <h3
-                  style={{
-                    fontSize: "var(--font-size-lg)",
-                    fontWeight: "var(--font-weight-semibold)",
-                    marginBottom: "var(--space-2)",
-                    color: "var(--color-text-primary)",
-                  }}
-                >
-                  Save your plans
-                </h3>
-                <p
-                  style={{
-                    fontSize: "var(--font-size-base)",
-                    color: "var(--color-text-secondary)",
-                    marginBottom: "var(--space-4)",
-                    lineHeight: "1.6",
-                  }}
-                >
-                  Create an account to save dive plans and build your planning
-                  history.
-                </p>
-                <div
-                  style={{
-                    display: "flex",
-                    gap: "var(--space-3)",
-                    alignItems: "center",
-                  }}
-                >
-                  <button
-                    type="button"
-                    onClick={handleCreateAccount}
-                    className={buttonStyles.primaryGradient}
-                    style={{ whiteSpace: "nowrap" }}
-                  >
-                    Create account
-                  </button>
-                  <button
-                    type="button"
-                    onClick={handleLogIn}
-                    className={buttonStyles.secondary}
-                    style={{
-                      background: "transparent",
-                      color: "var(--color-text-primary)",
-                      textDecoration: "underline",
-                    }}
-                  >
-                    Log in
-                  </button>
-                </div>
-              </div>
-            </div>
-          </section>
-        )}
       </div>
 
       <AuthModal

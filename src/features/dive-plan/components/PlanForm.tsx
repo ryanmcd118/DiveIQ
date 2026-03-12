@@ -132,62 +132,85 @@ export function PlanForm({
 
         {/* Manual experience fields — public mode only */}
         {mode === "public" && (
-          <>
-            <div className={formStyles.field}>
-              <label htmlFor="diveCountRange" className={formStyles.label}>
-                Approximate total dives (optional)
-              </label>
-              <select
-                id="diveCountRange"
-                name="diveCountRange"
-                className={formStyles.select}
-              >
-                <option value="">Select...</option>
-                <option value="0–24 dives">0–24 dives</option>
-                <option value="25–99 dives">25–99 dives</option>
-                <option value="100–499 dives">100–499 dives</option>
-                <option value="500+ dives">500+ dives</option>
-              </select>
-            </div>
+          <div
+            style={{
+              borderTop: "1px solid var(--color-border-subtle)",
+              paddingTop: "var(--space-4)",
+              marginTop: "var(--space-2)",
+            }}
+          >
+            <p
+              style={{
+                fontSize: "var(--font-size-xs)",
+                fontWeight: "var(--font-weight-medium)",
+                color: "var(--color-text-muted)",
+                textTransform: "uppercase",
+                letterSpacing: "0.06em",
+                marginBottom: "var(--space-3)",
+              }}
+            >
+              Experience (optional)
+            </p>
+            <div
+              className={formStyles.formGrid}
+              style={{ gridTemplateColumns: "repeat(3, 1fr)" }}
+            >
+              <div className={formStyles.field}>
+                <label htmlFor="diveCountRange" className={formStyles.label}>
+                  Total dives
+                </label>
+                <select
+                  id="diveCountRange"
+                  name="diveCountRange"
+                  className={formStyles.select}
+                >
+                  <option value="">Select...</option>
+                  <option value="0–24 dives">0–24</option>
+                  <option value="25–99 dives">25–99</option>
+                  <option value="100–499 dives">100–499</option>
+                  <option value="500+ dives">500+</option>
+                </select>
+              </div>
 
-            <div className={formStyles.field}>
-              <label htmlFor="lastDiveRecency" className={formStyles.label}>
-                Last dive (optional)
-              </label>
-              <select
-                id="lastDiveRecency"
-                name="lastDiveRecency"
-                className={formStyles.select}
-              >
-                <option value="">Select...</option>
-                <option value="Within 3 months">Within 3 months</option>
-                <option value="3–12 months ago">3–12 months ago</option>
-                <option value="1–2 years ago">1–2 years ago</option>
-                <option value="2+ years ago">2+ years ago</option>
-              </select>
-            </div>
+              <div className={formStyles.field}>
+                <label htmlFor="lastDiveRecency" className={formStyles.label}>
+                  Last dive
+                </label>
+                <select
+                  id="lastDiveRecency"
+                  name="lastDiveRecency"
+                  className={formStyles.select}
+                >
+                  <option value="">Select...</option>
+                  <option value="Within 3 months">&lt; 3 months</option>
+                  <option value="3–12 months ago">3–12 months</option>
+                  <option value="1–2 years ago">1–2 years</option>
+                  <option value="2+ years ago">2+ years</option>
+                </select>
+              </div>
 
-            <div className={formStyles.field}>
-              <label htmlFor="highestCert" className={formStyles.label}>
-                Highest certification (optional)
-              </label>
-              <select
-                id="highestCert"
-                name="highestCert"
-                disabled={certDefsLoading}
-                className={formStyles.select}
-              >
-                <option value="">
-                  {certDefsLoading ? "Loading..." : "Select..."}
-                </option>
-                {certDefs.map((def) => (
-                  <option key={`${def.agency}-${def.slug}`} value={def.name}>
-                    {def.agency} — {def.name}
+              <div className={formStyles.field}>
+                <label htmlFor="highestCert" className={formStyles.label}>
+                  Highest cert
+                </label>
+                <select
+                  id="highestCert"
+                  name="highestCert"
+                  disabled={certDefsLoading}
+                  className={formStyles.select}
+                >
+                  <option value="">
+                    {certDefsLoading ? "Loading..." : "Select..."}
                   </option>
-                ))}
-              </select>
+                  {certDefs.map((def) => (
+                    <option key={`${def.agency}-${def.slug}`} value={def.name}>
+                      {def.agency} — {def.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
             </div>
-          </>
+          </div>
         )}
 
         <div className={formStyles.formGrid}>
@@ -226,6 +249,18 @@ export function PlanForm({
             />
           </div>
         </div>
+
+        {mode === "authed" && (
+          <p
+            style={{
+              fontSize: "var(--font-size-xs)",
+              color: "var(--color-text-muted)",
+              margin: "0 0 var(--space-2)",
+            }}
+          >
+            Your diver profile will be used to personalize this plan.
+          </p>
+        )}
 
         <div className={formStyles.buttonGroupWithDelete}>
           <div style={{ display: "flex", gap: "var(--space-3)" }}>

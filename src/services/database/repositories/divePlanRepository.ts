@@ -3,8 +3,9 @@ import type {
   PlanInput,
   PastPlan,
   ExperienceLevel,
+  AIBriefing,
 } from "@/features/dive-plan/types";
-import type { Prisma } from "@prisma/client";
+import { Prisma } from "@prisma/client";
 
 /**
  * Data access layer for DivePlan operations
@@ -25,12 +26,14 @@ export const divePlanRepository = {
         experienceLevel: data.experienceLevel,
         riskLevel: data.riskLevel,
         aiAdvice: data.aiAdvice ?? null,
+        aiBriefing: data.aiBriefing ?? Prisma.JsonNull,
         userId: userId ?? null,
       },
     });
     return {
       ...result,
       experienceLevel: result.experienceLevel as ExperienceLevel,
+      aiBriefing: (result.aiBriefing as AIBriefing | null) ?? null,
     };
   },
 
@@ -48,6 +51,7 @@ export const divePlanRepository = {
     return {
       ...plan,
       experienceLevel: plan.experienceLevel as ExperienceLevel,
+      aiBriefing: (plan.aiBriefing as AIBriefing | null) ?? null,
     };
   },
 
@@ -71,6 +75,7 @@ export const divePlanRepository = {
     return plans.map((plan) => ({
       ...plan,
       experienceLevel: plan.experienceLevel as ExperienceLevel,
+      aiBriefing: (plan.aiBriefing as AIBriefing | null) ?? null,
     }));
   },
 
@@ -99,11 +104,13 @@ export const divePlanRepository = {
         experienceLevel: data.experienceLevel,
         riskLevel: data.riskLevel,
         aiAdvice: data.aiAdvice ?? null,
+        aiBriefing: data.aiBriefing ?? Prisma.JsonNull,
       },
     });
     return {
       ...result,
       experienceLevel: result.experienceLevel as ExperienceLevel,
+      aiBriefing: (result.aiBriefing as AIBriefing | null) ?? null,
     };
   },
 
