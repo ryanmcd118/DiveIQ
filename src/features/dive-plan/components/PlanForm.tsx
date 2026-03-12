@@ -1,6 +1,13 @@
 "use client";
 
-import { FormEvent, useState, useEffect, useRef } from "react";
+import {
+  ChangeEvent,
+  FocusEvent,
+  FormEvent,
+  useState,
+  useEffect,
+  useRef,
+} from "react";
 import { PlanData } from "@/features/dive-plan/types";
 import { useUnitPreferences } from "@/hooks/useUnitPreferences";
 import { getUnitLabel } from "@/lib/units";
@@ -47,6 +54,8 @@ export function PlanForm({
     if (!submittedPlan?.maxDepth) return "";
     return String(Math.round(submittedPlan.maxDepth));
   });
+  const [todayStr, setTodayStr] = useState<string | null>(null);
+  const [dateError, setDateError] = useState<string | null>(null);
   const prevSubmittedPlanRef = useRef<PlanData | null>(submittedPlan);
 
   // Track submittedPlan changes using ref (no setState in effect)
@@ -57,11 +66,45 @@ export function PlanForm({
     }
   }, [submittedPlan]);
 
+  // Compute today's date client-side only to avoid SSR hydration mismatch
+  useEffect(() => {
+    const d = new Date();
+    const yyyy = d.getFullYear();
+    const mm = String(d.getMonth() + 1).padStart(2, "0");
+    const dd = String(d.getDate()).padStart(2, "0");
+    setTodayStr(`${yyyy}-${mm}-${dd}`);
+  }, []);
+
+  const validateDate = (
+    e: ChangeEvent<HTMLInputElement> | FocusEvent<HTMLInputElement>
+  ) => {
+    if (todayStr && e.target.value && e.target.value < todayStr) {
+      setDateError("Please select today or a future date.");
+    } else {
+      setDateError(null);
+    }
+  };
+
+  const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
+    if (todayStr) {
+      const dateInput = e.currentTarget.elements.namedItem(
+        "date"
+      ) as HTMLInputElement | null;
+      if (dateInput?.value && dateInput.value < todayStr) {
+        e.preventDefault();
+        setDateError("Please select today or a future date.");
+        return;
+      }
+    }
+    setDateError(null);
+    onSubmit(e);
+  };
+
   return (
     <div className={cardStyles.elevatedForm}>
       <form
         key={`${formKey}-${prefs.depth}`}
-        onSubmit={onSubmit}
+        onSubmit={handleSubmit}
         className={formStyles.form}
       >
         {/* Units toggle - only show for public mode */}
@@ -106,9 +149,13 @@ export function PlanForm({
               id="date"
               name="date"
               required
+              min={todayStr ?? undefined}
               defaultValue={submittedPlan?.date ?? ""}
               className={formStyles.input}
+              onChange={validateDate}
+              onBlur={validateDate}
             />
+            {dateError && <p className={formStyles.error}>{dateError}</p>}
           </div>
 
           <div className={formStyles.field}>
