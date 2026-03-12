@@ -264,6 +264,7 @@ export function useAuthedPlanState() {
           ...draftPlan,
           maxDepthCm: draftMaxDepthCm,
           unitPreferences: prefs,
+          cachedBriefing: submission.aiBriefing ?? undefined,
         }),
       });
 
@@ -305,6 +306,7 @@ export function useAuthedPlanState() {
     setAiAdvice,
     setDraftPlan,
     setDraftRiskLevel,
+    submission.aiBriefing,
   ]);
 
   const handleSelectPastPlan = (plan: PastPlan) => {

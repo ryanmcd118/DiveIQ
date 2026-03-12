@@ -130,6 +130,7 @@ export async function PUT(req: NextRequest) {
       bottomTime: number;
       experienceLevel: "Beginner" | "Intermediate" | "Advanced";
       unitPreferences?: UnitPreferences; // User's unit preferences for AI formatting
+      cachedBriefing?: AIBriefing;
       profile?: DivePlanAnalysisRequest["profile"];
     };
 
