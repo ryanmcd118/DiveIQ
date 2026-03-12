@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useAuthedPlanState } from "../hooks/useAuthedPlanState";
 import { AIDiveBriefing } from "./AIDiveBriefing";
 import { PlanLoadingScreen } from "./PlanLoadingScreen";
@@ -98,6 +98,38 @@ export function AuthedPlanPageContent() {
   } = useAuthedPlanState();
 
   const [viewingPlan, setViewingPlan] = useState<PastPlan | null>(null);
+  const [planSortKey, setPlanSortKey] = useState<
+    "date-desc" | "date-asc" | "createdAt-desc" | "risk-desc" | "region-asc"
+  >("date-desc");
+
+  const sortedPlans = useMemo(() => {
+    return [...pastPlans].sort((a, b) => {
+      switch (planSortKey) {
+        case "date-desc":
+          if (a.date < b.date) return 1;
+          if (a.date > b.date) return -1;
+          return 0;
+        case "date-asc":
+          if (a.date < b.date) return -1;
+          if (a.date > b.date) return 1;
+          return 0;
+        case "createdAt-desc": {
+          const ta = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+          const tb = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+          return tb - ta;
+        }
+        case "risk-desc": {
+          const rank = (r: string) =>
+            r === "High" ? 0 : r === "Medium" ? 1 : 2;
+          return rank(a.riskLevel) - rank(b.riskLevel);
+        }
+        case "region-asc":
+          return a.region.localeCompare(b.region);
+        default:
+          return 0;
+      }
+    });
+  }, [pastPlans, planSortKey]);
 
   const isView3 = viewingPlan !== null;
   const isView2 = !isView3 && (!!aiBriefing || loading);
@@ -331,6 +363,22 @@ export function AuthedPlanPageContent() {
                 </button>
               </div>
 
+              <div className={styles.sidebarSort}>
+                <select
+                  className={styles.sidebarSortSelect}
+                  value={planSortKey}
+                  onChange={(e) =>
+                    setPlanSortKey(e.target.value as typeof planSortKey)
+                  }
+                >
+                  <option value="date-desc">Newest first</option>
+                  <option value="date-asc">Oldest first</option>
+                  <option value="createdAt-desc">Most recently added</option>
+                  <option value="risk-desc">Risk level (High first)</option>
+                  <option value="region-asc">Region (A–Z)</option>
+                </select>
+              </div>
+
               <div className={styles.sidebarList}>
                 {plansLoading ? (
                   <p className={styles.sidebarEmptyState}>Loading…</p>
@@ -341,7 +389,7 @@ export function AuthedPlanPageContent() {
                     No plans yet. Submit a plan to start building your history.
                   </p>
                 ) : (
-                  pastPlans.map((plan) => (
+                  sortedPlans.map((plan) => (
                     <PlanSidebarItem
                       key={plan.id}
                       plan={plan}

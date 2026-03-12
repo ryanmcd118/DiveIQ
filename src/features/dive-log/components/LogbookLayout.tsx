@@ -69,7 +69,7 @@ export function LogbookLayout({
     searchParams.get("view") === "list" ? "list" : "grid"
   ) as "grid" | "list";
   const [sortKey, setSortKey] = useState<
-    "date-desc" | "date-asc" | "site-asc" | "region-asc"
+    "date-desc" | "date-asc" | "site-asc" | "region-asc" | "createdAt-desc"
   >("date-desc");
 
   // Basic viewport breakpoint detection
@@ -125,6 +125,10 @@ export function LogbookLayout({
         case "region-asc":
           // Region A-Z
           return (a.region || "").localeCompare(b.region || "");
+        case "createdAt-desc":
+          return (
+            new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+          );
         default:
           return 0;
       }
@@ -357,6 +361,7 @@ export function LogbookLayout({
               <option value="date-asc">Date (oldest first)</option>
               <option value="site-asc">Site name (A-Z)</option>
               <option value="region-asc">Region (A-Z)</option>
+              <option value="createdAt-desc">Most recently added</option>
             </select>
             <div className={styles.browseContent}>
               {effectiveView === "grid" ? (
@@ -437,6 +442,7 @@ export function LogbookLayout({
                 <option value="date-asc">Oldest first</option>
                 <option value="site-asc">Site name (A → Z)</option>
                 <option value="region-asc">Region (A → Z)</option>
+                <option value="createdAt-desc">Most recently added</option>
               </select>
             </div>
             <div className={styles.browseHeaderControls}>

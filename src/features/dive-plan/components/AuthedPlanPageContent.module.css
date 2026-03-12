@@ -238,3 +238,32 @@
   white-space: nowrap;
   flex-shrink: 0;
 }
+
+/* ── Sidebar sort control ── */
+.sidebarSort {
+  padding: var(--space-2) var(--space-3);
+  border-bottom: 1px solid var(--color-border-default);
+  flex-shrink: 0;
+}
+
+.sidebarSortSelect {
+  width: 100%;
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border-subtle);
+  background: var(--color-bg-primary);
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-xs);
+  cursor: pointer;
+  transition: border-color var(--transition-base);
+}
+
+.sidebarSortSelect:hover {
+  border-color: var(--color-border-default);
+}
+
+.sidebarSortSelect:focus {
+  outline: none;
+  border-color: var(--color-accent-primary);
+  box-shadow: 0 0 0 2px rgba(6, 182, 212, 0.15);
+}
