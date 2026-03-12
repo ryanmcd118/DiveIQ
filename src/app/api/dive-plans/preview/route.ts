@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import {
-  generateDivePlanBriefing,
+  generateDivePlanBriefingStream,
   type DivePlanAnalysisRequest,
 } from "@/services/ai/openaiService";
 import { calculateRiskLevel } from "@/features/dive-plan/services/riskCalculator";
@@ -9,8 +9,9 @@ import { cmToMeters } from "@/lib/units";
 
 /**
  * POST /api/dive-plans/preview
- * Generate AI structured briefing for a dive plan without saving it
- * Public endpoint - no authentication required (for guest users)
+ * Stream AI structured briefing for a dive plan without saving it.
+ * Public endpoint - no authentication required (for guest users).
+ * riskLevel is returned in the X-Risk-Level response header.
  */
 export async function POST(req: NextRequest) {
   try {
@@ -40,12 +41,11 @@ export async function POST(req: NextRequest) {
         : "imperial"
       : "metric";
 
-    // Generate AI structured briefing with unit system
-    const aiBriefing = await generateDivePlanBriefing({
+    const stream = await generateDivePlanBriefingStream({
       region: body.region,
       siteName: body.siteName,
       date: body.date,
-      maxDepth: maxDepthMeters, // Pass meters to AI service
+      maxDepth: maxDepthMeters,
       bottomTime: body.bottomTime,
       experienceLevel: body.experienceLevel,
       riskLevel,
@@ -54,17 +54,12 @@ export async function POST(req: NextRequest) {
       manualExperience: body.manualExperience,
     });
 
-    // Also include legacy aiAdvice for backward compatibility
-    const aiAdvice = aiBriefing.whatMattersMost;
-
-    return NextResponse.json(
-      {
-        aiAdvice,
-        aiBriefing,
-        riskLevel,
+    return new Response(stream, {
+      headers: {
+        "Content-Type": "text/plain; charset=utf-8",
+        "X-Risk-Level": riskLevel,
       },
-      { status: 200 }
-    );
+    });
   } catch (err) {
     console.error("Error in POST /api/dive-plans/preview:", err);
     return NextResponse.json(

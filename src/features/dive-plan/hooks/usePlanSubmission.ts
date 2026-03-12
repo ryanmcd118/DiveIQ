@@ -5,6 +5,7 @@ import {
   RiskLevel,
   ProfileContext,
 } from "@/features/dive-plan/types";
+import { parseAIBriefing } from "@/features/dive-plan/lib/parseAIBriefing";
 import { useUnitPreferences } from "@/hooks/useUnitPreferences";
 import { depthInputToCm } from "@/lib/units";
 
@@ -100,10 +101,22 @@ export function usePlanSubmission() {
         throw new Error(`API returned ${res.status}`);
       }
 
-      const data = await res.json();
-      setAiAdvice(data.aiAdvice);
-      setAiBriefing(data.aiBriefing ?? null);
-      setDraftRiskLevel(data.riskLevel ?? null);
+      const riskLevel = res.headers.get("X-Risk-Level") as RiskLevel | null;
+
+      const reader = res.body!.getReader();
+      const decoder = new TextDecoder();
+      let accumulated = "";
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        accumulated += decoder.decode(value, { stream: true });
+      }
+
+      const briefing = parseAIBriefing(accumulated);
+      setAiBriefing(briefing);
+      setAiAdvice(briefing.whatMattersMost);
+      setDraftRiskLevel(riskLevel);
     } catch (err) {
       console.error(err);
       setApiError("Failed to get advice from server.");

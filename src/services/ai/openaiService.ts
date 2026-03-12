@@ -1,11 +1,9 @@
 import OpenAI from "openai";
-import type { AIBriefing, RiskLevel } from "@/features/dive-plan/types";
+import type { RiskLevel } from "@/features/dive-plan/types";
+import { parseAIBriefing } from "@/features/dive-plan/lib/parseAIBriefing";
 import type { UnitSystem } from "@/lib/units";
-import {
-  mToFt,
-  parseTemperatureString,
-  parseDistanceString,
-} from "@/lib/units";
+import { mToFt } from "@/lib/units";
+import type { AIBriefing } from "@/features/dive-plan/types";
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -77,7 +75,7 @@ Only mention something if it's specifically relevant to THIS dive at THIS place 
 
 When the diver's certifications are provided, identify any certification gaps for this specific dive and recommend specific certifications they should consider. Name the cert directly and explain in one sentence why it matters for this dive. Be direct — do not hedge.
 
-When gear inventory is provided, reference it specifically in the gear section. If they have suitable gear for the conditions, say so by name. If there are gaps (e.g. no drysuit for cold water, no dive computer), flag it directly.
+When gear inventory is provided, first check whether the diver's existing gear is actually suitable for the conditions before suggesting alternatives. If their gear is adequate, say so by name and confirm it works for this dive. Only flag a gap if gear is genuinely missing or unsuitable — do not suggest upgrades to gear that already works.
 
 If the diver's last dive was more than 6 months ago, recommend a refresher or checkout dive before this plan. State this clearly in the Profile notes section — do not bury it.
 
@@ -154,17 +152,9 @@ Rules:
 
 function buildUpdatedSystemPrompt(unitSystem: UnitSystem = "metric"): string {
   const basePrompt = buildSystemPrompt(unitSystem);
-  return `
-You are "DiveIQ", a calm, experienced dive buddy reviewing an UPDATED dive plan.
-The diver has changed their plan—focus on how the changes affect the dive.
+  return `You are "DiveIQ", a calm, experienced dive buddy reviewing an UPDATED dive plan. The diver has changed their plan — focus on how the changes affect the dive. Return the same JSON structure as a new briefing, but emphasize what changed and whether it's more/less/equally sensible. Be concise since this is a plan update.
 
-Return the same JSON structure as a new briefing, but:
-- Emphasize what changed and whether it's more/less/equally sensible
-- Keep the same structured format
-- Be concise since this is a plan update
-
-${basePrompt.split("Rules:")[1] ? `Rules:${basePrompt.split("Rules:")[1]}` : ""}
-`.trim();
+${basePrompt}`.trim();
 }
 
 function humanReadableDuration(
@@ -284,91 +274,8 @@ Dive Plan${isUpdate ? " (UPDATED)" : ""}:
 
 ${isUpdate ? "This is an updated plan. Focus on the implications of the changes." : "Provide a complete dive briefing for this plan."}
 
-IMPORTANT: All numeric values in your response (depths, temperatures, distances, visibility) MUST use ${unitSystem === "imperial" ? "Imperial units (feet, °F)" : "Metric units (meters, °C)"}. Do NOT mix unit systems.${profileSection}
+${profileSection ? profileSection.trimStart() : ""}
 `.trim();
-}
-
-function parseAIBriefing(content: string): AIBriefing {
-  // Try to extract JSON from the response
-  let jsonStr = content.trim();
-
-  // Remove markdown code fences if present
-  if (jsonStr.startsWith("```json")) {
-    jsonStr = jsonStr.slice(7);
-  } else if (jsonStr.startsWith("```")) {
-    jsonStr = jsonStr.slice(3);
-  }
-  if (jsonStr.endsWith("```")) {
-    jsonStr = jsonStr.slice(0, -3);
-  }
-  jsonStr = jsonStr.trim();
-
-  const parsed = JSON.parse(jsonStr);
-
-  // Validate required fields and provide defaults
-  const briefing: AIBriefing = {
-    conditionsSnapshot:
-      parsed.conditionsSnapshot ||
-      "Conditions data unavailable for this location.",
-    quickLook: {
-      difficulty: {
-        value: parsed.quickLook?.difficulty?.value || "Moderate",
-        reason:
-          parsed.quickLook?.difficulty?.reason || "Standard recreational dive",
-      },
-      suggestedExperience: {
-        value:
-          parsed.quickLook?.suggestedExperience?.value ||
-          "Open Water certified",
-        reason: parsed.quickLook?.suggestedExperience?.reason,
-      },
-      waterTemp: {
-        value: parsed.quickLook?.waterTemp?.value || "Data unavailable",
-        sourceTag: parsed.quickLook?.waterTemp?.sourceTag || "Inferred",
-        // Parse numeric values from the string (convert to canonical Celsius)
-        numericValue: parsed.quickLook?.waterTemp?.value
-          ? parseTemperatureString(parsed.quickLook.waterTemp.value) ||
-            undefined
-          : undefined,
-      },
-      visibility: {
-        value: parsed.quickLook?.visibility?.value || "Data unavailable",
-        sourceTag: parsed.quickLook?.visibility?.sourceTag || "Inferred",
-        // Parse numeric values from the string (convert to canonical meters)
-        numericValue: parsed.quickLook?.visibility?.value
-          ? parseDistanceString(parsed.quickLook.visibility.value) || undefined
-          : undefined,
-      },
-      seaStateWind: {
-        value:
-          parsed.quickLook?.seaStateWind?.value || "Check local conditions",
-        sourceTag: parsed.quickLook?.seaStateWind?.sourceTag || "Inferred",
-      },
-      confidence: {
-        level: parsed.quickLook?.confidence?.level || "Low",
-        reason:
-          parsed.quickLook?.confidence?.reason || "Limited data available",
-      },
-    },
-    whatMattersMost:
-      parsed.whatMattersMost ||
-      "Plan conservatively and stay within your training limits.",
-    highlights: Array.isArray(parsed.highlights)
-      ? parsed.highlights.slice(0, 3)
-      : [],
-    sections: Array.isArray(parsed.sections)
-      ? parsed.sections.map((s: Record<string, unknown>) => ({
-          title: String(s.title || "Notes"),
-          sourceTags: Array.isArray(s.sourceTags) ? s.sourceTags : undefined,
-          bullets: Array.isArray(s.bullets) ? s.bullets.map(String) : undefined,
-          paragraphs: Array.isArray(s.paragraphs)
-            ? s.paragraphs.map(String)
-            : undefined,
-        }))
-      : [],
-  };
-
-  return briefing;
 }
 
 function getFallbackBriefing(plan: DivePlanAnalysisRequest): AIBriefing {
@@ -457,6 +364,7 @@ export async function generateDivePlanBriefing(
         { role: "user", content: buildUserPrompt(plan) },
       ],
       temperature: 0.6,
+      max_tokens: 1000,
       response_format: { type: "json_object" },
     });
 
@@ -490,6 +398,7 @@ export async function generateUpdatedDivePlanBriefing(
         { role: "user", content: buildUserPrompt(plan, true) },
       ],
       temperature: 0.6,
+      max_tokens: 1000,
       response_format: { type: "json_object" },
     });
 
@@ -504,6 +413,78 @@ export async function generateUpdatedDivePlanBriefing(
     console.error("OpenAI API error:", error);
     return getFallbackBriefing(plan);
   }
+}
+
+/**
+ * Stream AI-powered structured dive briefing for a new dive plan.
+ * Returns raw token chunks; caller is responsible for accumulating and parsing.
+ */
+export async function generateDivePlanBriefingStream(
+  plan: DivePlanAnalysisRequest
+): Promise<ReadableStream<Uint8Array>> {
+  const unitSystem = plan.unitSystem || "metric";
+  const stream = await openai.chat.completions.create({
+    model: "gpt-4o-mini",
+    messages: [
+      { role: "system", content: buildSystemPrompt(unitSystem) },
+      { role: "user", content: buildUserPrompt(plan) },
+    ],
+    temperature: 0.6,
+    max_tokens: 1000,
+    response_format: { type: "json_object" },
+    stream: true,
+  });
+
+  const encoder = new TextEncoder();
+  return new ReadableStream<Uint8Array>({
+    async start(controller) {
+      try {
+        for await (const chunk of stream) {
+          const text = chunk.choices[0]?.delta?.content ?? "";
+          if (text) controller.enqueue(encoder.encode(text));
+        }
+        controller.close();
+      } catch (err) {
+        controller.error(err);
+      }
+    },
+  });
+}
+
+/**
+ * Stream AI-powered structured dive briefing for an updated dive plan.
+ * Returns raw token chunks; caller is responsible for accumulating and parsing.
+ */
+export async function generateUpdatedDivePlanBriefingStream(
+  plan: DivePlanAnalysisRequest
+): Promise<ReadableStream<Uint8Array>> {
+  const unitSystem = plan.unitSystem || "metric";
+  const stream = await openai.chat.completions.create({
+    model: "gpt-4o-mini",
+    messages: [
+      { role: "system", content: buildUpdatedSystemPrompt(unitSystem) },
+      { role: "user", content: buildUserPrompt(plan, true) },
+    ],
+    temperature: 0.6,
+    max_tokens: 1000,
+    response_format: { type: "json_object" },
+    stream: true,
+  });
+
+  const encoder = new TextEncoder();
+  return new ReadableStream<Uint8Array>({
+    async start(controller) {
+      try {
+        for await (const chunk of stream) {
+          const text = chunk.choices[0]?.delta?.content ?? "";
+          if (text) controller.enqueue(encoder.encode(text));
+        }
+        controller.close();
+      } catch (err) {
+        controller.error(err);
+      }
+    },
+  });
 }
 
 // Legacy functions for backward compatibility
