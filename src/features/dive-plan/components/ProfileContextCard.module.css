@@ -33,12 +33,12 @@
 .modalBackdrop {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.7);
-  z-index: 200;
+  background: rgba(0, 0, 0, 0.85);
+  z-index: 1400;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: var(--space-6);
+  padding: var(--space-4);
 }
 
 .modalPanel {
@@ -46,7 +46,7 @@
   border: 1px solid var(--color-border-default);
   border-radius: var(--radius-xl);
   box-shadow: 0 24px 80px rgba(0, 0, 0, 0.5);
-  max-width: 56rem;
+  max-width: 80vw;
   width: 100%;
   max-height: 80vh;
   overflow-y: auto;
@@ -257,12 +257,12 @@
   margin-top: auto;
   padding-top: var(--space-3);
   font-size: var(--font-size-xs);
-  color: var(--color-text-muted);
+  color: var(--color-accent-light);
   text-decoration: none;
   display: inline-block;
 }
 
 .editLink:hover {
-  color: var(--color-text-secondary);
+  color: var(--color-accent-light);
   text-decoration: underline;
 }
