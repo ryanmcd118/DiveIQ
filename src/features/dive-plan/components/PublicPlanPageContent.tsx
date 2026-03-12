@@ -3,6 +3,7 @@
 import { usePublicPlanState } from "../hooks/usePublicPlanState";
 import { AIDiveBriefing } from "./AIDiveBriefing";
 import { PlanForm } from "./PlanForm";
+import { PlanLoadingScreen } from "./PlanLoadingScreen";
 import { SaveDivePlanButton } from "./SaveDivePlanButton";
 import { AuthModal } from "@/features/auth/components/AuthModal";
 import layoutStyles from "@/styles/components/Layout.module.css";
@@ -104,12 +105,14 @@ export function PublicPlanPageContent() {
 
           {/* Right column: AI briefing panel */}
           <section className={gridStyles.planAIColumn}>
-            {loading || aiBriefing || submittedPlan ? (
+            {loading && !aiBriefing ? (
+              <PlanLoadingScreen mode="generating" />
+            ) : loading || aiBriefing || submittedPlan ? (
               <div className={gridStyles.aiBriefingScrollWrapper}>
                 <AIDiveBriefing
                   mode="public"
                   briefing={aiBriefing}
-                  loading={loading}
+                  loading={false}
                   compact={false}
                   scrollable={true}
                 />

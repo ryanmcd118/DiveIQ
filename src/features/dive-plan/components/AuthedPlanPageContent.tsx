@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useAuthedPlanState } from "../hooks/useAuthedPlanState";
 import { AIDiveBriefing } from "./AIDiveBriefing";
+import { PlanLoadingScreen } from "./PlanLoadingScreen";
 import { PlanForm } from "./PlanForm";
 import { ProfileContextCard } from "./ProfileContextCard";
 import { PastPlan } from "@/features/dive-plan/types";
@@ -193,13 +194,19 @@ export function AuthedPlanPageContent() {
             {isView2 && (
               <>
                 <div className={styles.briefingWrapper}>
-                  <AIDiveBriefing
-                    mode="authed"
-                    briefing={aiBriefing}
-                    loading={loading}
-                    compact={false}
-                    scrollable={true}
-                  />
+                  {loading || saving ? (
+                    <PlanLoadingScreen
+                      mode={loading && !editingPlanId ? "generating" : "saving"}
+                    />
+                  ) : (
+                    <AIDiveBriefing
+                      mode="authed"
+                      briefing={aiBriefing}
+                      loading={false}
+                      compact={false}
+                      scrollable={true}
+                    />
+                  )}
                 </div>
 
                 <div className={styles.ctaRow}>
