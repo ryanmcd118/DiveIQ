@@ -107,8 +107,7 @@ export function useAuthedPlanState() {
         if (data.plan) {
           setPastPlans((prev) => [data.plan as PastPlan, ...prev]);
         }
-        setStatusMessage("Plan saved ✅");
-        setTimeout(() => setStatusMessage(null), 3000);
+        setStatusMessage("Plan saved");
       })
       .catch((err: unknown) => {
         console.error(
@@ -121,6 +120,24 @@ export function useAuthedPlanState() {
       })
       .finally(() => setSaving(false));
   }, [isAuthenticated, isSessionLoading, setApiError]);
+
+  // Recover a toast message written to sessionStorage by the manual signup flow
+  // (handleAuthSuccess in usePublicPlanState) before router.push("/plan").
+  const pendingToastCheckedRef = useRef(false);
+  useEffect(() => {
+    if (isSessionLoading || pendingToastCheckedRef.current) return;
+    pendingToastCheckedRef.current = true;
+    if (!isAuthenticated) return;
+    try {
+      const msg = sessionStorage.getItem("diveiq:pendingToast");
+      if (msg) {
+        sessionStorage.removeItem("diveiq:pendingToast");
+        setStatusMessage(msg);
+      }
+    } catch {
+      // ignore
+    }
+  }, [isAuthenticated, isSessionLoading]);
 
   // Load past plans on mount (only for authenticated users)
   useEffect(() => {
@@ -225,8 +242,7 @@ export function useAuthedPlanState() {
           );
         }
 
-        setStatusMessage("Plan updated ✅");
-        setTimeout(() => setStatusMessage(null), 3000);
+        setStatusMessage("Plan updated");
 
         setEditingPlanId(null);
         setDraftPlan(null);
@@ -286,8 +302,7 @@ export function useAuthedPlanState() {
       setDraftPlan(null);
       setDraftRiskLevel(null);
 
-      setStatusMessage("Plan saved ✅");
-      setTimeout(() => setStatusMessage(null), 3000);
+      setStatusMessage("Plan saved");
 
       return savedPlan;
     } catch (err) {
@@ -413,7 +428,7 @@ export function useAuthedPlanState() {
         setFormKey(`deleted-${Date.now()}`);
       }
 
-      setStatusMessage("Plan deleted ✅");
+      setStatusMessage("Plan deleted");
       return true;
     } catch (err) {
       console.error(err);
@@ -459,6 +474,8 @@ export function useAuthedPlanState() {
     }
   }, []);
 
+  const clearStatusMessage = useCallback(() => setStatusMessage(null), []);
+
   return {
     ...submission,
     isAuthenticated,
@@ -479,6 +496,7 @@ export function useAuthedPlanState() {
     handleCancelEdit,
     handleEditFromView,
     clearBriefing,
+    clearStatusMessage,
     deletePlan,
     handleDeletePlan,
     handleNewPlan,

@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useAuthedPlanState } from "../hooks/useAuthedPlanState";
 import { AIDiveBriefing } from "./AIDiveBriefing";
 import { PlanLoadingScreen } from "./PlanLoadingScreen";
+import { Toast } from "@/components/Toast";
 import { PlanForm } from "./PlanForm";
 import { ProfileContextCard } from "./ProfileContextCard";
 import { PastPlan } from "@/features/dive-plan/types";
@@ -12,7 +13,6 @@ import { displayDepth } from "@/lib/units";
 import layoutStyles from "@/styles/components/Layout.module.css";
 import backgroundStyles from "@/styles/components/Background.module.css";
 import buttonStyles from "@/styles/components/Button.module.css";
-import gridStyles from "@/styles/components/PageGrid.module.css";
 import styles from "./AuthedPlanPageContent.module.css";
 
 function formatDate(dateStr: string): string {
@@ -92,6 +92,7 @@ export function AuthedPlanPageContent() {
     handleDeletePlan,
     handleEditFromView,
     clearBriefing,
+    clearStatusMessage,
     deletePlan,
     handleNewPlan: hookHandleNewPlan,
   } = useAuthedPlanState();
@@ -355,14 +356,12 @@ export function AuthedPlanPageContent() {
         </div>
       </div>
 
-      {/* Status toast */}
       {statusMessage && (
-        <div className={gridStyles.statusToast}>
-          <div className={gridStyles.statusToastContent}>
-            <span style={{ fontSize: "var(--font-size-lg)" }}>✅</span>
-            <span>{statusMessage}</span>
-          </div>
-        </div>
+        <Toast
+          message={statusMessage}
+          onClose={clearStatusMessage}
+          duration={3000}
+        />
       )}
     </main>
   );

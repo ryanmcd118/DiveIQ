@@ -184,6 +184,11 @@ export function usePublicPlanState() {
 
     try {
       await saveDraftPlan();
+      try {
+        sessionStorage.setItem("diveiq:pendingToast", "Plan saved");
+      } catch {
+        // ignore
+      }
       router.push("/plan");
     } catch (err) {
       console.error("Auto-save after auth failed:", err);
