@@ -1,6 +1,8 @@
 "use client";
 
 import { usePublicPlanState } from "../hooks/usePublicPlanState";
+import { useUnitPreferences } from "@/hooks/useUnitPreferences";
+import { depthInputToCm } from "@/lib/units";
 import { AIDiveBriefing } from "./AIDiveBriefing";
 import { PlanForm } from "./PlanForm";
 import { PlanLoadingScreen } from "./PlanLoadingScreen";
@@ -12,6 +14,7 @@ import backgroundStyles from "@/styles/components/Background.module.css";
 import buttonStyles from "@/styles/components/Button.module.css";
 
 export function PublicPlanPageContent() {
+  const { prefs } = useUnitPreferences();
   const {
     submittedPlan,
     hasDraftPlan,
@@ -115,6 +118,14 @@ export function PublicPlanPageContent() {
                   riskLevel={draftRiskLevel ?? undefined}
                   loading={false}
                   scrollable={true}
+                  plannedDepthCm={
+                    submittedPlan
+                      ? (depthInputToCm(
+                          String(submittedPlan.maxDepth),
+                          prefs.depth
+                        ) ?? undefined)
+                      : undefined
+                  }
                 />
                 {(aiBriefing ?? submittedPlan) && (
                   <>

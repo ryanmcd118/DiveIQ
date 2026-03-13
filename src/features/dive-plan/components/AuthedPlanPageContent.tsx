@@ -10,7 +10,7 @@ import { ProfileContextCard } from "./ProfileContextCard";
 import { PastPlan } from "@/features/dive-plan/types";
 import { matchesQuery } from "@/features/dive-plan/utils/searchMatch";
 import { useUnitPreferences } from "@/hooks/useUnitPreferences";
-import { displayDepth } from "@/lib/units";
+import { displayDepth, depthInputToCm } from "@/lib/units";
 import layoutStyles from "@/styles/components/Layout.module.css";
 import backgroundStyles from "@/styles/components/Background.module.css";
 import buttonStyles from "@/styles/components/Button.module.css";
@@ -99,6 +99,7 @@ export function AuthedPlanPageContent() {
     handleNewPlan: hookHandleNewPlan,
   } = useAuthedPlanState();
 
+  const { prefs } = useUnitPreferences();
   const [viewingPlan, setViewingPlan] = useState<PastPlan | null>(null);
   const [planSortKey, setPlanSortKey] = useState<
     "date-desc" | "date-asc" | "createdAt-desc" | "risk-desc" | "region-asc"
@@ -251,6 +252,17 @@ export function AuthedPlanPageContent() {
                       riskLevel={draftRiskLevel ?? undefined}
                       loading={false}
                       scrollable={true}
+                      plannedDepthCm={
+                        submittedPlan
+                          ? (depthInputToCm(
+                              String(submittedPlan.maxDepth),
+                              prefs.depth
+                            ) ?? undefined)
+                          : undefined
+                      }
+                      userCerts={profileContext?.certifications.map(
+                        (c) => c.name
+                      )}
                     />
                   )}
                 </div>
@@ -313,6 +325,10 @@ export function AuthedPlanPageContent() {
                       riskLevel={viewingPlan.riskLevel}
                       loading={false}
                       scrollable={true}
+                      plannedDepthCm={viewingPlan.maxDepthCm}
+                      userCerts={profileContext?.certifications.map(
+                        (c) => c.name
+                      )}
                     />
                   ) : (
                     <div

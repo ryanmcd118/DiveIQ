@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import type { AIBriefing, ConditionBadge } from "../types";
 import styles from "./AIDiveBriefing.module.css";
 
@@ -11,23 +10,70 @@ type AIDiveBriefingProps = {
   loading?: boolean;
   compact?: boolean;
   scrollable?: boolean;
+  plannedDepthCm?: number;
+  userCerts?: string[];
 };
 
-function ChevronIcon({ open }: { open: boolean }) {
-  return (
-    <svg
-      className={open ? styles.sectionChevronOpen : styles.sectionChevron}
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <polyline points="6 9 12 15 18 9" />
-    </svg>
-  );
+// ── Cert card helpers ──────────────────────────────────────────────────────
+
+type CertQualifier = "ow" | "aow" | "deep" | "tech";
+
+function getRequiredCert(depthCm: number): {
+  level: string;
+  qualifier: CertQualifier;
+} {
+  const depthM = depthCm / 100;
+  if (depthM <= 18) return { level: "Open Water", qualifier: "ow" };
+  if (depthM <= 30) return { level: "Adv. Open Water", qualifier: "aow" };
+  if (depthM <= 40) return { level: "Deep Specialty", qualifier: "deep" };
+  return { level: "Technical", qualifier: "tech" };
 }
+
+function checkQualification(
+  qualifier: CertQualifier,
+  userCerts: string[]
+): boolean {
+  if (qualifier === "tech") return false;
+
+  const lower = userCerts.map((c) => c.toLowerCase());
+
+  const hasDeepOrTech = lower.some(
+    (n) =>
+      n.includes("deep specialty") ||
+      n.includes("technical") ||
+      n.includes("trimix") ||
+      n.includes("cave") ||
+      n.includes("sidemount")
+  );
+  if (hasDeepOrTech) return true;
+
+  const hasAOW = lower.some(
+    (n) =>
+      n.includes("advanced open water") ||
+      n.includes("aow") ||
+      (n.includes("advanced") && n.includes("water"))
+  );
+  if (hasAOW && (qualifier === "ow" || qualifier === "aow")) return true;
+
+  const hasOW = lower.some(
+    (n) => (n.includes("open water") || n === "ow") && !n.includes("advanced")
+  );
+  if (hasOW && qualifier === "ow") return true;
+
+  return false;
+}
+
+// ── Condition badge ────────────────────────────────────────────────────────
+
+function conditionBadgeClass(badge: ConditionBadge): string | null {
+  if (!badge) return null;
+  if (badge === "seasonal") return styles.conditionBadgeSeasonal;
+  if (badge === "forecast") return styles.conditionBadgeForecast;
+  if (badge === "inferred") return styles.conditionBadgeInferred;
+  return null;
+}
+
+// ── Risk badge style ───────────────────────────────────────────────────────
 
 function riskBadgeStyle(risk: string): { background: string; color: string } {
   if (risk === "Low")
@@ -37,13 +83,7 @@ function riskBadgeStyle(risk: string): { background: string; color: string } {
   return { background: "rgba(245,158,11,0.15)", color: "#fcd34d" };
 }
 
-function conditionBadgeClass(badge: ConditionBadge): string | null {
-  if (!badge) return null;
-  if (badge === "seasonal") return styles.conditionBadgeSeasonal;
-  if (badge === "forecast") return styles.conditionBadgeForecast;
-  if (badge === "inferred") return styles.conditionBadgeInferred;
-  return null;
-}
+// ── Skeleton ───────────────────────────────────────────────────────────────
 
 function BriefingSkeleton({ scrollable }: { scrollable?: boolean }) {
   const containerClass = scrollable
@@ -56,15 +96,26 @@ function BriefingSkeleton({ scrollable }: { scrollable?: boolean }) {
         <div className={styles.skeletonConditionCard} />
         <div className={styles.skeletonConditionCard} />
         <div className={styles.skeletonConditionCard} />
+        <div className={styles.skeletonConditionCard} />
       </div>
 
-      <div className={styles.skeletonBottomLine} />
+      <div className={styles.skeletonBeforeYouDive} />
 
       <div
-        style={{ display: "flex", flexDirection: "column", gap: "var(--space-2)" }}
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          gap: "var(--space-2)",
+        }}
       >
-        <div className={styles.skeletonSection} style={{ height: "1rem", width: "90%" }} />
-        <div className={styles.skeletonSection} style={{ height: "1rem", width: "75%" }} />
+        <div
+          className={styles.skeletonSection}
+          style={{ height: "1rem", width: "90%" }}
+        />
+        <div
+          className={styles.skeletonSection}
+          style={{ height: "1rem", width: "75%" }}
+        />
       </div>
 
       <div className={styles.sectionsContainer}>
@@ -77,50 +128,31 @@ function BriefingSkeleton({ scrollable }: { scrollable?: boolean }) {
   );
 }
 
-function AccordionSection({
-  title,
-  items,
-}: {
-  title: string;
-  items: string[];
-}) {
-  const [isOpen, setIsOpen] = useState(false);
+// ── Static section ─────────────────────────────────────────────────────────
+
+function StaticSection({ title, items }: { title: string; items: string[] }) {
+  if (items.length === 0) return null;
 
   return (
     <div className={styles.sectionItem}>
-      <button
-        type="button"
-        className={styles.sectionHeader}
-        onClick={() => setIsOpen(!isOpen)}
-        aria-expanded={isOpen}
-      >
-        <div className={styles.sectionTitleRow}>
-          <span className={styles.sectionTitle}>{title}</span>
-        </div>
-        <ChevronIcon open={isOpen} />
-      </button>
-
-      {isOpen && (
-        <div className={styles.sectionContent}>
-          {items.length === 0 ? (
-            <p className={styles.sectionParagraph} style={{ color: "var(--color-text-disabled)" }}>
-              No specific notes for this section.
-            </p>
-          ) : (
-            <ul className={styles.sectionBullets}>
-              {items.map((item, i) => (
-                <li key={i} className={styles.sectionBullet}>
-                  <span className={styles.sectionBulletDot} />
-                  <span>{item}</span>
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
-      )}
+      <div className={styles.sectionHeader}>
+        <span className={styles.sectionTitle}>{title}</span>
+      </div>
+      <div className={styles.sectionContent}>
+        <ul className={styles.sectionBullets}>
+          {items.map((item, i) => (
+            <li key={i} className={styles.sectionBullet}>
+              <span className={styles.sectionBulletDot} />
+              <span>{item}</span>
+            </li>
+          ))}
+        </ul>
+      </div>
     </div>
   );
 }
+
+// ── Main component ─────────────────────────────────────────────────────────
 
 export function AIDiveBriefing({
   briefing,
@@ -128,6 +160,8 @@ export function AIDiveBriefing({
   riskLevel,
   loading = false,
   scrollable = false,
+  plannedDepthCm,
+  userCerts,
 }: AIDiveBriefingProps) {
   const containerClass = scrollable
     ? styles.briefingContainerScrollable
@@ -141,14 +175,35 @@ export function AIDiveBriefing({
     return null;
   }
 
+  // Defensive fallbacks — old-schema DB records have none of these fields
+  const conditions = briefing.conditions ?? {
+    waterTemp: { value: "—", badge: null as ConditionBadge },
+    visibility: { value: "—", badge: null as ConditionBadge },
+    seaState: { value: "—", badge: null as ConditionBadge },
+  };
+  const bottomLine = briefing.bottomLine ?? "";
+  const keyConsiderations = briefing.keyConsiderations ?? [];
+  const siteConditions = briefing.siteConditions ?? [];
+  const hazards = briefing.hazards ?? [];
+  const experienceNotes = briefing.experienceNotes ?? [];
+  const gearNotes = briefing.gearNotes ?? [];
+
   const SECTIONS = [
-    { title: "Site conditions", data: briefing.siteConditions },
-    { title: "Hazards", data: briefing.hazards },
-    { title: "For your experience level", data: briefing.experienceNotes },
-    { title: "Gear notes", data: briefing.gearNotes },
+    { title: "Site conditions", data: siteConditions },
+    { title: "Hazards", data: hazards },
+    { title: "For your experience level", data: experienceNotes },
+    { title: "Gear notes", data: gearNotes },
   ];
 
   const showHeader = riskLevel || summary;
+
+  // Cert card
+  const certInfo =
+    plannedDepthCm !== undefined ? getRequiredCert(plannedDepthCm) : null;
+  const qualified =
+    certInfo && userCerts && userCerts.length > 0
+      ? checkQualification(certInfo.qualifier, userCerts)
+      : null; // null = unknown
 
   return (
     <div className={containerClass}>
@@ -156,13 +211,14 @@ export function AIDiveBriefing({
       {showHeader && (
         <div className={styles.briefingHeaderRow}>
           {riskLevel && (
-            <span className={styles.riskBadge} style={riskBadgeStyle(riskLevel)}>
-              {riskLevel}
+            <span
+              className={styles.riskBadge}
+              style={riskBadgeStyle(riskLevel)}
+            >
+              {riskLevel} risk
             </span>
           )}
-          {summary && (
-            <p className={styles.summaryText}>{summary}</p>
-          )}
+          {summary && <p className={styles.summaryText}>{summary}</p>}
         </div>
       )}
 
@@ -171,50 +227,82 @@ export function AIDiveBriefing({
         <div className={styles.conditionCard}>
           <span className={styles.conditionCardLabel}>Water Temp</span>
           <span className={styles.conditionCardValue}>
-            {briefing.conditions.waterTemp.value}
+            {conditions.waterTemp.value}
           </span>
-          {briefing.conditions.waterTemp.badge && (
-            <span className={conditionBadgeClass(briefing.conditions.waterTemp.badge) ?? ""}>
-              {briefing.conditions.waterTemp.badge}
+          {conditions.waterTemp.badge && (
+            <span
+              className={conditionBadgeClass(conditions.waterTemp.badge) ?? ""}
+            >
+              {conditions.waterTemp.badge}
             </span>
           )}
         </div>
         <div className={styles.conditionCard}>
           <span className={styles.conditionCardLabel}>Visibility</span>
           <span className={styles.conditionCardValue}>
-            {briefing.conditions.visibility.value}
+            {conditions.visibility.value}
           </span>
-          {briefing.conditions.visibility.badge && (
-            <span className={conditionBadgeClass(briefing.conditions.visibility.badge) ?? ""}>
-              {briefing.conditions.visibility.badge}
+          {conditions.visibility.badge && (
+            <span
+              className={conditionBadgeClass(conditions.visibility.badge) ?? ""}
+            >
+              {conditions.visibility.badge}
             </span>
           )}
         </div>
         <div className={styles.conditionCard}>
           <span className={styles.conditionCardLabel}>Sea State</span>
           <span className={styles.conditionCardValue}>
-            {briefing.conditions.seaState.value}
+            {conditions.seaState.value}
           </span>
-          {briefing.conditions.seaState.badge && (
-            <span className={conditionBadgeClass(briefing.conditions.seaState.badge) ?? ""}>
-              {briefing.conditions.seaState.badge}
+          {conditions.seaState.badge && (
+            <span
+              className={conditionBadgeClass(conditions.seaState.badge) ?? ""}
+            >
+              {conditions.seaState.badge}
+            </span>
+          )}
+        </div>
+        {/* Cert card */}
+        <div className={styles.conditionCard}>
+          <span className={styles.conditionCardLabel}>Certification</span>
+          {certInfo ? (
+            <>
+              <span className={styles.conditionCardValue}>
+                {certInfo.level}
+              </span>
+              {qualified === true && (
+                <span className={styles.certQualified}>✓ Qualified</span>
+              )}
+              {(qualified === false || qualified === null) && (
+                <span className={styles.certVerify}>✕ Verify cert</span>
+              )}
+            </>
+          ) : (
+            <span
+              className={styles.conditionCardValue}
+              style={{ color: "var(--color-text-disabled)" }}
+            >
+              —
             </span>
           )}
         </div>
       </div>
 
-      {/* Bottom line callout */}
-      <div className={styles.bottomLineBlock}>
-        <span className={styles.bottomLineLabel}>The bottom line</span>
-        <p className={styles.bottomLineText}>{briefing.bottomLine}</p>
+      {/* Before you dive callout */}
+      <div className={styles.beforeYouDiveBlock}>
+        <span className={styles.beforeYouDiveLabel}>Before you dive</span>
+        <p className={styles.beforeYouDiveText}>{bottomLine}</p>
       </div>
 
       {/* Key considerations */}
-      {briefing.keyConsiderations.length > 0 && (
+      {keyConsiderations.length > 0 && (
         <div className={styles.keyConsiderationsBlock}>
-          <span className={styles.keyConsiderationsLabel}>Key considerations</span>
+          <span className={styles.keyConsiderationsLabel}>
+            Key considerations
+          </span>
           <ul className={styles.sectionBullets}>
-            {briefing.keyConsiderations.map((item, i) => (
+            {keyConsiderations.map((item, i) => (
               <li key={i} className={styles.sectionBullet}>
                 <span className={styles.sectionBulletDot} />
                 <span>{item}</span>
@@ -226,10 +314,10 @@ export function AIDiveBriefing({
 
       <div className={styles.divider} />
 
-      {/* Accordion sections */}
+      {/* Static sections */}
       <div className={styles.sectionsContainer}>
         {SECTIONS.map((section) => (
-          <AccordionSection
+          <StaticSection
             key={section.title}
             title={section.title}
             items={section.data}

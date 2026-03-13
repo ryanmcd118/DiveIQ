@@ -20,6 +20,22 @@ function parseConditionCard(raw: unknown): {
   return { value: "Unknown", badge: null };
 }
 
+const EMPTY_CONDITIONS: AIBriefing["conditions"] = {
+  waterTemp: { value: "—", badge: null },
+  visibility: { value: "—", badge: null },
+  seaState: { value: "—", badge: null },
+};
+
+function isOldSchema(parsed: Record<string, unknown>): boolean {
+  return (
+    !parsed.bottomLine &&
+    (Boolean(parsed.conditionsSnapshot) ||
+      Boolean(parsed.quickLook) ||
+      Boolean(parsed.sections) ||
+      Boolean(parsed.whatMattersMost))
+  );
+}
+
 export function parseAIBriefing(content: string): AIBriefing {
   let jsonStr = content.trim();
   if (jsonStr.startsWith("```json")) jsonStr = jsonStr.slice(7);
@@ -27,18 +43,40 @@ export function parseAIBriefing(content: string): AIBriefing {
   if (jsonStr.endsWith("```")) jsonStr = jsonStr.slice(0, -3);
   jsonStr = jsonStr.trim();
 
-  const parsed = JSON.parse(jsonStr);
+  const parsed = JSON.parse(jsonStr) as Record<string, unknown>;
+
+  // Old schema (pre-Prompt-A): conditionsSnapshot, quickLook, sections, etc.
+  // Return safe empty briefing rather than crashing.
+  if (isOldSchema(parsed)) {
+    return {
+      bottomLine: "",
+      keyConsiderations: [],
+      conditions: EMPTY_CONDITIONS,
+      siteConditions: [],
+      hazards: [],
+      experienceNotes: [],
+      gearNotes: [],
+    };
+  }
 
   return {
     bottomLine: typeof parsed.bottomLine === "string" ? parsed.bottomLine : "",
     keyConsiderations: Array.isArray(parsed.keyConsiderations)
       ? parsed.keyConsiderations.slice(0, 3).map(String)
       : [],
-    conditions: {
-      waterTemp: parseConditionCard(parsed.conditions?.waterTemp),
-      visibility: parseConditionCard(parsed.conditions?.visibility),
-      seaState: parseConditionCard(parsed.conditions?.seaState),
-    },
+    conditions: parsed.conditions
+      ? {
+          waterTemp: parseConditionCard(
+            (parsed.conditions as Record<string, unknown>).waterTemp
+          ),
+          visibility: parseConditionCard(
+            (parsed.conditions as Record<string, unknown>).visibility
+          ),
+          seaState: parseConditionCard(
+            (parsed.conditions as Record<string, unknown>).seaState
+          ),
+        }
+      : EMPTY_CONDITIONS,
     siteConditions: Array.isArray(parsed.siteConditions)
       ? parsed.siteConditions.map(String)
       : [],

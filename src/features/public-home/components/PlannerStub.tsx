@@ -354,6 +354,9 @@ export function PlannerStub() {
                 briefing={result.aiBriefing}
                 riskLevel={result.riskLevel}
                 scrollable={true}
+                plannedDepthCm={
+                  depthInputToCm(maxDepth, prefs.depth) ?? undefined
+                }
               />
             )}
 
