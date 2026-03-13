@@ -8,7 +8,7 @@ import {
   useEffect,
   useRef,
 } from "react";
-import { PlanData } from "@/features/dive-plan/types";
+import { PlanData, ProfileContext } from "@/features/dive-plan/types";
 import { useUnitPreferences } from "@/hooks/useUnitPreferences";
 import { getUnitLabel } from "@/lib/units";
 import { FormUnitToggle } from "@/components/FormUnitToggle";
@@ -29,6 +29,13 @@ interface PlanFormProps {
   onSubmit: (e: FormEvent<HTMLFormElement>) => void;
   onCancelEdit: () => void;
   onDeletePlan: () => void;
+  profileContext?: ProfileContext | null;
+}
+
+function deriveHighestCert(certs: ProfileContext["certifications"]): string {
+  if (!certs || certs.length === 0) return "";
+  const sorted = [...certs].sort((a, b) => b.levelRank - a.levelRank);
+  return sorted[0].name;
 }
 
 export function PlanForm({
@@ -41,6 +48,7 @@ export function PlanForm({
   onSubmit,
   onCancelEdit,
   onDeletePlan,
+  profileContext,
 }: PlanFormProps) {
   // Use guest mode for public pages, auto/authed for authenticated pages
   const unitMode = mode === "public" ? "guest" : "authed";
@@ -57,6 +65,10 @@ export function PlanForm({
   const [todayStr, setTodayStr] = useState<string | null>(null);
   const [dateError, setDateError] = useState<string | null>(null);
   const prevSubmittedPlanRef = useRef<PlanData | null>(submittedPlan);
+  const [authedCert, setAuthedCert] = useState("");
+  const [authedDiveCount, setAuthedDiveCount] = useState("");
+  const [authedLastDive, setAuthedLastDive] = useState("");
+  const profilePrefilledRef = useRef(false);
 
   // Track submittedPlan changes using ref (no setState in effect)
   // Form fields are initialized via useState and reset via formKey remount
@@ -65,6 +77,17 @@ export function PlanForm({
       prevSubmittedPlanRef.current = submittedPlan;
     }
   }, [submittedPlan]);
+
+  useEffect(() => {
+    if (profileContext && !profilePrefilledRef.current) {
+      profilePrefilledRef.current = true;
+      setAuthedCert(deriveHighestCert(profileContext.certifications));
+      setAuthedDiveCount(
+        profileContext.totalDives > 0 ? String(profileContext.totalDives) : ""
+      );
+      setAuthedLastDive(profileContext.lastDiveDate ?? "");
+    }
+  }, [profileContext]);
 
   // Compute today's date client-side only to avoid SSR hydration mismatch
   useEffect(() => {
@@ -139,42 +162,22 @@ export function PlanForm({
           />
         </div>
 
-        <div className={formStyles.formGrid}>
-          <div className={formStyles.field}>
-            <label htmlFor="date" className={formStyles.label}>
-              Date
-            </label>
-            <input
-              type="date"
-              id="date"
-              name="date"
-              required
-              min={todayStr ?? undefined}
-              defaultValue={submittedPlan?.date ?? ""}
-              className={formStyles.input}
-              onChange={validateDate}
-              onBlur={validateDate}
-            />
-            {dateError && <p className={formStyles.error}>{dateError}</p>}
-          </div>
-
-          <div className={formStyles.field}>
-            <label htmlFor="experienceLevel" className={formStyles.label}>
-              Experience level
-            </label>
-            <select
-              id="experienceLevel"
-              name="experienceLevel"
-              required
-              defaultValue={submittedPlan?.experienceLevel ?? ""}
-              className={formStyles.select}
-            >
-              <option value="">Select...</option>
-              <option value="Beginner">Beginner</option>
-              <option value="Intermediate">Intermediate</option>
-              <option value="Advanced">Advanced</option>
-            </select>
-          </div>
+        <div className={formStyles.field}>
+          <label htmlFor="date" className={formStyles.label}>
+            Date
+          </label>
+          <input
+            type="date"
+            id="date"
+            name="date"
+            required
+            min={todayStr ?? undefined}
+            defaultValue={submittedPlan?.date ?? ""}
+            className={formStyles.input}
+            onChange={validateDate}
+            onBlur={validateDate}
+          />
+          {dateError && <p className={formStyles.error}>{dateError}</p>}
         </div>
 
         {/* Manual experience fields — public mode only */}
@@ -298,15 +301,89 @@ export function PlanForm({
         </div>
 
         {mode === "authed" && (
-          <p
+          <div
             style={{
-              fontSize: "var(--font-size-xs)",
-              color: "var(--color-text-muted)",
-              margin: "0 0 var(--space-2)",
+              borderTop: "1px solid var(--color-border-default)",
+              paddingTop: "var(--space-4)",
+              marginTop: "var(--space-2)",
             }}
           >
-            Your diver profile will be used to personalize this plan.
-          </p>
+            <p
+              style={{
+                fontSize: "var(--font-size-xs)",
+                fontWeight: "var(--font-weight-medium)",
+                color: "var(--color-text-muted)",
+                textTransform: "uppercase",
+                letterSpacing: "0.06em",
+                marginBottom: "var(--space-3)",
+              }}
+            >
+              Your experience
+            </p>
+            <div
+              className={formStyles.formGrid}
+              style={{ gridTemplateColumns: "repeat(3, 1fr)" }}
+            >
+              <div className={formStyles.field}>
+                <label htmlFor="highestCert" className={formStyles.label}>
+                  Highest cert
+                </label>
+                <input
+                  type="text"
+                  id="highestCert"
+                  name="highestCert"
+                  value={authedCert}
+                  onChange={(e) => setAuthedCert(e.target.value)}
+                  placeholder="e.g. Advanced Open Water"
+                  className={formStyles.input}
+                />
+              </div>
+
+              <div className={formStyles.field}>
+                <label htmlFor="diveCountRange" className={formStyles.label}>
+                  Total dives
+                </label>
+                <input
+                  type="number"
+                  id="diveCountRange"
+                  name="diveCountRange"
+                  min={0}
+                  value={authedDiveCount}
+                  onChange={(e) => setAuthedDiveCount(e.target.value)}
+                  placeholder="e.g. 150"
+                  className={formStyles.input}
+                />
+              </div>
+
+              <div className={formStyles.field}>
+                <label htmlFor="lastDiveRecency" className={formStyles.label}>
+                  Last dive
+                </label>
+                <input
+                  type="date"
+                  id="lastDiveRecency"
+                  name="lastDiveRecency"
+                  value={authedLastDive}
+                  onChange={(e) => setAuthedLastDive(e.target.value)}
+                  className={formStyles.input}
+                />
+              </div>
+            </div>
+
+            <p
+              style={{
+                fontSize: "var(--font-size-xs)",
+                color: "var(--color-text-muted)",
+                marginTop: "var(--space-2)",
+              }}
+            >
+              Pre-filled from your dive profile · Edit if your actual experience
+              differs.{" "}
+              <a href="/profile" style={{ color: "var(--color-accent-light)" }}>
+                Update profile
+              </a>
+            </p>
+          </div>
         )}
 
         <div className={formStyles.buttonGroupWithDelete}>

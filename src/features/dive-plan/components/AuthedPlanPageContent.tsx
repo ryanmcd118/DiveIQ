@@ -235,6 +235,7 @@ export function AuthedPlanPageContent() {
                 onSubmit={handleSubmit}
                 onCancelEdit={handleCancelEdit}
                 onDeletePlan={handleDeletePlan}
+                profileContext={profileContext}
               />
             )}
 
