@@ -74,6 +74,7 @@ export function AuthedPlanPageContent() {
   const {
     submittedPlan,
     aiBriefing,
+    draftRiskLevel,
     apiError,
     loading,
     saving,
@@ -246,10 +247,9 @@ export function AuthedPlanPageContent() {
                     />
                   ) : (
                     <AIDiveBriefing
-                      mode="authed"
                       briefing={aiBriefing}
+                      riskLevel={draftRiskLevel ?? undefined}
                       loading={false}
-                      compact={false}
                       scrollable={true}
                     />
                   )}
@@ -309,10 +309,9 @@ export function AuthedPlanPageContent() {
                 <div className={styles.briefingWrapper}>
                   {viewingPlan.aiBriefing ? (
                     <AIDiveBriefing
-                      mode="authed"
                       briefing={viewingPlan.aiBriefing}
+                      riskLevel={viewingPlan.riskLevel}
                       loading={false}
-                      compact={false}
                       scrollable={true}
                     />
                   ) : (

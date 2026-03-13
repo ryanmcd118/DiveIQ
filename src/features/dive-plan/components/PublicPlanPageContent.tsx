@@ -16,6 +16,7 @@ export function PublicPlanPageContent() {
     submittedPlan,
     hasDraftPlan,
     aiBriefing,
+    draftRiskLevel,
     apiError,
     loading,
     saving,
@@ -110,10 +111,9 @@ export function PublicPlanPageContent() {
             ) : loading || aiBriefing || submittedPlan ? (
               <div className={gridStyles.aiBriefingScrollWrapper}>
                 <AIDiveBriefing
-                  mode="public"
                   briefing={aiBriefing}
+                  riskLevel={draftRiskLevel ?? undefined}
                   loading={false}
-                  compact={false}
                   scrollable={true}
                 />
                 {(aiBriefing ?? submittedPlan) && (

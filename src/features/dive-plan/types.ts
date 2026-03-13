@@ -49,45 +49,20 @@ export type PlanApiResponse = {
 // AI BRIEFING STRUCTURED RESPONSE TYPES
 // =========================================
 
-export type SourceTag = "Forecast" | "Seasonal" | "Inferred";
-export type ConfidenceLevel = "High" | "Medium" | "Low";
-
-export type QuickLookItem = {
-  value: string; // Original display string from AI (for fallback/narrative)
-  reason?: string;
-  sourceTag?: SourceTag;
-  // Canonical numeric values (in metric) for unit-aware formatting
-  numericValue?: {
-    min: number;
-    max: number;
-  };
-};
-
-export type QuickLook = {
-  difficulty: QuickLookItem;
-  suggestedExperience: QuickLookItem;
-  waterTemp: QuickLookItem;
-  visibility: QuickLookItem;
-  seaStateWind: QuickLookItem;
-  confidence: {
-    level: ConfidenceLevel;
-    reason: string;
-  };
-};
-
-export type BriefingSection = {
-  title: string;
-  sourceTags?: SourceTag[];
-  bullets?: string[];
-  paragraphs?: string[];
-};
+export type ConditionBadge = "seasonal" | "forecast" | "inferred" | null;
 
 export type AIBriefing = {
-  conditionsSnapshot: string;
-  quickLook: QuickLook;
-  whatMattersMost: string;
-  highlights: string[];
-  sections: BriefingSection[];
+  bottomLine: string;
+  keyConsiderations: string[]; // max 3
+  conditions: {
+    waterTemp: { value: string; badge: ConditionBadge };
+    visibility: { value: string; badge: ConditionBadge };
+    seaState: { value: string; badge: ConditionBadge };
+  };
+  siteConditions: string[];
+  hazards: string[];
+  experienceNotes: string[];
+  gearNotes: string[];
 };
 
 // Preview result type for logged-out users

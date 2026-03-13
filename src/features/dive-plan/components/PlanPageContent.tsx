@@ -26,6 +26,7 @@ export function PlanPageContent({ mode = "authed" }: PlanPageContentProps) {
     submittedPlan,
     hasDraftPlan,
     aiBriefing,
+    draftRiskLevel,
     apiError,
     loading,
     saving,
@@ -159,10 +160,9 @@ export function PlanPageContent({ mode = "authed" }: PlanPageContentProps) {
             {loading || aiBriefing || submittedPlan ? (
               <div className={gridStyles.aiBriefingScrollWrapper}>
                 <AIDiveBriefing
-                  mode={mode}
                   briefing={aiBriefing}
+                  riskLevel={draftRiskLevel ?? undefined}
                   loading={loading}
-                  compact={false}
                   scrollable={true}
                 />
               </div>

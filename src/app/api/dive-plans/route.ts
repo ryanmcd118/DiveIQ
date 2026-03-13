@@ -56,7 +56,7 @@ export async function POST(req: NextRequest) {
 
     // Use cached briefing if valid (avoids double OpenAI call on guest save)
     const aiBriefing: AIBriefing =
-      body.cachedBriefing?.conditionsSnapshot && body.cachedBriefing?.sections
+      body.cachedBriefing?.bottomLine && body.cachedBriefing?.conditions
         ? body.cachedBriefing
         : await generateDivePlanBriefing({
             region: body.region,
@@ -71,7 +71,7 @@ export async function POST(req: NextRequest) {
           });
 
     // Extract a summary for legacy aiAdvice field
-    const aiAdvice = aiBriefing.whatMattersMost;
+    const aiAdvice = aiBriefing.bottomLine;
 
     // Save to database with user ID (using canonical centimeters)
     const planInput: PlanInput = {
@@ -169,7 +169,7 @@ export async function PUT(req: NextRequest) {
     });
 
     // Extract a summary for legacy aiAdvice field
-    const aiAdvice = aiBriefing.whatMattersMost;
+    const aiAdvice = aiBriefing.bottomLine;
 
     // Update in database (using canonical centimeters)
     const planInput: PlanInput = {
