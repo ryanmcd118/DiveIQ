@@ -8,6 +8,7 @@ import { Toast } from "@/components/Toast";
 import { PlanForm } from "./PlanForm";
 import { ProfileContextCard } from "./ProfileContextCard";
 import { PastPlan } from "@/features/dive-plan/types";
+import { matchesQuery } from "@/features/dive-plan/utils/searchMatch";
 import { useUnitPreferences } from "@/hooks/useUnitPreferences";
 import { displayDepth } from "@/lib/units";
 import layoutStyles from "@/styles/components/Layout.module.css";
@@ -101,9 +102,21 @@ export function AuthedPlanPageContent() {
   const [planSortKey, setPlanSortKey] = useState<
     "date-desc" | "date-asc" | "createdAt-desc" | "risk-desc" | "region-asc"
   >("date-desc");
+  const [planSearchQuery, setPlanSearchQuery] = useState("");
 
   const sortedPlans = useMemo(() => {
-    return [...pastPlans].sort((a, b) => {
+    const q = planSearchQuery.trim().toLowerCase();
+
+    const filtered = q
+      ? pastPlans.filter(
+          (plan) =>
+            matchesQuery(plan.siteName, q) ||
+            matchesQuery(plan.region, q) ||
+            matchesQuery(plan.riskLevel, q)
+        )
+      : pastPlans;
+
+    return [...filtered].sort((a, b) => {
       switch (planSortKey) {
         case "date-desc":
           if (a.date < b.date) return 1;
@@ -129,7 +142,7 @@ export function AuthedPlanPageContent() {
           return 0;
       }
     });
-  }, [pastPlans, planSortKey]);
+  }, [pastPlans, planSortKey, planSearchQuery]);
 
   const isView3 = viewingPlan !== null;
   const isView2 = !isView3 && (!!aiBriefing || loading);
@@ -371,12 +384,22 @@ export function AuthedPlanPageContent() {
                     setPlanSortKey(e.target.value as typeof planSortKey)
                   }
                 >
-                  <option value="date-desc">Newest first</option>
-                  <option value="date-asc">Oldest first</option>
+                  <option value="date-desc">Date (descending)</option>
+                  <option value="date-asc">Date (ascending)</option>
                   <option value="createdAt-desc">Most recently added</option>
                   <option value="risk-desc">Risk level (High first)</option>
                   <option value="region-asc">Region (A–Z)</option>
                 </select>
+              </div>
+
+              <div className={styles.sidebarSearch}>
+                <input
+                  type="search"
+                  className={styles.sidebarSearchInput}
+                  placeholder="Search by site, region, or risk"
+                  value={planSearchQuery}
+                  onChange={(e) => setPlanSearchQuery(e.target.value)}
+                />
               </div>
 
               <div className={styles.sidebarList}>
@@ -388,6 +411,8 @@ export function AuthedPlanPageContent() {
                   <p className={styles.sidebarEmptyState}>
                     No plans yet. Submit a plan to start building your history.
                   </p>
+                ) : sortedPlans.length === 0 ? (
+                  <p className={styles.sidebarEmptyState}>No plans found.</p>
                 ) : (
                   sortedPlans.map((plan) => (
                     <PlanSidebarItem
