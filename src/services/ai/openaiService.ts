@@ -81,6 +81,10 @@ You must return ONLY valid JSON matching this exact schema — no markdown, no p
 
 DIVER EXPERIENCE CLASSIFICATION:
 
+HIGHEST CERT RULE: When a diver has multiple certifications listed, always identify and use the HIGHEST certification for depth limit and experience tier calculations. Specialty certifications (Nitrox, Enriched Air, Night Diver, Peak Performance Buoyancy, Wreck, Drift, Search and Recovery, etc.) do not affect depth limits and must be ignored for depth limit purposes. Only these certs affect depth limits: Open Water (60ft/18m), Advanced Open Water (100ft/30m), Deep Specialty (130ft/40m), Rescue Diver / Divemaster (130ft/40m recreational limit), Technical certs (beyond 130ft). If a diver holds both Open Water AND Advanced Open Water, their limit is 100ft/30m — not 60ft/18m. When a "Highest certification" field is provided in the diver profile, use that field directly — do not re-derive the highest cert from the full list.
+
+Example: A diver with certs [Open Water Diver, Advanced Open Water Diver, Enriched Air Nitrox] has a depth limit of 100ft/30m. A planned dive to 90ft is within limits and must NOT be flagged as an exceedance.
+
 Before generating any output, classify the diver into one of four experience tiers using their certification level and dive count together. Use this classification consistently across all sections — especially bottomLine, keyConsiderations, and experienceNotes.
 
 Tiers:
@@ -127,6 +131,10 @@ experienceNotes: 2-3 strings directly addressing the match or mismatch between t
 
 gearNotes: 1-3 strings. Review the diver's actual gear list against this dive's conditions. Only flag gear that is inadequate OR notably well-suited. If wetsuit is inadequate for water temp, state the specific water temp and minimum recommended wetsuit thickness. If gear is appropriate overall, say so in one sentence. If no gear is logged, note that the diver should verify gear suitability for the conditions.
 
+Never explain which certifications you are or are not factoring into your depth limit calculation. Do not mention specialty certs (Night Diver, Nitrox, Wreck, Peak Performance Buoyancy, etc.) in your output at all unless they are directly relevant to the specific dive conditions. The cert ranking logic is internal — only state the resulting depth limit and whether the planned dive is within it.
+
+If the planned depth is within the diver's certification limits, do not suggest they dive shallower or imply the dive is beyond their training. Acknowledge it is within limits, then focus on the actual risk factors specific to this dive (conditions, experience gap, gear). Reserve depth-related warnings strictly for dives that genuinely exceed cert limits.
+
 The narrative summary paragraph and riskLevel are calculated SEPARATELY — do not include them in your JSON response.
 
 HANDLING MISSING PROFILE DATA:
@@ -136,6 +144,48 @@ If diver profile data is partially or fully absent (e.g. a guest user who did no
 - experienceNotes: if no cert level is provided, note that cert level and experience are unknown and flag any depth or condition thresholds the diver should be aware of regardless of experience (e.g. if depth exceeds 60ft/18m, note this exceeds Open Water limits and cert verification is advised).
 - gearNotes: if no gear is logged, say "No gear on record — verify your equipment is appropriate for [waterTemp] water at [depth]."
 Never hallucinate profile data. If a field is unknown, either omit the reference or explicitly state it is unknown.`.trim();
+}
+
+type ResolvedCert = { name: string; depthLimitFt: number };
+
+function resolveHighestCert(certs: string[]): ResolvedCert {
+  const TIERS: { test: (n: string) => boolean; result: ResolvedCert }[] = [
+    {
+      test: (n) => /tec|tech|trimix|rebreather|ccr/i.test(n),
+      result: { name: "Technical", depthLimitFt: 999 },
+    },
+    {
+      test: (n) => /divemaster|(?<!\w)dm(?!\w)/i.test(n),
+      result: { name: "Divemaster", depthLimitFt: 130 },
+    },
+    {
+      test: (n) => /rescue/i.test(n),
+      result: { name: "Rescue Diver", depthLimitFt: 130 },
+    },
+    {
+      test: (n) => /deep/i.test(n),
+      result: { name: "Deep Specialty", depthLimitFt: 130 },
+    },
+    {
+      test: (n) => /advanced open water|aowd?/i.test(n),
+      result: { name: "Advanced Open Water", depthLimitFt: 100 },
+    },
+    {
+      test: (n) => /open water|owd/i.test(n) && !/advanced/i.test(n),
+      result: { name: "Open Water", depthLimitFt: 60 },
+    },
+  ];
+
+  let best: ResolvedCert = { name: "Unknown", depthLimitFt: 60 };
+  for (const cert of certs) {
+    for (const tier of TIERS) {
+      if (tier.test(cert) && tier.result.depthLimitFt > best.depthLimitFt) {
+        best = tier.result;
+        break; // tiers are ordered; no need to check lower ones for this cert
+      }
+    }
+  }
+  return best;
 }
 
 function buildUpdatedSystemPrompt(unitSystem: UnitSystem = "metric"): string {
@@ -198,28 +248,17 @@ function buildUserPrompt(
       lines.push(`- Primary dive types: ${p.primaryDiveTypes.join(", ")}`);
     }
 
-    // Group certifications by agency, ordered by levelRank
     if (p.certifications.length > 0) {
-      const agencyGroups: Record<
-        string,
-        { name: string; levelRank: number }[]
-      > = {};
-      for (const cert of p.certifications) {
-        if (!agencyGroups[cert.agency]) agencyGroups[cert.agency] = [];
-        agencyGroups[cert.agency].push({
-          name: cert.name,
-          levelRank: cert.levelRank,
-        });
-      }
-      for (const agency of Object.keys(agencyGroups)) {
-        const sorted = agencyGroups[agency].sort(
-          (a, b) => a.levelRank - b.levelRank
-        );
-        lines.push(`\nCertifications (${agency}):`);
-        for (const cert of sorted) {
-          lines.push(`  - ${cert.name}`);
-        }
-      }
+      const resolved = resolveHighestCert(p.certifications.map((c) => c.name));
+      const depthLimitDisplay =
+        resolved.depthLimitFt === 999
+          ? "no recreational limit"
+          : `${resolved.depthLimitFt}ft`;
+      lines.push(`- Highest certification: ${resolved.name}`);
+      lines.push(`- Certification depth limit: ${depthLimitDisplay}`);
+      lines.push(
+        `- All certifications: ${p.certifications.map((c) => c.name).join(", ")}`
+      );
     }
 
     if (p.gear.length > 0) {
@@ -245,7 +284,17 @@ function buildUserPrompt(
     if (m.diveCountRange)
       lines.push(`- Approximate total dives: ${m.diveCountRange}`);
     if (m.lastDiveRecency) lines.push(`- Last dive: ${m.lastDiveRecency}`);
-    lines.push(`- Highest certification: ${m.highestCert ?? "Not provided"}`);
+    if (m.highestCert) {
+      const resolved = resolveHighestCert([m.highestCert]);
+      const depthLimitDisplay =
+        resolved.depthLimitFt === 999
+          ? "no recreational limit"
+          : `${resolved.depthLimitFt}ft`;
+      lines.push(`- Highest certification: ${m.highestCert}`);
+      lines.push(`- Certification depth limit: ${depthLimitDisplay}`);
+    } else {
+      lines.push(`- Highest certification: Not provided`);
+    }
     profileSection = `\n---\nDiver Experience (self-reported):\n${lines.join("\n")}`;
   }
 
