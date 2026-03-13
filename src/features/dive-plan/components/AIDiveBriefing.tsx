@@ -373,6 +373,16 @@ export function AIDiveBriefing({
         </>
       )}
 
+      {/* Full mode: show highlights above accordion sections */}
+      {(!compact || expanded) &&
+        briefing.highlights &&
+        briefing.highlights.length > 0 && (
+          <div className={styles.fullHighlights}>
+            <span className={styles.fullHighlightsLabel}>Key takeaways</span>
+            <HighlightsList highlights={briefing.highlights} />
+          </div>
+        )}
+
       {/* Full mode or expanded: show accordion sections */}
       {(!compact || expanded) &&
         briefing.sections &&

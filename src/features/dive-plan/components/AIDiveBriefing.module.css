@@ -243,6 +243,25 @@
   border-radius: 50%;
 }
 
+/* === FULL-MODE HIGHLIGHTS === */
+.fullHighlights {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-4);
+  background: var(--color-bg-elevated);
+  border-radius: var(--radius-md);
+  margin-top: var(--space-2);
+}
+
+.fullHighlightsLabel {
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--color-text-muted);
+}
+
 /* === ACCORDION SECTIONS === */
 .sectionsContainer {
   display: flex;
