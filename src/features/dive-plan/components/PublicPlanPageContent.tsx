@@ -30,6 +30,7 @@ export function PublicPlanPageContent() {
     setShowAuthModal,
     authModalMode,
     statusMessage,
+    lastHighestCert,
     handleSubmit,
     saveDraftPlan,
     handleRequireAuth,
@@ -126,6 +127,7 @@ export function PublicPlanPageContent() {
                         ) ?? undefined)
                       : undefined
                   }
+                  highestCertOverride={lastHighestCert ?? undefined}
                 />
                 {(aiBriefing ?? submittedPlan) && (
                   <>

@@ -40,6 +40,7 @@ export function PlanPageContent({ mode = "authed" }: PlanPageContentProps) {
     formKey,
     isAuthenticated,
     isSessionLoading,
+    lastHighestCert,
     handleSubmit,
     saveDraftPlan,
     handleSelectPastPlan,
@@ -175,6 +176,7 @@ export function PlanPageContent({ mode = "authed" }: PlanPageContentProps) {
                         ) ?? undefined)
                       : undefined
                   }
+                  highestCertOverride={lastHighestCert ?? undefined}
                 />
               </div>
             ) : (

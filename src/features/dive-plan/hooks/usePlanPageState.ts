@@ -35,6 +35,7 @@ export function usePlanPageState() {
 
   // Used to force the form to remount so defaultValue updates
   const [formKey, setFormKey] = useState<string>("new");
+  const [lastHighestCert, setLastHighestCert] = useState<string | null>(null);
 
   // Use next-auth session for auth status
   const { status: sessionStatus } = useSession();
@@ -107,6 +108,7 @@ export function usePlanPageState() {
     const dateValue = formData.get("date");
     const bottomTimeValue = formData.get("bottomTime");
     const experienceLevelValue = formData.get("experienceLevel");
+    const highestCertValue = formData.get("highestCert");
 
     const values: PlanData = {
       region: typeof regionValue === "string" ? regionValue : "",
@@ -122,6 +124,11 @@ export function usePlanPageState() {
         : "Beginner") as PlanData["experienceLevel"],
     };
 
+    setLastHighestCert(
+      typeof highestCertValue === "string" && highestCertValue
+        ? highestCertValue
+        : null
+    );
     setSubmittedPlan(values);
     setDraftPlan(values);
 
@@ -381,6 +388,7 @@ export function usePlanPageState() {
     apiError,
     loading,
     saving,
+    lastHighestCert,
 
     // Past plans
     pastPlans,

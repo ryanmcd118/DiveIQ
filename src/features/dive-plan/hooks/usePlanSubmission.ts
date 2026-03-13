@@ -20,6 +20,7 @@ export function usePlanSubmission() {
   const [loading, setLoading] = useState(false);
   const [apiError, setApiError] = useState<string | null>(null);
   const [formKey, setFormKey] = useState<string>("new");
+  const [lastHighestCert, setLastHighestCert] = useState<string | null>(null);
 
   const handlePreviewSubmit = async (
     e: FormEvent<HTMLFormElement>,
@@ -81,6 +82,11 @@ export function usePlanSubmission() {
           }
         : undefined;
 
+    setLastHighestCert(
+      typeof highestCertValue === "string" && highestCertValue
+        ? highestCertValue
+        : null
+    );
     setSubmittedPlan(values);
     setDraftPlan(values);
 
@@ -143,6 +149,7 @@ export function usePlanSubmission() {
     setApiError,
     formKey,
     setFormKey,
+    lastHighestCert,
     handlePreviewSubmit,
   };
 }

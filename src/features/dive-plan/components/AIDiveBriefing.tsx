@@ -12,6 +12,7 @@ type AIDiveBriefingProps = {
   scrollable?: boolean;
   plannedDepthCm?: number;
   userCerts?: string[];
+  highestCertOverride?: string;
 };
 
 // ── Cert card helpers ──────────────────────────────────────────────────────
@@ -61,6 +62,22 @@ function checkQualification(
   if (hasOW && qualifier === "ow") return true;
 
   return false;
+}
+
+function checkQualificationByOverride(
+  qualifier: CertQualifier,
+  override: string
+): boolean | null {
+  if (qualifier === "tech") return false;
+  const lower = override.toLowerCase();
+  const hasDeep = lower.includes("deep");
+  const hasAOW = lower.includes("advanced") || lower.includes("aow");
+  const hasOW = lower.includes("open water") && !lower.includes("advanced");
+  if (hasDeep) return true; // qualifies up to 130ft/40m
+  if (hasAOW && (qualifier === "ow" || qualifier === "aow")) return true;
+  if (hasOW && qualifier === "ow") return true;
+  if (hasAOW || hasOW || hasDeep) return false; // known cert but doesn't qualify
+  return null; // cert string unrecognized
 }
 
 // ── Condition badge ────────────────────────────────────────────────────────
@@ -162,6 +179,7 @@ export function AIDiveBriefing({
   scrollable = false,
   plannedDepthCm,
   userCerts,
+  highestCertOverride,
 }: AIDiveBriefingProps) {
   const containerClass = scrollable
     ? styles.briefingContainerScrollable
@@ -200,10 +218,19 @@ export function AIDiveBriefing({
   // Cert card
   const certInfo =
     plannedDepthCm !== undefined ? getRequiredCert(plannedDepthCm) : null;
-  const qualified =
-    certInfo && userCerts && userCerts.length > 0
-      ? checkQualification(certInfo.qualifier, userCerts)
-      : null; // null = unknown
+  const qualified: boolean | null = (() => {
+    if (!certInfo) return null;
+    if (userCerts && userCerts.length > 0) {
+      return checkQualification(certInfo.qualifier, userCerts);
+    }
+    if (highestCertOverride) {
+      return checkQualificationByOverride(
+        certInfo.qualifier,
+        highestCertOverride
+      );
+    }
+    return null;
+  })();
 
   return (
     <div className={containerClass}>
