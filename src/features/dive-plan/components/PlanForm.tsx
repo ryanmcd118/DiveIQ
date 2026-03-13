@@ -16,6 +16,7 @@ import { useCertificationDefinitions } from "../hooks/useCertificationDefinition
 import cardStyles from "@/styles/components/Card.module.css";
 import formStyles from "@/styles/components/Form.module.css";
 import buttonStyles from "@/styles/components/Button.module.css";
+import planFormStyles from "./PlanForm.module.css";
 
 type PlanFormMode = "public" | "authed";
 
@@ -30,12 +31,6 @@ interface PlanFormProps {
   onCancelEdit: () => void;
   onDeletePlan: () => void;
   profileContext?: ProfileContext | null;
-}
-
-function deriveHighestCert(certs: ProfileContext["certifications"]): string {
-  if (!certs || certs.length === 0) return "";
-  const sorted = [...certs].sort((a, b) => b.levelRank - a.levelRank);
-  return sorted[0].name;
 }
 
 export function PlanForm({
@@ -65,7 +60,6 @@ export function PlanForm({
   const [todayStr, setTodayStr] = useState<string | null>(null);
   const [dateError, setDateError] = useState<string | null>(null);
   const prevSubmittedPlanRef = useRef<PlanData | null>(submittedPlan);
-  const [authedCert, setAuthedCert] = useState("");
   const [authedDiveCount, setAuthedDiveCount] = useState("");
   const [authedLastDive, setAuthedLastDive] = useState("");
   const profilePrefilledRef = useRef(false);
@@ -81,7 +75,6 @@ export function PlanForm({
   useEffect(() => {
     if (profileContext && !profilePrefilledRef.current) {
       profilePrefilledRef.current = true;
-      setAuthedCert(deriveHighestCert(profileContext.certifications));
       setAuthedDiveCount(
         profileContext.totalDives > 0 ? String(profileContext.totalDives) : ""
       );
@@ -241,7 +234,7 @@ export function PlanForm({
 
               <div className={formStyles.field}>
                 <label htmlFor="highestCert" className={formStyles.label}>
-                  Highest cert
+                  Base certification
                 </label>
                 <select
                   id="highestCert"
@@ -250,7 +243,9 @@ export function PlanForm({
                   className={formStyles.select}
                 >
                   <option value="">
-                    {certDefsLoading ? "Loading..." : "Select..."}
+                    {certDefsLoading
+                      ? "Loading..."
+                      : "Open Water, Advanced Open Water, Divemaster…"}
                   </option>
                   {certDefs.map((def) => (
                     <option key={`${def.agency}-${def.slug}`} value={def.name}>
@@ -320,25 +315,21 @@ export function PlanForm({
             >
               Your experience
             </p>
+            <p
+              style={{
+                fontSize: "var(--font-size-xs)",
+                color: "var(--color-text-muted)",
+                marginBottom: "var(--space-3)",
+              }}
+            >
+              Your dive profile data is pre-filled below. You can edit these
+              fields for this plan if your logged history doesn&apos;t reflect
+              your actual experience.
+            </p>
             <div
               className={formStyles.formGrid}
-              style={{ gridTemplateColumns: "repeat(3, 1fr)" }}
+              style={{ gridTemplateColumns: "repeat(2, 1fr)" }}
             >
-              <div className={formStyles.field}>
-                <label htmlFor="highestCert" className={formStyles.label}>
-                  Highest cert
-                </label>
-                <input
-                  type="text"
-                  id="highestCert"
-                  name="highestCert"
-                  value={authedCert}
-                  onChange={(e) => setAuthedCert(e.target.value)}
-                  placeholder="e.g. Advanced Open Water"
-                  className={formStyles.input}
-                />
-              </div>
-
               <div className={formStyles.field}>
                 <label htmlFor="diveCountRange" className={formStyles.label}>
                   Total dives
@@ -370,19 +361,35 @@ export function PlanForm({
               </div>
             </div>
 
-            <p
-              style={{
-                fontSize: "var(--font-size-xs)",
-                color: "var(--color-text-muted)",
-                marginTop: "var(--space-2)",
-              }}
-            >
-              Pre-filled from your dive profile · Edit if your actual experience
-              differs.{" "}
-              <a href="/profile" style={{ color: "var(--color-accent-light)" }}>
-                Update profile
+            <div style={{ marginTop: "var(--space-4)" }}>
+              <label className={formStyles.label}>Your certifications</label>
+              {profileContext?.certifications &&
+              profileContext.certifications.length > 0 ? (
+                <div className={planFormStyles.certList}>
+                  {profileContext.certifications.map((cert) => (
+                    <span key={cert.name} className={planFormStyles.certChip}>
+                      {cert.name}
+                    </span>
+                  ))}
+                </div>
+              ) : (
+                <p
+                  style={{
+                    fontSize: "var(--font-size-xs)",
+                    color: "var(--color-text-muted)",
+                  }}
+                >
+                  No certifications on profile
+                </p>
+              )}
+              <a
+                href="/profile"
+                className={planFormStyles.certEditLink}
+                style={{ display: "inline-block", marginTop: "var(--space-2)" }}
+              >
+                Edit in profile →
               </a>
-            </p>
+            </div>
           </div>
         )}
 
