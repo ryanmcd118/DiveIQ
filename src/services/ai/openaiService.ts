@@ -79,6 +79,36 @@ You must return ONLY valid JSON matching this exact schema — no markdown, no p
   "gearNotes": ["string"]
 }
 
+DIVER EXPERIENCE CLASSIFICATION:
+
+Before generating any output, classify the diver into one of four experience tiers using their certification level and dive count together. Use this classification consistently across all sections — especially bottomLine, keyConsiderations, and experienceNotes.
+
+Tiers:
+
+NOVICE — Open Water cert (or lower/unknown) AND fewer than 25 dives. Still building foundational skills. Should be diving shallow, calm, guided conditions. Flag any depth or condition that exceeds this comfort envelope.
+
+INTERMEDIATE — Either: (a) Open Water cert with 25-99 dives, OR (b) Advanced Open Water cert with fewer than 50 dives. Has core skills, building real-world experience. Comfortable in typical recreational conditions but not reliable in challenging ones.
+
+EXPERIENCED — Either: (a) Advanced Open Water cert with 50+ dives, OR (b) Deep Specialty, Rescue Diver, or Divemaster cert with any dive count. Comfortable in varied conditions, solid buoyancy and air management.
+
+ADVANCED — Deep Specialty or higher cert with 100+ dives, OR any technical diving certification. Can handle complex, challenging dives with appropriate planning.
+
+When dive count is provided as a range (e.g. "25-99 dives", "100-499 dives"), use the lower bound of the range for classification — treat it as the minimum confirmed experience.
+
+When cert level is unknown, classify based on dive count alone:
+- Fewer than 25 dives → Novice
+- 25-99 dives → Intermediate
+- 100+ dives → Experienced
+
+When dive count is unknown but cert is known, classify based on cert alone:
+- OW or lower → Novice
+- AOW → Intermediate
+- Deep Specialty or higher → Experienced
+
+When both are unknown → treat as Novice and focus output on site/conditions rather than profile.
+
+IMPORTANT: Never use the word "beginner" in your output. Use the tier name (Novice, Intermediate, Experienced, Advanced) or a natural equivalent ("with your experience level", "as a newer diver", etc). Never call a diver with 25-99 dives a beginner — that is Intermediate.
+
 CRITICAL RULES — violating these makes the briefing useless:
 
 bottomLine: Exactly one sentence. Must be specific to THIS diver's profile and THIS dive's parameters. If there is a meaningful mismatch (e.g. diver's experience vs. dive depth, gear vs. water temp, time since last dive), state it directly and concisely. If the dive is well-matched, state the single most important preparation specific to this site and conditions. NEVER write generic scuba safety advice that applies to all divers (e.g. "always dive with a buddy", "monitor your air supply", "ensure you have a dive computer"). NEVER start with "Remember to" or "Make sure to."
@@ -93,7 +123,7 @@ siteConditions: 2-4 strings describing conditions specific to this location at t
 
 hazards: 1-3 strings describing hazards specific to this site, depth, or region. Do not list generic scuba hazards. Only hazards specifically elevated at this location, depth, or time of year. Nitrogen narcosis: only mention if depth exceeds 100ft/30m. Decompression risk: only mention if planned bottom time approaches NDL for the planned depth.
 
-experienceNotes: 2-3 strings directly addressing the match or mismatch between this diver's profile and this dive. Always reference the diver's actual cert level, logged dive count, and time since last dive. Cert depth limits: Open Water = 60ft/18m max, Advanced Open Water = 100ft/30m max, Deep Specialty = 130ft/40m max. Flag a cert exceedance ONLY if the planned depth is strictly greater than the cert limit. Do not flag if depth equals or is less than the limit. Examples: 90ft with AOW (limit 100ft) = within limits, no flag. 101ft with AOW = exceeds limit, flag it. If last dive was 6-12 months ago, recommend a refresher. If 12+ months ago, strongly advise a refresher dive before this one.
+experienceNotes: 2-3 strings directly addressing the match or mismatch between this diver's profile and this dive. Always state the diver's classified experience tier explicitly in the first experienceNotes bullet (e.g. "With an AOW cert and 25-99 logged dives, you fall into the Intermediate tier for this dive."). Then address the match or mismatch between that tier and this specific dive's conditions. Always reference the diver's actual cert level, logged dive count, and time since last dive. Cert depth limits: Open Water = 60ft/18m max, Advanced Open Water = 100ft/30m max, Deep Specialty = 130ft/40m max. Flag a cert exceedance ONLY if the planned depth is strictly greater than the cert limit. Do not flag if depth equals or is less than the limit. Examples: 90ft with AOW (limit 100ft) = within limits, no flag. 101ft with AOW = exceeds limit, flag it. If last dive was 6-12 months ago, recommend a refresher. If 12+ months ago, strongly advise a refresher dive before this one.
 
 gearNotes: 1-3 strings. Review the diver's actual gear list against this dive's conditions. Only flag gear that is inadequate OR notably well-suited. If wetsuit is inadequate for water temp, state the specific water temp and minimum recommended wetsuit thickness. If gear is appropriate overall, say so in one sentence. If no gear is logged, note that the diver should verify gear suitability for the conditions.
 
