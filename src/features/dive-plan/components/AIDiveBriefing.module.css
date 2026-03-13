@@ -87,36 +87,38 @@
 .conditionCard {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 6px;
   padding: var(--space-3);
-  background: rgba(15, 23, 42, 0.6);
-  border: 1px solid rgba(51, 65, 85, 0.4);
+  background: rgba(15, 23, 42, 0.7);
+  border: 1px solid rgba(51, 65, 85, 0.5);
   border-radius: var(--radius-lg);
   transition:
     box-shadow 0.2s ease,
     border-color 0.2s ease;
 }
 
+/* Change 2 & 7 — stronger hover glow */
 .conditionCard:hover {
-  border-color: rgba(103, 232, 249, 0.25);
+  border-color: rgba(103, 232, 249, 0.35);
   box-shadow:
-    0 0 0 1px rgba(103, 232, 249, 0.3),
-    0 0 12px rgba(103, 232, 249, 0.08);
+    0 0 0 1px rgba(103, 232, 249, 0.4),
+    0 0 16px rgba(103, 232, 249, 0.12);
 }
 
 .conditionCardLabel {
   font-size: 0.65rem;
-  font-weight: var(--font-weight-medium);
+  font-weight: var(--font-weight-semibold);
   text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: var(--color-text-disabled);
+  letter-spacing: 0.07em;
+  color: var(--color-text-tertiary);
 }
 
+/* Change 2 — larger, more prominent values */
 .conditionCardValue {
-  font-size: var(--font-size-sm);
-  font-weight: var(--font-weight-medium);
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
   color: var(--color-text-primary);
-  line-height: 1.3;
+  line-height: 1.2;
 }
 
 /* Cert qualification indicators */
@@ -165,14 +167,14 @@
   color: #fbbf24;
 }
 
-/* === BEFORE YOU DIVE === */
+/* === BEFORE YOU DIVE (Change 3 & 8) === */
 .beforeYouDiveBlock {
   display: flex;
   flex-direction: column;
-  gap: var(--space-1);
+  gap: var(--space-2);
   padding: var(--space-3) var(--space-4);
-  background: rgba(6, 182, 212, 0.08);
-  border-left: 3px solid var(--color-accent-primary);
+  background: rgba(103, 232, 249, 0.06);
+  border-left: 3px solid var(--color-accent-light);
   border-radius: 0 var(--radius-md) var(--radius-md) 0;
 }
 
@@ -180,8 +182,8 @@
   font-size: 0.65rem;
   font-weight: var(--font-weight-semibold);
   text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: var(--color-accent-primary);
+  letter-spacing: 0.08em;
+  color: var(--color-accent-light);
 }
 
 .beforeYouDiveText {
@@ -191,7 +193,7 @@
   margin: 0;
 }
 
-/* === KEY CONSIDERATIONS === */
+/* === KEY CONSIDERATIONS (Change 4) === */
 .keyConsiderationsBlock {
   display: flex;
   flex-direction: column;
@@ -202,20 +204,21 @@
   font-size: 0.65rem;
   font-weight: var(--font-weight-semibold);
   text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: var(--color-text-muted);
+  letter-spacing: 0.08em;
+  color: var(--color-accent-light);
 }
 
-/* === STATIC SECTIONS === */
+/* === STATIC SECTIONS (Changes 5, 6, 7) === */
 .sectionsContainer {
   display: flex;
   flex-direction: column;
   gap: var(--space-3);
 }
 
+/* Change 6 — elevated card background with visible border */
 .sectionItem {
-  background: rgba(15, 23, 42, 0.5);
-  border: 1px solid rgba(51, 65, 85, 0.5);
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: var(--radius-lg);
   overflow: hidden;
   transition:
@@ -223,11 +226,12 @@
     border-color 0.2s ease;
 }
 
+/* Change 7 — stronger hover glow */
 .sectionItem:hover {
-  border-color: rgba(103, 232, 249, 0.25);
+  border-color: rgba(103, 232, 249, 0.35);
   box-shadow:
-    0 0 0 1px rgba(103, 232, 249, 0.3),
-    0 0 12px rgba(103, 232, 249, 0.08);
+    0 0 0 1px rgba(103, 232, 249, 0.4),
+    0 0 16px rgba(103, 232, 249, 0.12);
 }
 
 .sectionHeader {
@@ -241,13 +245,13 @@
 }
 
 .sectionTitle {
-  font-size: var(--font-size-sm);
+  font-size: var(--font-size-base);
   font-weight: var(--font-weight-semibold);
-  color: var(--color-text-secondary);
+  color: var(--color-text-primary);
 }
 
 .sectionContent {
-  padding: 0 var(--space-4) var(--space-4);
+  padding: var(--space-2) var(--space-4) var(--space-4);
 }
 
 .sectionBullets {
@@ -268,13 +272,15 @@
   color: var(--color-text-tertiary);
 }
 
+/* Change 9 — cyan bullet dots */
 .sectionBulletDot {
   flex-shrink: 0;
   width: 4px;
   height: 4px;
   margin-top: 8px;
-  background: var(--color-text-disabled);
+  background: var(--color-accent-light);
   border-radius: 50%;
+  opacity: 0.7;
 }
 
 .sectionParagraph {
@@ -326,7 +332,7 @@
   composes: skeleton;
   height: 3.5rem;
   border-radius: 0 var(--radius-md) var(--radius-md) 0;
-  border-left: 3px solid rgba(6, 182, 212, 0.3);
+  border-left: 3px solid rgba(103, 232, 249, 0.3);
 }
 
 .skeletonSection {
@@ -341,8 +347,8 @@
   background: linear-gradient(
     90deg,
     transparent 0%,
-    rgba(51, 65, 85, 0.5) 20%,
-    rgba(51, 65, 85, 0.5) 80%,
+    rgba(103, 232, 249, 0.15) 20%,
+    rgba(103, 232, 249, 0.15) 80%,
     transparent 100%
   );
   margin: var(--space-1) 0;
