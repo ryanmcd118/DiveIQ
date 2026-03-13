@@ -96,6 +96,8 @@ function riskBadgeStyle(risk: string): { background: string; color: string } {
   if (risk === "Low")
     return { background: "rgba(16,185,129,0.15)", color: "#6ee7b7" };
   if (risk === "High")
+    return { background: "rgba(249,115,22,0.15)", color: "#fdba74" };
+  if (risk === "Extreme")
     return { background: "rgba(239,68,68,0.15)", color: "#fca5a5" };
   return { background: "rgba(245,158,11,0.15)", color: "#fcd34d" };
 }

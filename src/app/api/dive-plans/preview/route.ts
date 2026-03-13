@@ -29,7 +29,19 @@ export async function POST(req: NextRequest) {
 
     // Convert to meters for risk calculation
     const maxDepthMeters = cmToMeters(body.maxDepthCm);
-    const riskLevel = calculateRiskLevel(maxDepthMeters, body.bottomTime);
+    const riskLevel = calculateRiskLevel({
+      maxDepthMeters,
+      bottomTime: body.bottomTime,
+      region: body.region,
+      siteName: body.siteName,
+      certifications: body.profile?.certifications?.map((c) => c.name),
+      highestCert: body.manualExperience?.highestCert,
+      totalDives: body.profile?.totalDives,
+      diveCountRange: body.manualExperience?.diveCountRange,
+      lastDiveDate: body.profile?.lastDiveDate,
+      lastDiveRecency: body.manualExperience?.lastDiveRecency,
+      planDate: body.date,
+    });
 
     // Get unit system from preferences (default to metric if not provided)
     const unitSystem: UnitSystem = body.unitPreferences

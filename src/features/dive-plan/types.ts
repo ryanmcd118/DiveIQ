@@ -1,7 +1,7 @@
 // Dive Plan Types
 
 export type ExperienceLevel = "Beginner" | "Intermediate" | "Advanced";
-export type RiskLevel = "Low" | "Moderate" | "High";
+export type RiskLevel = "Low" | "Moderate" | "High" | "Extreme";
 
 export type PlanData = {
   region: string;

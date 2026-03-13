@@ -42,7 +42,16 @@ export async function POST(req: NextRequest) {
 
     // Convert to meters for risk calculation
     const maxDepthMeters = cmToMeters(body.maxDepthCm);
-    const riskLevel = calculateRiskLevel(maxDepthMeters, body.bottomTime);
+    const riskLevel = calculateRiskLevel({
+      maxDepthMeters,
+      bottomTime: body.bottomTime,
+      region: body.region,
+      siteName: body.siteName,
+      certifications: body.profile?.certifications?.map((c) => c.name),
+      totalDives: body.profile?.totalDives,
+      lastDiveDate: body.profile?.lastDiveDate,
+      planDate: body.date,
+    });
 
     // Get user preferences for AI formatting (default to metric if not provided)
     const unitSystem: UnitSystem = body.unitPreferences
@@ -143,7 +152,16 @@ export async function PUT(req: NextRequest) {
 
     // Convert to meters for risk calculation
     const maxDepthMeters = cmToMeters(body.maxDepthCm);
-    const riskLevel = calculateRiskLevel(maxDepthMeters, body.bottomTime);
+    const riskLevel = calculateRiskLevel({
+      maxDepthMeters,
+      bottomTime: body.bottomTime,
+      region: body.region,
+      siteName: body.siteName,
+      certifications: body.profile?.certifications?.map((c) => c.name),
+      totalDives: body.profile?.totalDives,
+      lastDiveDate: body.profile?.lastDiveDate,
+      planDate: body.date,
+    });
 
     // Get user preferences for AI formatting (default to metric if not provided)
     const unitSystem: UnitSystem = body.unitPreferences

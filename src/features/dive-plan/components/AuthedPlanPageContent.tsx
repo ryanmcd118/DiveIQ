@@ -29,6 +29,8 @@ function riskBadgeStyle(risk: string): { background: string; color: string } {
   if (risk === "Low")
     return { background: "rgba(16,185,129,0.15)", color: "#6ee7b7" };
   if (risk === "High")
+    return { background: "rgba(249,115,22,0.15)", color: "#fdba74" };
+  if (risk === "Extreme")
     return { background: "rgba(239,68,68,0.15)", color: "#fca5a5" };
   return { background: "rgba(245,158,11,0.15)", color: "#fcd34d" };
 }
@@ -134,8 +136,12 @@ export function AuthedPlanPageContent() {
           return tb - ta;
         }
         case "risk-desc": {
-          const rank = (r: string) =>
-            r === "High" ? 0 : r === "Medium" ? 1 : 2;
+          const rank = (r: string) => {
+            if (r === "Extreme") return 0;
+            if (r === "High") return 1;
+            if (r === "Moderate") return 2;
+            return 3;
+          };
           return rank(a.riskLevel) - rank(b.riskLevel);
         }
         case "region-asc":

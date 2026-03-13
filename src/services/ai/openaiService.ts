@@ -4,6 +4,7 @@ import { parseAIBriefing } from "@/features/dive-plan/lib/parseAIBriefing";
 import type { UnitSystem } from "@/lib/units";
 import { mToFt } from "@/lib/units";
 import type { AIBriefing } from "@/features/dive-plan/types";
+import { resolveHighestCert } from "@/features/dive-plan/services/riskCalculator";
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -144,48 +145,6 @@ If diver profile data is partially or fully absent (e.g. a guest user who did no
 - experienceNotes: if no cert level is provided, note that cert level and experience are unknown and flag any depth or condition thresholds the diver should be aware of regardless of experience (e.g. if depth exceeds 60ft/18m, note this exceeds Open Water limits and cert verification is advised).
 - gearNotes: if no gear is logged, say "No gear on record — verify your equipment is appropriate for [waterTemp] water at [depth]."
 Never hallucinate profile data. If a field is unknown, either omit the reference or explicitly state it is unknown.`.trim();
-}
-
-type ResolvedCert = { name: string; depthLimitFt: number };
-
-function resolveHighestCert(certs: string[]): ResolvedCert {
-  const TIERS: { test: (n: string) => boolean; result: ResolvedCert }[] = [
-    {
-      test: (n) => /tec|tech|trimix|rebreather|ccr/i.test(n),
-      result: { name: "Technical", depthLimitFt: 999 },
-    },
-    {
-      test: (n) => /divemaster|(?<!\w)dm(?!\w)/i.test(n),
-      result: { name: "Divemaster", depthLimitFt: 130 },
-    },
-    {
-      test: (n) => /rescue/i.test(n),
-      result: { name: "Rescue Diver", depthLimitFt: 130 },
-    },
-    {
-      test: (n) => /deep/i.test(n),
-      result: { name: "Deep Specialty", depthLimitFt: 130 },
-    },
-    {
-      test: (n) => /advanced open water|aowd?/i.test(n),
-      result: { name: "Advanced Open Water", depthLimitFt: 100 },
-    },
-    {
-      test: (n) => /open water|owd/i.test(n) && !/advanced/i.test(n),
-      result: { name: "Open Water", depthLimitFt: 60 },
-    },
-  ];
-
-  let best: ResolvedCert = { name: "Unknown", depthLimitFt: 60 };
-  for (const cert of certs) {
-    for (const tier of TIERS) {
-      if (tier.test(cert) && tier.result.depthLimitFt > best.depthLimitFt) {
-        best = tier.result;
-        break; // tiers are ordered; no need to check lower ones for this cert
-      }
-    }
-  }
-  return best;
 }
 
 function buildUpdatedSystemPrompt(unitSystem: UnitSystem = "metric"): string {
