@@ -383,11 +383,11 @@ export function PlanForm({
                 </p>
               )}
               <a
-                href="/profile"
+                href="/certifications"
                 className={planFormStyles.certEditLink}
                 style={{ display: "inline-block", marginTop: "var(--space-2)" }}
               >
-                Edit in profile →
+                Edit certifications →
               </a>
             </div>
           </div>
