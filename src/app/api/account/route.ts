@@ -19,9 +19,9 @@ export async function DELETE(_req: NextRequest) {
   const userId = session.user.id;
 
   try {
-    // Perform defensive deletion in a transaction
-    // Even though we have cascade deletes, this ensures proper order
-    // and handles any edge cases where cascades might not behave as expected
+    // Cascade deletion is done manually in sequence despite schema-level
+    // onDelete: Cascade — defensive measure for edge cases during the
+    // SQLite → PostgreSQL migration (DIV-41). Reassess after DIV-41.
     await prisma.$transaction(async (tx) => {
       // 1. Delete Sessions for user (cascade from User)
       await tx.session.deleteMany({

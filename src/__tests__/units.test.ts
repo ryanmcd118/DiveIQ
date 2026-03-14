@@ -219,6 +219,14 @@ describe("Unit Conversions - Canary Tests", () => {
         })
       ).toBe("imperial");
     });
+
+    it("returns metric when prefs is null", () => {
+      expect(preferencesToUnitSystem(null)).toBe("metric");
+    });
+
+    it("returns metric when prefs is undefined", () => {
+      expect(preferencesToUnitSystem(undefined)).toBe("metric");
+    });
   });
 
   describe("Pressure Conversions", () => {

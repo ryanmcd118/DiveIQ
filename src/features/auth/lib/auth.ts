@@ -4,6 +4,7 @@ import GoogleProvider from "next-auth/providers/google";
 import { PrismaAdapter } from "@next-auth/prisma-adapter";
 import { prisma } from "@/lib/prisma";
 import bcrypt from "bcryptjs";
+import { splitFullName } from "@/features/auth/lib/name";
 
 // Helper functions for safe property access
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -50,30 +51,7 @@ export function extractNamesFromGoogleProfile(
   const profileName = getStringProp(profile, "name");
   const userName = getStringProp(user, "name");
   const fullName = profileName || userName || "";
-  if (fullName) {
-    const trimmed = fullName.trim();
-    if (trimmed) {
-      const nameParts = trimmed.split(/\s+/);
-      if (nameParts.length === 1) {
-        return {
-          firstName: nameParts[0],
-          lastName: null,
-        };
-      } else {
-        // First token is firstName, rest joined as lastName (preserves compound names like "Van Dyke")
-        return {
-          firstName: nameParts[0],
-          lastName: nameParts.slice(1).join(" "),
-        };
-      }
-    }
-  }
-
-  // If no name available, return null for both
-  return {
-    firstName: null,
-    lastName: null,
-  };
+  return splitFullName(fullName);
 }
 
 export const authOptions: NextAuthOptions = {
@@ -353,10 +331,8 @@ export const authOptions: NextAuthOptions = {
         if ("firstName" in user && "lastName" in user) {
           token.firstName = user.firstName as string | null;
           token.lastName = user.lastName as string | null;
-          const userAvatarUrl = readAvatarUrlFromUnknown(user);
-          if (userAvatarUrl !== undefined) {
-            token.avatarUrl = userAvatarUrl;
-          }
+          token.avatarUrl = (user as unknown as Record<string, unknown>)
+            .avatarUrl as string | null | undefined;
         } else if (user.id) {
           // Fetch user from DB to get firstName/lastName/avatarUrl/sessionVersion (for OAuth providers)
           const dbUser = await prisma.user.findUnique({
@@ -497,9 +473,12 @@ export const authOptions: NextAuthOptions = {
         return session;
       }
 
-      // If token is invalidated or missing, return session unchanged
-      // Proxy will handle enforcement and redirects
+      // If token is invalidated or missing, clear session user to force re-auth.
+      // Route handlers check !session?.user and pages check session?.user?.id,
+      // so wiping user data is sufficient to block access without middleware.
       if (token?.invalidated || !token || (!token.id && !token.sub)) {
+        // Clear user data so route handler auth checks (!session?.user) reject
+        (session as unknown as Record<string, unknown>).user = undefined;
         return session;
       }
 

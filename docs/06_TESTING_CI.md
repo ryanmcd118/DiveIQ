@@ -2,7 +2,7 @@
 
 ## Test Suite Summary
 
-**556 tests** across **22 test files**
+**588 tests** across **23 test files**
 **Coverage:** 75.84% statements | 86.62% branches | 88.6% functions | 75.84% lines
 **All thresholds passing** (floors: 30% stmts / 25% branches / 30% funcs / 30% lines)
 
@@ -25,34 +25,35 @@ src/__tests__/
 │   └── mockPrisma.ts                       # Full Prisma client mock
 │
 │ Pure function tests
-├── units.test.ts                           # 69 tests — unit conversions, parsing, formatting
+├── units.test.ts                           # 71 tests — unit conversions, parsing, formatting
 ├── riskCalculator.test.ts                  # 40 tests — risk scoring, NDL interpolation, cert resolution
 ├── parseAIBriefing.test.ts                 # 20 tests — AI briefing JSON parser
 ├── openaiService.test.ts                   # 65 tests — deterministic AI service functions
 ├── auth-extract-names.test.ts              # 10 tests — Google OAuth name extraction
-├── auth-name.test.ts                       # 20 tests — splitFullName, getDisplayName
-├── maintenance.test.ts                     # 22 tests — gear maintenance status + sorting
+├── auth-name.test.ts                       # 26 tests — splitFullName, getDisplayName
+├── maintenance.test.ts                     # 21 tests — gear maintenance status + sorting
+├── normalizeProfile.test.ts               # 21 tests — profile normalization utility
 │
 │ API route tests
 ├── api-signup.test.ts                      # 17 tests — POST /api/auth/signup
 ├── api-dive-logs.test.ts                   # 29 tests — GET/POST /api/dive-logs (CRUD + gear)
-├── api-dive-plans.test.ts                  # 33 tests — GET/POST/PUT/DELETE /api/dive-plans + preview
-├── api-profile.test.ts                     # 25 tests — GET/PATCH /api/profile
-├── api-certifications.test.ts              # 22 tests — GET/POST + PATCH/DELETE /api/certifications
+├── api-dive-plans.test.ts                  # 38 tests — GET/POST/PUT/DELETE /api/dive-plans + preview
+├── api-profile.test.ts                     # 29 tests — GET/PATCH /api/profile
+├── api-certifications.test.ts              # 21 tests — GET/POST + PATCH/DELETE /api/certifications
 ├── api-certifications-definitions.test.ts  # 4 tests  — GET /api/certifications/definitions
-├── api-account.test.ts                     # 14 tests — DELETE /api/account + PUT /api/account/password
+├── api-account.test.ts                     # 15 tests — DELETE /api/account + PUT /api/account/password
 ├── api-gear.test.ts                        # 21 tests — GET/POST/PUT/DELETE /api/gear
-├── api-gear-kits.test.ts                   # 22 tests — GET/POST/PUT/DELETE /api/gear-kits
+├── api-gear-kits.test.ts                   # 23 tests — GET/POST/PUT/DELETE /api/gear-kits
 ├── api-me.test.ts                          # 13 tests — GET /api/me + PATCH /api/me/avatar
-├── api-user-preferences.test.ts            # 13 tests — GET/PATCH /api/user/preferences
+├── api-user-preferences.test.ts            # 12 tests — GET/PATCH /api/user/preferences
 │
 │ Repository tests
-├── repo-diveLog.test.ts                    # 24 tests — userId scoping, ownership, recompute, stats
-├── repo-divePlan.test.ts                   # 17 tests — userId scoping, ownership, type casting
-├── repo-gear.test.ts                       # 36 tests — gear/gearKit/diveGear userId scoping
+├── repo-diveLog.test.ts                    # 22 tests — userId scoping, ownership, recompute, stats
+├── repo-divePlan.test.ts                   # 15 tests — userId scoping, ownership, type casting
+├── repo-gear.test.ts                       # 33 tests — gear/gearKit/diveGear userId scoping
 │
 │ Auth callback tests
-└── auth-callbacks.test.ts                  # 20 tests — credentials authorize, JWT, session callbacks
+└── auth-callbacks.test.ts                  # 22 tests — credentials authorize, JWT, session callbacks
 ```
 
 ## Vitest Configuration
@@ -126,19 +127,19 @@ Uses placeholder env vars. No real credentials needed — all external dependenc
 
 ## Documented Acceptable Gaps
 
-| File/Area                                         | Coverage    | Why acceptable                                                                                                                         |
-| ------------------------------------------------- | ----------- | -------------------------------------------------------------------------------------------------------------------------------------- |
-| `openaiService.ts` async functions                | 58.8% stmts | Make real OpenAI API calls. All 7 deterministic pure functions tested (65 tests). Async wrappers are thin orchestration.               |
-| `auth.ts` Google OAuth signIn callback            | 46.5% stmts | 200 lines of OAuth account linking. Complex mock setup, stable code. Credentials authorize + JWT + session callbacks are fully tested. |
-| `auth.ts` JWT update trigger path                 | —           | Avatar URL propagation through 3 update shapes. Low-risk, rarely changes.                                                              |
-| `profile/route.ts` email-fallback + user-creation | 67.5% stmts | Dev resilience code that creates users on GET. Flagged for removal in DIV-10.                                                          |
-| `account/route.ts` transaction interior           | 35.9% stmts | 9-step cascade deletion inside `$transaction`. Auth + error paths tested. Interior runs inside mock boundary.                          |
-| `dive-plans/profile-context/route.ts`             | 0%          | Data aggregation route, no mutations. P2 priority, deferred.                                                                           |
-| `gear/default-kit/route.ts`                       | 0%          | 28-line simple GET. Low value.                                                                                                         |
-| `uploadthing/`                                    | 0%          | SDK wrappers, no custom logic.                                                                                                         |
-| `weatherService.ts`                               | 0%          | Unimplemented stub (TODO).                                                                                                             |
-| `diveMath.ts`, `validation.ts`                    | 0%          | Empty files.                                                                                                                           |
-| `auth/[...nextauth]/route.ts`                     | 0%          | NextAuth catch-all handler, just re-exports.                                                                                           |
+| File/Area                               | Coverage    | Why acceptable                                                                                                                         |
+| --------------------------------------- | ----------- | -------------------------------------------------------------------------------------------------------------------------------------- |
+| `openaiService.ts` async functions      | 58.8% stmts | Make real OpenAI API calls. All 7 deterministic pure functions tested (65 tests). Async wrappers are thin orchestration.               |
+| `auth.ts` Google OAuth signIn callback  | 46.5% stmts | 200 lines of OAuth account linking. Complex mock setup, stable code. Credentials authorize + JWT + session callbacks are fully tested. |
+| `auth.ts` JWT update trigger path       | —           | Avatar URL propagation through 3 update shapes. Low-risk, rarely changes.                                                              |
+| `profile/route.ts`                      | —           | User-creation side effect removed in DIV-10. Normalization extracted to utility with dedicated tests.                                  |
+| `account/route.ts` transaction interior | 35.9% stmts | 9-step cascade deletion inside `$transaction`. Auth + error paths tested. Interior runs inside mock boundary.                          |
+| `dive-plans/profile-context/route.ts`   | 0%          | Data aggregation route, no mutations. P2 priority, deferred.                                                                           |
+| `gear/default-kit/route.ts`             | 0%          | 28-line simple GET. Low value.                                                                                                         |
+| `uploadthing/`                          | 0%          | SDK wrappers, no custom logic.                                                                                                         |
+| `weatherService.ts`                     | 0%          | Unimplemented stub (TODO).                                                                                                             |
+| `diveMath.ts`, `validation.ts`          | 0%          | Empty files.                                                                                                                           |
+| `auth/[...nextauth]/route.ts`           | 0%          | NextAuth catch-all handler, just re-exports.                                                                                           |
 
 ## Out of Scope (by design)
 

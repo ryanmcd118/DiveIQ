@@ -2,6 +2,60 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/features/auth/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { normalizeProfileUpdate } from "@/features/profile/utils/normalizeProfile";
+
+const USER_PROFILE_SELECT = {
+  id: true,
+  email: true,
+  firstName: true,
+  lastName: true,
+  image: true,
+  avatarUrl: true,
+  birthday: true,
+  location: true,
+  bio: true,
+  pronouns: true,
+  website: true,
+  homeDiveRegion: true,
+  languages: true,
+  primaryDiveTypes: true,
+  experienceLevel: true,
+  yearsDiving: true,
+  certifyingAgency: true,
+  typicalDivingEnvironment: true,
+  lookingFor: true,
+  favoriteDiveLocation: true,
+  showCertificationsOnProfile: true,
+  showGearOnProfile: true,
+} as const;
+
+const USER_PROFILE_WITH_KITS_SELECT = {
+  ...USER_PROFILE_SELECT,
+  profileKits: {
+    select: {
+      kitId: true,
+      kit: {
+        select: {
+          id: true,
+          name: true,
+          kitItems: {
+            select: {
+              gearItem: {
+                select: {
+                  id: true,
+                  type: true,
+                  manufacturer: true,
+                  model: true,
+                  purchaseDate: true,
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+  },
+} as const;
 
 /**
  * GET /api/profile
@@ -56,54 +110,7 @@ export async function GET() {
     // Try to find user by ID first
     let user = await prisma.user.findUnique({
       where: { id: userId },
-      select: {
-        id: true,
-        email: true,
-        firstName: true,
-        lastName: true,
-        image: true,
-        avatarUrl: true,
-        birthday: true,
-        location: true,
-        bio: true,
-        pronouns: true,
-        website: true,
-        homeDiveRegion: true,
-        languages: true,
-        primaryDiveTypes: true,
-        experienceLevel: true,
-        yearsDiving: true,
-        certifyingAgency: true,
-        typicalDivingEnvironment: true,
-        lookingFor: true,
-        favoriteDiveLocation: true,
-        showCertificationsOnProfile: true,
-        showGearOnProfile: true,
-        profileKits: {
-          select: {
-            kitId: true,
-            kit: {
-              select: {
-                id: true,
-                name: true,
-                kitItems: {
-                  select: {
-                    gearItem: {
-                      select: {
-                        id: true,
-                        type: true,
-                        manufacturer: true,
-                        model: true,
-                        purchaseDate: true,
-                      },
-                    },
-                  },
-                },
-              },
-            },
-          },
-        },
-      },
+      select: USER_PROFILE_WITH_KITS_SELECT,
     });
 
     // Transform profile kits to a simpler structure if user exists
@@ -149,154 +156,12 @@ export async function GET() {
       }
       user = await prisma.user.findUnique({
         where: { email: userEmail },
-        select: {
-          id: true,
-          email: true,
-          firstName: true,
-          lastName: true,
-          image: true,
-          avatarUrl: true,
-          birthday: true,
-          location: true,
-          bio: true,
-          pronouns: true,
-          website: true,
-          homeDiveRegion: true,
-          languages: true,
-          primaryDiveTypes: true,
-          experienceLevel: true,
-          yearsDiving: true,
-          certifyingAgency: true,
-          typicalDivingEnvironment: true,
-          lookingFor: true,
-          favoriteDiveLocation: true,
-          showCertificationsOnProfile: true,
-          showGearOnProfile: true,
-          profileKits: {
-            select: {
-              kitId: true,
-              kit: {
-                select: {
-                  id: true,
-                  name: true,
-                  kitItems: {
-                    select: {
-                      gearItem: {
-                        select: {
-                          id: true,
-                          type: true,
-                          manufacturer: true,
-                          model: true,
-                          purchaseDate: true,
-                        },
-                      },
-                    },
-                  },
-                },
-              },
-            },
-          },
-        },
-      });
-    }
-
-    // If still not found, recover by creating user record (dev resilience)
-    if (!user && userEmail) {
-      if (process.env.NODE_ENV === "development") {
-        console.log(
-          "[GET /api/profile] User not found, recovering by creating user record"
-        );
-      }
-
-      // Extract firstName/lastName from session if available
-      let recoveryFirstName: string | null = session.user.firstName || null;
-      let recoveryLastName: string | null = session.user.lastName || null;
-
-      // If names missing, try to split session.user.name
-      if (!recoveryFirstName) {
-        const sessionUserUnknown = session.user as unknown;
-        if (
-          sessionUserUnknown &&
-          typeof sessionUserUnknown === "object" &&
-          "name" in sessionUserUnknown &&
-          typeof sessionUserUnknown.name === "string"
-        ) {
-          const nameParts = sessionUserUnknown.name.trim().split(/\s+/);
-          if (nameParts.length > 0) {
-            recoveryFirstName = nameParts[0];
-            recoveryLastName =
-              nameParts.length > 1 ? nameParts.slice(1).join(" ") : null;
-          }
-        }
-      }
-
-      // Create user record with available data
-      user = await prisma.user.create({
-        data: {
-          email: userEmail,
-          firstName: recoveryFirstName,
-          lastName: recoveryLastName,
-          emailVerified: new Date(),
-        },
-        select: {
-          id: true,
-          email: true,
-          firstName: true,
-          lastName: true,
-          image: true,
-          avatarUrl: true,
-          birthday: true,
-          location: true,
-          bio: true,
-          pronouns: true,
-          website: true,
-          homeDiveRegion: true,
-          languages: true,
-          primaryDiveTypes: true,
-          experienceLevel: true,
-          yearsDiving: true,
-          certifyingAgency: true,
-          typicalDivingEnvironment: true,
-          lookingFor: true,
-          favoriteDiveLocation: true,
-          showCertificationsOnProfile: true,
-          showGearOnProfile: true,
-          profileKits: {
-            select: {
-              kitId: true,
-              kit: {
-                select: {
-                  id: true,
-                  name: true,
-                  kitItems: {
-                    select: {
-                      gearItem: {
-                        select: {
-                          id: true,
-                          type: true,
-                          manufacturer: true,
-                          model: true,
-                          purchaseDate: true,
-                        },
-                      },
-                    },
-                  },
-                },
-              },
-            },
-          },
-        },
+        select: USER_PROFILE_WITH_KITS_SELECT,
       });
     }
 
     if (!user) {
-      if (process.env.NODE_ENV === "development") {
-        console.error("[GET /api/profile] Unable to find or create user");
-      }
-      return NextResponse.json(
-        { error: "Unable to load user profile" },
-        { status: 500 }
-      );
+      return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
     if (process.env.NODE_ENV === "development") {
@@ -346,260 +211,28 @@ export async function PATCH(req: NextRequest) {
     }
 
     const body = await req.json();
+    const { data, profileKitIds, validationError } =
+      normalizeProfileUpdate(body);
 
-    // Whitelist only allowed profile fields - explicitly exclude certifications and other fields
-    // This prevents any accidental inclusion of certifications, userCertifications, or nested objects
-    const {
-      firstName,
-      lastName,
-      birthday,
-      location,
-      bio,
-      pronouns,
-      website,
-      homeDiveRegion,
-      languages,
-      primaryDiveTypes,
-      experienceLevel,
-      yearsDiving,
-      certifyingAgency,
-      typicalDivingEnvironment,
-      lookingFor,
-      favoriteDiveLocation,
-      showCertificationsOnProfile,
-      showGearOnProfile,
-      profileKitIds,
-    } = body;
-
-    // Explicitly ignore any other fields (especially certifications, userCertifications, etc.)
-    // Only the whitelisted fields above will be processed
-
-    // Validate profileKitIds if provided
-    let normalizedProfileKitIds: string[] | undefined = undefined;
-    if (profileKitIds !== undefined) {
-      if (!Array.isArray(profileKitIds)) {
-        return NextResponse.json(
-          { error: "profileKitIds must be an array" },
-          { status: 400 }
-        );
-      }
-      // Filter out invalid values and ensure all are strings
-      normalizedProfileKitIds = profileKitIds
-        .filter(
-          (id): id is string => typeof id === "string" && id.trim() !== ""
-        )
-        .map((id) => id.trim());
-    }
-
-    // Normalize string values: trim and convert empty strings to null
-    const normalizeString = (val: string | null | undefined): string | null => {
-      if (val === undefined || val === null) return null;
-      const trimmed = val.trim();
-      return trimmed === "" ? null : trimmed;
-    };
-
-    // Normalize website URL: prepend https:// if missing protocol
-    const normalizeWebsiteUrl = (
-      url: string | null | undefined
-    ): string | null => {
-      const normalized = normalizeString(url);
-      if (!normalized) return null;
-
-      // If it already starts with http:// or https://, return as-is
-      if (
-        normalized.startsWith("http://") ||
-        normalized.startsWith("https://")
-      ) {
-        return normalized;
-      }
-
-      // Otherwise, prepend https://
-      return `https://${normalized}`;
-    };
-
-    // Normalize values first for validation
-    const normalizedFirstName = normalizeString(firstName);
-    const normalizedLastName = normalizeString(lastName);
-    const normalizedBio = normalizeString(bio);
-    const normalizedWebsite = normalizeWebsiteUrl(website); // Normalize website URL (prepend https:// if needed)
-    const normalizedLocation = normalizeString(location);
-    const normalizedPronouns = normalizeString(pronouns);
-    const normalizedHomeDiveRegion = normalizeString(homeDiveRegion);
-    const normalizedLanguages = normalizeString(languages);
-    const normalizedPrimaryDiveTypes = normalizeString(primaryDiveTypes);
-    const normalizedExperienceLevel = normalizeString(experienceLevel);
-    const normalizedCertifyingAgency = normalizeString(certifyingAgency);
-    const normalizedTypicalDivingEnvironment = normalizeString(
-      typicalDivingEnvironment
-    );
-    const normalizedLookingFor = normalizeString(lookingFor);
-    const normalizedFavoriteDiveLocation =
-      normalizeString(favoriteDiveLocation);
-
-    // Validate firstName/lastName max length (if provided)
-    if (normalizedFirstName && normalizedFirstName.length > 50) {
+    if (validationError) {
       return NextResponse.json(
-        { error: "First name must be 50 characters or less" },
-        { status: 400 }
-      );
-    }
-    if (normalizedLastName && normalizedLastName.length > 50) {
-      return NextResponse.json(
-        { error: "Last name must be 50 characters or less" },
-        { status: 400 }
+        { error: validationError.error },
+        { status: validationError.status }
       );
     }
 
-    // Validate bio max length (if provided)
-    if (normalizedBio && normalizedBio.length > 500) {
-      return NextResponse.json(
-        { error: "Bio must be 500 characters or less" },
-        { status: 400 }
-      );
-    }
-
-    // Validate website URL format (if provided, after normalization)
-    if (normalizedWebsite) {
-      try {
-        // Validate using URL constructor (will throw if invalid)
-        new URL(normalizedWebsite);
-      } catch {
-        return NextResponse.json(
-          { error: "Please enter a valid website address" },
-          { status: 400 }
-        );
-      }
-    }
-
-    // Parse birthday if provided - normalize to noon UTC to avoid timezone issues
-    let birthdayDate: Date | null = null;
-    if (birthday !== undefined) {
-      if (birthday !== null && birthday !== "") {
-        // Parse the date string (expected format: YYYY-MM-DD)
-        const dateParts = birthday.split("-");
-        if (dateParts.length !== 3) {
-          return NextResponse.json(
-            { error: "Invalid birthday date format" },
-            { status: 400 }
-          );
-        }
-
-        // Create date at noon UTC to avoid timezone shifts
-        birthdayDate = new Date(
-          Date.UTC(
-            parseInt(dateParts[0], 10),
-            parseInt(dateParts[1], 10) - 1, // Month is 0-indexed
-            parseInt(dateParts[2], 10),
-            12,
-            0,
-            0,
-            0 // Noon UTC
-          )
-        );
-
-        if (isNaN(birthdayDate.getTime())) {
-          return NextResponse.json(
-            { error: "Invalid birthday date format" },
-            { status: 400 }
-          );
-        }
-      } else {
-        // Explicitly set to null to clear the field
-        birthdayDate = null;
-      }
-    }
-
-    // Normalize yearsDiving (convert to integer or null)
-    let normalizedYearsDiving: number | null = null;
-    if (
-      yearsDiving !== undefined &&
-      yearsDiving !== null &&
-      yearsDiving !== ""
-    ) {
-      const parsed =
-        typeof yearsDiving === "number"
-          ? yearsDiving
-          : parseInt(String(yearsDiving), 10);
-      if (!isNaN(parsed) && parsed >= 0) {
-        normalizedYearsDiving = parsed;
-      }
-    }
-
-    // Update user profile (only allowed fields) - use normalized values
+    // Update user profile with select that includes kits
     const updatedUser = await prisma.user.update({
       where: { id: session.user.id },
-      data: {
-        ...(firstName !== undefined && { firstName: normalizedFirstName }),
-        ...(lastName !== undefined && { lastName: normalizedLastName }),
-        ...(birthday !== undefined && { birthday: birthdayDate }),
-        ...(location !== undefined && { location: normalizedLocation }),
-        ...(bio !== undefined && { bio: normalizedBio }),
-        ...(pronouns !== undefined && { pronouns: normalizedPronouns }),
-        ...(website !== undefined && { website: normalizedWebsite }),
-        ...(homeDiveRegion !== undefined && {
-          homeDiveRegion: normalizedHomeDiveRegion,
-        }),
-        ...(languages !== undefined && { languages: normalizedLanguages }),
-        ...(primaryDiveTypes !== undefined && {
-          primaryDiveTypes: normalizedPrimaryDiveTypes,
-        }),
-        ...(experienceLevel !== undefined && {
-          experienceLevel: normalizedExperienceLevel,
-        }),
-        ...(yearsDiving !== undefined && {
-          yearsDiving: normalizedYearsDiving,
-        }),
-        ...(certifyingAgency !== undefined && {
-          certifyingAgency: normalizedCertifyingAgency,
-        }),
-        ...(typicalDivingEnvironment !== undefined && {
-          typicalDivingEnvironment: normalizedTypicalDivingEnvironment,
-        }),
-        ...(lookingFor !== undefined && { lookingFor: normalizedLookingFor }),
-        ...(favoriteDiveLocation !== undefined && {
-          favoriteDiveLocation: normalizedFavoriteDiveLocation,
-        }),
-        ...(showCertificationsOnProfile !== undefined && {
-          showCertificationsOnProfile: Boolean(showCertificationsOnProfile),
-        }),
-        ...(showGearOnProfile !== undefined && {
-          showGearOnProfile: Boolean(showGearOnProfile),
-        }),
-      },
-      select: {
-        id: true,
-        email: true,
-        firstName: true,
-        lastName: true,
-        image: true,
-        avatarUrl: true,
-        birthday: true,
-        location: true,
-        bio: true,
-        pronouns: true,
-        website: true,
-        homeDiveRegion: true,
-        languages: true,
-        primaryDiveTypes: true,
-        experienceLevel: true,
-        yearsDiving: true,
-        certifyingAgency: true,
-        typicalDivingEnvironment: true,
-        lookingFor: true,
-        favoriteDiveLocation: true,
-        showCertificationsOnProfile: true,
-        showGearOnProfile: true,
-      },
+      data,
+      select: USER_PROFILE_WITH_KITS_SELECT,
     });
 
     // Handle profile kit selection if showGearOnProfile is being set or profileKitIds is provided
-    if (
-      normalizedProfileKitIds !== undefined ||
-      showGearOnProfile !== undefined
-    ) {
+    if (profileKitIds !== undefined || body.showGearOnProfile !== undefined) {
       const finalShowGear =
-        showGearOnProfile !== undefined
-          ? Boolean(showGearOnProfile)
+        body.showGearOnProfile !== undefined
+          ? Boolean(body.showGearOnProfile)
           : updatedUser.showGearOnProfile;
 
       if (!finalShowGear) {
@@ -607,19 +240,19 @@ export async function PATCH(req: NextRequest) {
         await prisma.userProfileKit.deleteMany({
           where: { userId: session.user.id },
         });
-      } else if (normalizedProfileKitIds !== undefined) {
+      } else if (profileKitIds !== undefined) {
         // Verify all kit IDs belong to the user
-        if (normalizedProfileKitIds.length > 0) {
+        if (profileKitIds.length > 0) {
           const userKits = await prisma.gearKit.findMany({
             where: {
               userId: session.user.id,
-              id: { in: normalizedProfileKitIds },
+              id: { in: profileKitIds },
             },
             select: { id: true },
           });
 
           const validKitIds = userKits.map((kit) => kit.id);
-          const invalidKitIds = normalizedProfileKitIds.filter(
+          const invalidKitIds = profileKitIds.filter(
             (id) => !validKitIds.includes(id)
           );
 
@@ -636,9 +269,9 @@ export async function PATCH(req: NextRequest) {
           where: { userId: session.user.id },
         });
 
-        if (normalizedProfileKitIds.length > 0) {
+        if (profileKitIds.length > 0) {
           await prisma.userProfileKit.createMany({
-            data: normalizedProfileKitIds.map((kitId) => ({
+            data: profileKitIds.map((kitId) => ({
               userId: session.user.id,
               kitId,
             })),
@@ -647,65 +280,22 @@ export async function PATCH(req: NextRequest) {
       }
     }
 
-    // Fetch updated user with profile kits for response
-    const userWithKits = await prisma.user.findUnique({
-      where: { id: session.user.id },
-      select: {
-        id: true,
-        email: true,
-        firstName: true,
-        lastName: true,
-        image: true,
-        avatarUrl: true,
-        birthday: true,
-        location: true,
-        bio: true,
-        pronouns: true,
-        website: true,
-        homeDiveRegion: true,
-        languages: true,
-        primaryDiveTypes: true,
-        experienceLevel: true,
-        yearsDiving: true,
-        certifyingAgency: true,
-        typicalDivingEnvironment: true,
-        lookingFor: true,
-        favoriteDiveLocation: true,
-        showCertificationsOnProfile: true,
-        showGearOnProfile: true,
-        profileKits: {
-          select: {
-            kitId: true,
-            kit: {
-              select: {
-                id: true,
-                name: true,
-                kitItems: {
-                  select: {
-                    gearItem: {
-                      select: {
-                        id: true,
-                        type: true,
-                        manufacturer: true,
-                        model: true,
-                        purchaseDate: true,
-                      },
-                    },
-                  },
-                },
-              },
-            },
-          },
-        },
-      },
-    });
+    // Re-fetch only if kit mutations happened (to get updated kit data)
+    const needsRefetch =
+      profileKitIds !== undefined || body.showGearOnProfile !== undefined;
+    const finalUser = needsRefetch
+      ? await prisma.user.findUnique({
+          where: { id: session.user.id },
+          select: USER_PROFILE_WITH_KITS_SELECT,
+        })
+      : updatedUser;
 
     // Transform profile kits to a simpler structure
-    const userResponse = userWithKits
+    const userResponse = finalUser
       ? {
-          ...userWithKits,
-          profileKitIds: userWithKits.profileKits.map((pk) => pk.kitId),
-          profileKits: userWithKits.profileKits.map((pk) => ({
+          ...finalUser,
+          profileKitIds: finalUser.profileKits.map((pk) => pk.kitId),
+          profileKits: finalUser.profileKits.map((pk) => ({
             id: pk.kit.id,
             name: pk.kit.name,
             items: pk.kit.kitItems.map((ki) => ({

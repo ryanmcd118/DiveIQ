@@ -175,6 +175,54 @@ describe("jwt callback", () => {
       expect(token.lastName).toBe("Diver");
     });
 
+    it("populates avatarUrl in token from credentials user object", async () => {
+      const user = {
+        id: "user-1",
+        email: "jane@example.com",
+        firstName: "Jane",
+        lastName: "Diver",
+        image: null,
+        avatarUrl: "https://example.com/avatar.png",
+      };
+
+      vi.mocked(prisma.user.findUnique).mockResolvedValue({
+        sessionVersion: 0,
+      } as any);
+
+      const token = await jwtCallback({
+        token: { sub: "user-1" } as JWT,
+        user: user as any,
+        account: null,
+        trigger: "signIn",
+      } as any);
+
+      expect(token.avatarUrl).toBe("https://example.com/avatar.png");
+    });
+
+    it("sets avatarUrl to null in token when credentials user has no avatar", async () => {
+      const user = {
+        id: "user-1",
+        email: "jane@example.com",
+        firstName: "Jane",
+        lastName: "Diver",
+        image: null,
+        avatarUrl: null,
+      };
+
+      vi.mocked(prisma.user.findUnique).mockResolvedValue({
+        sessionVersion: 0,
+      } as any);
+
+      const token = await jwtCallback({
+        token: { sub: "user-1" } as JWT,
+        user: user as any,
+        account: null,
+        trigger: "signIn",
+      } as any);
+
+      expect(token.avatarUrl).toBeNull();
+    });
+
     it("fetches sessionVersion from DB for credentials user", async () => {
       const user = {
         id: "user-1",
@@ -322,7 +370,7 @@ describe("session callback", () => {
     expect(result.user.sessionVersion).toBe(3);
   });
 
-  it("returns session unchanged when token is invalidated", async () => {
+  it("clears session.user when token is invalidated", async () => {
     const token = {
       id: "user-1",
       invalidated: true,
@@ -338,12 +386,11 @@ describe("session callback", () => {
       token: token as any,
     } as any)) as any;
 
-    // Session should be returned unchanged — user fields NOT populated from token
-    expect(result.user.id).toBe("old-id");
-    expect(result.user.email).toBe("old@example.com");
+    // Session user should be cleared so route handler auth checks reject the request
+    expect(result.user).toBeUndefined();
   });
 
-  it("returns session unchanged when token has no id or sub", async () => {
+  it("clears session.user when token has no id or sub", async () => {
     const token = {};
     const session = {
       user: { id: "old-id" },
@@ -355,7 +402,7 @@ describe("session callback", () => {
       token: token as any,
     } as any)) as any;
 
-    expect(result.user.id).toBe("old-id");
+    expect(result.user).toBeUndefined();
   });
 
   it("uses token.sub when token.id is missing", async () => {

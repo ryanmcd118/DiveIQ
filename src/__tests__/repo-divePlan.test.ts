@@ -57,51 +57,36 @@ describe("divePlanRepository", () => {
   });
 
   describe("findById", () => {
-    it("returns plan when userId matches", async () => {
-      vi.mocked(prisma.divePlan.findUnique).mockResolvedValue(mockPlan as any);
+    it("scopes query by both id and userId in the WHERE clause", async () => {
+      vi.mocked(prisma.divePlan.findFirst).mockResolvedValue(mockPlan as any);
+      await divePlanRepository.findById("plan-1", USER_ID);
+
+      expect(prisma.divePlan.findFirst).toHaveBeenCalledWith({
+        where: { id: "plan-1", userId: USER_ID },
+      });
+    });
+
+    it("returns plan when found for the user", async () => {
+      vi.mocked(prisma.divePlan.findFirst).mockResolvedValue(mockPlan as any);
       const result = await divePlanRepository.findById("plan-1", USER_ID);
       expect(result).not.toBeNull();
       expect(result!.id).toBe("plan-1");
     });
 
-    it("returns null when userId does not match (ownership enforcement)", async () => {
-      vi.mocked(prisma.divePlan.findUnique).mockResolvedValue(mockPlan as any);
+    it("returns null when plan not found (wrong user or missing)", async () => {
+      vi.mocked(prisma.divePlan.findFirst).mockResolvedValue(null);
       const result = await divePlanRepository.findById("plan-1", OTHER_USER);
       expect(result).toBeNull();
-    });
-
-    it("returns null when plan not found", async () => {
-      vi.mocked(prisma.divePlan.findUnique).mockResolvedValue(null);
-      const result = await divePlanRepository.findById("nonexistent", USER_ID);
-      expect(result).toBeNull();
-    });
-
-    // Same pattern as diveLogRepository: queries by id only, checks ownership after
-    it("queries by id only (ownership checked in application code)", async () => {
-      vi.mocked(prisma.divePlan.findUnique).mockResolvedValue(mockPlan as any);
-      await divePlanRepository.findById("plan-1", USER_ID);
-
-      expect(prisma.divePlan.findUnique).toHaveBeenCalledWith({
-        where: { id: "plan-1" },
-      });
     });
   });
 
   describe("findMany", () => {
-    it("includes userId in where when provided", async () => {
+    it("always includes userId in where clause", async () => {
       vi.mocked(prisma.divePlan.findMany).mockResolvedValue([]);
       await divePlanRepository.findMany({ userId: USER_ID });
 
       const call = vi.mocked(prisma.divePlan.findMany).mock.calls[0][0];
       expect(call?.where).toEqual({ userId: USER_ID });
-    });
-
-    it("omits userId when not provided (returns all users)", async () => {
-      vi.mocked(prisma.divePlan.findMany).mockResolvedValue([]);
-      await divePlanRepository.findMany();
-
-      const call = vi.mocked(prisma.divePlan.findMany).mock.calls[0][0];
-      expect(call?.where).toEqual({});
     });
 
     it("casts experienceLevel and aiBriefing for each result", async () => {
@@ -122,19 +107,19 @@ describe("divePlanRepository", () => {
   });
 
   describe("update", () => {
-    it("checks ownership when userId provided", async () => {
-      vi.mocked(prisma.divePlan.findUnique).mockResolvedValue(mockPlan as any);
+    it("scopes ownership check by id and userId via findFirst", async () => {
+      vi.mocked(prisma.divePlan.findFirst).mockResolvedValue(mockPlan as any);
       vi.mocked(prisma.divePlan.update).mockResolvedValue(mockPlan as any);
 
       await divePlanRepository.update("plan-1", mockInput, USER_ID);
 
-      expect(prisma.divePlan.findUnique).toHaveBeenCalledWith({
-        where: { id: "plan-1" },
+      expect(prisma.divePlan.findFirst).toHaveBeenCalledWith({
+        where: { id: "plan-1", userId: USER_ID },
       });
     });
 
     it("throws when record not found", async () => {
-      vi.mocked(prisma.divePlan.findUnique).mockResolvedValue(null);
+      vi.mocked(prisma.divePlan.findFirst).mockResolvedValue(null);
 
       await expect(
         divePlanRepository.update("nonexistent", mockInput, USER_ID)
@@ -142,36 +127,28 @@ describe("divePlanRepository", () => {
     });
 
     it("throws when userId does not match", async () => {
-      vi.mocked(prisma.divePlan.findUnique).mockResolvedValue(mockPlan as any);
+      vi.mocked(prisma.divePlan.findFirst).mockResolvedValue(null);
 
       await expect(
         divePlanRepository.update("plan-1", mockInput, OTHER_USER)
       ).rejects.toThrow("Dive plan not found or unauthorized");
     });
-
-    it("skips ownership check when userId not provided", async () => {
-      vi.mocked(prisma.divePlan.update).mockResolvedValue(mockPlan as any);
-
-      await divePlanRepository.update("plan-1", mockInput);
-
-      expect(prisma.divePlan.findUnique).not.toHaveBeenCalled();
-    });
   });
 
   describe("delete", () => {
-    it("checks ownership when userId provided", async () => {
-      vi.mocked(prisma.divePlan.findUnique).mockResolvedValue(mockPlan as any);
+    it("scopes ownership check by id and userId via findFirst", async () => {
+      vi.mocked(prisma.divePlan.findFirst).mockResolvedValue(mockPlan as any);
       vi.mocked(prisma.divePlan.delete).mockResolvedValue(mockPlan as any);
 
       await divePlanRepository.delete("plan-1", USER_ID);
 
-      expect(prisma.divePlan.findUnique).toHaveBeenCalledWith({
-        where: { id: "plan-1" },
+      expect(prisma.divePlan.findFirst).toHaveBeenCalledWith({
+        where: { id: "plan-1", userId: USER_ID },
       });
     });
 
     it("throws when record not found", async () => {
-      vi.mocked(prisma.divePlan.findUnique).mockResolvedValue(null);
+      vi.mocked(prisma.divePlan.findFirst).mockResolvedValue(null);
 
       await expect(
         divePlanRepository.delete("nonexistent", USER_ID)
@@ -179,7 +156,7 @@ describe("divePlanRepository", () => {
     });
 
     it("throws when userId does not match", async () => {
-      vi.mocked(prisma.divePlan.findUnique).mockResolvedValue(mockPlan as any);
+      vi.mocked(prisma.divePlan.findFirst).mockResolvedValue(null);
 
       await expect(
         divePlanRepository.delete("plan-1", OTHER_USER)
@@ -188,21 +165,13 @@ describe("divePlanRepository", () => {
   });
 
   describe("count", () => {
-    it("scopes to userId when provided", async () => {
+    it("scopes to userId", async () => {
       vi.mocked(prisma.divePlan.count).mockResolvedValue(3);
       await divePlanRepository.count(USER_ID);
 
       expect(prisma.divePlan.count).toHaveBeenCalledWith({
         where: { userId: USER_ID },
       });
-    });
-
-    it("returns count for all users when userId omitted", async () => {
-      vi.mocked(prisma.divePlan.count).mockResolvedValue(10);
-      const result = await divePlanRepository.count();
-
-      expect(result).toBe(10);
-      expect(prisma.divePlan.count).toHaveBeenCalledWith({ where: {} });
     });
   });
 });

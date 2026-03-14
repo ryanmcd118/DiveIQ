@@ -24,7 +24,13 @@ export function getNextServiceDueAt(
 
   const lastServiced = new Date(gearItem.lastServicedAt);
   const nextDue = new Date(lastServiced);
+  const targetMonth =
+    (nextDue.getMonth() + gearItem.serviceIntervalMonths) % 12;
   nextDue.setMonth(nextDue.getMonth() + gearItem.serviceIntervalMonths);
+  // Clamp day overflow: e.g. Jan 31 + 1 month → Mar 3, correct to Feb 28
+  if (nextDue.getMonth() !== targetMonth) {
+    nextDue.setDate(0); // last day of the previous month
+  }
   return nextDue;
 }
 
@@ -50,7 +56,7 @@ export function computeMaintenanceStatus(
   }
 
   const now = new Date();
-  const daysUntilDue = Math.ceil(
+  const daysUntilDue = Math.floor(
     (nextDue.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)
   );
 

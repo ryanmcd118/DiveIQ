@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+import { NotFoundError } from "@/lib/errors";
 import type {
   GearItem,
   GearKit,
@@ -118,7 +119,7 @@ export const gearRepository = {
     });
 
     if (!existing) {
-      throw new Error("Gear item not found");
+      throw new NotFoundError("Gear item not found");
     }
 
     return prisma.gearItem.update({
@@ -136,7 +137,7 @@ export const gearRepository = {
     });
 
     if (!existing) {
-      throw new Error("Gear item not found");
+      throw new NotFoundError("Gear item not found");
     }
 
     await prisma.gearItem.delete({
@@ -261,7 +262,7 @@ export const gearKitRepository = {
     });
 
     if (!existing) {
-      throw new Error("Kit not found");
+      throw new NotFoundError("Kit not found");
     }
 
     return prisma.$transaction(async (tx) => {
@@ -293,7 +294,7 @@ export const gearKitRepository = {
     });
 
     if (!existing) {
-      throw new Error("Kit not found");
+      throw new NotFoundError("Kit not found");
     }
 
     await prisma.gearKit.delete({
@@ -314,7 +315,7 @@ export const gearKitRepository = {
     });
 
     if (!kit) {
-      throw new Error("Kit not found");
+      throw new NotFoundError("Kit not found");
     }
 
     // Verify all gear items belong to user
@@ -367,7 +368,7 @@ export const gearKitRepository = {
     });
 
     if (!kit) {
-      throw new Error("Kit not found");
+      throw new NotFoundError("Kit not found");
     }
 
     await prisma.gearKitItem.deleteMany({
@@ -391,7 +392,7 @@ export const gearKitRepository = {
     });
 
     if (!kit) {
-      throw new Error("Kit not found");
+      throw new NotFoundError("Kit not found");
     }
 
     await prisma.$transaction(async (tx) => {

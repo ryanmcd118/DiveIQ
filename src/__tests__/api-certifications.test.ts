@@ -272,7 +272,7 @@ describe("certifications API", () => {
       expect(data.error).toContain("not found");
     });
 
-    it("returns 403 when certification belongs to another user", async () => {
+    it("returns 404 when certification belongs to another user", async () => {
       mockAuth();
       vi.mocked(prisma.userCertification.findUnique).mockResolvedValue({
         ...mockCert,
@@ -282,8 +282,8 @@ describe("certifications API", () => {
       const res = await PATCH(makePatch({ notes: "test" }), idParams as any);
       const data = await res.json();
 
-      expect(res.status).toBe(403);
-      expect(data.error).toContain("Forbidden");
+      expect(res.status).toBe(404);
+      expect(data.error).toContain("not found");
     });
 
     it("returns 400 for invalid Zod input", async () => {
@@ -353,7 +353,7 @@ describe("certifications API", () => {
       expect(data.error).toContain("not found");
     });
 
-    it("returns 403 when certification belongs to another user", async () => {
+    it("returns 404 when certification belongs to another user", async () => {
       mockAuth();
       vi.mocked(prisma.userCertification.findUnique).mockResolvedValue({
         ...mockCert,
@@ -363,8 +363,8 @@ describe("certifications API", () => {
       const res = await DELETE(makeDelete(), idParams as any);
       const data = await res.json();
 
-      expect(res.status).toBe(403);
-      expect(data.error).toContain("Forbidden");
+      expect(res.status).toBe(404);
+      expect(data.error).toContain("not found");
     });
 
     it("deletes certification on happy path", async () => {

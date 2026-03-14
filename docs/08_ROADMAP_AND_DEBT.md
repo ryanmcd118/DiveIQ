@@ -1,6 +1,6 @@
 # Roadmap and Technical Debt
 
-Last updated: 2026-03-14 (DIV-9 testing sprint complete)
+Last updated: 2026-03-14 (DIV-10 codebase health sprint complete)
 
 ---
 
@@ -24,9 +24,11 @@ All tickets in the "Active Branch — Dive Planning Overhaul" project are done a
 
 Tickets in the "Pre-Launch" project. Work through in the prioritized order below.
 
-### In Progress
+### Next Up
 
-- **DIV-10** — Codebase health sprint (informed by DIV-9 findings)
+- **DIV-65** — Full codebase audit (can run in parallel with DIV-66)
+- **DIV-66** — Error handling architecture (can run in parallel with DIV-65)
+- **DIV-11** — Units system deep audit (after DIV-65/66)
 
 ### Group 1 — Schema foundation
 
@@ -41,7 +43,9 @@ Tickets in the "Pre-Launch" project. Work through in the prioritized order below
 ### Group 3 — Testing + code health (after DIV-42)
 
 - **DIV-9** — Testing suite baseline coverage ✅ **Complete** (556 tests, 75.84% coverage)
-- **DIV-10** — Codebase health sprint: error handling, boundary violations, N+1 queries
+- **DIV-10** — Codebase health sprint ✅ **Complete** (588 tests — see summary below)
+- **DIV-65** — Full codebase audit
+- **DIV-66** — Error handling architecture
 - **DIV-11** — Units system deep audit
 
 ### Group 4 — Page overhauls (after DIV-42, can overlap with Group 3)
@@ -125,18 +129,51 @@ All findings tracked in DIV-10.
 
 ---
 
+## DIV-10 Codebase Health Sprint — Completed
+
+Test count: 549 → 588 tests (23 test files). Eight commits across 8 implementation prompts.
+
+**Critical security fixes:**
+
+- `diveLogRepository` and `divePlanRepository`: userId made required on all user-scoped methods (`findById`, `findMany`, `update`, `delete`, `count`, `getStatistics`). Ownership checks moved into Prisma WHERE clause (`findFirst({ where: { id, userId } })`) instead of post-fetch application-code checks.
+- Session invalidation now enforced: `session.user` cleared when `token.invalidated` in JWT callback. Chose direct session clearing over wiring `proxy.ts` as middleware.
+- Credentials user `avatarUrl` bug fixed: proper cast `(user as unknown as Record<string, unknown>).avatarUrl` in JWT callback.
+
+**Auth performance items deferred to DIV-46:**
+
+- `authorize()` throws errors instead of returning null — works due to NextAuth's error handling but differs from documented pattern. Low-risk, stable behavior. Reassess during DIV-46 auth hardening.
+
+**API correctness:**
+
+- All create endpoints standardized to 201 (dive-logs, dive-plans, gear, gear-kits)
+- Signup: 400 → 409 for duplicate email, email normalization (`trim().toLowerCase()`), per-field validation errors
+- Dive-plans: Zod schema validation on POST/PUT, `take: 10` → `take: 100`, `preferencesToUnitSystem()` extracted, `cachedBriefing` trust decision documented
+- Profile GET: user-creation side effect removed, returns 404 when user not found
+- Profile PATCH: normalization extracted to `src/features/profile/utils/normalizeProfile.ts`, `USER_PROFILE_SELECT` and `USER_PROFILE_WITH_KITS_SELECT` constants extracted, JSON array validation added for `primaryDiveTypes`/`typicalDivingEnvironment`/`lookingFor`, re-fetch consolidated into single update call with select
+- `NotFoundError` class added (`src/lib/errors.ts`), gear routes use `instanceof NotFoundError` instead of string matching
+- Certifications `[id]`: ownership 403 → 404 (resource-doesn't-exist-for-you pattern)
+
+**Code quality:**
+
+- Maintenance date drift fixed: month-end overflow clamped manually, `Math.ceil` → `Math.floor` in `computeMaintenanceStatus`
+- `getDisplayName`: firstName/lastName trimmed before display
+- `splitFullName`: consolidated — `extractNamesFromGoogleProfile` now delegates to `splitFullName`
+- `recomputeDiveNumbersForUser`: updates batched in chunks of 100
+- `diveLogRepository.create`/`update`: `n()` helper replaces 60+ `?? null` assignments
+- JSDoc added to `parseTempToFahrenheit`, `computeGearNotes`, `humanReadableDuration`, `parseAIBriefing`, `isOldSchema`, account password handler (3 bcrypt calls), account deletion (cascade rationale)
+
+---
+
 ## Known Technical Debt
 
-### High priority (address during DIV-10 codebase health sprint)
+### High priority — Resolved in DIV-10
 
-**Profile normalization logic in route handler**
-`src/app/api/profile/route.ts` PATCH handler contains 400+ lines of normalization logic (string trimming, URL normalization, JSON array parsing). Should be extracted to `src/features/profile/utils/normalizeProfile.ts`. Makes route handler untestable in its current state.
+~~**Profile normalization logic in route handler**~~ — Extracted to `src/features/profile/utils/normalizeProfile.ts`. Route handler now calls `normalizeProfileUpdate(body)` directly.
 
-**Duplicated unit system determination logic**
-Identical logic duplicated in `src/app/api/dive-plans/route.ts:45-52` and `src/app/api/dive-plans/preview/route.ts:29-36`. Extract to `preferencesToUnitSystem()` in `src/lib/units.ts`.
+~~**Duplicated unit system determination logic**~~ — `preferencesToUnitSystem()` extracted to `src/lib/units.ts`, signature widened to accept `UnitPreferences | null | undefined`.
 
 **Direct Prisma usage bypassing repository pattern**
-`src/app/api/profile/route.ts` and `src/app/api/certifications/route.ts` query Prisma directly. Auth routes (`signup`) are an acceptable exception and should not be refactored. The others should be migrated to repositories as part of DIV-10.
+`src/app/api/profile/route.ts` and `src/app/api/certifications/route.ts` query Prisma directly. Auth routes (`signup`) are an acceptable exception. Profile and certifications routes are documented acceptable exceptions per CLAUDE.md — repository migration deferred.
 
 ### Medium priority
 

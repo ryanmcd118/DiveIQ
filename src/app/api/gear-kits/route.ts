@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/features/auth/lib/auth";
 import { gearKitRepository } from "@/services/database/repositories/gearRepository";
+import { NotFoundError } from "@/lib/errors";
 
 /**
  * GET /api/gear-kits
@@ -70,7 +71,7 @@ export async function POST(req: NextRequest) {
         session.user.id
       );
 
-      return NextResponse.json({ kit: kitWithItems });
+      return NextResponse.json({ kit: kitWithItems }, { status: 201 });
     }
 
     // Update kit items
@@ -134,7 +135,7 @@ export async function PUT(req: NextRequest) {
     return NextResponse.json({ kit: kitWithItems });
   } catch (err) {
     console.error("PUT /api/gear-kits error", err);
-    if (err instanceof Error && err.message === "Kit not found") {
+    if (err instanceof NotFoundError) {
       return NextResponse.json({ error: err.message }, { status: 404 });
     }
     return NextResponse.json(
@@ -168,7 +169,7 @@ export async function DELETE(req: NextRequest) {
     return NextResponse.json({ ok: true });
   } catch (err) {
     console.error("DELETE /api/gear-kits error", err);
-    if (err instanceof Error && err.message === "Kit not found") {
+    if (err instanceof NotFoundError) {
       return NextResponse.json({ error: err.message }, { status: 404 });
     }
     return NextResponse.json(

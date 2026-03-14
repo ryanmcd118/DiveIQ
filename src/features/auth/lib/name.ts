@@ -61,11 +61,11 @@ export function getDisplayName(input: DisplayNameInput): string {
   const hasLastName = lastName && lastName.trim().length > 0;
 
   if (hasFirstName && hasLastName) {
-    return `${firstName} ${lastName}`;
+    return `${firstName!.trim()} ${lastName!.trim()}`;
   }
 
   if (hasFirstName) {
-    return firstName!;
+    return firstName!.trim();
   }
 
   // Priority 2: name field

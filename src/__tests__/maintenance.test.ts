@@ -60,6 +60,40 @@ describe("getNextServiceDueAt", () => {
     expect(result!.getMonth()).toBe(6); // July
   });
 
+  it("clamps month-end overflow (Jan 31 + 1 month = Feb 28, not Mar 3)", () => {
+    const lastServiced = new Date(2026, 0, 31); // Jan 31, 2026
+    const result = getNextServiceDueAt({
+      lastServicedAt: lastServiced,
+      serviceIntervalMonths: 1,
+    });
+    expect(result).not.toBeNull();
+    expect(result!.getFullYear()).toBe(2026);
+    expect(result!.getMonth()).toBe(1); // February
+    expect(result!.getDate()).toBe(28); // Last day of Feb 2026
+  });
+
+  it("clamps to Feb 29 in a leap year (Jan 31 + 1 month)", () => {
+    const lastServiced = new Date(2028, 0, 31); // Jan 31, 2028 (leap year)
+    const result = getNextServiceDueAt({
+      lastServicedAt: lastServiced,
+      serviceIntervalMonths: 1,
+    });
+    expect(result).not.toBeNull();
+    expect(result!.getMonth()).toBe(1); // February
+    expect(result!.getDate()).toBe(29); // Leap year
+  });
+
+  it("clamps Mar 31 + 1 month to Apr 30", () => {
+    const lastServiced = new Date(2026, 2, 31); // Mar 31, 2026
+    const result = getNextServiceDueAt({
+      lastServicedAt: lastServiced,
+      serviceIntervalMonths: 1,
+    });
+    expect(result).not.toBeNull();
+    expect(result!.getMonth()).toBe(3); // April
+    expect(result!.getDate()).toBe(30);
+  });
+
   it("handles month overflow (e.g., Oct + 3 = Jan next year)", () => {
     const lastServiced = new Date(2025, 9, 15); // Oct 15, 2025
     const result = getNextServiceDueAt({

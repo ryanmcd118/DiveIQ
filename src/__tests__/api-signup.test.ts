@@ -44,45 +44,45 @@ describe("POST /api/auth/signup", () => {
   });
 
   describe("validation", () => {
-    it("returns 400 when email is missing", async () => {
+    it("returns 400 with specific message when email is missing", async () => {
       const res = await POST(makeRequest({ ...validBody, email: undefined }));
       const data = await res.json();
       expect(res.status).toBe(400);
-      expect(data.error).toBeDefined();
+      expect(data.error).toBe("Email is required");
     });
 
-    it("returns 400 when password is missing", async () => {
+    it("returns 400 with specific message when password is missing", async () => {
       const res = await POST(
         makeRequest({ ...validBody, password: undefined })
       );
       const data = await res.json();
       expect(res.status).toBe(400);
-      expect(data.error).toBeDefined();
+      expect(data.error).toBe("Password is required");
     });
 
-    it("returns 400 when firstName is missing", async () => {
+    it("returns 400 with specific message when firstName is missing", async () => {
       const res = await POST(
         makeRequest({ ...validBody, firstName: undefined })
       );
       const data = await res.json();
       expect(res.status).toBe(400);
-      expect(data.error).toContain("name");
+      expect(data.error).toBe("First name is required");
     });
 
-    it("returns 400 when lastName is missing", async () => {
+    it("returns 400 with specific message when lastName is missing", async () => {
       const res = await POST(
         makeRequest({ ...validBody, lastName: undefined })
       );
       const data = await res.json();
       expect(res.status).toBe(400);
-      expect(data.error).toContain("name");
+      expect(data.error).toBe("Last name is required");
     });
 
     it("returns 400 when firstName is whitespace-only", async () => {
       const res = await POST(makeRequest({ ...validBody, firstName: "   " }));
       expect(res.status).toBe(400);
       const data = await res.json();
-      expect(data.error).toBeDefined();
+      expect(data.error).toBe("First name is required");
     });
 
     it("returns 400 for invalid email format", async () => {
@@ -103,7 +103,7 @@ describe("POST /api/auth/signup", () => {
       const res = await POST(makeRequest({ ...validBody, password: "short" }));
       const data = await res.json();
       expect(res.status).toBe(400);
-      expect(data.error).toContain("8 characters");
+      expect(data.error).toBe("Password must be at least 8 characters");
     });
 
     it("accepts exactly 8 character password", async () => {
@@ -123,7 +123,7 @@ describe("POST /api/auth/signup", () => {
   });
 
   describe("duplicate email", () => {
-    it("returns 400 when email already exists", async () => {
+    it("returns 409 when email already exists", async () => {
       vi.mocked(prisma.user.findUnique).mockResolvedValue({
         id: "existing-id",
         email: validBody.email,
@@ -131,7 +131,7 @@ describe("POST /api/auth/signup", () => {
 
       const res = await POST(makeRequest(validBody));
       const data = await res.json();
-      expect(res.status).toBe(400);
+      expect(res.status).toBe(409);
       expect(data.error).toContain("already exists");
     });
   });
@@ -200,13 +200,16 @@ describe("POST /api/auth/signup", () => {
       );
     });
 
-    it("stores email as-is (no trimming)", async () => {
-      await POST(makeRequest(validBody));
+    it("stores email lowercased and trimmed", async () => {
+      await POST(makeRequest({ ...validBody, email: "  Test@Example.COM  " }));
 
+      expect(prisma.user.findUnique).toHaveBeenCalledWith({
+        where: { email: "test@example.com" },
+      });
       expect(prisma.user.create).toHaveBeenCalledWith(
         expect.objectContaining({
           data: expect.objectContaining({
-            email: validBody.email,
+            email: "test@example.com",
           }),
         })
       );

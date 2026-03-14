@@ -63,7 +63,10 @@ export async function PUT(req: NextRequest) {
       );
     }
 
-    // Verify current password
+    // Three bcrypt calls are needed:
+    // 1. Verify the current password matches the stored hash
+    // 2. Confirm the new password differs from the current (hash comparison, not plaintext)
+    // 3. Hash the new password for storage
     const isCurrentPasswordValid = await bcrypt.compare(
       currentPassword,
       user.password
