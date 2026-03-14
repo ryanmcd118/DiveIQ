@@ -1,493 +1,267 @@
 # Testing and CI/CD
 
-## npm run check - Complete Quality Check
+## Testing Framework
 
-**Script location**: `package.json:20`
+**Runner:** Vitest 3.2.4 (`vitest` in devDependencies)
+**Coverage:** @vitest/coverage-v8 3.2.4 (`@vitest/coverage-v8` in devDependencies)
+**Environment:** Node (no DOM — server-side only)
+**Config:** `vitest.config.ts`
 
-**Command**: `npm run check`
+No jsdom, no React Testing Library, no Playwright/Cypress. Tests target server-side code: API route handlers, repositories, services, and pure utility functions.
 
-**What it does**: Runs all quality checks in sequence (stops on first failure):
+## Dependencies
 
-```bash
-npm run lint && npm run format:check && npm run typecheck && npm run test && npm run build
-```
+From `package.json` devDependencies:
 
-**Steps in order**:
+| Package | Version | Purpose |
+|---------|---------|---------|
+| `vitest` | ^3.2.4 | Test runner |
+| `@vitest/coverage-v8` | ^3.2.4 | V8 coverage provider |
 
-1. **Lint** (`npm run lint`) - Runs ESLint (`package.json:12`)
-   - Command: `eslint`
-   - Checks code style and potential errors
-   - Config: `eslint.config.mjs`
+No other testing-specific dependencies. Tests use `vi.mock()` for all mocking — no external mock libraries.
 
-2. **Format Check** (`npm run format:check`) - Checks Prettier formatting (`package.json:15`)
-   - Command: `prettier --check .`
-   - Verifies code is formatted (doesn't fix)
-   - Config: `.prettierrc`
+## Vitest Configuration
 
-3. **Type Check** (`npm run typecheck`) - TypeScript type checking (`package.json:17`)
-   - Command: `tsc --noEmit`
-   - Validates types without emitting files
-   - Config: `tsconfig.json`
-
-4. **Tests** (`npm run test`) - Runs test suite (`package.json:18`)
-   - Command: `vitest run`
-   - Runs all tests once (not watch mode)
-   - Config: `vitest.config.ts`
-
-5. **Build** (`npm run build`) - Next.js production build (`package.json:9`)
-   - Command: `next build`
-   - Ensures code compiles and builds successfully
-
-**Use case**: Run before committing to verify all checks pass locally.
-
-## Local vs CI Checks
-
-### Local Development Commands
-
-**Available in `package.json` scripts**:
-
-- `npm run lint` - Check for linting errors
-- `npm run lint:fix` - Auto-fix linting errors (`package.json:13`)
-- `npm run format:check` - Check Prettier formatting
-- `npm run format` or `npm run format:write` - Auto-format code (`package.json:14, 16`)
-- `npm run typecheck` - Type check only
-- `npm run test` - Run tests once
-- `npm run test:watch` - Run tests in watch mode (`package.json:19`)
-- `npm run build` - Production build
-- `npm run check` - Run all checks (lint, format, typecheck, test, build)
-
-### CI Workflow
-
-**Workflow file**: `.github/workflows/pr-checks.yml`
-
-**Triggers**:
-
-- Pull requests to `main` or `master` (line 4-5)
-- Pushes to `main` or `master` (line 6-7)
-
-**CI steps** (`.github/workflows/pr-checks.yml:18-46`):
-
-1. **Checkout** (line 19)
-2. **Setup Node.js 20** (line 21-25)
-3. **Install dependencies** - `npm ci` (line 27-28)
-4. **Generate Prisma client** - `npx prisma generate` (line 30-31)
-5. **Run linter** - `npm run lint` (line 33-34)
-6. **Check formatting** - `npm run format:check` (line 36-37)
-7. **Type check** - `npm run typecheck` (line 39-40)
-8. **Run tests** - `npm run test` (line 42-43)
-9. **Build** - `npm run build` (line 45-46)
-
-**CI environment variables** (line 12-17):
-
-- `DATABASE_URL: "file:./prisma/dev.db"` (placeholder)
-- `NEXTAUTH_SECRET: "placeholder-secret-for-build-check-only"`
-- `NEXTAUTH_URL: "http://localhost:3000"`
-- `OPENAI_API_KEY: "sk-placeholder"`
-
-**Note**: CI uses placeholder values - tests don't need real credentials, just need code to compile/build.
-
-### Differences
-
-**Same checks**: Local `npm run check` and CI run identical commands.
-
-**CI adds**:
-
-- `npm ci` (clean install)
-- `npx prisma generate` (generates Prisma client)
-
-**CI uses**: Placeholder environment variables (no real secrets needed for build/typecheck).
-
-## Canary Tests
-
-### Test Location
-
-**Test directory**: `src/__tests__/`
-
-**Test files** (3 total):
-
-1. **`units.test.ts`** - Unit conversion utility tests
-2. **`auth-extract-names.test.ts`** - Google OAuth name extraction tests
-3. **`api-certifications-definitions.test.ts`** - API route integration test
-
-### Test Framework
-
-**Vitest** (`package.json:53`) - Vite-based test runner
-
-**Config**: `vitest.config.ts`
-
-- Environment: `node` (line 6)
-- Path alias: `@` → `./src` (line 9-10)
-
-### Test Coverage
-
-**1. Unit Conversion Tests** (`src/__tests__/units.test.ts`)
-
-**What it covers**:
-
-- Depth/distance conversions (metric: meters ↔ cm, imperial: feet ↔ cm)
-- Temperature conversions (metric: Celsius ↔ C×10, imperial: Fahrenheit ↔ C×10)
-- Input conversion helpers (`depthInputToCm`, `tempInputToCx10`)
-- Display formatting (`displayDepth`, `displayTemperature`)
-- Unit system consistency (`unitSystemToPreferences`, `preferencesToUnitSystem`)
-
-**Test pattern**: Pure function tests - no mocks, no side effects.
-
-**Example**:
+`vitest.config.ts` — full breakdown:
 
 ```typescript
-it("converts meters to centimeters correctly", () => {
-  expect(metersToCm(10)).toBe(1000);
-  expect(metersToCm(1.5)).toBe(150);
-});
-```
-
-**2. Auth Helper Tests** (`src/__tests__/auth-extract-names.test.ts`)
-
-**What it covers**:
-
-- Google OAuth profile name extraction
-- Handles `given_name`/`family_name` fields
-- Falls back to splitting `name` field
-- Edge cases: single names, compound last names, empty strings, whitespace trimming
-
-**Test pattern**: Pure function tests (function duplicated in test file - cannot import from `auth.ts` due to `server-only` dependency).
-
-**Note**: Test duplicates the function implementation (`src/__tests__/auth-extract-names.test.ts:5-43`) because `src/features/auth/lib/auth.ts` has `server-only` import.
-
-**3. API Route Test** (`src/__tests__/api-certifications-definitions.test.ts`)
-
-**What it covers**:
-
-- GET `/api/certifications/definitions` endpoint
-- Response shape validation
-- Sorting logic (by category, levelRank, name)
-- Agency filtering via query params
-- Error handling
-
-**Test pattern**: Integration test with mocked Prisma client.
-
-**Mocking**:
-
-```typescript
-vi.mock("@/lib/prisma", () => ({
-  prisma: {
-    certificationDefinition: {
-      findMany: vi.fn(),
+export default defineConfig({
+  test: {
+    environment: "node",                          // No DOM APIs — tests run in Node
+    include: ["src/__tests__/**/*.test.ts"],       // Only *.test.ts files in __tests__/
+    setupFiles: ["src/__tests__/setup.ts"],        // Global setup — runs before every test file
+    coverage: {
+      provider: "v8",                             // Built-in V8 coverage (no extra binary)
+      reporter: ["text", "json-summary", "lcov"], // Terminal + CI artifact + dashboard-ready
+      include: [                                  // Only measure server-side source files
+        "src/app/api/**/*.ts",
+        "src/services/**/*.ts",
+        "src/features/**/services/**/*.ts",
+        "src/features/**/lib/**/*.ts",
+        "src/lib/**/*.ts",
+      ],
+      exclude: [
+        "src/lib/prisma.ts",                     // Singleton — always mocked, never executed
+        "src/**/*.test.ts",                       // Don't count test files as covered source
+      ],
+      thresholds: {                               // Floor values — fail if coverage drops below
+        statements: 30,
+        branches: 25,
+        functions: 30,
+        lines: 30,
+      },
     },
   },
-}));
-```
-
-### How to Add the Next 5 Tests
-
-**Recommended test additions** (based on existing patterns):
-
-**1. Risk Calculator Test** (`src/features/dive-plan/services/riskCalculator.ts`)
-
-- **Location**: `src/__tests__/risk-calculator.test.ts`
-- **Pattern**: Pure function test (like `units.test.ts`)
-- **Cover**: `calculateRiskLevel()` function with various depth/time combinations
-- **Example**:
-
-```typescript
-import { calculateRiskLevel } from "@/features/dive-plan/services/riskCalculator";
-
-describe("Risk Calculator", () => {
-  it("returns High for deep/long dives", () => {
-    expect(calculateRiskLevel(45, 60)).toBe("High");
-  });
-  // ... more cases
+  resolve: {
+    alias: {
+      "@": path.resolve(__dirname, "./src"),       // Matches tsconfig paths
+    },
+  },
 });
 ```
 
-**2. Validation Utilities Test** (`src/lib/validation.ts`)
+**Coverage thresholds** are floors, not targets. They prevent regression — if a commit drops coverage below these values, `vitest run` fails. Thresholds will be ratcheted up after each testing phase as coverage improves.
 
-- **Location**: `src/__tests__/validation.test.ts`
-- **Pattern**: Pure function test
-- **Cover**: Validation helper functions (if they exist)
+Note: Coverage thresholds are only enforced when running `vitest run --coverage`. The default `npm run test` (`vitest run`) does NOT enforce thresholds. To run with coverage locally: `npx vitest run --coverage`.
 
-**3. Dive Math Test** (`src/lib/diveMath.ts`)
+## Test File Organization
 
-- **Location**: `src/__tests__/dive-math.test.ts`
-- **Pattern**: Pure function test
-- **Cover**: Dive calculation functions (NDL, etc.)
+```
+src/__tests__/
+├── setup.ts                                # Global setup (runs before every test file)
+├── helpers/
+│   ├── mockAuth.ts                         # NextAuth session mock utilities
+│   └── mockPrisma.ts                       # Full Prisma client mock
+├── units.test.ts                           # Unit conversion functions (src/lib/units.ts)
+├── auth-extract-names.test.ts              # Google OAuth name extraction
+├── riskCalculator.test.ts                  # Risk scoring functions
+└── api-certifications-definitions.test.ts  # GET /api/certifications/definitions
+```
 
-**4. API Route Test - Dive Logs GET** (`src/app/api/dive-logs/route.ts`)
+### Naming convention
 
-- **Location**: `src/__tests__/api-dive-logs-get.test.ts`
-- **Pattern**: Integration test with mocked Prisma (like `api-certifications-definitions.test.ts`)
-- **Cover**: GET endpoint, filtering, error handling
-- **Mock**: `diveLogRepository`, `diveGearRepository`
+- Pure function tests: `{module}.test.ts` (e.g., `units.test.ts`, `riskCalculator.test.ts`)
+- API route tests: `api-{resource}.test.ts` (e.g., `api-dive-logs.test.ts`)
+- Repository tests: `repo-{name}.test.ts` (e.g., `repo-diveLog.test.ts`)
 
-**5. Repository Test - DiveLogRepository** (`src/services/database/repositories/diveLogRepository.ts`)
+## Infrastructure Files
 
-- **Location**: `src/__tests__/dive-log-repository.test.ts`
-- **Pattern**: Unit test with mocked Prisma client
-- **Cover**: Repository methods (create, findById, findMany, update, delete, getStatistics)
-- **Mock**: `prisma.diveLog` methods
-
-**Test file naming convention**: `*.test.ts` (matches existing files).
-
-**Test structure**:
+### setup.ts
 
 ```typescript
-import { describe, it, expect, vi, beforeEach } from "vitest";
+vi.mock("server-only", () => ({}));
+```
 
-describe("Feature/Function Name", () => {
-  beforeEach(() => {
-    vi.clearAllMocks(); // For tests with mocks
-  });
+**Why it exists:** `src/lib/prisma.ts` imports `server-only`, a Next.js package that throws `"This module cannot be imported from a Client Component module"` at import time outside of a server context. Every file that imports `prisma` (directly or transitively) would fail to load in tests without this stub. The global setup ensures all test files get this mock automatically.
 
-  it("does something specific", () => {
-    expect(actual).toBe(expected);
-  });
+### helpers/mockAuth.ts
+
+Provides `mockAuthenticated()` and `mockUnauthenticated()` helpers for API route tests. Mocks `next-auth/next` so that `getServerSession()` returns a controlled session object or null.
+
+**Usage in a test file:**
+
+```typescript
+import { mockAuthenticated, mockUnauthenticated } from "./helpers/mockAuth";
+
+beforeEach(() => {
+  vi.clearAllMocks();
+});
+
+it("returns 401 when not authenticated", async () => {
+  await mockUnauthenticated();
+  const response = await GET(new NextRequest("http://localhost/api/resource"));
+  expect(response.status).toBe(401);
+});
+
+it("returns data when authenticated", async () => {
+  await mockAuthenticated("user-123");
+  // ... test logic
 });
 ```
 
-## Debugging Common CI Failures
+The mock uses `vi.mock("next-auth/next")` at the module level and dynamic `import()` inside the helper functions. This pattern works because Vitest hoists `vi.mock()` calls to the top of the file regardless of where they appear.
 
-### Prettier Failures
+### helpers/mockPrisma.ts
 
-**Error**: `npm run format:check` fails with formatting errors
+Provides a complete mock of the Prisma client (`@/lib/prisma`) with `vi.fn()` stubs for every model method used in the codebase. Tests import this file to activate the mock, then use `vi.mocked()` to set return values for specific methods.
 
-**Debug locally**:
+**Why `$transaction` passes a full mock object:** Several routes and repositories use Prisma interactive transactions:
 
-```bash
-# Check what's wrong
-npm run format:check
-
-# Auto-fix
-npm run format:write
-# or
-npm run format
+```typescript
+await prisma.$transaction(async (tx) => {
+  await tx.gearKit.updateMany({ ... });
+  return tx.gearKit.update({ ... });
+});
 ```
 
-**Common causes**:
+If `$transaction` passed an empty `{}` as the `tx` argument, `tx.gearKit.updateMany` would throw `TypeError: Cannot read properties of undefined`. The mock passes a prisma-shaped object with `vi.fn()` stubs so transaction callbacks execute without errors.
 
-- Trailing commas
-- Quote style (single vs double)
-- Line length (80 chars - `.prettierrc:7`)
-- Missing semicolons
+For batch transactions (array of promises), the mock calls `Promise.all(fn)`.
 
-**Fix**: Run `npm run format:write` and commit the changes.
+**Usage in a test file:**
 
-**Prettier config**: `.prettierrc` (uses `prettier-plugin-tailwindcss`)
+```typescript
+import "./helpers/mockPrisma";
+import { prisma } from "@/lib/prisma";
 
-### TypeScript (tsc) Failures
-
-**Error**: `npm run typecheck` fails with type errors
-
-**Debug locally**:
-
-```bash
-# Run typecheck
-npm run typecheck
-
-# Check specific file
-npx tsc --noEmit src/path/to/file.ts
+vi.mocked(prisma.diveLog.findMany).mockResolvedValue([mockDiveLog]);
 ```
 
-**Common causes**:
+Note: Tests that already define their own `vi.mock("@/lib/prisma")` (like `api-certifications-definitions.test.ts`) will use their local mock, not the helper. Vitest scopes `vi.mock()` per test file — the last call wins within a file.
 
-- Missing type definitions
-- Type mismatches
-- Strict mode violations (`tsconfig.json:7` - `strict: true`)
-- Missing imports
-
-**Fix**: Address type errors shown in output. TypeScript config is strict mode.
-
-### ESLint Failures
-
-**Error**: `npm run lint` fails with linting errors
-
-**Debug locally**:
+## Running Tests
 
 ```bash
-# Check errors
-npm run lint
-
-# Auto-fix what can be fixed
-npm run lint:fix
+npm run test                                    # Run all tests once (vitest run)
+npm run test:watch                              # Watch mode (vitest)
+npx vitest run src/__tests__/units.test.ts      # Single test file
+npx vitest run --coverage                       # Run with coverage report + threshold enforcement
+npm run check                                   # Full quality gate: lint → format → typecheck → test → build
 ```
 
-**Common causes**:
+## CI Workflow
 
-- Unused variables
-- Missing dependencies in useEffect
-- React hooks violations
-- TypeScript `any` usage (disabled for test files - `eslint.config.mjs:22-24`)
+**File:** `.github/workflows/pr-checks.yml`
 
-**ESLint config**: `eslint.config.mjs`
+**Triggers:** Pull requests and pushes to `main`/`master`
 
-- Uses `eslint-config-next` (core-web-vitals + TypeScript)
-- Prettier integration (disables conflicting rules)
-- Test files: `@typescript-eslint/no-explicit-any` disabled
-- Scripts: `@typescript-eslint/no-explicit-any` disabled
+**Steps:**
+1. Checkout → Setup Node 20 → `npm ci` → `npx prisma generate`
+2. `npm run lint`
+3. `npm run format:check`
+4. `npm run typecheck`
+5. `npm run test` (runs `vitest run` — all tests must pass)
+6. `npm run build`
 
-**Fix**: Address errors manually if `lint:fix` doesn't resolve them.
+**Environment:** Placeholder values for `DATABASE_URL`, `NEXTAUTH_SECRET`, `NEXTAUTH_URL`, `OPENAI_API_KEY`. No real credentials needed — all external dependencies are mocked in tests.
 
-### Test Failures
+**Coverage in CI:** `npm run test` runs `vitest run` without the `--coverage` flag, so coverage thresholds are NOT enforced in CI currently. This is intentional during the baseline phase — thresholds will be wired into CI after Phase 2 when coverage is high enough to be meaningful.
 
-**Error**: `npm run test` fails
+## What Is Explicitly Out of Scope
 
-**Debug locally**:
+| Tool/Approach | Why excluded |
+|--------------|--------------|
+| **jsdom / happy-dom** | Hooks and components are deeply coupled to React lifecycle. The pure logic worth testing is extracted into utilities and services that run in Node. Adding a DOM environment adds complexity without proportional value. |
+| **React Testing Library** | Same reasoning. No component-level tests. |
+| **Playwright / Cypress** | E2E deferred to after DIV-10 (codebase health sprint). Writing E2E now would create tests that break immediately during refactoring. |
+| **Real test database** | App is migrating from SQLite to PostgreSQL (DIV-41). Testing against SQLite tests the wrong engine. Repositories are thin wrappers — mock-based tests verify authorization and data shaping. |
+| **prisma-mock / other mock libs** | `vi.mock()` with manual stubs is sufficient for the repository complexity. No library needed. |
+| **MSW (Mock Service Worker)** | Route handlers are importable functions — no need to intercept at the HTTP level. Direct function calls with mocked dependencies are faster and more precise. |
+
+## Phased Implementation Plan
+
+### Phase 1 — Infrastructure + Pure Functions (current)
+
+- Install `@vitest/coverage-v8`
+- Create `vitest.config.ts` with coverage, setup, includes
+- Create `setup.ts`, `helpers/mockAuth.ts`, `helpers/mockPrisma.ts`
+- Expand `units.test.ts` (pressure, weight, parse/format functions)
+- Expand `riskCalculator.test.ts` (interpolateNdl boundaries)
+- Fix `auth-extract-names.test.ts` (import real function via server-only mock)
+- Add `parseAIBriefing.test.ts`
+- Add `openaiService.test.ts` (deterministic functions only)
+
+### Phase 2 — P1 API Route Tests
+
+- `api-signup.test.ts` (validation, uniqueness, happy path)
+- `api-dive-logs.test.ts` (CRUD actions, auth, gear associations)
+- `api-dive-plans.test.ts` (create with AI, update, delete, depth conversion)
+- `api-profile.test.ts` (GET fallbacks, PATCH validation/normalization)
+- `api-certifications.test.ts` (POST duplicate detection, GET ordering)
+- `api-account-password.test.ts` (bcrypt flow, sessionVersion increment)
+- `api-account-delete.test.ts` (cascade transaction)
+
+### Phase 3 — Repositories + Auth Callbacks
+
+- `repo-diveLog.test.ts` (CRUD, authorization, recomputeDiveNumbers, getStatistics)
+- `repo-divePlan.test.ts` (CRUD, authorization, type casting)
+- `repo-gear.test.ts` (gear + kit + dive-gear repositories)
+- `auth-callbacks.test.ts` (JWT callback sessionVersion, session callback)
+
+### Phase 4 — P2 Routes
+
+- Remaining route tests: gear, gear-kits, me, user/preferences, certifications/[id]
+- Ratchet coverage thresholds up to reflect actual coverage
+- Wire `--coverage` into CI
+
+## Debugging Common Failures
+
+### Prettier
 
 ```bash
-# Run tests once
-npm run test
-
-# Run in watch mode (reruns on file changes)
-npm run test:watch
-
-# Run specific test file
-npx vitest run src/__tests__/units.test.ts
+npm run format:check    # See what's wrong
+npm run format          # Auto-fix
 ```
 
-**Common causes**:
-
-- Test assertions failing (logic errors)
-- Mock setup incorrect
-- Import path issues (check `@/` alias)
-- Missing test data
-
-**Vitest config**: `vitest.config.ts`
-
-- Node environment (not jsdom - no DOM APIs)
-- Path alias `@` resolves to `./src`
-
-**Fix**:
-
-1. Check test output for specific failing assertions
-2. Verify mocks are set up correctly (for API/repository tests)
-3. Run in watch mode to iterate faster
-
-### Build Failures
-
-**Error**: `npm run build` fails
-
-**Debug locally**:
+### TypeScript
 
 ```bash
-# Try building
+npm run typecheck       # Full type check
+```
+
+### ESLint
+
+```bash
+npm run lint            # Check
+npm run lint:fix        # Auto-fix
+```
+
+Config: `eslint.config.mjs`. `@typescript-eslint/no-explicit-any` disabled for test files and scripts.
+
+### Tests
+
+```bash
+npm run test                                  # Run all
+npx vitest run src/__tests__/units.test.ts    # Single file
+npm run test:watch                            # Watch mode
+```
+
+Common issues: mock setup incorrect, `@/` alias not resolving (check vitest.config.ts alias), missing `vi.clearAllMocks()` in `beforeEach`.
+
+### Build
+
+```bash
 npm run build
-
-# Check for specific errors in output
 ```
 
-**Common causes**:
-
-- Type errors (should be caught by `typecheck`)
-- Missing environment variables (check `.env` or `.env.local`)
-- Next.js build errors (missing pages, invalid routes)
-- Prisma client not generated (`npx prisma generate`)
-
-**Fix**:
-
-1. Run `npm run typecheck` first (catches type errors)
-2. Ensure Prisma client is generated: `npx prisma generate`
-3. Check Next.js build output for specific errors
-
-## Testing Rules of Thumb
-
-### Unit Tests (Pure Functions)
-
-**When to use**: Test pure functions with no side effects
-
-**Examples**:
-
-- `src/lib/units.ts` - Unit conversion functions ✅ (tested in `units.test.ts`)
-- `src/features/dive-plan/services/riskCalculator.ts` - Risk calculation ✅ (not tested yet)
-- `src/lib/diveMath.ts` - Dive math calculations ✅ (not tested yet)
-- `src/lib/validation.ts` - Validation helpers ✅ (not tested yet)
-
-**Pattern**:
-
-- No mocks needed
-- Test inputs → expected outputs
-- Test edge cases (null, 0, negative numbers, etc.)
-
-**Location**: `src/__tests__/feature-name.test.ts`
-
-### Unit Tests (Functions with Dependencies)
-
-**When to use**: Test functions that use external dependencies (Prisma, APIs)
-
-**Examples**:
-
-- Repository methods (`diveLogRepository`, `divePlanRepository`) ✅ (not tested yet)
-- Service functions with database access
-
-**Pattern**:
-
-- Mock external dependencies (`vi.mock()`)
-- Test function logic, not external dependencies
-- Example: `api-certifications-definitions.test.ts` mocks Prisma
-
-**Location**: `src/__tests__/repository-name.test.ts` or `src/__tests__/service-name.test.ts`
-
-### Integration Tests (API Routes)
-
-**When to use**: Test API route handlers end-to-end
-
-**Examples**:
-
-- API route handlers (`src/app/api/**/route.ts`) ✅ (one example: `api-certifications-definitions.test.ts`)
-
-**Pattern**:
-
-- Mock database/Prisma
-- Test request → response flow
-- Test error cases
-- Test authorization (if applicable)
-
-**Location**: `src/__tests__/api-route-name.test.ts`
-
-**Current example**: `src/__tests__/api-certifications-definitions.test.ts`
-
-- Mocks Prisma client
-- Tests GET endpoint
-- Tests query params, sorting, error handling
-
-### What NOT to Test (Current Approach)
-
-**Not tested** (and likely shouldn't be):
-
-- React components (no React Testing Library setup)
-- Client-side hooks (would need jsdom environment)
-- E2E flows (no Playwright/Cypress setup)
-- Database migrations (tested via Prisma)
-- Next.js pages (tested via build step)
-
-**Focus areas** (based on existing tests):
-
-- ✅ Pure utility functions (units, calculations)
-- ✅ API routes (with mocked dependencies)
-- ✅ Repository methods (with mocked Prisma)
-- ❌ React components (no setup)
-- ❌ Client hooks (no jsdom)
-- ❌ E2E flows (no framework)
-
-### Test Coverage Strategy
-
-**Current state**: 3 test files covering:
-
-- Unit conversions (comprehensive)
-- Auth helper function (comprehensive)
-- One API route (certifications definitions)
-
-**Gaps** (based on codebase):
-
-- Repository methods (none tested)
-- Most API routes (only 1 of ~15 tested)
-- Business logic services (risk calculator, dive math)
-- Validation utilities
-
-**Recommendation**: Add tests incrementally for:
-
-1. Critical business logic (risk calculator, unit conversions - ✅ done)
-2. API routes that handle user data (dive logs, dive plans, profile)
-3. Repository methods (data access layer)
-
----
-
-Last verified against commit:
+If build fails after typecheck passes, likely causes: missing env vars, Prisma client not generated (`npx prisma generate`).
