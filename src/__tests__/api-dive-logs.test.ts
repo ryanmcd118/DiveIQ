@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { NextRequest } from "next/server";
 
-// Mock next-auth (routes import from "next-auth", not "next-auth/next")
+// Mock next-auth
 vi.mock("next-auth", () => ({
   getServerSession: vi.fn(),
 }));

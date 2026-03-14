@@ -118,7 +118,7 @@ vi.mock("server-only", () => ({}));
 
 ### helpers/mockAuth.ts
 
-Provides `mockAuthenticated()` and `mockUnauthenticated()` helpers for API route tests. Mocks `next-auth/next` so that `getServerSession()` returns a controlled session object or null.
+Provides `mockAuthenticated()` and `mockUnauthenticated()` helpers for API route tests. Mocks `"next-auth"` so that `getServerSession()` returns a controlled session object or null. All API routes import `getServerSession` from `"next-auth"` (not `"next-auth/next"`), so the mock must target that module path.
 
 **Usage in a test file:**
 
