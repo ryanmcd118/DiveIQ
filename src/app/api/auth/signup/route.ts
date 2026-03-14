@@ -7,53 +7,73 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     const { email, password, firstName, lastName } = body;
 
-    // Validate input - trim and check for non-empty strings
-    const trimmedFirstName = firstName?.trim() || "";
-    const trimmedLastName = lastName?.trim() || "";
+    // Per-field validation
+    if (!email) {
+      return NextResponse.json({ error: "Email is required" }, { status: 400 });
+    }
 
-    if (!email || !password || !trimmedFirstName || !trimmedLastName) {
+    if (!password) {
       return NextResponse.json(
-        { error: "First and last name are required." },
+        { error: "Password is required" },
         { status: 400 }
       );
     }
 
+    if (password.length < 8) {
+      return NextResponse.json(
+        { error: "Password must be at least 8 characters" },
+        { status: 400 }
+      );
+    }
+
+    const trimmedFirstName = firstName?.trim() || "";
+    const trimmedLastName = lastName?.trim() || "";
+
+    if (!trimmedFirstName) {
+      return NextResponse.json(
+        { error: "First name is required" },
+        { status: 400 }
+      );
+    }
+
+    if (!trimmedLastName) {
+      return NextResponse.json(
+        { error: "Last name is required" },
+        { status: 400 }
+      );
+    }
+
+    // Normalize email
+    const normalizedEmail = email.trim().toLowerCase();
+
     // Validate email format
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
+    if (!emailRegex.test(normalizedEmail)) {
       return NextResponse.json(
         { error: "Invalid email format" },
         { status: 400 }
       );
     }
 
-    // Validate password strength
-    if (password.length < 8) {
-      return NextResponse.json(
-        { error: "Password must be at least 8 characters long" },
-        { status: 400 }
-      );
-    }
-
     // Check if user already exists
     const existingUser = await prisma.user.findUnique({
-      where: { email },
+      where: { email: normalizedEmail },
     });
 
     if (existingUser) {
       return NextResponse.json(
         { error: "User with this email already exists" },
-        { status: 400 }
+        { status: 409 }
       );
     }
 
     // Hash password
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Create user with trimmed names (preserve spaces inside names, only trim edges)
+    // Create user with trimmed names and normalized email
     const user = await prisma.user.create({
       data: {
-        email,
+        email: normalizedEmail,
         password: hashedPassword,
         firstName: trimmedFirstName,
         lastName: trimmedLastName,

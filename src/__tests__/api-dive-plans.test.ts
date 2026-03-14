@@ -235,7 +235,7 @@ describe("dive plans API", () => {
       const res = await POST(makePost(validPlanBody));
       const data = await res.json();
 
-      expect(res.status).toBe(200);
+      expect(res.status).toBe(201);
       expect(data.plan).toBeDefined();
       expect(data.plan.id).toBe("plan-1");
       expect(data.aiBriefing).toBeDefined();

@@ -106,7 +106,7 @@ export async function POST(req: NextRequest) {
         aiBriefing,
         plan: savedPlan,
       },
-      { status: 200 }
+      { status: 201 }
     );
   } catch (err) {
     console.error("Error in POST /api/dive-plans:", err);

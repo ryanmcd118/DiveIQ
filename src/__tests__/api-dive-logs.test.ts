@@ -241,7 +241,7 @@ describe("dive logs API", () => {
       );
       const data = await res.json();
 
-      expect(res.status).toBe(200);
+      expect(res.status).toBe(201);
       expect(data.entry.id).toBe("log-1");
       expect(data.gearItems).toEqual([]);
     });

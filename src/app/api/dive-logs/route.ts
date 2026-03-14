@@ -133,10 +133,13 @@ export async function POST(req: NextRequest) {
         session.user.id
       );
 
-      return NextResponse.json({
-        entry: created,
-        gearItems: gearItems.map((dgi) => dgi.gearItem),
-      });
+      return NextResponse.json(
+        {
+          entry: created,
+          gearItems: gearItems.map((dgi) => dgi.gearItem),
+        },
+        { status: 201 }
+      );
     }
 
     // UPDATE

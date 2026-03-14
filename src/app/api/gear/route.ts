@@ -85,7 +85,7 @@ export async function POST(req: NextRequest) {
       session.user.id
     );
 
-    return NextResponse.json({ item });
+    return NextResponse.json({ item }, { status: 201 });
   } catch (err) {
     console.error("POST /api/gear error", err);
     return NextResponse.json(

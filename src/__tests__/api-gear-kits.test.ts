@@ -112,12 +112,14 @@ describe("gear kits API", () => {
       expect((await POST(makePost({ action: "create" }))).status).toBe(400);
     });
 
-    it("creates kit on happy path", async () => {
+    it("creates kit on happy path with 201", async () => {
       vi.mocked(gearKitRepository.create).mockResolvedValue(mockKit as any);
       vi.mocked(gearKitRepository.findById).mockResolvedValue(mockKit as any);
-      const data = await (
-        await POST(makePost({ action: "create", name: "Tropical Kit" }))
-      ).json();
+      const res = await POST(
+        makePost({ action: "create", name: "Tropical Kit" })
+      );
+      const data = await res.json();
+      expect(res.status).toBe(201);
       expect(data.kit).toBeDefined();
       expect(data.kit.name).toBe("Tropical Kit");
     });

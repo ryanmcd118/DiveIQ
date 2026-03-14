@@ -70,7 +70,7 @@ export async function POST(req: NextRequest) {
         session.user.id
       );
 
-      return NextResponse.json({ kit: kitWithItems });
+      return NextResponse.json({ kit: kitWithItems }, { status: 201 });
     }
 
     // Update kit items

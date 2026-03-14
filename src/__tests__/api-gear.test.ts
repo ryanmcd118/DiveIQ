@@ -131,7 +131,7 @@ describe("gear API", () => {
         makePost({ type: "WETSUIT", manufacturer: "O'Neill", model: "3mm" })
       );
       const data = await res.json();
-      expect(res.status).toBe(200);
+      expect(res.status).toBe(201);
       expect(data.item.type).toBe("WETSUIT");
     });
 
