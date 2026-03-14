@@ -179,7 +179,7 @@
 }
 
 .beforeYouDiveLabel {
-  font-size: 0.65rem;
+  font-size: var(--font-size-base);
   font-weight: var(--font-weight-semibold);
   text-transform: uppercase;
   letter-spacing: 0.08em;
