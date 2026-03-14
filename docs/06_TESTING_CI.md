@@ -66,7 +66,7 @@ export default defineConfig({
 
 Note: Coverage thresholds are only enforced when running `vitest run --coverage`. The default `npm run test` (`vitest run`) does NOT enforce thresholds. To run with coverage locally: `npx vitest run --coverage`.
 
-## Current Test Suite: 20 files, 514 tests
+## Current Test Suite: 22 files, 556 tests
 
 ## Test File Organization
 
@@ -95,6 +95,8 @@ src/__tests__/
 ├── repo-divePlan.test.ts                   # 17 tests — divePlanRepository userId scoping + ownership
 ├── repo-gear.test.ts                       # 36 tests — gear/gearKit/diveGear repositories
 ├── auth-callbacks.test.ts                  # 20 tests — credentials authorize + JWT/session callbacks
+├── maintenance.test.ts                     # 22 tests — gear maintenance status + sorting
+├── auth-name.test.ts                       # 20 tests — splitFullName + getDisplayName
 └── api-certifications-definitions.test.ts  # 4 tests  — GET /api/certifications/definitions
 ```
 
