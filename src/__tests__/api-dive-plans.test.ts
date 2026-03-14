@@ -202,7 +202,7 @@ describe("dive plans API", () => {
 
       expect(divePlanRepository.findMany).toHaveBeenCalledWith({
         orderBy: "createdAt",
-        take: 10,
+        take: 100,
         userId: USER_ID,
       });
     });
@@ -346,6 +346,27 @@ describe("dive plans API", () => {
       expect(res.status).toBe(500);
       expect(data.error).toContain("Failed to generate");
     });
+
+    it("returns 400 when region is missing", async () => {
+      const { region: _, ...body } = validPlanBody;
+      void _;
+      const res = await POST(makePost(body));
+      expect(res.status).toBe(400);
+      const data = await res.json();
+      expect(data.error).toBe("Validation failed");
+    });
+
+    it("returns 400 when maxDepthCm is not a positive integer", async () => {
+      const res = await POST(makePost({ ...validPlanBody, maxDepthCm: -5 }));
+      expect(res.status).toBe(400);
+    });
+
+    it("returns 400 when bottomTime is missing", async () => {
+      const { bottomTime: _, ...body } = validPlanBody;
+      void _;
+      const res = await POST(makePost(body));
+      expect(res.status).toBe(400);
+    });
   });
 
   // ── PUT ─────────────────────────────────────────────────────────────
@@ -406,6 +427,20 @@ describe("dive plans API", () => {
 
       expect(res.status).toBe(500);
       expect(data.error).toContain("Failed to update");
+    });
+
+    it("returns 400 when required fields are missing on PUT", async () => {
+      const res = await PUT(makePut({ id: "plan-1" }));
+      expect(res.status).toBe(400);
+      const data = await res.json();
+      expect(data.error).toBe("Validation failed");
+    });
+
+    it("returns 400 when maxDepthCm is negative on PUT", async () => {
+      const res = await PUT(
+        makePut({ id: "plan-1", ...validPlanBody, maxDepthCm: -10 })
+      );
+      expect(res.status).toBe(400);
     });
   });
 

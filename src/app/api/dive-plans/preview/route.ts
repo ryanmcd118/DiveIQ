@@ -4,8 +4,8 @@ import {
   type DivePlanAnalysisRequest,
 } from "@/services/ai/openaiService";
 import { calculateRiskLevel } from "@/features/dive-plan/services/riskCalculator";
-import type { UnitSystem, UnitPreferences } from "@/lib/units";
-import { cmToMeters } from "@/lib/units";
+import type { UnitPreferences } from "@/lib/units";
+import { cmToMeters, preferencesToUnitSystem } from "@/lib/units";
 
 /**
  * POST /api/dive-plans/preview
@@ -43,15 +43,7 @@ export async function POST(req: NextRequest) {
       planDate: body.date,
     });
 
-    // Get unit system from preferences (default to metric if not provided)
-    const unitSystem: UnitSystem = body.unitPreferences
-      ? body.unitPreferences.depth === "m" &&
-        body.unitPreferences.temperature === "c" &&
-        body.unitPreferences.pressure === "bar" &&
-        body.unitPreferences.weight === "kg"
-        ? "metric"
-        : "imperial"
-      : "metric";
+    const unitSystem = preferencesToUnitSystem(body.unitPreferences);
 
     const stream = await generateDivePlanBriefingStream({
       region: body.region,

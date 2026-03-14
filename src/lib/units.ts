@@ -51,7 +51,11 @@ export function unitSystemToPreferences(
 /**
  * Convert UnitPreferences to UnitSystem (for guest toggles)
  */
-export function preferencesToUnitSystem(prefs: UnitPreferences): UnitSystem {
+export function preferencesToUnitSystem(
+  prefs: UnitPreferences | null | undefined
+): UnitSystem {
+  // Default to metric when no preferences provided
+  if (!prefs) return "metric";
   // If all are metric, return 'metric', otherwise 'imperial'
   if (
     prefs.depth === "m" &&

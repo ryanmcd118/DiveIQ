@@ -9,8 +9,18 @@ import {
 import { calculateRiskLevel } from "@/features/dive-plan/services/riskCalculator";
 import { divePlanRepository } from "@/services/database/repositories/divePlanRepository";
 import type { AIBriefing, PlanInput } from "@/features/dive-plan/types";
-import type { UnitSystem, UnitPreferences } from "@/lib/units";
-import { cmToMeters } from "@/lib/units";
+import type { UnitPreferences } from "@/lib/units";
+import { cmToMeters, preferencesToUnitSystem } from "@/lib/units";
+import { z } from "zod";
+
+const divePlanInputSchema = z.object({
+  region: z.string().min(1),
+  siteName: z.string().min(1),
+  date: z.string().min(1),
+  maxDepthCm: z.number().int().positive(),
+  bottomTime: z.number().int().positive(),
+  experienceLevel: z.string().min(1),
+});
 
 /**
  * POST /api/dive-plans
@@ -32,13 +42,21 @@ export async function POST(req: NextRequest) {
       region: string;
       siteName: string;
       date: string;
-      maxDepthCm: number; // Depth in centimeters (canonical fixed-point)
+      maxDepthCm: number;
       bottomTime: number;
       experienceLevel: "Beginner" | "Intermediate" | "Advanced";
-      unitPreferences?: UnitPreferences; // User's unit preferences for AI formatting
+      unitPreferences?: UnitPreferences;
       cachedBriefing?: AIBriefing;
       profile?: DivePlanAnalysisRequest["profile"];
     };
+
+    const parsed = divePlanInputSchema.safeParse(body);
+    if (!parsed.success) {
+      return NextResponse.json(
+        { error: "Validation failed", details: parsed.error.flatten() },
+        { status: 400 }
+      );
+    }
 
     // Convert to meters for risk calculation
     const maxDepthMeters = cmToMeters(body.maxDepthCm);
@@ -53,17 +71,12 @@ export async function POST(req: NextRequest) {
       planDate: body.date,
     });
 
-    // Get user preferences for AI formatting (default to metric if not provided)
-    const unitSystem: UnitSystem = body.unitPreferences
-      ? body.unitPreferences.depth === "m" &&
-        body.unitPreferences.temperature === "c" &&
-        body.unitPreferences.pressure === "bar" &&
-        body.unitPreferences.weight === "kg"
-        ? "metric"
-        : "imperial"
-      : "metric";
+    const unitSystem = preferencesToUnitSystem(body.unitPreferences);
 
-    // Use cached briefing if valid (avoids double OpenAI call on guest save)
+    // TRUST DECISION: cachedBriefing is accepted from the client to avoid
+    // a double OpenAI call when a guest user saves after previewing.
+    // The client is trusted to pass back the briefing it received from
+    // /api/dive-plans/preview. Server-side re-validation is not performed.
     const aiBriefing: AIBriefing =
       body.cachedBriefing?.keyConsiderations && body.cachedBriefing?.conditions
         ? body.cachedBriefing
@@ -135,10 +148,10 @@ export async function PUT(req: NextRequest) {
       region: string;
       siteName: string;
       date: string;
-      maxDepthCm: number; // Depth in centimeters (canonical fixed-point)
+      maxDepthCm: number;
       bottomTime: number;
       experienceLevel: "Beginner" | "Intermediate" | "Advanced";
-      unitPreferences?: UnitPreferences; // User's unit preferences for AI formatting
+      unitPreferences?: UnitPreferences;
       cachedBriefing?: AIBriefing;
       profile?: DivePlanAnalysisRequest["profile"];
     };
@@ -146,6 +159,14 @@ export async function PUT(req: NextRequest) {
     if (!body.id) {
       return NextResponse.json(
         { error: "Missing plan id for update." },
+        { status: 400 }
+      );
+    }
+
+    const parsed = divePlanInputSchema.safeParse(body);
+    if (!parsed.success) {
+      return NextResponse.json(
+        { error: "Validation failed", details: parsed.error.flatten() },
         { status: 400 }
       );
     }
@@ -163,15 +184,7 @@ export async function PUT(req: NextRequest) {
       planDate: body.date,
     });
 
-    // Get user preferences for AI formatting (default to metric if not provided)
-    const unitSystem: UnitSystem = body.unitPreferences
-      ? body.unitPreferences.depth === "m" &&
-        body.unitPreferences.temperature === "c" &&
-        body.unitPreferences.pressure === "bar" &&
-        body.unitPreferences.weight === "kg"
-        ? "metric"
-        : "imperial"
-      : "metric";
+    const unitSystem = preferencesToUnitSystem(body.unitPreferences);
 
     // Generate updated AI structured briefing with unit system
     const aiBriefing = await generateUpdatedDivePlanBriefing({
@@ -239,7 +252,7 @@ export async function GET() {
   try {
     const plans = await divePlanRepository.findMany({
       orderBy: "createdAt",
-      take: 10,
+      take: 100,
       userId: session.user.id,
     });
 
