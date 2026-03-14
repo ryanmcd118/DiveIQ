@@ -1,7 +1,12 @@
 import { FormEvent, useState, useCallback, useEffect, useRef } from "react";
 import { useSession, signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
-import { PastPlan, AIBriefing, RiskLevel } from "@/features/dive-plan/types";
+import {
+  PastPlan,
+  AIBriefing,
+  RiskLevel,
+  PlanData,
+} from "@/features/dive-plan/types";
 import { depthInputToCm } from "@/lib/units";
 import { usePlanSubmission } from "./usePlanSubmission";
 
@@ -50,6 +55,41 @@ export function usePublicPlanState() {
 
   // Local pastPlans setter — not rendered, but fetched after auth for behavioral parity
   const [, setPastPlans] = useState<PastPlan[]>([]);
+
+  // Recover teaser data from homepage PlannerStub redirect
+  const teaserRecoveredRef = useRef(false);
+  useEffect(() => {
+    if (teaserRecoveredRef.current) return;
+    teaserRecoveredRef.current = true;
+
+    try {
+      const raw = sessionStorage.getItem("diveiq:plannerTeaser");
+      if (!raw) return;
+      sessionStorage.removeItem("diveiq:plannerTeaser");
+
+      const { region, siteName, unitSystem } = JSON.parse(raw) as {
+        region?: string;
+        siteName?: string;
+        unitSystem?: string;
+      };
+
+      submission.setSubmittedPlan({ region, siteName } as PlanData);
+      submission.setFormKey("teaser-" + Date.now());
+
+      // Clear submittedPlan after the form remounts and captures defaultValues,
+      // so the right panel stays in placeholder mode until an actual submission.
+      setTimeout(() => submission.setSubmittedPlan(null), 0);
+
+      if (unitSystem) {
+        localStorage.setItem("diveiq:unitSystem", unitSystem);
+        window.dispatchEvent(
+          new CustomEvent("unitSystemChanged", { detail: unitSystem })
+        );
+      }
+    } catch {
+      // sessionStorage or JSON.parse may fail — ignore
+    }
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Cache the latest preview briefing so guest save avoids a second OpenAI call
   const cachedBriefingRef = useRef<{
