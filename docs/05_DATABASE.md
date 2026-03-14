@@ -1,40 +1,346 @@
 # Database
 
-## Prisma Schema Overview
+## Engine & Connection
 
-**Schema location**: `prisma/schema.prisma`
+- **Database engine:** SQLite
+- **Provider:** `sqlite` (configured in `prisma/schema.prisma` line 7)
+- **Connection:** `DATABASE_URL` environment variable, pointing to a local file (e.g. `file:/path/to/prisma/dev.db`)
+- **ORM:** Prisma with `prisma-client-js` generator
+- **Prisma singleton:** `src/lib/prisma.ts` — global instance pattern for dev hot-reload. Never instantiate `new PrismaClient()` directly.
 
-**Database**: SQLite (development) - configured in `prisma/schema.prisma:5-8`
+## Schema Location
 
-**Prisma Client**: Generated singleton in `src/lib/prisma.ts` with global instance pattern for development hot-reload.
+`prisma/schema.prisma`
 
-### Key Models and Relationships
+## Enums
 
-**Authentication Models** (NextAuth.js):
+### CertificationAgency
 
-- **User** (`prisma/schema.prisma:23-66`) - Central user model with authentication and profile fields
-- **Account** (`prisma/schema.prisma:68-85`) - OAuth account linking (Google, etc.)
-- **Session** (`prisma/schema.prisma:87-93`) - NextAuth session storage (JWT strategy used, but table exists)
-- **VerificationToken** (`prisma/schema.prisma:95-101`) - Email verification tokens
+```
+PADI | SSI | NAUI | SDI_TDI | BSAC | CMAS | GUE | RAID
+```
 
-**Core Application Models**:
+Note: NAUI through RAID were added in DIV-42. Prior to that, only PADI and SSI were supported.
 
-- **DiveLog** (`prisma/schema.prisma:104-122`) - Individual dive log entries
-- **DivePlan** (`prisma/schema.prisma:124-140`) - Saved dive plans with AI briefings
-- **GearItem** (`prisma/schema.prisma:143-164`) - User's dive gear inventory
-- **GearKit** (`prisma/schema.prisma:166-180`) - Collections of gear items
-- **GearKitItem** (`prisma/schema.prisma:196-207`) - Join table: GearKit ↔ GearItem
-- **DiveGearItem** (`prisma/schema.prisma:209-220`) - Join table: DiveLog ↔ GearItem (gear used on specific dive)
-- **UserProfileKit** (`prisma/schema.prisma:182-194`) - Join table: User ↔ GearKit (kits shown on profile)
-- **CertificationDefinition** (`prisma/schema.prisma:223-237`) - Catalog of available certifications (PADI, SSI)
-- **UserCertification** (`prisma/schema.prisma:239-260`) - User's earned certifications
+### CertificationCategory
 
-**Enums**:
+```
+core | specialty | professional
+```
 
-- `CertificationAgency` (`prisma/schema.prisma:11-14`) - PADI, SSI
-- `CertificationCategory` (`prisma/schema.prisma:16-20`) - core, specialty, professional
+## Models
 
-### Entity Relationship Diagram
+### Authentication Models (NextAuth.js)
+
+#### User
+
+Central user model combining authentication and profile fields.
+
+| Field | Type | Modifiers | Notes |
+|-------|------|-----------|-------|
+| id | String | @id @default(cuid()) | |
+| email | String | @unique | |
+| emailVerified | DateTime? | | |
+| password | String? | | Hashed (bcrypt) for credentials provider; null for OAuth-only users |
+| sessionVersion | Int | @default(0) | Incremented on password change to invalidate other JWT sessions |
+| firstName | String? | | |
+| lastName | String? | | Nullable for Google OAuth users who only have a display name |
+| image | String? | | NextAuth default avatar field |
+| avatarUrl | String? | | App-preferred avatar URL (takes precedence over `image`) |
+| birthday | DateTime? | | Private, not displayed publicly |
+| location | String? | | City, country |
+| bio | String? | | |
+| pronouns | String? | | |
+| website | String? | | |
+| homeDiveRegion | String? | | |
+| languages | String? | | Comma-separated |
+| primaryDiveTypes | String? | | JSON array stored as string |
+| experienceLevel | String? | | "Beginner" \| "Intermediate" \| "Advanced" |
+| yearsDiving | Int? | | |
+| certifyingAgency | String? | | Free-text (e.g. "PADI", "NAUI") |
+| typicalDivingEnvironment | String? | | JSON array stored as string |
+| lookingFor | String? | | JSON array stored as string |
+| favoriteDiveType | String? | | |
+| favoriteDiveLocation | String? | | |
+| unitPreferences | Json? | | `{ depth: "ft"\|"m", temperature: "f"\|"c", pressure: "psi"\|"bar", weight: "lb"\|"kg" }` |
+| showCertificationsOnProfile | Boolean | @default(true) | |
+| showGearOnProfile | Boolean | @default(true) | |
+| hasCompletedOnboarding | Boolean | @default(false) | Gates onboarding flow |
+| createdAt | DateTime | @default(now()) | |
+| updatedAt | DateTime | @updatedAt | |
+
+**Relations:** diveLogs, divePlans, gearItems, gearKits, profileKits, accounts, sessions, certifications
+
+#### Account
+
+OAuth account linking (NextAuth adapter model).
+
+| Field | Type | Modifiers | Notes |
+|-------|------|-----------|-------|
+| id | String | @id @default(cuid()) | |
+| userId | String | | FK to User |
+| type | String | | |
+| provider | String | | |
+| providerAccountId | String | | |
+| refresh_token | String? | | snake_case required by NextAuth |
+| access_token | String? | | |
+| expires_at | Int? | | |
+| token_type | String? | | |
+| scope | String? | | |
+| id_token | String? | | |
+| session_state | String? | | |
+
+**Relation:** `user User @relation(..., onDelete: Cascade)`
+**Indexes:** `@@unique([provider, providerAccountId])`, `@@index([userId])`
+
+#### Session
+
+NextAuth session storage. The app uses JWT strategy, so this table exists but is largely unused.
+
+| Field | Type | Modifiers |
+|-------|------|-----------|
+| id | String | @id @default(cuid()) |
+| sessionToken | String | @unique |
+| userId | String | FK to User |
+| expires | DateTime | |
+
+**Relation:** `user User @relation(..., onDelete: Cascade)`
+**Indexes:** `@@index([userId])`
+
+#### VerificationToken
+
+Email verification tokens (NextAuth adapter model).
+
+| Field | Type | Modifiers |
+|-------|------|-----------|
+| identifier | String | |
+| token | String | @unique |
+| expires | DateTime | |
+
+**Indexes:** `@@unique([identifier, token])`
+
+---
+
+### Core Application Models
+
+#### DiveLog
+
+Individual dive log entries. Stores all measurements in canonical fixed-point units.
+
+| Field | Type | Modifiers | Notes |
+|-------|------|-----------|-------|
+| id | String | @id @default(cuid()) | |
+| userId | String | | FK to User (non-nullable) |
+| date | String | | YYYY-MM-DD format (see Known Tech Debt) |
+| startTime | String? | | e.g. "09:30" |
+| endTime | String? | | e.g. "10:15" |
+| diveNumber | Int? | | Effective display number (auto or override) |
+| diveNumberAuto | Int? | | Auto-computed chronological number |
+| diveNumberOverride | Int? | | User override, if set |
+| region | String? | | Location/region |
+| siteName | String | | Required |
+| buddyName | String? | | |
+| diveTypeTags | String? | | JSON array: `["Shore","Boat","Night",...]` |
+| maxDepthCm | Int? | | Depth in centimeters (fixed-point) |
+| bottomTime | Int? | | Minutes |
+| safetyStopDepthCm | Int? | | e.g. 457 = 15ft / 4.57m |
+| safetyStopDurationMin | Int? | | |
+| surfaceIntervalMin | Int? | | |
+| waterTempCx10 | Int? | | Surface temp in tenths of Celsius (e.g. 235 = 23.5°C) |
+| waterTempBottomCx10 | Int? | | Bottom temp in tenths of Celsius |
+| visibilityCm | Int? | | Visibility distance in centimeters |
+| current | String? | | None\|Light\|Moderate\|Strong |
+| gasType | String? | | Air\|Nitrox\|Other |
+| fO2 | Int? | | Nitrox O2 % (e.g. 32) |
+| tankCylinder | String? | | "AL80", "HP100", etc. |
+| startPressureBar | Float? | | Start pressure in bar |
+| endPressureBar | Float? | | End pressure in bar |
+| exposureProtection | String? | | Rashguard\|3mm\|5mm\|7mm\|Drysuit\|Other |
+| weightUsedKg | Float? | | Weight in kg |
+| gearKitId | String? | | Optional FK to GearKit (informational, no relation enforced) |
+| gearNotes | String? | | Exceptions/notes about gear |
+| isTrainingDive | Boolean | @default(false) | |
+| trainingCourse | String? | | |
+| trainingInstructor | String? | | |
+| trainingSkills | String? | | JSON array or comma-separated |
+| notes | String? | | |
+| rating | Int? | | 1-5 star rating |
+| placeId | String? | | Google Places ID |
+| latitude | Float? | | Geo coordinate |
+| longitude | Float? | | Geo coordinate |
+| country | String? | | Country name |
+| isPublic | Boolean | @default(false) | Share/export visibility |
+| divePlanId | String? | | FK to originating DivePlan |
+| source | String? | | "manual"\|"garmin"\|"shearwater"\|"subsurface" |
+| createdAt | DateTime | @default(now()) | |
+| updatedAt | DateTime | @updatedAt | |
+
+**Relations:**
+- `user User @relation(fields: [userId], references: [id], onDelete: Cascade)`
+- `divePlan DivePlan? @relation(fields: [divePlanId], references: [id], onDelete: SetNull)`
+- `gearItems DiveGearItem[]`
+
+**Indexes:** `@@index([userId])`, `@@index([userId, createdAt])`, `@@index([userId, date])`
+
+#### DivePlan
+
+AI-generated dive plans with structured briefings.
+
+| Field | Type | Modifiers | Notes |
+|-------|------|-----------|-------|
+| id | String | @id @default(cuid()) | |
+| userId | String | | FK to User (non-nullable) |
+| date | String | | String date from plan creation context |
+| region | String | | Required |
+| siteName | String | | Required |
+| maxDepthCm | Int | | Depth in centimeters (fixed-point) |
+| bottomTime | Int | | Minutes |
+| experienceLevel | String | | "Beginner"\|"Intermediate"\|"Advanced" |
+| riskLevel | String | | "Low"\|"Moderate"\|"High"\|"Extreme" |
+| aiAdvice | String? | | Legacy plain-text summary (first key consideration) |
+| aiBriefing | Json? | | Structured JSON briefing object |
+| placeId | String? | | Google Places ID |
+| latitude | Float? | | Geo coordinate |
+| longitude | Float? | | Geo coordinate |
+| country | String? | | Country name |
+| isPublic | Boolean | @default(false) | Share/export visibility |
+| plannedDate | DateTime? | | When the dive is planned to occur (for dashboard widgets) |
+| shareToken | String? | @unique | Unique token for shareable URLs |
+| createdAt | DateTime | @default(now()) | |
+| updatedAt | DateTime | @updatedAt | |
+
+**Relations:**
+- `user User @relation(fields: [userId], references: [id], onDelete: Cascade)`
+- `diveLogs DiveLog[]` (reverse side of DiveLog.divePlanId)
+
+**Indexes:** `@@index([userId])`, `@@index([userId, createdAt])`
+
+---
+
+### Gear Models
+
+#### GearItem
+
+User's dive gear inventory.
+
+| Field | Type | Modifiers | Notes |
+|-------|------|-----------|-------|
+| id | String | @id @default(cuid()) | |
+| userId | String | | FK to User |
+| type | String | | BCD\|REGULATOR\|WETSUIT\|DIVE_COMPUTER\|FINS\|MASK\|SNORKEL\|TANK\|WEIGHTS\|OTHER |
+| manufacturer | String | | Required |
+| model | String | | Required |
+| nickname | String? | | User-assigned nickname |
+| purchaseDate | DateTime? | | |
+| notes | String? | | |
+| isActive | Boolean | @default(true) | |
+| lastServicedAt | DateTime? | | |
+| serviceIntervalMonths | Int? | | Service interval by calendar |
+| condition | String? | | "Excellent"\|"Good"\|"Fair"\|"Poor"\|"Needs Service" |
+| imageUrl | String? | | Photo of gear item |
+| serialNumber | String? | | For warranty/service tracking |
+| purchaseShop | String? | | Dive shop where purchased |
+| serviceIntervalDives | Int? | | Service interval by dive count |
+| createdAt | DateTime | @default(now()) | |
+| updatedAt | DateTime | @updatedAt | |
+
+**Relations:** `user User`, `kitItems GearKitItem[]`, `diveGearItems DiveGearItem[]`
+**Indexes:** `@@index([userId])`, `@@index([userId, isActive])`
+
+#### GearKit
+
+Collections of gear items.
+
+| Field | Type | Modifiers |
+|-------|------|-----------|
+| id | String | @id @default(cuid()) |
+| userId | String | FK to User |
+| name | String | |
+| isDefault | Boolean | @default(false) |
+| createdAt | DateTime | @default(now()) |
+| updatedAt | DateTime | @updatedAt |
+
+**Relations:** `user User`, `kitItems GearKitItem[]`, `profileKits UserProfileKit[]`
+**Indexes:** `@@index([userId])`, `@@index([userId, isDefault])`
+
+#### GearKitItem (Join table: GearKit ↔ GearItem)
+
+| Field | Type | Modifiers |
+|-------|------|-----------|
+| id | String | @id @default(cuid()) |
+| kitId | String | FK to GearKit |
+| gearItemId | String | FK to GearItem |
+
+**Indexes:** `@@unique([kitId, gearItemId])`, `@@index([kitId])`, `@@index([gearItemId])`
+
+#### DiveGearItem (Join table: DiveLog ↔ GearItem)
+
+| Field | Type | Modifiers |
+|-------|------|-----------|
+| id | String | @id @default(cuid()) |
+| diveId | String | FK to DiveLog |
+| gearItemId | String | FK to GearItem |
+
+**Indexes:** `@@unique([diveId, gearItemId])`, `@@index([diveId])`, `@@index([gearItemId])`
+
+#### UserProfileKit (Join table: User ↔ GearKit for profile display)
+
+| Field | Type | Modifiers |
+|-------|------|-----------|
+| id | String | @id @default(cuid()) |
+| userId | String | FK to User |
+| kitId | String | FK to GearKit |
+| createdAt | DateTime | @default(now()) |
+
+**Indexes:** `@@unique([userId, kitId])`, `@@index([userId])`, `@@index([kitId])`
+
+---
+
+### Certification Models
+
+#### CertificationDefinition
+
+Catalog of available certifications. Seeded from `prisma/seed-data/certifications.json`.
+
+| Field | Type | Modifiers |
+|-------|------|-----------|
+| id | String | @id @default(cuid()) |
+| agency | CertificationAgency | Enum |
+| name | String | |
+| slug | String | |
+| levelRank | Int | Tier/depth-limit ranking |
+| category | CertificationCategory | Enum |
+| badgeImageUrl | String? | |
+| createdAt | DateTime | @default(now()) |
+| updatedAt | DateTime | @updatedAt |
+
+**Indexes:** `@@unique([agency, slug])`
+
+#### UserCertification
+
+User's earned certifications.
+
+| Field | Type | Modifiers |
+|-------|------|-----------|
+| id | String | @id @default(cuid()) |
+| userId | String | FK to User |
+| certificationDefinitionId | String | FK to CertificationDefinition |
+| earnedDate | DateTime? | |
+| certNumber | String? | |
+| diveShop | String? | |
+| location | String? | |
+| instructor | String? | |
+| notes | String? | |
+| isFeatured | Boolean | @default(false) |
+| sortOrder | Int? | |
+| createdAt | DateTime | @default(now()) |
+| updatedAt | DateTime | @updatedAt |
+
+**Indexes:** `@@index([userId])`, `@@index([certificationDefinitionId])`, `@@index([userId, isFeatured])`
+
+---
+
+## Entity Relationship Diagram
 
 ```mermaid
 erDiagram
@@ -48,426 +354,127 @@ erDiagram
     User ||--o{ UserProfileKit : "shows"
 
     DiveLog ||--o{ DiveGearItem : "uses"
-    GearItem ||--o{ DiveGearItem : "used_in"
+    DiveLog }o--o| DivePlan : "derived from"
+    GearItem ||--o{ DiveGearItem : "used in"
     GearKit ||--o{ GearKitItem : "contains"
-    GearItem ||--o{ GearKitItem : "in_kit"
-    GearKit ||--o{ UserProfileKit : "shown_on"
+    GearItem ||--o{ GearKitItem : "in kit"
+    GearKit ||--o{ UserProfileKit : "shown on"
 
     CertificationDefinition ||--o{ UserCertification : "defines"
-
-    User {
-        string id PK
-        string email UK
-        string password "nullable"
-        int sessionVersion
-        string firstName "nullable"
-        string lastName "nullable"
-        string avatarUrl "nullable"
-        json unitPreferences "nullable"
-        boolean showCertificationsOnProfile
-        boolean showGearOnProfile
-        "~20 more profile fields"
-    }
-
-    DiveLog {
-        string id PK
-        string userId FK "nullable"
-        string date
-        string region
-        string siteName
-        int maxDepthCm
-        int bottomTime
-        int waterTempCx10 "nullable"
-        int visibilityCm "nullable"
-    }
-
-    DivePlan {
-        string id PK
-        string userId FK "nullable"
-        string date
-        string region
-        string siteName
-        int maxDepthCm
-        int bottomTime
-        string experienceLevel
-        string riskLevel
-        string aiAdvice "nullable"
-    }
-
-    GearItem {
-        string id PK
-        string userId FK
-        string type
-        string manufacturer
-        string model
-        boolean isActive
-    }
-
-    GearKit {
-        string id PK
-        string userId FK
-        string name
-        boolean isDefault
-    }
-
-    CertificationDefinition {
-        string id PK
-        enum agency
-        string slug
-        int levelRank
-        enum category
-    }
 ```
 
-### Relationships Summary
+## Index Strategy
 
-**User relationships**:
+Every model with a `userId` FK has `@@index([userId])`. Additional composite indexes exist for common query patterns:
 
-- One-to-many: `User → Account`, `User → Session`, `User → DiveLog`, `User → DivePlan`, `User → GearItem`, `User → GearKit`, `User → UserCertification`
-- Many-to-many (via join): `User ↔ GearKit` (via `UserProfileKit`)
+- **DiveLog:** `[userId, createdAt]` for paginated listing, `[userId, date]` for date-sorted queries and dive number recomputation
+- **DivePlan:** `[userId, createdAt]` for paginated listing
+- **GearItem:** `[userId, isActive]` for active-gear filtering
+- **GearKit:** `[userId, isDefault]` for default-kit lookup
+- **UserCertification:** `[userId, isFeatured]` for featured cert queries
+- **Join tables:** Indexed on both FK columns for efficient lookups in either direction
 
-**Gear relationships**:
-
-- Many-to-many: `GearKit ↔ GearItem` (via `GearKitItem`)
-- Many-to-many: `DiveLog ↔ GearItem` (via `DiveGearItem`)
-- Many-to-many: `User ↔ GearKit` for profile display (via `UserProfileKit`)
-
-**Certification relationships**:
-
-- One-to-many: `CertificationDefinition → UserCertification`
-- Many-to-one: `UserCertification → User`
-
-**Cascade deletes**: All relations use `onDelete: Cascade` - deleting a User deletes all related records.
-
-## Core Models for Product Functionality
-
-**Essential models** (product wouldn't function without):
-
-1. **User** - Authentication and user identity
-2. **DiveLog** - Core feature: dive logging
-3. **DivePlan** - Core feature: dive planning with AI
-4. **GearItem** - Core feature: gear tracking
-5. **GearKit** - Core feature: gear kit management
-
-**Supporting models**:
-
-- **GearKitItem**, **DiveGearItem**, **UserProfileKit** - Join tables for many-to-many relationships
-- **CertificationDefinition**, **UserCertification** - Feature: certification tracking
-- **Account**, **Session**, **VerificationToken** - Authentication infrastructure (NextAuth)
-
-**Business logic dependencies**:
-
-- Dive planning requires: `DivePlan` model
-- Dive logging requires: `DiveLog` model, optionally `GearItem` (via `DiveGearItem`)
-- Gear management requires: `GearItem`, `GearKit`, `GearKitItem`
-- Profile display requires: `User`, `UserProfileKit`, `GearKit`, `UserCertification`
-
-## Migration Strategy
-
-### Migration Location
-
-**Migrations directory**: `prisma/migrations/`
-
-**Migration files**: Each migration is a timestamped directory containing `migration.sql`:
-
-- Format: `YYYYMMDDHHMMSS_migration_name/`
-- Example: `20251203180033_init_dive_log/migration.sql`
-
-### Migration Commands
-
-**Standard Prisma CLI commands** (not in package.json scripts):
-
-- Create migration: `npx prisma migrate dev --name migration_name`
-- Apply migrations: `npx prisma migrate deploy` (production)
-- Reset database: `npm run db:reset` (`package.json:21`) - runs `prisma migrate reset --force --skip-seed`
-
-**No migration script in package.json** - migrations run via Prisma CLI directly.
-
-### Migration History
-
-**Migration timeline** (from `prisma/migrations/` directory):
-
-1. `20251203180033_init_dive_log` - Initial dive log model
-2. `20251203181912_add_dive_plan` - Added dive plans
-3. `20251204061918_add_authentication` - Added NextAuth models (User, Account, Session, VerificationToken)
-4. `20251228023805_add_firstname_lastname` - Added firstName/lastName fields
-5. `20251228024041_add_gear_tracking` - Added gear models
-6. `20251228024358_add_profile_fields` - Added profile fields to User
-7. `20251228215242_add_profile_fields` - Additional profile fields
-8. `20251229054639_add_avatar_url` - Added avatarUrl field
-9. `20251229134504_add_session_version` - Added sessionVersion for session invalidation
-10. `20251229202212_add_unit_preferences_and_fixed_point` - Added unitPreferences, changed depth/temp to fixed-point (cm, C×10)
-11. `20251230185537_add_certifications` - Added certification models
-12. `20251230194926_add_show_certifications_on_profile` - Added showCertificationsOnProfile flag
-13. `20251230200504_add_show_gear_on_profile` - Added showGearOnProfile flag
-14. `20251230201759_add_user_profile_kit` - Added UserProfileKit join table
-
-### Migration Lock
-
-**Migration lock file**: `prisma/migrations/migration_lock.toml` - Ensures migrations run with compatible Prisma version.
-
-## Seed Scripts
-
-### Seed Script
-
-**Location**: `prisma/seed.ts`
-
-**Purpose**: Seeds `CertificationDefinition` catalog with PADI and SSI certifications.
-
-**How it works**:
-
-1. Reads JSON file: `prisma/seed-data/certifications.json`
-2. Upserts each certification definition (creates if new, updates if exists)
-3. Uses `agency_slug` unique constraint to identify existing records
-
-**Run manually**: `npx prisma db seed` (uses `package.json:55-57` config: `tsx prisma/seed.ts`)
-
-**Run on reset**: `npx prisma migrate reset` (runs seed automatically, but `db:reset` script skips it with `--skip-seed`)
-
-### When to Run Seed
-
-- After database reset (if not using `--skip-seed`)
-- After adding new certification definitions to JSON file
-- After fresh database setup
-
-## Backfill Scripts
-
-### Backfill Scripts Location
-
-**Directory**: `scripts/`
-
-**Scripts**:
-
-- `backfill-user-first-last.ts` - Migrates `User.name` → `firstName`/`lastName`
-- `backfill-user-names.ts` - (UNVERIFIED - check if different purpose)
-
-### Backfill Script: User Names
-
-**File**: `scripts/backfill-user-first-last.ts`
-
-**Purpose**: One-time migration script to split existing `User.name` field into `firstName` and `lastName`.
-
-**When to run**: After migration `20251228023805_add_firstname_lastname` was applied to existing database.
-
-**How it works**:
-
-1. Finds users where `firstName` OR `lastName` is null AND `name` field exists and is not empty
-2. Uses `splitFullName()` helper from `src/features/auth/lib/name.ts` to split name
-3. Updates only null fields (doesn't overwrite existing data)
-
-**Run manually**: `npx tsx scripts/backfill-user-first-last.ts`
-
-**Status**: One-time migration script - likely no longer needed for fresh databases.
-
-## Common Query Patterns
+## Data Access Layer
 
 ### Repository Pattern
 
-**Data access layer**: `src/services/database/repositories/`
+All DB access should go through repositories in `src/services/database/repositories/`:
 
-All database queries go through repository modules:
+- `diveLogRepository.ts` — DiveLog CRUD, dive number recomputation, statistics
+- `divePlanRepository.ts` — DivePlan CRUD
+- `gearRepository.ts` — GearItem CRUD, GearKit CRUD, DiveGearItem associations
 
-- `diveLogRepository.ts` - Dive log operations
-- `divePlanRepository.ts` - Dive plan operations
-- `gearRepository.ts` - Gear operations (items, kits, associations)
+Repositories enforce user-scoped authorization (all queries filter by userId).
 
-**Direct Prisma usage**: Some routes bypass repositories and use Prisma directly (see `docs/03_BACKEND.md` for details).
+### Direct Prisma Usage (Known Inconsistencies)
 
-### Common Patterns
+Some routes bypass repositories and use Prisma directly:
+- `src/app/api/profile/route.ts` — complex nested profile queries
+- `src/app/api/certifications/route.ts` — certification queries
+- `src/app/api/auth/signup/route.ts` — user creation
+- `src/app/api/me/route.ts` — user info queries
+- `src/app/api/account/password/route.ts` — password change with transaction
+- `src/app/api/account/route.ts` — account deletion with transaction
+- `src/features/auth/lib/auth.ts` — NextAuth callbacks (acceptable exception)
 
-**1. User-scoped queries** (all repositories):
+## Fixed-Point Storage Convention
 
-```typescript
-// Pattern: Filter by userId, check ownership on update/delete
-const where: Prisma.ModelWhereInput = { userId };
-// or
-const existing = await prisma.model.findFirst({ where: { id, userId } });
-if (!existing) throw new Error("Not found or unauthorized");
-```
+Measurements are stored as integers in canonical metric units to avoid floating-point precision issues:
 
-**Location**: All repository methods check `userId` for authorization.
+| Measurement | Storage Field | Unit | Example |
+|-------------|--------------|------|---------|
+| Depth | `maxDepthCm`, `safetyStopDepthCm` | centimeters (Int) | 1829 = 60ft / 18.29m |
+| Temperature | `waterTempCx10`, `waterTempBottomCx10` | tenths of Celsius (Int) | 235 = 23.5°C |
+| Visibility | `visibilityCm` | centimeters (Int) | 1524 = 50ft / 15.24m |
 
-**2. FindMany with options**:
+**Exceptions** (stored as Float):
+- `startPressureBar`, `endPressureBar` — bar (Float)
+- `weightUsedKg` — kilograms (Float)
+- `latitude`, `longitude` — degrees (Float)
 
-```typescript
-// Pattern: Optional filtering, ordering, pagination
-async findMany(options?: {
-  orderBy?: "date" | "createdAt";
-  take?: number;
-  userId?: string;
-}): Promise<Model[]>
-```
+Conversion utilities are in `src/lib/units.ts` and `src/lib/diveMath.ts`.
 
-**Location**: `src/services/database/repositories/diveLogRepository.ts:46-60`, `divePlanRepository.ts:57-75`
+## Seed Data
 
-**3. Aggregations**:
+**Script:** `prisma/seed.ts` (run via `npx prisma db seed`)
+**Data:** `prisma/seed-data/certifications.json`
+**Purpose:** Seeds `CertificationDefinition` table with PADI and SSI certifications. Uses upsert on `[agency, slug]` unique constraint.
 
-```typescript
-// Pattern: Count + aggregate in parallel
-const [count, aggregates] = await Promise.all([
-  prisma.model.count({ where }),
-  prisma.model.aggregate({
-    where,
-    _sum: { field: true },
-    _max: { field: true },
-  }),
-]);
-```
+After expanding the `CertificationAgency` enum, new agency certifications (NAUI, SDI/TDI, BSAC, CMAS, GUE, RAID) should be added to the seed data JSON.
 
-**Location**: `src/services/database/repositories/diveLogRepository.ts:130-137` (getStatistics)
+## Migration History
 
-**4. Many-to-many associations**:
+| # | Timestamp | Name | Description |
+|---|-----------|------|-------------|
+| 1 | 20251203180033 | init_dive_log | Initial DiveLog model |
+| 2 | 20251203181912 | add_dive_plan | DivePlan model |
+| 3 | 20251204061918 | add_authentication | NextAuth models (User, Account, Session, VerificationToken) |
+| 4 | 20251228023805 | add_firstname_lastname | firstName/lastName on User |
+| 5 | 20251228024041 | add_gear_tracking | GearItem, GearKit, GearKitItem, DiveGearItem models |
+| 6 | 20251228024358 | add_profile_fields | Profile fields on User |
+| 7 | 20251228215242 | add_profile_fields | Additional profile fields |
+| 8 | 20251229054639 | add_avatar_url | avatarUrl on User |
+| 9 | 20251229134504 | add_session_version | sessionVersion on User |
+| 10 | 20251229202212 | add_unit_preferences_and_fixed_point | unitPreferences + fixed-point depth/temp |
+| 11 | 20251230185537 | add_certifications | CertificationDefinition, UserCertification models |
+| 12 | 20251230194926 | add_show_certifications_on_profile | showCertificationsOnProfile flag |
+| 13 | 20251230200504 | add_show_gear_on_profile | showGearOnProfile flag |
+| 14 | 20251230201759 | add_user_profile_kit | UserProfileKit join table |
+| 15 | 20260220215918 | add_logbook_fields | Extended logbook fields |
+| 16 | 20260305232558 | add_end_time_and_dive_number_auto | endTime, diveNumberAuto |
+| 17 | 20260312165445 | add_ai_briefing_to_dive_plan | aiBriefing JSON field on DivePlan |
 
-```typescript
-// Pattern: Load relations via join tables
-const gearItems = await prisma.diveGearItem.findMany({
-  where: { diveId },
-  include: { gearItem: true },
-});
-```
+**DIV-42 migrations (pending):**
 
-**Location**: `src/services/database/repositories/gearRepository.ts` (getGearForDive, setGearForDive)
+| Order | Name | Description |
+|-------|------|-------------|
+| 0 | make_user_id_non_nullable | DiveLog.userId and DivePlan.userId String? → String |
+| 1 | add_updated_at_timestamps | updatedAt on DiveLog and DivePlan |
+| 2 | add_missing_indexes | Indexes on Account, Session, DiveLog, DivePlan |
+| 3 | add_prelaunch_fields_and_enums | New fields on DiveLog, DivePlan, GearItem, User + CertificationAgency enum expansion |
 
-**5. Transactions**:
+## Known Tech Debt
 
-```typescript
-// Pattern: Atomic operations
-await prisma.$transaction(async (tx) => {
-  await tx.model1.update({ ... });
-  await tx.model2.create({ ... });
-});
-```
+### String Date Fields
+`DiveLog.date` and `DivePlan.date` are stored as `String` (YYYY-MM-DD format) instead of `DateTime`. This prevents database-level date comparisons, range queries, and use of SQL date functions. The `DivePlan.plannedDate` field was added as a proper `DateTime` to work around this for the "Diving Soon?" widget. Changing existing `date` fields to `DateTime` would require a data migration and is deferred.
 
-**Location**: `src/app/api/account/password/route.ts:105-119` (password update + sessionVersion increment)
+### Float Pressure/Weight Fields
+`startPressureBar`, `endPressureBar`, and `weightUsedKg` use `Float` instead of the fixed-point integer convention used for depth/temperature/visibility. Could be stored as `Int` in millibar or grams for consistency, but practical impact is negligible.
 
-### Query Locations
+### Overloaded User Model
+The `User` model has 30+ fields mixing authentication concerns (email, password, sessionVersion) with profile data (bio, location, dive preferences) and app preferences (unitPreferences, showGearOnProfile). Consider splitting into `User` (auth) + `UserProfile` (domain) with a one-to-one relationship if the model continues to grow.
 
-**Repository queries** (recommended pattern):
+### Dual Avatar Fields
+Both `User.image` (NextAuth default) and `User.avatarUrl` (app-preferred) exist. Code checks `avatarUrl` first, falls back to `image`. Could be consolidated.
 
-- `src/services/database/repositories/diveLogRepository.ts`
-- `src/services/database/repositories/divePlanRepository.ts`
-- `src/services/database/repositories/gearRepository.ts`
+### favoriteDiveType vs primaryDiveTypes
+`User.favoriteDiveType` (single string) overlaps with `User.primaryDiveTypes` (JSON array). Consider deprecating the singular field.
 
-**Direct Prisma queries** (bypass repositories):
+### JSON Array Fields as Strings
+Several User fields store JSON arrays as strings (`primaryDiveTypes`, `typicalDivingEnvironment`, `lookingFor`, `diveTypeTags` on DiveLog). These can't be queried/filtered efficiently at the database level.
 
-- `src/app/api/profile/route.ts` - Complex profile queries with nested relations
-- `src/app/api/certifications/route.ts` - Certification queries
-- `src/app/api/auth/signup/route.ts` - User creation
-- `src/features/auth/lib/auth.ts` - NextAuth callbacks (OAuth, JWT)
+### Session Table Unused
+The `Session` model exists (created by NextAuth adapter) but the app uses JWT strategy. The table is effectively unused.
 
-**Note**: See `docs/03_BACKEND.md` for discussion of direct Prisma usage vs repository pattern.
-
-## Schema Smells and Issues
-
-### 1. Overloaded User Model
-
-**Issue**: `User` model contains 30+ fields mixing concerns (`prisma/schema.prisma:23-66`):
-
-- **Authentication fields**: `email`, `password`, `sessionVersion`, `emailVerified` (lines 25-28)
-- **Basic profile**: `firstName`, `lastName`, `image`, `avatarUrl`, `birthday`, `location`, `bio`, `pronouns`, `website` (lines 29-37)
-- **DiveIQ-specific profile**: `homeDiveRegion`, `languages`, `primaryDiveTypes`, `experienceLevel`, `yearsDiving`, etc. (lines 40-52)
-- **Preferences**: `unitPreferences`, `showCertificationsOnProfile`, `showGearOnProfile` (lines 50-52)
-
-**Impact**: Model is large, harder to maintain, mixes authentication and domain concerns.
-
-**Recommendation**: Consider splitting into `User` (auth) + `UserProfile` (domain) with one-to-one relationship.
-
-### 2. Excessive Optional Fields
-
-**Issue**: Most profile fields are nullable (`String?`, `Int?`, `Json?`) - 20+ optional fields (`prisma/schema.prisma:29-52`).
-
-**Examples**:
-
-- `firstName`, `lastName` (line 29-30) - Nullable for Google OAuth users
-- All dive-specific profile fields nullable (lines 40-49)
-- `unitPreferences` (line 50) - JSON field, nullable
-
-**Impact**:
-
-- Hard to know which fields are actually required vs optional
-- Many null checks in application code
-- Unclear data invariants
-
-**Recommendation**: Use default values where appropriate, or clearly document required vs optional fields per user type (OAuth vs credentials).
-
-### 3. JSON Fields for Structured Data
-
-**Issue**: Arrays stored as JSON strings instead of normalized tables (`prisma/schema.prisma:42, 46, 47, 50`):
-
-- `primaryDiveTypes` - JSON array (line 42)
-- `typicalDivingEnvironment` - JSON array (line 46)
-- `lookingFor` - JSON array (line 47)
-- `unitPreferences` - JSON object (line 50)
-
-**Impact**:
-
-- Can't query/filter efficiently on JSON fields
-- No referential integrity
-- Type safety issues (JSON parsed at runtime)
-
-**Recommendation**: For `unitPreferences`, consider separate columns or enum. For arrays, consider join tables if querying is needed.
-
-### 4. String Dates
-
-**Issue**: `DiveLog.date` and `DivePlan.date` stored as `String` instead of `DateTime` (`prisma/schema.prisma:107, 127`).
-
-**Impact**:
-
-- No date validation at database level
-- Date parsing/formatting in application code
-- Can't use SQL date functions
-
-**Recommendation**: Use `DateTime` type if timezone handling isn't needed, or document why strings are used (e.g., date-only without time).
-
-### 5. Fixed-Point Integer Storage
-
-**Issue**: Depth/temperature stored as integers (centimeters, tenths of Celsius) instead of decimals (`prisma/schema.prisma:110-113, 130`):
-
-- `maxDepthCm` - Integer (centimeters) (line 110, 130)
-- `waterTempCx10` - Integer (tenths of Celsius) (line 112)
-
-**Impact**:
-
-- Requires conversion functions in application code
-- Less readable in database
-- Precision limited to fixed increments
-
-**Note**: This is intentional (documented in comments as "fixed-point canonical") - likely for precision and consistency. Not necessarily a smell, but worth documenting the pattern.
-
-### 6. Optional userId for Future Guest Support
-
-**Issue**: `DiveLog.userId` and `DivePlan.userId` are nullable (`String?`) with comment "Optional to allow future guest data migration" (`prisma/schema.prisma:106, 126`).
-
-**Impact**:
-
-- Queries must handle null userId
-- Authorization logic must account for null
-- Unclear if guest feature is actually planned
-
-**Recommendation**: Remove if guest feature isn't planned, or implement guest feature to justify nullable field.
-
-### 7. Missing Indexes on Common Queries
-
-**Issue**: Some query patterns may benefit from additional indexes:
-
-- `DiveLog` has index on `userId` (line 121) - good
-- `DivePlan` has index on `userId` (line 139) - good
-- `GearItem` has composite index `[userId, isActive]` (line 163) - good
-- No index on `DiveLog.date` for date-range queries
-- No index on `DivePlan.date` for date queries
-
-**Impact**: Date-range queries may be slower as data grows.
-
-**Recommendation**: Add indexes if date-range queries are common.
-
-### 8. Session Table Unused
-
-**Issue**: `Session` model exists (`prisma/schema.prisma:87-93`) but NextAuth uses JWT strategy (`src/features/auth/lib/auth.ts:127-129`).
-
-**Impact**: Table exists but is unused (NextAuth adapter creates it, but JWT strategy doesn't use it).
-
-**Recommendation**: Acceptable - NextAuth adapter creates it regardless. Can ignore or document that it's unused with JWT strategy.
-
----
-
-Last verified against commit:
+### gearKitId on DiveLog
+`DiveLog.gearKitId` is a bare `String?` with no `@relation` to `GearKit`. It's informational only (records which kit was selected at log time). Actual gear-to-dive associations are tracked via the `DiveGearItem` join table.
