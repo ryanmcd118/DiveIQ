@@ -4,6 +4,7 @@ import GoogleProvider from "next-auth/providers/google";
 import { PrismaAdapter } from "@next-auth/prisma-adapter";
 import { prisma } from "@/lib/prisma";
 import bcrypt from "bcryptjs";
+import { splitFullName } from "@/features/auth/lib/name";
 
 // Helper functions for safe property access
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -50,30 +51,7 @@ export function extractNamesFromGoogleProfile(
   const profileName = getStringProp(profile, "name");
   const userName = getStringProp(user, "name");
   const fullName = profileName || userName || "";
-  if (fullName) {
-    const trimmed = fullName.trim();
-    if (trimmed) {
-      const nameParts = trimmed.split(/\s+/);
-      if (nameParts.length === 1) {
-        return {
-          firstName: nameParts[0],
-          lastName: null,
-        };
-      } else {
-        // First token is firstName, rest joined as lastName (preserves compound names like "Van Dyke")
-        return {
-          firstName: nameParts[0],
-          lastName: nameParts.slice(1).join(" "),
-        };
-      }
-    }
-  }
-
-  // If no name available, return null for both
-  return {
-    firstName: null,
-    lastName: null,
-  };
+  return splitFullName(fullName);
 }
 
 export const authOptions: NextAuthOptions = {

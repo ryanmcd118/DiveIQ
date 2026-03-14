@@ -159,6 +159,16 @@ describe("getDisplayName", () => {
     ).toBe("Jane");
   });
 
+  it("trims whitespace from firstName and lastName", () => {
+    expect(
+      getDisplayName({ firstName: "  Jane  ", lastName: "  Diver  " })
+    ).toBe("Jane Diver");
+  });
+
+  it("trims whitespace from firstName when lastName is missing", () => {
+    expect(getDisplayName({ firstName: "  Jane  " })).toBe("Jane");
+  });
+
   it("handles email without @ sign", () => {
     expect(getDisplayName({ email: "nodomainemail" })).toBe("nodomainemail");
   });
