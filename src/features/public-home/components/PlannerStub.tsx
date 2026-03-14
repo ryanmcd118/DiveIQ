@@ -325,10 +325,8 @@ export function PlannerStub() {
             {/* Loading state with skeleton */}
             {loading && (
               <AIDiveBriefing
-                mode="public"
                 briefing={null}
                 loading={true}
-                compact={true}
                 scrollable={true}
               />
             )}
@@ -353,11 +351,12 @@ export function PlannerStub() {
             {/* Result with AI Briefing */}
             {result && !loading && (
               <AIDiveBriefing
-                mode="public"
                 briefing={result.aiBriefing}
-                compact={true}
-                showExpander={true}
+                riskLevel={result.riskLevel}
                 scrollable={true}
+                plannedDepthCm={
+                  depthInputToCm(maxDepth, prefs.depth) ?? undefined
+                }
               />
             )}
 

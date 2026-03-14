@@ -1,412 +1,295 @@
 "use client";
 
-import { useState } from "react";
-import type { AIBriefing, SourceTag } from "../types";
-import { useUnitPreferences } from "@/hooks/useUnitPreferences";
-import { formatTemperatureRange, formatDistanceRange } from "@/lib/units";
+import type { AIBriefing, ConditionBadge } from "../types";
+import { resolveHighestCert } from "../services/riskCalculator";
 import styles from "./AIDiveBriefing.module.css";
 
-type AIDiveBriefingMode = "public" | "authed";
-
 type AIDiveBriefingProps = {
-  mode?: AIDiveBriefingMode;
   briefing: AIBriefing | null;
+  summary?: string;
+  riskLevel?: string;
   loading?: boolean;
-  /** Compact mode for preview (shows highlights instead of full sections) */
   compact?: boolean;
-  /** Show expandable sections even in compact mode */
-  showExpander?: boolean;
-  /** Scrollable mode - removes outer border/radius for use inside scroll containers */
   scrollable?: boolean;
+  plannedDepthCm?: number;
+  userCerts?: string[];
+  highestCertOverride?: string;
 };
 
-// Chevron icon component
-function ChevronIcon({ open }: { open: boolean }) {
-  return (
-    <svg
-      className={open ? styles.sectionChevronOpen : styles.sectionChevron}
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <polyline points="6 9 12 15 18 9" />
-    </svg>
-  );
+// ── Cert card helpers ──────────────────────────────────────────────────────
+
+function getRequiredCertLevel(depthCm: number): string {
+  const depthM = depthCm / 100;
+  if (depthM <= 18) return "Open Water";
+  if (depthM <= 30) return "Adv. Open Water";
+  if (depthM <= 40) return "Deep Specialty";
+  return "Technical";
 }
 
-// Source tag badge component
-function SourceTagBadge({ tag }: { tag: SourceTag }) {
-  const tagClass = {
-    Forecast: styles.sourceTagForecast,
-    Seasonal: styles.sourceTagSeasonal,
-    Inferred: styles.sourceTagInferred,
-  }[tag];
+// ── Condition badge ────────────────────────────────────────────────────────
 
-  return <span className={tagClass}>{tag}</span>;
+function conditionBadgeClass(badge: ConditionBadge): string | null {
+  if (!badge) return null;
+  if (badge === "seasonal") return styles.conditionBadgeSeasonal;
+  if (badge === "forecast") return styles.conditionBadgeForecast;
+  if (badge === "inferred") return styles.conditionBadgeInferred;
+  return null;
 }
 
-// Difficulty chip styling helper
-function getDifficultyChipClass(difficulty: string): string {
-  const lowerDiff = difficulty.toLowerCase();
-  if (lowerDiff.includes("easy")) return styles.chipDifficultyEasy;
-  if (lowerDiff.includes("moderate")) return styles.chipDifficultyModerate;
-  if (lowerDiff.includes("challenging"))
-    return styles.chipDifficultyChallenging;
-  if (lowerDiff.includes("advanced")) return styles.chipDifficultyAdvanced;
-  return styles.chip;
+// ── Risk badge style ───────────────────────────────────────────────────────
+
+function riskBadgeStyle(risk: string): { background: string; color: string } {
+  if (risk === "Low")
+    return { background: "rgba(16,185,129,0.15)", color: "#6ee7b7" };
+  if (risk === "High")
+    return { background: "rgba(249,115,22,0.15)", color: "#fdba74" };
+  if (risk === "Extreme")
+    return { background: "rgba(239,68,68,0.15)", color: "#fca5a5" };
+  return { background: "rgba(245,158,11,0.15)", color: "#fcd34d" };
 }
 
-// Confidence level styling helper
-function getConfidenceClass(level: string): string {
-  const lowerLevel = level.toLowerCase();
-  if (lowerLevel === "high") return styles.confidenceHigh;
-  if (lowerLevel === "medium") return styles.confidenceMedium;
-  return styles.confidenceLow;
-}
+// ── Skeleton ───────────────────────────────────────────────────────────────
 
-// Skeleton Loading State
-function BriefingSkeleton({
-  compact,
-  scrollable,
-}: {
-  compact?: boolean;
-  scrollable?: boolean;
-}) {
+function BriefingSkeleton({ scrollable }: { scrollable?: boolean }) {
   const containerClass = scrollable
-    ? compact
-      ? styles.briefingContainerScrollableCompact
-      : styles.briefingContainerScrollable
-    : compact
-      ? styles.briefingContainerCompact
-      : styles.briefingContainer;
+    ? styles.briefingContainerScrollable
+    : styles.briefingContainer;
 
   return (
     <div className={containerClass}>
-      {/* Skeleton snapshot */}
-      <div className={styles.skeletonSnapshot} />
-
-      {/* Skeleton chips */}
-      <div className={styles.quickLookContainer}>
-        <div className={styles.skeletonChip} />
-        <div className={styles.skeletonChipWide} />
-        <div className={styles.skeletonChip} />
-        <div className={styles.skeletonChip} />
-        <div className={styles.skeletonChip} />
-        <div className={styles.skeletonChipWide} />
+      <div className={styles.skeletonConditionCards}>
+        <div className={styles.skeletonConditionCard} />
+        <div className={styles.skeletonConditionCard} />
+        <div className={styles.skeletonConditionCard} />
+        <div className={styles.skeletonConditionCard} />
       </div>
 
-      {/* Skeleton what matters */}
-      <div className={styles.skeletonWhatMatters} />
+      <div className={styles.skeletonBeforeYouDive} />
 
-      {/* Skeleton sections or highlights */}
-      {compact ? (
+      <div
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          gap: "var(--space-2)",
+        }}
+      >
         <div
-          style={{
-            display: "flex",
-            flexDirection: "column",
-            gap: "var(--space-2)",
-          }}
-        >
-          <div className={styles.skeletonHighlight} style={{ width: "90%" }} />
-          <div className={styles.skeletonHighlight} style={{ width: "85%" }} />
-          <div className={styles.skeletonHighlight} style={{ width: "75%" }} />
-        </div>
-      ) : (
-        <div className={styles.sectionsContainer}>
-          <div className={styles.skeletonSection} />
-          <div className={styles.skeletonSection} />
-          <div className={styles.skeletonSection} />
-          <div className={styles.skeletonSection} />
-          <div className={styles.skeletonSection} />
-        </div>
-      )}
-    </div>
-  );
-}
-
-// Quick Look Chips
-function QuickLookChips({
-  quickLook,
-  mode = "authed",
-}: {
-  quickLook: AIBriefing["quickLook"];
-  mode?: AIDiveBriefingMode;
-}) {
-  // Use guest mode for public pages so it updates live on toggle changes
-  const unitMode = mode === "public" ? "guest" : "authed";
-  const { prefs } = useUnitPreferences({ mode: unitMode });
-
-  // Format temperature and visibility using canonical numeric values if available
-  const waterTempDisplay = quickLook.waterTemp.numericValue
-    ? formatTemperatureRange(
-        quickLook.waterTemp.numericValue,
-        prefs.temperature
-      )
-    : quickLook.waterTemp.value; // Fallback to original string if no numeric value
-
-  const visibilityDisplay = quickLook.visibility.numericValue
-    ? formatDistanceRange(quickLook.visibility.numericValue, prefs.depth)
-    : quickLook.visibility.value; // Fallback to original string if no numeric value
-
-  return (
-    <div className={styles.quickLookContainer}>
-      {/* Difficulty */}
-      <div className={getDifficultyChipClass(quickLook.difficulty.value)}>
-        <span className={styles.chipLabel}>Difficulty</span>
-        <span className={styles.chipValue}>{quickLook.difficulty.value}</span>
-        {quickLook.difficulty.reason && (
-          <span className={styles.chipReason}>
-            {quickLook.difficulty.reason}
-          </span>
-        )}
+          className={styles.skeletonSection}
+          style={{ height: "1rem", width: "90%" }}
+        />
+        <div
+          className={styles.skeletonSection}
+          style={{ height: "1rem", width: "75%" }}
+        />
       </div>
 
-      {/* Suggested Experience */}
-      <div className={styles.chip}>
-        <span className={styles.chipLabel}>Experience</span>
-        <span className={styles.chipValue}>
-          {quickLook.suggestedExperience.value}
-        </span>
-      </div>
-
-      {/* Water Temp */}
-      <div className={styles.chip}>
-        <span className={styles.chipLabel}>Water Temp</span>
-        <span className={styles.chipValue}>
-          {waterTempDisplay}
-          {quickLook.waterTemp.sourceTag && (
-            <SourceTagBadge tag={quickLook.waterTemp.sourceTag} />
-          )}
-        </span>
-      </div>
-
-      {/* Visibility */}
-      <div className={styles.chip}>
-        <span className={styles.chipLabel}>Visibility</span>
-        <span className={styles.chipValue}>
-          {visibilityDisplay}
-          {quickLook.visibility.sourceTag && (
-            <SourceTagBadge tag={quickLook.visibility.sourceTag} />
-          )}
-        </span>
-      </div>
-
-      {/* Sea State / Wind */}
-      <div className={styles.chip}>
-        <span className={styles.chipLabel}>Sea State</span>
-        <span className={styles.chipValue}>
-          {quickLook.seaStateWind.value}
-          {quickLook.seaStateWind.sourceTag && (
-            <SourceTagBadge tag={quickLook.seaStateWind.sourceTag} />
-          )}
-        </span>
-      </div>
-
-      {/* Confidence */}
-      <div className={styles.chipConfidence}>
-        <span className={styles.chipLabel}>Confidence</span>
-        <span
-          className={`${styles.chipValue} ${getConfidenceClass(quickLook.confidence.level)}`}
-        >
-          {quickLook.confidence.level}
-        </span>
-        {quickLook.confidence.reason && (
-          <span className={styles.chipReason}>
-            {quickLook.confidence.reason}
-          </span>
-        )}
+      <div className={styles.sectionsContainer}>
+        <div className={styles.skeletonSection} />
+        <div className={styles.skeletonSection} />
+        <div className={styles.skeletonSection} />
+        <div className={styles.skeletonSection} />
       </div>
     </div>
   );
 }
 
-// Accordion Section Item
-function AccordionSection({
-  section,
-  defaultOpen = false,
-}: {
-  section: AIBriefing["sections"][0];
-  defaultOpen?: boolean;
-}) {
-  const [isOpen, setIsOpen] = useState(defaultOpen);
+// ── Static section ─────────────────────────────────────────────────────────
 
-  const hasContent =
-    (section.bullets && section.bullets.length > 0) ||
-    (section.paragraphs && section.paragraphs.length > 0);
-
-  if (!hasContent) return null;
+function StaticSection({ title, items }: { title: string; items: string[] }) {
+  if (items.length === 0) return null;
 
   return (
     <div className={styles.sectionItem}>
-      <button
-        type="button"
-        className={styles.sectionHeader}
-        onClick={() => setIsOpen(!isOpen)}
-        aria-expanded={isOpen}
-      >
-        <div className={styles.sectionTitleRow}>
-          <span className={styles.sectionTitle}>{section.title}</span>
-          {section.sourceTags && section.sourceTags.length > 0 && (
-            <div className={styles.sectionSourceTags}>
-              {section.sourceTags.map((tag, i) => (
-                <SourceTagBadge key={i} tag={tag} />
-              ))}
-            </div>
-          )}
-        </div>
-        <ChevronIcon open={isOpen} />
-      </button>
-
-      {isOpen && (
-        <div className={styles.sectionContent}>
-          {section.bullets && section.bullets.length > 0 && (
-            <ul className={styles.sectionBullets}>
-              {section.bullets.map((bullet, i) => (
-                <li key={i} className={styles.sectionBullet}>
-                  <span className={styles.sectionBulletDot} />
-                  <span>{bullet}</span>
-                </li>
-              ))}
-            </ul>
-          )}
-          {section.paragraphs && section.paragraphs.length > 0 && (
-            <>
-              {section.paragraphs.map((para, i) => (
-                <p key={i} className={styles.sectionParagraph}>
-                  {para}
-                </p>
-              ))}
-            </>
-          )}
-        </div>
-      )}
+      <div className={styles.sectionHeader}>
+        <span className={styles.sectionTitle}>{title}</span>
+      </div>
+      <div className={styles.sectionContent}>
+        <ul className={styles.sectionBullets}>
+          {items.map((item, i) => (
+            <li key={i} className={styles.sectionBullet}>
+              <span className={styles.sectionBulletDot} />
+              <span>{item}</span>
+            </li>
+          ))}
+        </ul>
+      </div>
     </div>
   );
 }
 
-// Highlights list (for compact/preview mode)
-function HighlightsList({ highlights }: { highlights: string[] }) {
-  if (!highlights || highlights.length === 0) return null;
+// ── Main component ─────────────────────────────────────────────────────────
 
-  return (
-    <ul className={styles.highlightsList}>
-      {highlights.slice(0, 3).map((highlight, i) => (
-        <li key={i} className={styles.highlightItem}>
-          <span className={styles.highlightBullet} />
-          <span>{highlight}</span>
-        </li>
-      ))}
-    </ul>
-  );
-}
-
-// Main Component
 export function AIDiveBriefing({
-  mode = "authed",
   briefing,
+  summary,
+  riskLevel,
   loading = false,
-  compact = false,
-  showExpander = false,
   scrollable = false,
+  plannedDepthCm,
+  userCerts,
+  highestCertOverride,
 }: AIDiveBriefingProps) {
-  const [expanded, setExpanded] = useState(false);
+  const containerClass = scrollable
+    ? styles.briefingContainerScrollable
+    : styles.briefingContainer;
 
   if (loading) {
-    return <BriefingSkeleton compact={compact} scrollable={scrollable} />;
+    return <BriefingSkeleton scrollable={scrollable} />;
   }
 
   if (!briefing) {
     return null;
   }
 
-  const containerClass = scrollable
-    ? compact
-      ? styles.briefingContainerScrollableCompact
-      : styles.briefingContainerScrollable
-    : compact
-      ? styles.briefingContainerCompact
-      : styles.briefingContainer;
+  // Defensive fallbacks — old-schema DB records have none of these fields
+  const conditions = briefing.conditions ?? {
+    waterTemp: { value: "—", badge: null as ConditionBadge },
+    visibility: { value: "—", badge: null as ConditionBadge },
+    seaState: { value: "—", badge: null as ConditionBadge },
+  };
+  const keyConsiderations = briefing.keyConsiderations ?? [];
+  const siteConditions = briefing.siteConditions ?? [];
+  const hazards = briefing.hazards ?? [];
+  const experienceNotes = briefing.experienceNotes ?? [];
+  const gearNotes = briefing.gearNotes ?? [];
+
+  const SECTIONS = [
+    { title: "Site conditions", data: siteConditions },
+    { title: "Hazards", data: hazards },
+    { title: "For your experience level", data: experienceNotes },
+    { title: "Gear notes", data: gearNotes },
+  ];
+
+  const showHeader = riskLevel || summary;
+
+  // Cert card
+  const certLevel =
+    plannedDepthCm !== undefined ? getRequiredCertLevel(plannedDepthCm) : null;
+  const qualified: boolean | null = (() => {
+    if (plannedDepthCm === undefined) return null;
+    const plannedDepthFt = (plannedDepthCm / 100) * 3.28084;
+    const certs =
+      userCerts && userCerts.length > 0
+        ? userCerts
+        : highestCertOverride
+          ? [highestCertOverride]
+          : null;
+    if (!certs) return null;
+    const resolved = resolveHighestCert(certs);
+    return plannedDepthFt <= resolved.depthLimitFt;
+  })();
 
   return (
     <div className={containerClass}>
-      {/* Briefing Header */}
-      <div className={styles.briefingHeader}>
-        {/* Conditions Snapshot */}
-        <div className={styles.conditionsSnapshot}>
-          {briefing.conditionsSnapshot}
+      {/* Header row: risk badge + summary */}
+      {showHeader && (
+        <div className={styles.briefingHeaderRow}>
+          {riskLevel && (
+            <span
+              className={styles.riskBadge}
+              style={riskBadgeStyle(riskLevel)}
+            >
+              {riskLevel} risk
+            </span>
+          )}
+          {summary && <p className={styles.summaryText}>{summary}</p>}
         </div>
+      )}
 
-        {/* Quick Look Chips */}
-        <QuickLookChips quickLook={briefing.quickLook} mode={mode} />
-
-        {/* What Matters Most */}
-        <div className={styles.whatMattersMost}>
-          <span className={styles.whatMattersLabel}>
-            What matters most on this dive
+      {/* Condition cards strip */}
+      <div className={styles.conditionCardsRow}>
+        <div className={styles.conditionCard}>
+          <span className={styles.conditionCardLabel}>Water Temp</span>
+          <span className={styles.conditionCardValue}>
+            {conditions.waterTemp.value}
           </span>
-          {briefing.whatMattersMost}
+          {conditions.waterTemp.badge && (
+            <span
+              className={conditionBadgeClass(conditions.waterTemp.badge) ?? ""}
+            >
+              {conditions.waterTemp.badge}
+            </span>
+          )}
+        </div>
+        <div className={styles.conditionCard}>
+          <span className={styles.conditionCardLabel}>Visibility</span>
+          <span className={styles.conditionCardValue}>
+            {conditions.visibility.value}
+          </span>
+          {conditions.visibility.badge && (
+            <span
+              className={conditionBadgeClass(conditions.visibility.badge) ?? ""}
+            >
+              {conditions.visibility.badge}
+            </span>
+          )}
+        </div>
+        <div className={styles.conditionCard}>
+          <span className={styles.conditionCardLabel}>Sea State</span>
+          <span className={styles.conditionCardValue}>
+            {conditions.seaState.value}
+          </span>
+          {conditions.seaState.badge && (
+            <span
+              className={conditionBadgeClass(conditions.seaState.badge) ?? ""}
+            >
+              {conditions.seaState.badge}
+            </span>
+          )}
+        </div>
+        {/* Cert card */}
+        <div className={styles.conditionCard}>
+          <span className={styles.conditionCardLabel}>Certification</span>
+          {certLevel ? (
+            <>
+              <span className={styles.conditionCardValue}>{certLevel}</span>
+              {qualified === true && (
+                <span className={styles.certQualified}>✓ Qualified</span>
+              )}
+              {(qualified === false || qualified === null) && (
+                <span className={styles.certVerify}>✕ Verify cert</span>
+              )}
+            </>
+          ) : (
+            <span
+              className={styles.conditionCardValue}
+              style={{ color: "var(--color-text-disabled)" }}
+            >
+              —
+            </span>
+          )}
         </div>
       </div>
 
-      <div className={styles.divider} />
-
-      {/* Compact mode: show highlights */}
-      {compact && !expanded && (
-        <>
-          <HighlightsList highlights={briefing.highlights} />
-
-          {showExpander &&
-            briefing.sections &&
-            briefing.sections.length > 0 && (
-              <button
-                type="button"
-                className={styles.expanderButton}
-                onClick={() => setExpanded(true)}
-              >
-                <span>See full briefing</span>
-                <ChevronIcon open={false} />
-              </button>
-            )}
-        </>
+      {/* Key considerations callout */}
+      {keyConsiderations.length > 0 && (
+        <div className={styles.beforeYouDiveBlock}>
+          <span className={styles.beforeYouDiveLabel}>Key considerations</span>
+          <ul className={styles.sectionBullets}>
+            {keyConsiderations.map((item, i) => (
+              <li key={i} className={styles.sectionBullet}>
+                <span className={styles.sectionBulletDot} />
+                <span>{item}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
       )}
 
-      {/* Full mode or expanded: show accordion sections */}
-      {(!compact || expanded) &&
-        briefing.sections &&
-        briefing.sections.length > 0 && (
-          <div className={styles.sectionsContainer}>
-            {briefing.sections.map((section, i) => (
-              <AccordionSection key={i} section={section} />
-            ))}
+      <div className={styles.divider} />
 
-            {expanded && (
-              <button
-                type="button"
-                className={styles.expanderButton}
-                onClick={() => setExpanded(false)}
-              >
-                <span>Show less</span>
-                <svg
-                  className={styles.expanderIconOpen}
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <polyline points="6 9 12 15 18 9" />
-                </svg>
-              </button>
-            )}
-          </div>
-        )}
+      {/* Static sections */}
+      <div className={styles.sectionsContainer}>
+        {SECTIONS.map((section) => (
+          <StaticSection
+            key={section.title}
+            title={section.title}
+            items={section.data}
+          />
+        ))}
+      </div>
     </div>
   );
 }
 
-// Re-export skeleton for use in loading states
 export { BriefingSkeleton };

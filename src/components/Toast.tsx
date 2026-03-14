@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import gridStyles from "@/styles/components/PageGrid.module.css";
 import buttonStyles from "@/styles/components/Button.module.css";
 
@@ -17,14 +17,22 @@ export function Toast({
   onClose,
   duration = 5000,
 }: ToastProps) {
-  useEffect(() => {
-    if (!onUndo) {
+  const onCloseRef = useRef(onClose);
+  onCloseRef.current = onClose;
+
+  // Timer fires once on mount. onCloseRef keeps the callback current without
+  // restarting the timer on re-renders.
+  useEffect(
+    () => {
+      if (onUndo) return;
       const timer = setTimeout(() => {
-        onClose();
+        onCloseRef.current();
       }, duration);
       return () => clearTimeout(timer);
-    }
-  }, [onClose, duration, onUndo]);
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    []
+  );
 
   return (
     <div className={gridStyles.statusToast}>

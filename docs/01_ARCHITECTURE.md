@@ -163,7 +163,7 @@ Next.js route groups (`(app)`, `(auth)`, `(public)`) organize layouts without af
   - Layouts: `src/app/(app)/layout.tsx` (server component)
 - **Client Components**: Marked with `"use client"`, use hooks, handle interactivity
   - Feature components: `src/features/dive-plan/components/PlanPageContent.tsx` (client component)
-  - Forms: `src/features/dive-log/components/DiveLogForm.tsx` (client component)
+  - Forms: `src/features/dive-log/components/LogbookForm.tsx` (client component)
 
 ## Directory Organization
 

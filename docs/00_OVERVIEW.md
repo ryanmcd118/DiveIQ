@@ -383,7 +383,7 @@ See `docs/09_CONVENTIONS.md` for detailed coding conventions and standards.
 
 **Naming conventions:**
 
-- Components: PascalCase (`DiveLogForm.tsx`)
+- Components: PascalCase (`LogbookForm.tsx`)
 - Hooks: camelCase with `use` prefix (`useLogPageState.ts`)
 - Types: PascalCase (`DiveLogEntry`, `PlanInput`)
 - Repositories: camelCase with `Repository` suffix (`diveLogRepository`)

@@ -156,10 +156,11 @@ model DivePlan {
   experienceLevel String   // 'Beginner' | 'Intermediate' | 'Advanced'
   riskLevel       String   // 'Low' | 'Moderate' | 'High'
   aiAdvice        String?
+  aiBriefing      Json?
   createdAt       DateTime @default(now())
-  
+
   user            User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
+
   @@index([userId])
 }
 

@@ -1,0 +1,173 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  padding: var(--space-6);
+  min-height: 320px;
+  gap: var(--space-6);
+}
+
+/* ── Steps ── */
+.stepList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.step {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+  transition: color 0.3s ease;
+}
+
+.stepCompleted {
+  color: var(--color-text-secondary);
+}
+
+.stepActive {
+  color: var(--color-text-primary);
+  font-weight: 500;
+}
+
+.indicator {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+}
+
+.stepActive .indicator {
+  color: var(--color-text-primary);
+}
+
+.activeDot {
+  display: block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--color-text-primary);
+  animation: pulse 1s ease-in-out infinite;
+}
+
+.pendingCircle {
+  display: block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  border: 1.5px solid var(--color-border-default);
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.4;
+    transform: scale(0.85);
+  }
+}
+
+/* ── Fact card ── */
+.factCard {
+  border-top: 1px solid var(--color-border-default);
+  padding-top: var(--space-5);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.factHeader {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.factLabel {
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--color-accent-cyan, #22d3ee);
+}
+
+.factText {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  line-height: 1.6;
+  margin: 0;
+}
+
+/* ── Diver + bubbles ── */
+.diverWrap {
+  position: relative;
+  display: inline-flex;
+  align-items: flex-end;
+  flex-shrink: 0;
+}
+
+.diverImage {
+  display: block;
+  filter: brightness(0) invert(1);
+}
+
+.bubble {
+  position: absolute;
+  border-radius: 50%;
+  background: white;
+  opacity: 0;
+  animation: bubbleRise 1.8s ease-in infinite;
+}
+
+.bubble1 {
+  width: 5px;
+  height: 5px;
+  left: 10px;
+  bottom: 30px;
+  animation-delay: 0s;
+}
+
+.bubble2 {
+  width: 4px;
+  height: 4px;
+  left: 14px;
+  bottom: 32px;
+  animation-delay: 0.45s;
+}
+
+.bubble3 {
+  width: 3px;
+  height: 3px;
+  left: 7px;
+  bottom: 28px;
+  animation-delay: 0.9s;
+}
+
+.bubble4 {
+  width: 4px;
+  height: 4px;
+  left: 12px;
+  bottom: 31px;
+  animation-delay: 1.35s;
+}
+
+@keyframes bubbleRise {
+  0% {
+    transform: translateY(0);
+    opacity: 0.5;
+  }
+  100% {
+    transform: translateY(-40px);
+    opacity: 0;
+  }
+}

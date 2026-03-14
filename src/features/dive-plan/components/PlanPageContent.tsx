@@ -3,6 +3,8 @@
 import { useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { usePlanPageState } from "../hooks/usePlanPageState";
+import { useUnitPreferences } from "@/hooks/useUnitPreferences";
+import { depthInputToCm } from "@/lib/units";
 import { AIDiveBriefing } from "./AIDiveBriefing";
 import { PlanForm } from "./PlanForm";
 import { PastPlansList } from "./PastPlansList";
@@ -26,6 +28,7 @@ export function PlanPageContent({ mode = "authed" }: PlanPageContentProps) {
     submittedPlan,
     hasDraftPlan,
     aiBriefing,
+    draftRiskLevel,
     apiError,
     loading,
     saving,
@@ -37,6 +40,7 @@ export function PlanPageContent({ mode = "authed" }: PlanPageContentProps) {
     formKey,
     isAuthenticated,
     isSessionLoading,
+    lastHighestCert,
     handleSubmit,
     saveDraftPlan,
     handleSelectPastPlan,
@@ -46,6 +50,7 @@ export function PlanPageContent({ mode = "authed" }: PlanPageContentProps) {
     refreshAfterAuth,
   } = usePlanPageState();
 
+  const { prefs } = useUnitPreferences();
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [authModalMode, setAuthModalMode] = useState<"signup" | "login">(
     "signup"
@@ -159,11 +164,19 @@ export function PlanPageContent({ mode = "authed" }: PlanPageContentProps) {
             {loading || aiBriefing || submittedPlan ? (
               <div className={gridStyles.aiBriefingScrollWrapper}>
                 <AIDiveBriefing
-                  mode={mode}
                   briefing={aiBriefing}
+                  riskLevel={draftRiskLevel ?? undefined}
                   loading={loading}
-                  compact={false}
                   scrollable={true}
+                  plannedDepthCm={
+                    submittedPlan
+                      ? (depthInputToCm(
+                          String(submittedPlan.maxDepth),
+                          prefs.depth
+                        ) ?? undefined)
+                      : undefined
+                  }
+                  highestCertOverride={lastHighestCert ?? undefined}
                 />
               </div>
             ) : (
