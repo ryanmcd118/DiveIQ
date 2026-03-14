@@ -55,32 +55,24 @@ export const diveLogRepository = {
   /**
    * Find a single dive log entry by ID
    */
-  async findById(id: string, userId?: string): Promise<DiveLogEntry | null> {
-    const entry = await prisma.diveLog.findUnique({
-      where: { id },
+  async findById(id: string, userId: string): Promise<DiveLogEntry | null> {
+    return prisma.diveLog.findFirst({
+      where: { id, userId },
     });
-    if (userId && entry && entry.userId !== userId) {
-      return null;
-    }
-    return entry;
   },
 
   /**
    * Find all dive log entries, ordered by date (newest first)
    */
-  async findMany(options?: {
+  async findMany(options: {
     orderBy?: "date" | "createdAt";
     take?: number;
-    userId?: string;
+    userId: string;
   }): Promise<DiveLogEntry[]> {
-    const where: Prisma.DiveLogWhereInput = {};
-    if (options?.userId) {
-      where.userId = options.userId;
-    }
     return prisma.diveLog.findMany({
-      where,
-      orderBy: { [options?.orderBy ?? "date"]: "desc" },
-      take: options?.take,
+      where: { userId: options.userId },
+      orderBy: { [options.orderBy ?? "date"]: "desc" },
+      take: options.take,
     });
   },
 
@@ -90,13 +82,13 @@ export const diveLogRepository = {
   async update(
     id: string,
     data: DiveLogInput,
-    userId?: string
+    userId: string
   ): Promise<DiveLogEntry> {
-    if (userId) {
-      const existing = await prisma.diveLog.findUnique({ where: { id } });
-      if (!existing || existing.userId !== userId) {
-        throw new Error("Dive log not found or unauthorized");
-      }
+    const existing = await prisma.diveLog.findFirst({
+      where: { id, userId },
+    });
+    if (!existing) {
+      throw new Error("Dive log not found or unauthorized");
     }
     return prisma.diveLog.update({
       where: { id },
@@ -142,12 +134,12 @@ export const diveLogRepository = {
   /**
    * Delete a dive log entry
    */
-  async delete(id: string, userId?: string): Promise<void> {
-    if (userId) {
-      const existing = await prisma.diveLog.findUnique({ where: { id } });
-      if (!existing || existing.userId !== userId) {
-        throw new Error("Dive log not found or unauthorized");
-      }
+  async delete(id: string, userId: string): Promise<void> {
+    const existing = await prisma.diveLog.findFirst({
+      where: { id, userId },
+    });
+    if (!existing) {
+      throw new Error("Dive log not found or unauthorized");
     }
     await prisma.diveLog.delete({
       where: { id },
@@ -157,12 +149,8 @@ export const diveLogRepository = {
   /**
    * Get count of all dive log entries
    */
-  async count(userId?: string): Promise<number> {
-    const where: Prisma.DiveLogWhereInput = {};
-    if (userId) {
-      where.userId = userId;
-    }
-    return prisma.diveLog.count({ where });
+  async count(userId: string): Promise<number> {
+    return prisma.diveLog.count({ where: { userId } });
   },
 
   /**
@@ -203,15 +191,12 @@ export const diveLogRepository = {
   /**
    * Get aggregate statistics for dive logs
    */
-  async getStatistics(userId?: string): Promise<{
+  async getStatistics(userId: string): Promise<{
     totalDives: number;
     totalBottomTime: number;
     deepestDive: number;
   }> {
-    const where: Prisma.DiveLogWhereInput = {};
-    if (userId) {
-      where.userId = userId;
-    }
+    const where: Prisma.DiveLogWhereInput = { userId };
     const [count, aggregates] = await Promise.all([
       prisma.diveLog.count({ where }),
       prisma.diveLog.aggregate({

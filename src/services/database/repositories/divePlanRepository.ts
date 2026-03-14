@@ -40,13 +40,10 @@ export const divePlanRepository = {
   /**
    * Find a single dive plan by ID
    */
-  async findById(id: string, userId?: string): Promise<PastPlan | null> {
-    const plan = await prisma.divePlan.findUnique({
-      where: { id },
+  async findById(id: string, userId: string): Promise<PastPlan | null> {
+    const plan = await prisma.divePlan.findFirst({
+      where: { id, userId },
     });
-    if (userId && plan && plan.userId !== userId) {
-      return null;
-    }
     if (!plan) return null;
     return {
       ...plan,
@@ -58,19 +55,15 @@ export const divePlanRepository = {
   /**
    * Find all dive plans, ordered by creation date (newest first)
    */
-  async findMany(options?: {
+  async findMany(options: {
     orderBy?: "date" | "createdAt";
     take?: number;
-    userId?: string;
+    userId: string;
   }): Promise<PastPlan[]> {
-    const where: Prisma.DivePlanWhereInput = {};
-    if (options?.userId) {
-      where.userId = options.userId;
-    }
     const plans = await prisma.divePlan.findMany({
-      where,
-      orderBy: { [options?.orderBy ?? "createdAt"]: "desc" },
-      take: options?.take,
+      where: { userId: options.userId },
+      orderBy: { [options.orderBy ?? "createdAt"]: "desc" },
+      take: options.take,
     });
     return plans.map((plan) => ({
       ...plan,
@@ -82,16 +75,12 @@ export const divePlanRepository = {
   /**
    * Update an existing dive plan
    */
-  async update(
-    id: string,
-    data: PlanInput,
-    userId?: string
-  ): Promise<PastPlan> {
-    if (userId) {
-      const existing = await prisma.divePlan.findUnique({ where: { id } });
-      if (!existing || existing.userId !== userId) {
-        throw new Error("Dive plan not found or unauthorized");
-      }
+  async update(id: string, data: PlanInput, userId: string): Promise<PastPlan> {
+    const existing = await prisma.divePlan.findFirst({
+      where: { id, userId },
+    });
+    if (!existing) {
+      throw new Error("Dive plan not found or unauthorized");
     }
     const result = await prisma.divePlan.update({
       where: { id },
@@ -117,12 +106,12 @@ export const divePlanRepository = {
   /**
    * Delete a dive plan
    */
-  async delete(id: string, userId?: string): Promise<void> {
-    if (userId) {
-      const existing = await prisma.divePlan.findUnique({ where: { id } });
-      if (!existing || existing.userId !== userId) {
-        throw new Error("Dive plan not found or unauthorized");
-      }
+  async delete(id: string, userId: string): Promise<void> {
+    const existing = await prisma.divePlan.findFirst({
+      where: { id, userId },
+    });
+    if (!existing) {
+      throw new Error("Dive plan not found or unauthorized");
     }
     await prisma.divePlan.delete({
       where: { id },
@@ -132,11 +121,7 @@ export const divePlanRepository = {
   /**
    * Get count of all dive plans
    */
-  async count(userId?: string): Promise<number> {
-    const where: Prisma.DivePlanWhereInput = {};
-    if (userId) {
-      where.userId = userId;
-    }
-    return prisma.divePlan.count({ where });
+  async count(userId: string): Promise<number> {
+    return prisma.divePlan.count({ where: { userId } });
   },
 };
