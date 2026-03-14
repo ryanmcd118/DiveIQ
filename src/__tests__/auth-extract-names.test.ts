@@ -1,46 +1,5 @@
 import { describe, it, expect } from "vitest";
-
-// Pure helper function extracted from auth.ts for testing
-// (Cannot import from auth.ts due to server-only dependency)
-function extractNamesFromGoogleProfile(
-  profile: any,
-  user: any
-): { firstName: string | null; lastName: string | null } {
-  // Prefer given_name and family_name from profile if available
-  if (profile?.given_name && profile?.family_name) {
-    return {
-      firstName: profile.given_name.trim(),
-      lastName: profile.family_name.trim(),
-    };
-  }
-
-  // Fallback: split the full name if provided
-  const fullName = profile?.name || user?.name || "";
-  if (fullName) {
-    const trimmed = fullName.trim();
-    if (trimmed) {
-      const nameParts = trimmed.split(/\s+/);
-      if (nameParts.length === 1) {
-        return {
-          firstName: nameParts[0],
-          lastName: null,
-        };
-      } else {
-        // First token is firstName, rest joined as lastName (preserves compound names like "Van Dyke")
-        return {
-          firstName: nameParts[0],
-          lastName: nameParts.slice(1).join(" "),
-        };
-      }
-    }
-  }
-
-  // If no name available, return null for both
-  return {
-    firstName: null,
-    lastName: null,
-  };
-}
+import { extractNamesFromGoogleProfile } from "@/features/auth/lib/auth";
 
 describe("Auth Helper - extractNamesFromGoogleProfile", () => {
   it("extracts names from given_name and family_name", () => {

@@ -7,6 +7,8 @@ import {
   scoreDiveCount,
   scoreNdlProximity,
   resolveHighestCert,
+  interpolateNdl,
+  NDL_TABLE,
 } from "@/features/dive-plan/services/riskCalculator";
 import type { RiskInput } from "@/features/dive-plan/services/riskCalculator";
 
@@ -215,6 +217,39 @@ describe("scoreDiveCount", () => {
 
   it("returns 0 when no data provided", () => {
     expect(scoreDiveCount(makeInput())).toBe(0);
+  });
+});
+
+// ── interpolateNdl ──────────────────────────────────────────────────────
+
+describe("interpolateNdl", () => {
+  it("returns exact NDL at table boundary (60ft = 55min)", () => {
+    expect(interpolateNdl(60)).toBe(55);
+  });
+
+  it("returns exact NDL at first table entry (30ft = 205min)", () => {
+    expect(interpolateNdl(30)).toBe(205);
+  });
+
+  it("returns exact NDL at last table entry (130ft = 10min)", () => {
+    expect(interpolateNdl(130)).toBe(10);
+  });
+
+  it("interpolates between two table entries", () => {
+    // 45ft is between 40ft (140min) and 50ft (80min)
+    // fraction = (45-40)/(50-40) = 0.5
+    // result = 140 + 0.5 * (80-140) = 140 - 30 = 110
+    expect(interpolateNdl(45)).toBe(110);
+  });
+
+  it("clamps to first entry for depth shallower than table", () => {
+    expect(interpolateNdl(10)).toBe(NDL_TABLE[0][1]); // 205min
+    expect(interpolateNdl(0)).toBe(NDL_TABLE[0][1]);
+  });
+
+  it("clamps to last entry for depth deeper than table", () => {
+    expect(interpolateNdl(150)).toBe(NDL_TABLE[NDL_TABLE.length - 1][1]); // 10min
+    expect(interpolateNdl(200)).toBe(NDL_TABLE[NDL_TABLE.length - 1][1]);
   });
 });
 

@@ -13,10 +13,10 @@ No jsdom, no React Testing Library, no Playwright/Cypress. Tests target server-s
 
 From `package.json` devDependencies:
 
-| Package | Version | Purpose |
-|---------|---------|---------|
-| `vitest` | ^3.2.4 | Test runner |
-| `@vitest/coverage-v8` | ^3.2.4 | V8 coverage provider |
+| Package               | Version | Purpose              |
+| --------------------- | ------- | -------------------- |
+| `vitest`              | ^3.2.4  | Test runner          |
+| `@vitest/coverage-v8` | ^3.2.4  | V8 coverage provider |
 
 No other testing-specific dependencies. Tests use `vi.mock()` for all mocking — no external mock libraries.
 
@@ -27,13 +27,14 @@ No other testing-specific dependencies. Tests use `vi.mock()` for all mocking �
 ```typescript
 export default defineConfig({
   test: {
-    environment: "node",                          // No DOM APIs — tests run in Node
-    include: ["src/__tests__/**/*.test.ts"],       // Only *.test.ts files in __tests__/
-    setupFiles: ["src/__tests__/setup.ts"],        // Global setup — runs before every test file
+    environment: "node", // No DOM APIs — tests run in Node
+    include: ["src/__tests__/**/*.test.ts"], // Only *.test.ts files in __tests__/
+    setupFiles: ["src/__tests__/setup.ts"], // Global setup — runs before every test file
     coverage: {
-      provider: "v8",                             // Built-in V8 coverage (no extra binary)
+      provider: "v8", // Built-in V8 coverage (no extra binary)
       reporter: ["text", "json-summary", "lcov"], // Terminal + CI artifact + dashboard-ready
-      include: [                                  // Only measure server-side source files
+      include: [
+        // Only measure server-side source files
         "src/app/api/**/*.ts",
         "src/services/**/*.ts",
         "src/features/**/services/**/*.ts",
@@ -41,10 +42,11 @@ export default defineConfig({
         "src/lib/**/*.ts",
       ],
       exclude: [
-        "src/lib/prisma.ts",                     // Singleton — always mocked, never executed
-        "src/**/*.test.ts",                       // Don't count test files as covered source
+        "src/lib/prisma.ts", // Singleton — always mocked, never executed
+        "src/**/*.test.ts", // Don't count test files as covered source
       ],
-      thresholds: {                               // Floor values — fail if coverage drops below
+      thresholds: {
+        // Floor values — fail if coverage drops below
         statements: 30,
         branches: 25,
         functions: 30,
@@ -54,7 +56,7 @@ export default defineConfig({
   },
   resolve: {
     alias: {
-      "@": path.resolve(__dirname, "./src"),       // Matches tsconfig paths
+      "@": path.resolve(__dirname, "./src"), // Matches tsconfig paths
     },
   },
 });
@@ -64,6 +66,8 @@ export default defineConfig({
 
 Note: Coverage thresholds are only enforced when running `vitest run --coverage`. The default `npm run test` (`vitest run`) does NOT enforce thresholds. To run with coverage locally: `npx vitest run --coverage`.
 
+## Current Test Suite: 4 files, 123 tests
+
 ## Test File Organization
 
 ```
@@ -72,11 +76,21 @@ src/__tests__/
 ├── helpers/
 │   ├── mockAuth.ts                         # NextAuth session mock utilities
 │   └── mockPrisma.ts                       # Full Prisma client mock
-├── units.test.ts                           # Unit conversion functions (src/lib/units.ts)
-├── auth-extract-names.test.ts              # Google OAuth name extraction
-├── riskCalculator.test.ts                  # Risk scoring functions
-└── api-certifications-definitions.test.ts  # GET /api/certifications/definitions
+├── units.test.ts                           # 69 tests — all exported functions from src/lib/units.ts
+├── auth-extract-names.test.ts              # 10 tests — imports real function from auth.ts
+├── riskCalculator.test.ts                  # 40 tests — all score functions + interpolateNdl + integration
+└── api-certifications-definitions.test.ts  # 4 tests  — GET /api/certifications/definitions
 ```
+
+### What each test file covers
+
+**units.test.ts** (69 tests): depth/distance conversions (metric + imperial), temperature conversions, pressure conversions (psi/bar + input/display), weight conversions (lb/kg + input/display), safety stop display, canonical-to-UI helpers, getUnitLabel, formatting helpers, legacy conversion functions, string parsing (parseTemperatureString, parseDistanceString), and range formatting (formatTemperatureRange, formatDistanceRange).
+
+**riskCalculator.test.ts** (40 tests): resolveHighestCert (cert tier matching), scoreDepthVsCert (depth vs cert limit ratios), scoreEnvironment (keyword detection), scoreExperienceGap (date-based and string-based), scoreDiveCount (count-based and range-based), interpolateNdl (exact boundaries, interpolation, clamping), scoreNdlProximity, and calculateRiskLevel integration scenarios.
+
+**auth-extract-names.test.ts** (10 tests): imports the real `extractNamesFromGoogleProfile` function from `src/features/auth/lib/auth.ts` (no longer duplicated). Tests given_name/family_name extraction, full name splitting, compound names, fallbacks, and edge cases.
+
+**api-certifications-definitions.test.ts** (4 tests): GET route with mocked Prisma — response shape, sorting, agency filtering, error handling.
 
 ### Naming convention
 
@@ -166,6 +180,7 @@ npm run check                                   # Full quality gate: lint → fo
 **Triggers:** Pull requests and pushes to `main`/`master`
 
 **Steps:**
+
 1. Checkout → Setup Node 20 → `npm ci` → `npx prisma generate`
 2. `npm run lint`
 3. `npm run format:check`
@@ -179,14 +194,14 @@ npm run check                                   # Full quality gate: lint → fo
 
 ## What Is Explicitly Out of Scope
 
-| Tool/Approach | Why excluded |
-|--------------|--------------|
-| **jsdom / happy-dom** | Hooks and components are deeply coupled to React lifecycle. The pure logic worth testing is extracted into utilities and services that run in Node. Adding a DOM environment adds complexity without proportional value. |
-| **React Testing Library** | Same reasoning. No component-level tests. |
-| **Playwright / Cypress** | E2E deferred to after DIV-10 (codebase health sprint). Writing E2E now would create tests that break immediately during refactoring. |
-| **Real test database** | App is migrating from SQLite to PostgreSQL (DIV-41). Testing against SQLite tests the wrong engine. Repositories are thin wrappers — mock-based tests verify authorization and data shaping. |
-| **prisma-mock / other mock libs** | `vi.mock()` with manual stubs is sufficient for the repository complexity. No library needed. |
-| **MSW (Mock Service Worker)** | Route handlers are importable functions — no need to intercept at the HTTP level. Direct function calls with mocked dependencies are faster and more precise. |
+| Tool/Approach                     | Why excluded                                                                                                                                                                                                             |
+| --------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **jsdom / happy-dom**             | Hooks and components are deeply coupled to React lifecycle. The pure logic worth testing is extracted into utilities and services that run in Node. Adding a DOM environment adds complexity without proportional value. |
+| **React Testing Library**         | Same reasoning. No component-level tests.                                                                                                                                                                                |
+| **Playwright / Cypress**          | E2E deferred to after DIV-10 (codebase health sprint). Writing E2E now would create tests that break immediately during refactoring.                                                                                     |
+| **Real test database**            | App is migrating from SQLite to PostgreSQL (DIV-41). Testing against SQLite tests the wrong engine. Repositories are thin wrappers — mock-based tests verify authorization and data shaping.                             |
+| **prisma-mock / other mock libs** | `vi.mock()` with manual stubs is sufficient for the repository complexity. No library needed.                                                                                                                            |
+| **MSW (Mock Service Worker)**     | Route handlers are importable functions — no need to intercept at the HTTP level. Direct function calls with mocked dependencies are faster and more precise.                                                            |
 
 ## Phased Implementation Plan
 

@@ -15,6 +15,32 @@ import {
   unitSystemToPreferences,
   preferencesToUnitSystem,
   DEFAULT_UNIT_PREFERENCES,
+  psiToBar,
+  barToPsi,
+  pressureInputToBar,
+  barToUI,
+  formatPressureForDisplay,
+  lbToKg,
+  kgToLb,
+  weightInputToKg,
+  kgToUI,
+  formatWeightForDisplay,
+  safetyStopDepthCmToDisplay,
+  distanceInputToCm,
+  displayDistance,
+  cmToUI,
+  cx10ToUI,
+  getUnitLabel,
+  formatValue,
+  formatInteger,
+  mToFt,
+  ftToM,
+  cToF,
+  fToC,
+  parseTemperatureString,
+  parseDistanceString,
+  formatTemperatureRange,
+  formatDistanceRange,
 } from "@/lib/units";
 
 describe("Unit Conversions - Canary Tests", () => {
@@ -181,6 +207,323 @@ describe("Unit Conversions - Canary Tests", () => {
 
       const imperialPrefs = DEFAULT_UNIT_PREFERENCES;
       expect(preferencesToUnitSystem(imperialPrefs)).toBe("imperial");
+    });
+
+    it("returns imperial for mixed preferences", () => {
+      expect(
+        preferencesToUnitSystem({
+          depth: "m",
+          temperature: "f",
+          pressure: "bar",
+          weight: "kg",
+        })
+      ).toBe("imperial");
+    });
+  });
+
+  describe("Pressure Conversions", () => {
+    it("converts psi to bar correctly", () => {
+      // 1 psi ≈ 0.0689476 bar
+      expect(psiToBar(3000)).toBeCloseTo(206.84, 1);
+      expect(psiToBar(0)).toBe(0);
+    });
+
+    it("converts bar to psi correctly", () => {
+      expect(barToPsi(200)).toBeCloseTo(2900.75, 0);
+      expect(barToPsi(0)).toBe(0);
+    });
+
+    it("round-trips pressure conversions", () => {
+      const originalPsi = 3000;
+      const bar = psiToBar(originalPsi);
+      const backToPsi = barToPsi(bar);
+      expect(Math.round(backToPsi)).toBe(originalPsi);
+    });
+
+    it("converts pressure input to bar (bar unit)", () => {
+      expect(pressureInputToBar(200, "bar")).toBe(200);
+      expect(pressureInputToBar("200", "bar")).toBe(200);
+      expect(pressureInputToBar(null, "bar")).toBeNull();
+      expect(pressureInputToBar("", "bar")).toBeNull();
+      expect(pressureInputToBar("abc", "bar")).toBeNull();
+    });
+
+    it("converts pressure input to bar (psi unit)", () => {
+      expect(pressureInputToBar(3000, "psi")).toBeCloseTo(206.84, 1);
+      expect(pressureInputToBar("3000", "psi")).toBeCloseTo(206.84, 1);
+      expect(pressureInputToBar(null, "psi")).toBeNull();
+    });
+
+    it("converts bar to UI value", () => {
+      expect(barToUI(200, "bar")).toBe(200);
+      expect(barToUI(200, "psi")).toBeCloseTo(2900.75, 0);
+      expect(barToUI(null, "bar")).toBeNull();
+      expect(barToUI(undefined, "psi")).toBeNull();
+    });
+
+    it("formats pressure for display", () => {
+      expect(formatPressureForDisplay(200, "bar")).toBe("200");
+      expect(formatPressureForDisplay(200, "psi")).toBe("2901");
+      expect(formatPressureForDisplay(null, "bar")).toBe("");
+      expect(formatPressureForDisplay(undefined, "psi")).toBe("");
+    });
+  });
+
+  describe("Weight Conversions", () => {
+    it("converts lb to kg correctly", () => {
+      // 1 lb ≈ 0.453592 kg
+      expect(lbToKg(10)).toBeCloseTo(4.536, 2);
+      expect(lbToKg(0)).toBe(0);
+    });
+
+    it("converts kg to lb correctly", () => {
+      expect(kgToLb(4.536)).toBeCloseTo(10, 0);
+      expect(kgToLb(0)).toBe(0);
+    });
+
+    it("round-trips weight conversions", () => {
+      const originalLb = 20;
+      const kg = lbToKg(originalLb);
+      const backToLb = kgToLb(kg);
+      expect(Math.round(backToLb)).toBe(originalLb);
+    });
+
+    it("converts weight input to kg (kg unit)", () => {
+      expect(weightInputToKg(5, "kg")).toBe(5);
+      expect(weightInputToKg("5.5", "kg")).toBe(5.5);
+      expect(weightInputToKg(null, "kg")).toBeNull();
+      expect(weightInputToKg("", "kg")).toBeNull();
+      expect(weightInputToKg("abc", "kg")).toBeNull();
+    });
+
+    it("converts weight input to kg (lb unit)", () => {
+      expect(weightInputToKg(10, "lb")).toBeCloseTo(4.536, 2);
+      expect(weightInputToKg("10", "lb")).toBeCloseTo(4.536, 2);
+      expect(weightInputToKg(null, "lb")).toBeNull();
+    });
+
+    it("converts kg to UI value", () => {
+      expect(kgToUI(5, "kg")).toBe(5);
+      expect(kgToUI(5, "lb")).toBeCloseTo(11.02, 1);
+      expect(kgToUI(null, "kg")).toBeNull();
+      expect(kgToUI(undefined, "lb")).toBeNull();
+    });
+
+    it("formats weight for display", () => {
+      // kg shows 1 decimal, lb shows integer
+      expect(formatWeightForDisplay(5, "kg")).toBe("5.0");
+      expect(formatWeightForDisplay(5, "lb")).toBe("11");
+      expect(formatWeightForDisplay(null, "kg")).toBe("");
+      expect(formatWeightForDisplay(undefined, "lb")).toBe("");
+    });
+  });
+
+  describe("Safety Stop Depth Display", () => {
+    it("returns default values for null/undefined", () => {
+      expect(safetyStopDepthCmToDisplay(null, "m")).toBe("5");
+      expect(safetyStopDepthCmToDisplay(undefined, "m")).toBe("5");
+      expect(safetyStopDepthCmToDisplay(null, "ft")).toBe("15");
+      expect(safetyStopDepthCmToDisplay(undefined, "ft")).toBe("15");
+    });
+
+    it("converts canonical cm to display value", () => {
+      // 457cm = ~15ft = ~4.57m
+      expect(safetyStopDepthCmToDisplay(457, "ft")).toBe("15");
+      expect(safetyStopDepthCmToDisplay(500, "m")).toBe("5");
+    });
+  });
+
+  describe("Distance Input/Display", () => {
+    it("distanceInputToCm delegates to depthInputToCm", () => {
+      expect(distanceInputToCm(25, "m")).toBe(depthInputToCm(25, "m"));
+      expect(distanceInputToCm(100, "ft")).toBe(depthInputToCm(100, "ft"));
+      expect(distanceInputToCm(null, "m")).toBeNull();
+    });
+
+    it("displayDistance delegates to displayDepth", () => {
+      const depthResult = displayDepth(1500, "m");
+      const distResult = displayDistance(1500, "m");
+      expect(distResult).toEqual(depthResult);
+    });
+  });
+
+  describe("Canonical to UI Helpers", () => {
+    it("cmToUI converts to feet or meters", () => {
+      expect(cmToUI(3048, "ft")).toBeCloseTo(100, 1);
+      expect(cmToUI(1000, "m")).toBe(10);
+      expect(cmToUI(null, "ft")).toBeNull();
+      expect(cmToUI(undefined, "m")).toBeNull();
+    });
+
+    it("cx10ToUI converts to fahrenheit or celsius", () => {
+      expect(cx10ToUI(250, "c")).toBe(25);
+      expect(cx10ToUI(250, "f")).toBeCloseTo(77, 0);
+      expect(cx10ToUI(null, "c")).toBeNull();
+      expect(cx10ToUI(undefined, "f")).toBeNull();
+    });
+  });
+
+  describe("getUnitLabel", () => {
+    const metricPrefs = unitSystemToPreferences("metric");
+    const imperialPrefs = DEFAULT_UNIT_PREFERENCES;
+
+    it("returns correct labels for metric", () => {
+      expect(getUnitLabel("depth", metricPrefs)).toBe("m");
+      expect(getUnitLabel("distance", metricPrefs)).toBe("m");
+      expect(getUnitLabel("temperature", metricPrefs)).toBe("°C");
+      expect(getUnitLabel("pressure", metricPrefs)).toBe("bar");
+      expect(getUnitLabel("weight", metricPrefs)).toBe("kg");
+    });
+
+    it("returns correct labels for imperial", () => {
+      expect(getUnitLabel("depth", imperialPrefs)).toBe("ft");
+      expect(getUnitLabel("temperature", imperialPrefs)).toBe("°F");
+      expect(getUnitLabel("pressure", imperialPrefs)).toBe("psi");
+      expect(getUnitLabel("weight", imperialPrefs)).toBe("lb");
+    });
+  });
+
+  describe("Formatting Helpers", () => {
+    it("formatValue formats with specified decimals", () => {
+      expect(formatValue(3.14159, 2)).toBe("3.14");
+      expect(formatValue(10, 1)).toBe("10.0");
+      expect(formatValue(NaN)).toBe("");
+      expect(formatValue(Infinity)).toBe("");
+    });
+
+    it("formatInteger rounds to nearest integer string", () => {
+      expect(formatInteger(3.7)).toBe("4");
+      expect(formatInteger(3.2)).toBe("3");
+      expect(formatInteger(0)).toBe("0");
+      expect(formatInteger(NaN)).toBe("");
+      expect(formatInteger(Infinity)).toBe("");
+    });
+  });
+
+  describe("Legacy Conversion Helpers", () => {
+    it("mToFt converts meters to feet", () => {
+      expect(mToFt(10)).toBeCloseTo(32.81, 1);
+      expect(mToFt(0)).toBe(0);
+    });
+
+    it("ftToM converts feet to meters", () => {
+      expect(ftToM(100)).toBeCloseTo(30.48, 1);
+      expect(ftToM(0)).toBe(0);
+    });
+
+    it("cToF converts celsius to fahrenheit", () => {
+      expect(cToF(0)).toBe(32);
+      expect(cToF(100)).toBe(212);
+    });
+
+    it("fToC converts fahrenheit to celsius", () => {
+      expect(fToC(32)).toBe(0);
+      expect(fToC(212)).toBe(100);
+    });
+  });
+
+  describe("parseTemperatureString", () => {
+    it("parses Celsius range", () => {
+      const result = parseTemperatureString("24-26°C");
+      expect(result).not.toBeNull();
+      expect(result!.min).toBe(cToCx10(24));
+      expect(result!.max).toBe(cToCx10(26));
+    });
+
+    it("parses Fahrenheit range", () => {
+      const result = parseTemperatureString("78-82°F");
+      expect(result).not.toBeNull();
+      expect(result!.min).toBe(fToCx10(78));
+      expect(result!.max).toBe(fToCx10(82));
+    });
+
+    it("parses single Celsius value", () => {
+      const result = parseTemperatureString("25°C");
+      expect(result).not.toBeNull();
+      expect(result!.min).toBe(cToCx10(25));
+      expect(result!.max).toBe(cToCx10(25));
+    });
+
+    it("parses single Fahrenheit value", () => {
+      const result = parseTemperatureString("80°F");
+      expect(result).not.toBeNull();
+      expect(result!.min).toBe(fToCx10(80));
+      expect(result!.max).toBe(fToCx10(80));
+    });
+
+    it("returns null for empty/invalid input", () => {
+      expect(parseTemperatureString("")).toBeNull();
+      expect(parseTemperatureString("warm")).toBeNull();
+    });
+  });
+
+  describe("parseDistanceString", () => {
+    it("parses meters range", () => {
+      const result = parseDistanceString("15-25m");
+      expect(result).not.toBeNull();
+      expect(result!.min).toBe(metersToCm(15));
+      expect(result!.max).toBe(metersToCm(25));
+    });
+
+    it("parses feet range", () => {
+      // Note: "ft" must be word-boundary separated (regex uses \b)
+      const result = parseDistanceString("50-100 ft");
+      expect(result).not.toBeNull();
+      expect(result!.min).toBe(feetToCm(50));
+      expect(result!.max).toBe(feetToCm(100));
+    });
+
+    it("parses single meters value", () => {
+      const result = parseDistanceString("20m");
+      expect(result).not.toBeNull();
+      expect(result!.min).toBe(metersToCm(20));
+      expect(result!.max).toBe(metersToCm(20));
+    });
+
+    it("returns null for empty/invalid input", () => {
+      expect(parseDistanceString("")).toBeNull();
+      expect(parseDistanceString("deep")).toBeNull();
+    });
+  });
+
+  describe("formatTemperatureRange", () => {
+    it("formats Celsius range", () => {
+      expect(formatTemperatureRange({ min: 240, max: 260 }, "c")).toBe(
+        "24-26°C"
+      );
+    });
+
+    it("formats Fahrenheit range", () => {
+      const result = formatTemperatureRange({ min: 250, max: 280 }, "f");
+      expect(result).toMatch(/^\d+-\d+°F$/);
+    });
+
+    it("formats single value (min === max)", () => {
+      expect(formatTemperatureRange({ min: 250, max: 250 }, "c")).toBe("25°C");
+    });
+
+    it("returns fallback for null", () => {
+      expect(formatTemperatureRange(null, "c")).toBe("Data unavailable");
+    });
+  });
+
+  describe("formatDistanceRange", () => {
+    it("formats meters range", () => {
+      expect(formatDistanceRange({ min: 1500, max: 2500 }, "m")).toBe("15-25m");
+    });
+
+    it("formats feet range", () => {
+      expect(formatDistanceRange({ min: 1524, max: 3048 }, "ft")).toBe(
+        "50-100ft"
+      );
+    });
+
+    it("formats single value (min === max)", () => {
+      expect(formatDistanceRange({ min: 2000, max: 2000 }, "m")).toBe("20m");
+    });
+
+    it("returns fallback for null", () => {
+      expect(formatDistanceRange(null, "ft")).toBe("Data unavailable");
     });
   });
 });
