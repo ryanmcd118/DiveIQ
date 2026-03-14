@@ -186,28 +186,6 @@
   color: var(--color-accent-light);
 }
 
-.beforeYouDiveText {
-  font-size: var(--font-size-base);
-  line-height: 1.6;
-  color: var(--color-text-primary);
-  margin: 0;
-}
-
-/* === KEY CONSIDERATIONS (Change 4) === */
-.keyConsiderationsBlock {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-2);
-}
-
-.keyConsiderationsLabel {
-  font-size: 0.65rem;
-  font-weight: var(--font-weight-semibold);
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: var(--color-accent-light);
-}
-
 /* === STATIC SECTIONS (Changes 5, 6, 7) === */
 .sectionsContainer {
   display: flex;

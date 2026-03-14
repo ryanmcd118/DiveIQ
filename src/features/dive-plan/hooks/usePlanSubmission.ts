@@ -121,7 +121,7 @@ export function usePlanSubmission() {
 
       const briefing = parseAIBriefing(accumulated);
       setAiBriefing(briefing);
-      setAiAdvice(briefing.bottomLine);
+      setAiAdvice(briefing.keyConsiderations[0] ?? "");
       setDraftRiskLevel(riskLevel);
     } catch (err) {
       console.error(err);

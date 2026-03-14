@@ -28,7 +28,7 @@ const EMPTY_CONDITIONS: AIBriefing["conditions"] = {
 
 function isOldSchema(parsed: Record<string, unknown>): boolean {
   return (
-    !parsed.bottomLine &&
+    !parsed.keyConsiderations &&
     (Boolean(parsed.conditionsSnapshot) ||
       Boolean(parsed.quickLook) ||
       Boolean(parsed.sections) ||
@@ -49,7 +49,6 @@ export function parseAIBriefing(content: string): AIBriefing {
   // Return safe empty briefing rather than crashing.
   if (isOldSchema(parsed)) {
     return {
-      bottomLine: "",
       keyConsiderations: [],
       conditions: EMPTY_CONDITIONS,
       siteConditions: [],
@@ -60,7 +59,6 @@ export function parseAIBriefing(content: string): AIBriefing {
   }
 
   return {
-    bottomLine: typeof parsed.bottomLine === "string" ? parsed.bottomLine : "",
     keyConsiderations: Array.isArray(parsed.keyConsiderations)
       ? parsed.keyConsiderations.slice(0, 3).map(String)
       : [],

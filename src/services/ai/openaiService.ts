@@ -173,7 +173,6 @@ You are DiveIQ's AI dive planning assistant. You generate structured, safety-foc
 You must return ONLY valid JSON matching this exact schema — no markdown, no preamble:
 
 {
-  "bottomLine": "string",
   "keyConsiderations": ["string", "string"],
   "conditions": {
     "waterTemp": { "value": "string", "badge": "seasonal|forecast|inferred|null" },
@@ -192,7 +191,7 @@ HIGHEST CERT RULE: When a diver has multiple certifications listed, always ident
 
 Example: A diver with certs [Open Water Diver, Advanced Open Water Diver, Enriched Air Nitrox] has a depth limit of 100ft/30m. A planned dive to 90ft is within limits and must NOT be flagged as an exceedance.
 
-Before generating any output, classify the diver into one of four experience tiers using their certification level and dive count together. Use this classification consistently across all sections — especially bottomLine, keyConsiderations, and experienceNotes.
+Before generating any output, classify the diver into one of four experience tiers using their certification level and dive count together. Use this classification consistently across all sections — especially keyConsiderations and experienceNotes.
 
 Tiers:
 
@@ -222,8 +221,6 @@ IMPORTANT: Never use the word "beginner" in your output. Use the tier name (Novi
 
 CRITICAL RULES — violating these makes the briefing useless:
 
-bottomLine: Exactly one sentence. Must be specific to THIS diver's profile and THIS dive's parameters. If there is a meaningful mismatch (e.g. diver's experience vs. dive depth, gear vs. water temp, time since last dive), state it directly and concisely. If the dive is well-matched, state the single most important preparation specific to this site and conditions. NEVER write generic scuba safety advice that applies to all divers (e.g. "always dive with a buddy", "monitor your air supply", "ensure you have a dive computer"). NEVER start with "Remember to" or "Make sure to."
-
 keyConsiderations: 2-3 bullet strings maximum. EVERY bullet MUST reference at least one specific data point from: the diver's certification level, their logged dive count, their last dive date, a named piece of their gear, the exact planned depth, the exact bottom time, or a specific named condition at this location. Generic advice is forbidden. "Ensure you have a reliable dive computer" is forbidden. "Monitor your air supply" is forbidden.
 Good example: "Your shortie wetsuit is rated for ~70°F water — at 28-32°F this site runs in November, you'll be dangerously underprepared without a 7mm or drysuit."
 Good example: "With 15 logged dives and an 8-month gap since your last dive, the strong currents reported near the glacier face are a significant risk — consider a shallower warm-up dive first."
@@ -246,7 +243,6 @@ The narrative summary paragraph and riskLevel are calculated SEPARATELY — do n
 
 HANDLING MISSING PROFILE DATA:
 If diver profile data is partially or fully absent (e.g. a guest user who did not enter experience info), adjust your output as follows:
-- bottomLine: focus on the site/conditions-specific insight rather than profile mismatch. Still avoid generic advice.
 - keyConsiderations: focus on what is notable about this specific dive's depth, conditions, or location. Do not invent profile data. Do not say "as an experienced diver" or assume any cert level.
 - experienceNotes: if no cert level is provided, note that cert level and experience are unknown and flag any depth or condition thresholds the diver should be aware of regardless of experience (e.g. if depth exceeds 60ft/18m, note this exceeds Open Water limits and cert verification is advised).
 - gearNotes: if no gear is logged, say "No gear on record — verify your equipment is appropriate for [waterTemp] water at [depth]."
@@ -393,7 +389,6 @@ function getFallbackBriefing(plan: DivePlanAnalysisRequest): AIBriefing {
       : `${plan.maxDepth}m`;
 
   return {
-    bottomLine: `At ${maxDepthDisplay} for ${plan.bottomTime} minutes — verify this is within your training limits and check local conditions before diving.`,
     keyConsiderations: [
       `Plan depth: ${maxDepthDisplay} — confirm your certification covers this depth`,
       `Check local conditions before the dive`,
@@ -588,12 +583,12 @@ export async function generateDivePlanAdvice(
   plan: DivePlanAnalysisRequest
 ): Promise<string> {
   const briefing = await generateDivePlanBriefing(plan);
-  return briefing.bottomLine;
+  return briefing.keyConsiderations[0] ?? "";
 }
 
 export async function generateUpdatedDivePlanAdvice(
   plan: DivePlanAnalysisRequest
 ): Promise<string> {
   const briefing = await generateUpdatedDivePlanBriefing(plan);
-  return briefing.bottomLine;
+  return briefing.keyConsiderations[0] ?? "";
 }

@@ -52,7 +52,6 @@ export type PlanApiResponse = {
 export type ConditionBadge = "seasonal" | "forecast" | "inferred" | null;
 
 export type AIBriefing = {
-  bottomLine: string;
   keyConsiderations: string[]; // max 3
   conditions: {
     waterTemp: { value: string; badge: ConditionBadge };

@@ -201,7 +201,6 @@ export function AIDiveBriefing({
     visibility: { value: "—", badge: null as ConditionBadge },
     seaState: { value: "—", badge: null as ConditionBadge },
   };
-  const bottomLine = briefing.bottomLine ?? "";
   const keyConsiderations = briefing.keyConsiderations ?? [];
   const siteConditions = briefing.siteConditions ?? [];
   const hazards = briefing.hazards ?? [];
@@ -318,18 +317,10 @@ export function AIDiveBriefing({
         </div>
       </div>
 
-      {/* Before you dive callout */}
-      <div className={styles.beforeYouDiveBlock}>
-        <span className={styles.beforeYouDiveLabel}>Before you dive</span>
-        <p className={styles.beforeYouDiveText}>{bottomLine}</p>
-      </div>
-
-      {/* Key considerations */}
+      {/* Key considerations callout */}
       {keyConsiderations.length > 0 && (
-        <div className={styles.keyConsiderationsBlock}>
-          <span className={styles.keyConsiderationsLabel}>
-            Key considerations
-          </span>
+        <div className={styles.beforeYouDiveBlock}>
+          <span className={styles.beforeYouDiveLabel}>Key considerations</span>
           <ul className={styles.sectionBullets}>
             {keyConsiderations.map((item, i) => (
               <li key={i} className={styles.sectionBullet}>
