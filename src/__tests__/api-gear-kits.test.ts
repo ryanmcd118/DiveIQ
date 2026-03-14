@@ -20,6 +20,7 @@ vi.mock("@/services/database/repositories/gearRepository", () => ({
 import { GET, POST, PUT, DELETE } from "@/app/api/gear-kits/route";
 import { getServerSession } from "next-auth";
 import { gearKitRepository } from "@/services/database/repositories/gearRepository";
+import { NotFoundError } from "@/lib/errors";
 
 const USER_ID = "user-123";
 function mockAuth() {
@@ -187,7 +188,7 @@ describe("gear kits API", () => {
 
     it("returns 404 when not found", async () => {
       vi.mocked(gearKitRepository.update).mockRejectedValue(
-        new Error("Kit not found")
+        new NotFoundError("Kit not found")
       );
       expect((await PUT(makePut({ id: "x" }))).status).toBe(404);
     });
@@ -216,7 +217,7 @@ describe("gear kits API", () => {
 
     it("returns 404 when not found", async () => {
       vi.mocked(gearKitRepository.delete).mockRejectedValue(
-        new Error("Kit not found")
+        new NotFoundError("Kit not found")
       );
       expect((await DELETE(makeDelete("x"))).status).toBe(404);
     });

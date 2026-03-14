@@ -230,9 +230,8 @@ describe("profile API", () => {
   describe("PATCH /api/profile", () => {
     beforeEach(() => {
       mockAuth();
-      // Default: update succeeds, re-fetch returns updated user
-      vi.mocked(prisma.user.update).mockResolvedValue(mockUser as any);
-      vi.mocked(prisma.user.findUnique).mockResolvedValue({
+      // Default: update succeeds (now includes kits in select)
+      vi.mocked(prisma.user.update).mockResolvedValue({
         ...mockUser,
         profileKits: [],
       } as any);

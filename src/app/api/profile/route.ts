@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/features/auth/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { normalizeProfileUpdate } from "@/features/profile/utils/normalizeProfile";
 
 const USER_PROFILE_SELECT = {
   id: true,
@@ -210,262 +211,28 @@ export async function PATCH(req: NextRequest) {
     }
 
     const body = await req.json();
+    const { data, profileKitIds, validationError } =
+      normalizeProfileUpdate(body);
 
-    // Whitelist only allowed profile fields - explicitly exclude certifications and other fields
-    // This prevents any accidental inclusion of certifications, userCertifications, or nested objects
-    const {
-      firstName,
-      lastName,
-      birthday,
-      location,
-      bio,
-      pronouns,
-      website,
-      homeDiveRegion,
-      languages,
-      primaryDiveTypes,
-      experienceLevel,
-      yearsDiving,
-      certifyingAgency,
-      typicalDivingEnvironment,
-      lookingFor,
-      favoriteDiveLocation,
-      showCertificationsOnProfile,
-      showGearOnProfile,
-      profileKitIds,
-    } = body;
-
-    // Explicitly ignore any other fields (especially certifications, userCertifications, etc.)
-    // Only the whitelisted fields above will be processed
-
-    // Validate profileKitIds if provided
-    let normalizedProfileKitIds: string[] | undefined = undefined;
-    if (profileKitIds !== undefined) {
-      if (!Array.isArray(profileKitIds)) {
-        return NextResponse.json(
-          { error: "profileKitIds must be an array" },
-          { status: 400 }
-        );
-      }
-      // Filter out invalid values and ensure all are strings
-      normalizedProfileKitIds = profileKitIds
-        .filter(
-          (id): id is string => typeof id === "string" && id.trim() !== ""
-        )
-        .map((id) => id.trim());
-    }
-
-    // Normalize string values: trim and convert empty strings to null
-    const normalizeString = (val: string | null | undefined): string | null => {
-      if (val === undefined || val === null) return null;
-      const trimmed = val.trim();
-      return trimmed === "" ? null : trimmed;
-    };
-
-    // Normalize website URL: prepend https:// if missing protocol
-    const normalizeWebsiteUrl = (
-      url: string | null | undefined
-    ): string | null => {
-      const normalized = normalizeString(url);
-      if (!normalized) return null;
-
-      // If it already starts with http:// or https://, return as-is
-      if (
-        normalized.startsWith("http://") ||
-        normalized.startsWith("https://")
-      ) {
-        return normalized;
-      }
-
-      // Otherwise, prepend https://
-      return `https://${normalized}`;
-    };
-
-    // Normalize values first for validation
-    const normalizedFirstName = normalizeString(firstName);
-    const normalizedLastName = normalizeString(lastName);
-    const normalizedBio = normalizeString(bio);
-    const normalizedWebsite = normalizeWebsiteUrl(website); // Normalize website URL (prepend https:// if needed)
-    const normalizedLocation = normalizeString(location);
-    const normalizedPronouns = normalizeString(pronouns);
-    const normalizedHomeDiveRegion = normalizeString(homeDiveRegion);
-    const normalizedLanguages = normalizeString(languages);
-    const normalizedPrimaryDiveTypes = normalizeString(primaryDiveTypes);
-    const normalizedExperienceLevel = normalizeString(experienceLevel);
-    const normalizedCertifyingAgency = normalizeString(certifyingAgency);
-    const normalizedTypicalDivingEnvironment = normalizeString(
-      typicalDivingEnvironment
-    );
-    const normalizedLookingFor = normalizeString(lookingFor);
-    const normalizedFavoriteDiveLocation =
-      normalizeString(favoriteDiveLocation);
-
-    // Validate JSON array fields
-    const jsonArrayFields = {
-      primaryDiveTypes: normalizedPrimaryDiveTypes,
-      typicalDivingEnvironment: normalizedTypicalDivingEnvironment,
-      lookingFor: normalizedLookingFor,
-    };
-    for (const [field, value] of Object.entries(jsonArrayFields)) {
-      if (value !== null) {
-        try {
-          const parsed = JSON.parse(value);
-          if (!Array.isArray(parsed)) {
-            return NextResponse.json(
-              { error: `${field} must be a JSON array` },
-              { status: 400 }
-            );
-          }
-        } catch {
-          return NextResponse.json(
-            { error: `${field} must be a valid JSON array` },
-            { status: 400 }
-          );
-        }
-      }
-    }
-
-    // Validate firstName/lastName max length (if provided)
-    if (normalizedFirstName && normalizedFirstName.length > 50) {
+    if (validationError) {
       return NextResponse.json(
-        { error: "First name must be 50 characters or less" },
-        { status: 400 }
-      );
-    }
-    if (normalizedLastName && normalizedLastName.length > 50) {
-      return NextResponse.json(
-        { error: "Last name must be 50 characters or less" },
-        { status: 400 }
+        { error: validationError.error },
+        { status: validationError.status }
       );
     }
 
-    // Validate bio max length (if provided)
-    if (normalizedBio && normalizedBio.length > 500) {
-      return NextResponse.json(
-        { error: "Bio must be 500 characters or less" },
-        { status: 400 }
-      );
-    }
-
-    // Validate website URL format (if provided, after normalization)
-    if (normalizedWebsite) {
-      try {
-        // Validate using URL constructor (will throw if invalid)
-        new URL(normalizedWebsite);
-      } catch {
-        return NextResponse.json(
-          { error: "Please enter a valid website address" },
-          { status: 400 }
-        );
-      }
-    }
-
-    // Parse birthday if provided - normalize to noon UTC to avoid timezone issues
-    let birthdayDate: Date | null = null;
-    if (birthday !== undefined) {
-      if (birthday !== null && birthday !== "") {
-        // Parse the date string (expected format: YYYY-MM-DD)
-        const dateParts = birthday.split("-");
-        if (dateParts.length !== 3) {
-          return NextResponse.json(
-            { error: "Invalid birthday date format" },
-            { status: 400 }
-          );
-        }
-
-        // Create date at noon UTC to avoid timezone shifts
-        birthdayDate = new Date(
-          Date.UTC(
-            parseInt(dateParts[0], 10),
-            parseInt(dateParts[1], 10) - 1, // Month is 0-indexed
-            parseInt(dateParts[2], 10),
-            12,
-            0,
-            0,
-            0 // Noon UTC
-          )
-        );
-
-        if (isNaN(birthdayDate.getTime())) {
-          return NextResponse.json(
-            { error: "Invalid birthday date format" },
-            { status: 400 }
-          );
-        }
-      } else {
-        // Explicitly set to null to clear the field
-        birthdayDate = null;
-      }
-    }
-
-    // Normalize yearsDiving (convert to integer or null)
-    let normalizedYearsDiving: number | null = null;
-    if (
-      yearsDiving !== undefined &&
-      yearsDiving !== null &&
-      yearsDiving !== ""
-    ) {
-      const parsed =
-        typeof yearsDiving === "number"
-          ? yearsDiving
-          : parseInt(String(yearsDiving), 10);
-      if (!isNaN(parsed) && parsed >= 0) {
-        normalizedYearsDiving = parsed;
-      }
-    }
-
-    // Update user profile (only allowed fields) - use normalized values
+    // Update user profile with select that includes kits
     const updatedUser = await prisma.user.update({
       where: { id: session.user.id },
-      data: {
-        ...(firstName !== undefined && { firstName: normalizedFirstName }),
-        ...(lastName !== undefined && { lastName: normalizedLastName }),
-        ...(birthday !== undefined && { birthday: birthdayDate }),
-        ...(location !== undefined && { location: normalizedLocation }),
-        ...(bio !== undefined && { bio: normalizedBio }),
-        ...(pronouns !== undefined && { pronouns: normalizedPronouns }),
-        ...(website !== undefined && { website: normalizedWebsite }),
-        ...(homeDiveRegion !== undefined && {
-          homeDiveRegion: normalizedHomeDiveRegion,
-        }),
-        ...(languages !== undefined && { languages: normalizedLanguages }),
-        ...(primaryDiveTypes !== undefined && {
-          primaryDiveTypes: normalizedPrimaryDiveTypes,
-        }),
-        ...(experienceLevel !== undefined && {
-          experienceLevel: normalizedExperienceLevel,
-        }),
-        ...(yearsDiving !== undefined && {
-          yearsDiving: normalizedYearsDiving,
-        }),
-        ...(certifyingAgency !== undefined && {
-          certifyingAgency: normalizedCertifyingAgency,
-        }),
-        ...(typicalDivingEnvironment !== undefined && {
-          typicalDivingEnvironment: normalizedTypicalDivingEnvironment,
-        }),
-        ...(lookingFor !== undefined && { lookingFor: normalizedLookingFor }),
-        ...(favoriteDiveLocation !== undefined && {
-          favoriteDiveLocation: normalizedFavoriteDiveLocation,
-        }),
-        ...(showCertificationsOnProfile !== undefined && {
-          showCertificationsOnProfile: Boolean(showCertificationsOnProfile),
-        }),
-        ...(showGearOnProfile !== undefined && {
-          showGearOnProfile: Boolean(showGearOnProfile),
-        }),
-      },
-      select: USER_PROFILE_SELECT,
+      data,
+      select: USER_PROFILE_WITH_KITS_SELECT,
     });
 
     // Handle profile kit selection if showGearOnProfile is being set or profileKitIds is provided
-    if (
-      normalizedProfileKitIds !== undefined ||
-      showGearOnProfile !== undefined
-    ) {
+    if (profileKitIds !== undefined || body.showGearOnProfile !== undefined) {
       const finalShowGear =
-        showGearOnProfile !== undefined
-          ? Boolean(showGearOnProfile)
+        body.showGearOnProfile !== undefined
+          ? Boolean(body.showGearOnProfile)
           : updatedUser.showGearOnProfile;
 
       if (!finalShowGear) {
@@ -473,19 +240,19 @@ export async function PATCH(req: NextRequest) {
         await prisma.userProfileKit.deleteMany({
           where: { userId: session.user.id },
         });
-      } else if (normalizedProfileKitIds !== undefined) {
+      } else if (profileKitIds !== undefined) {
         // Verify all kit IDs belong to the user
-        if (normalizedProfileKitIds.length > 0) {
+        if (profileKitIds.length > 0) {
           const userKits = await prisma.gearKit.findMany({
             where: {
               userId: session.user.id,
-              id: { in: normalizedProfileKitIds },
+              id: { in: profileKitIds },
             },
             select: { id: true },
           });
 
           const validKitIds = userKits.map((kit) => kit.id);
-          const invalidKitIds = normalizedProfileKitIds.filter(
+          const invalidKitIds = profileKitIds.filter(
             (id) => !validKitIds.includes(id)
           );
 
@@ -502,9 +269,9 @@ export async function PATCH(req: NextRequest) {
           where: { userId: session.user.id },
         });
 
-        if (normalizedProfileKitIds.length > 0) {
+        if (profileKitIds.length > 0) {
           await prisma.userProfileKit.createMany({
-            data: normalizedProfileKitIds.map((kitId) => ({
+            data: profileKitIds.map((kitId) => ({
               userId: session.user.id,
               kitId,
             })),
@@ -513,18 +280,22 @@ export async function PATCH(req: NextRequest) {
       }
     }
 
-    // Fetch updated user with profile kits for response
-    const userWithKits = await prisma.user.findUnique({
-      where: { id: session.user.id },
-      select: USER_PROFILE_WITH_KITS_SELECT,
-    });
+    // Re-fetch only if kit mutations happened (to get updated kit data)
+    const needsRefetch =
+      profileKitIds !== undefined || body.showGearOnProfile !== undefined;
+    const finalUser = needsRefetch
+      ? await prisma.user.findUnique({
+          where: { id: session.user.id },
+          select: USER_PROFILE_WITH_KITS_SELECT,
+        })
+      : updatedUser;
 
     // Transform profile kits to a simpler structure
-    const userResponse = userWithKits
+    const userResponse = finalUser
       ? {
-          ...userWithKits,
-          profileKitIds: userWithKits.profileKits.map((pk) => pk.kitId),
-          profileKits: userWithKits.profileKits.map((pk) => ({
+          ...finalUser,
+          profileKitIds: finalUser.profileKits.map((pk) => pk.kitId),
+          profileKits: finalUser.profileKits.map((pk) => ({
             id: pk.kit.id,
             name: pk.kit.name,
             items: pk.kit.kitItems.map((ki) => ({

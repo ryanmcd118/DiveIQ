@@ -52,8 +52,8 @@ export async function PATCH(
 
     if (existing.userId !== session.user.id) {
       return NextResponse.json(
-        { error: "Forbidden: cannot update another user's certification" },
-        { status: 403 }
+        { error: "Certification not found" },
+        { status: 404 }
       );
     }
 
@@ -185,8 +185,8 @@ export async function DELETE(
 
     if (existing.userId !== session.user.id) {
       return NextResponse.json(
-        { error: "Forbidden: cannot delete another user's certification" },
-        { status: 403 }
+        { error: "Certification not found" },
+        { status: 404 }
       );
     }
 

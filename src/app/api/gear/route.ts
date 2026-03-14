@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/features/auth/lib/auth";
 import { gearRepository } from "@/services/database/repositories/gearRepository";
+import { NotFoundError } from "@/lib/errors";
 
 /**
  * GET /api/gear
@@ -159,7 +160,7 @@ export async function PUT(req: NextRequest) {
     return NextResponse.json({ item });
   } catch (err) {
     console.error("PUT /api/gear error", err);
-    if (err instanceof Error && err.message === "Gear item not found") {
+    if (err instanceof NotFoundError) {
       return NextResponse.json({ error: err.message }, { status: 404 });
     }
     return NextResponse.json(
@@ -193,7 +194,7 @@ export async function DELETE(req: NextRequest) {
     return NextResponse.json({ ok: true });
   } catch (err) {
     console.error("DELETE /api/gear error", err);
-    if (err instanceof Error && err.message === "Gear item not found") {
+    if (err instanceof NotFoundError) {
       return NextResponse.json({ error: err.message }, { status: 404 });
     }
     return NextResponse.json(
