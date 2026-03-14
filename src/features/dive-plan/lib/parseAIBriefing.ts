@@ -26,6 +26,11 @@ const EMPTY_CONDITIONS: AIBriefing["conditions"] = {
   seaState: { value: "—", badge: null },
 };
 
+/**
+ * Detect pre-Prompt-A schema responses. Uses !parsed.keyConsiderations (falsy)
+ * rather than a property existence check — harmless since old-schema responses
+ * never include this field.
+ */
 function isOldSchema(parsed: Record<string, unknown>): boolean {
   return (
     !parsed.keyConsiderations &&
@@ -36,6 +41,11 @@ function isOldSchema(parsed: Record<string, unknown>): boolean {
   );
 }
 
+/**
+ * Parse raw AI JSON output into a typed AIBriefing. Throws on malformed or
+ * empty JSON input — callers must wrap in try/catch and fall back to
+ * getFallbackBriefing().
+ */
 export function parseAIBriefing(content: string): AIBriefing {
   let jsonStr = content.trim();
   if (jsonStr.startsWith("```json")) jsonStr = jsonStr.slice(7);

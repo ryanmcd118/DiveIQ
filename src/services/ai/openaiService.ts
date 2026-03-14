@@ -42,6 +42,13 @@ export type DivePlanAnalysisRequest = {
   };
 };
 
+/**
+ * Extract a temperature from a free-text string and return it in Fahrenheit.
+ * The regex uses a negative lookbehind (?<!\d) to avoid matching digits inside
+ * larger numbers (e.g. "2024" in a date). Numbers without a unit indicator are
+ * treated as Fahrenheit by default — intentional because the AI prompt requests
+ * Fahrenheit when the unit system is imperial.
+ */
 export function parseTempToFahrenheit(value: string): number | null {
   const numbers = value.match(/(?<!\d)-?\d+(?:\.\d+)?/g);
   if (!numbers || numbers.length === 0) return null;
@@ -53,6 +60,12 @@ export function parseTempToFahrenheit(value: string): number | null {
   return isCelsius ? (avg * 9) / 5 + 32 : avg;
 }
 
+/**
+ * Produce deterministic gear suitability notes based on water temperature and the
+ * diver's logged gear. The 3mm wetsuit check uses a two-pass approach: first checks
+ * (has3mm && !hasShorty) at the stricter 68°F threshold for a full 3mm wetsuit,
+ * then falls back to (hasShorty || has3mm) at 73°F for a shorty/light 3mm.
+ */
 export function computeGearNotes(
   tempF: number | null,
   gearList: string[],
@@ -256,6 +269,11 @@ function buildUpdatedSystemPrompt(unitSystem: UnitSystem = "metric"): string {
 ${basePrompt}`.trim();
 }
 
+/**
+ * Format the elapsed time between two date strings as a human-readable duration.
+ * Month calculation uses Math.floor(diffDays / 30) — an approximation, not
+ * calendar-accurate months.
+ */
 export function humanReadableDuration(
   fromDateStr: string | null,
   toDateStr: string

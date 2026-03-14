@@ -2,6 +2,9 @@ import { prisma } from "@/lib/prisma";
 import type { DiveLogInput, DiveLogEntry } from "@/features/dive-log/types";
 import type { Prisma } from "@prisma/client";
 
+/** Coalesce undefined to null for optional Prisma fields. */
+const n = <T>(val: T | undefined): T | null => val ?? null;
+
 /**
  * Data access layer for DiveLog operations
  * Provides a clean interface to database operations
@@ -14,39 +17,39 @@ export const diveLogRepository = {
     return prisma.diveLog.create({
       data: {
         date: data.date,
-        startTime: data.startTime ?? null,
-        endTime: data.endTime ?? null,
+        startTime: n(data.startTime),
+        endTime: n(data.endTime),
         // diveNumber and auto/override will be normalized by recomputeDiveNumbersForUser
-        diveNumber: data.diveNumber ?? null,
-        diveNumberAuto: data.diveNumberAuto ?? null,
-        diveNumberOverride: data.diveNumberOverride ?? null,
-        region: data.region ?? null,
+        diveNumber: n(data.diveNumber),
+        diveNumberAuto: n(data.diveNumberAuto),
+        diveNumberOverride: n(data.diveNumberOverride),
+        region: n(data.region),
         siteName: data.siteName,
-        buddyName: data.buddyName ?? null,
-        diveTypeTags: data.diveTypeTags ?? null,
-        maxDepthCm: data.maxDepthCm ?? null,
-        bottomTime: data.bottomTime ?? null,
-        safetyStopDepthCm: data.safetyStopDepthCm ?? null,
-        safetyStopDurationMin: data.safetyStopDurationMin ?? null,
-        surfaceIntervalMin: data.surfaceIntervalMin ?? null,
-        waterTempCx10: data.waterTempCx10 ?? null,
-        waterTempBottomCx10: data.waterTempBottomCx10 ?? null,
-        visibilityCm: data.visibilityCm ?? null,
-        current: data.current ?? null,
-        gasType: data.gasType ?? null,
-        fO2: data.fO2 ?? null,
-        tankCylinder: data.tankCylinder ?? null,
-        startPressureBar: data.startPressureBar ?? null,
-        endPressureBar: data.endPressureBar ?? null,
-        exposureProtection: data.exposureProtection ?? null,
-        weightUsedKg: data.weightUsedKg ?? null,
-        gearKitId: data.gearKitId ?? null,
-        gearNotes: data.gearNotes ?? null,
+        buddyName: n(data.buddyName),
+        diveTypeTags: n(data.diveTypeTags),
+        maxDepthCm: n(data.maxDepthCm),
+        bottomTime: n(data.bottomTime),
+        safetyStopDepthCm: n(data.safetyStopDepthCm),
+        safetyStopDurationMin: n(data.safetyStopDurationMin),
+        surfaceIntervalMin: n(data.surfaceIntervalMin),
+        waterTempCx10: n(data.waterTempCx10),
+        waterTempBottomCx10: n(data.waterTempBottomCx10),
+        visibilityCm: n(data.visibilityCm),
+        current: n(data.current),
+        gasType: n(data.gasType),
+        fO2: n(data.fO2),
+        tankCylinder: n(data.tankCylinder),
+        startPressureBar: n(data.startPressureBar),
+        endPressureBar: n(data.endPressureBar),
+        exposureProtection: n(data.exposureProtection),
+        weightUsedKg: n(data.weightUsedKg),
+        gearKitId: n(data.gearKitId),
+        gearNotes: n(data.gearNotes),
         isTrainingDive: data.isTrainingDive ?? false,
-        trainingCourse: data.trainingCourse ?? null,
-        trainingInstructor: data.trainingInstructor ?? null,
-        trainingSkills: data.trainingSkills ?? null,
-        notes: data.notes ?? null,
+        trainingCourse: n(data.trainingCourse),
+        trainingInstructor: n(data.trainingInstructor),
+        trainingSkills: n(data.trainingSkills),
+        notes: n(data.notes),
         userId,
       },
     });
@@ -94,39 +97,39 @@ export const diveLogRepository = {
       where: { id },
       data: {
         date: data.date,
-        startTime: data.startTime ?? null,
-        endTime: data.endTime ?? null,
+        startTime: n(data.startTime),
+        endTime: n(data.endTime),
         // diveNumber and auto/override will be normalized by recomputeDiveNumbersForUser
-        diveNumber: data.diveNumber ?? null,
-        diveNumberAuto: data.diveNumberAuto ?? null,
-        diveNumberOverride: data.diveNumberOverride ?? null,
-        region: data.region ?? null,
+        diveNumber: n(data.diveNumber),
+        diveNumberAuto: n(data.diveNumberAuto),
+        diveNumberOverride: n(data.diveNumberOverride),
+        region: n(data.region),
         siteName: data.siteName,
-        buddyName: data.buddyName ?? null,
-        diveTypeTags: data.diveTypeTags ?? null,
-        maxDepthCm: data.maxDepthCm ?? null,
-        bottomTime: data.bottomTime ?? null,
-        safetyStopDepthCm: data.safetyStopDepthCm ?? null,
-        safetyStopDurationMin: data.safetyStopDurationMin ?? null,
-        surfaceIntervalMin: data.surfaceIntervalMin ?? null,
-        waterTempCx10: data.waterTempCx10 ?? null,
-        waterTempBottomCx10: data.waterTempBottomCx10 ?? null,
-        visibilityCm: data.visibilityCm ?? null,
-        current: data.current ?? null,
-        gasType: data.gasType ?? null,
-        fO2: data.fO2 ?? null,
-        tankCylinder: data.tankCylinder ?? null,
-        startPressureBar: data.startPressureBar ?? null,
-        endPressureBar: data.endPressureBar ?? null,
-        exposureProtection: data.exposureProtection ?? null,
-        weightUsedKg: data.weightUsedKg ?? null,
-        gearKitId: data.gearKitId ?? null,
-        gearNotes: data.gearNotes ?? null,
+        buddyName: n(data.buddyName),
+        diveTypeTags: n(data.diveTypeTags),
+        maxDepthCm: n(data.maxDepthCm),
+        bottomTime: n(data.bottomTime),
+        safetyStopDepthCm: n(data.safetyStopDepthCm),
+        safetyStopDurationMin: n(data.safetyStopDurationMin),
+        surfaceIntervalMin: n(data.surfaceIntervalMin),
+        waterTempCx10: n(data.waterTempCx10),
+        waterTempBottomCx10: n(data.waterTempBottomCx10),
+        visibilityCm: n(data.visibilityCm),
+        current: n(data.current),
+        gasType: n(data.gasType),
+        fO2: n(data.fO2),
+        tankCylinder: n(data.tankCylinder),
+        startPressureBar: n(data.startPressureBar),
+        endPressureBar: n(data.endPressureBar),
+        exposureProtection: n(data.exposureProtection),
+        weightUsedKg: n(data.weightUsedKg),
+        gearKitId: n(data.gearKitId),
+        gearNotes: n(data.gearNotes),
         isTrainingDive: data.isTrainingDive ?? false,
-        trainingCourse: data.trainingCourse ?? null,
-        trainingInstructor: data.trainingInstructor ?? null,
-        trainingSkills: data.trainingSkills ?? null,
-        notes: data.notes ?? null,
+        trainingCourse: n(data.trainingCourse),
+        trainingInstructor: n(data.trainingInstructor),
+        trainingSkills: n(data.trainingSkills),
+        notes: n(data.notes),
       },
     });
   },
@@ -158,6 +161,9 @@ export const diveLogRepository = {
    * Oldest dive gets auto #1, next #2, etc.
    * Keeps existing diveNumberOverride values stable while updating
    * diveNumberAuto and effective diveNumber.
+   *
+   * Updates are batched in chunks of 100 to avoid hitting database
+   * transaction limits for users with large dive histories.
    */
   async recomputeDiveNumbersForUser(userId: string): Promise<void> {
     const dives = await prisma.diveLog.findMany({
@@ -172,20 +178,23 @@ export const diveLogRepository = {
 
     if (!dives.length) return;
 
-    await prisma.$transaction(
-      dives.map((dive, index) => {
-        const autoNumber = index + 1;
-        const override = dive.diveNumberOverride ?? null;
-        const effective = override ?? autoNumber;
-        return prisma.diveLog.update({
-          where: { id: dive.id },
-          data: {
-            diveNumberAuto: autoNumber,
-            diveNumber: effective,
-          },
-        });
-      })
-    );
+    const CHUNK_SIZE = 100;
+    const updates = dives.map((dive, index) => {
+      const autoNumber = index + 1;
+      const override = dive.diveNumberOverride ?? null;
+      const effective = override ?? autoNumber;
+      return prisma.diveLog.update({
+        where: { id: dive.id },
+        data: {
+          diveNumberAuto: autoNumber,
+          diveNumber: effective,
+        },
+      });
+    });
+
+    for (let i = 0; i < updates.length; i += CHUNK_SIZE) {
+      await prisma.$transaction(updates.slice(i, i + CHUNK_SIZE));
+    }
   },
 
   /**
