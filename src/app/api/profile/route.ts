@@ -3,6 +3,59 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/features/auth/lib/auth";
 import { prisma } from "@/lib/prisma";
 
+const USER_PROFILE_SELECT = {
+  id: true,
+  email: true,
+  firstName: true,
+  lastName: true,
+  image: true,
+  avatarUrl: true,
+  birthday: true,
+  location: true,
+  bio: true,
+  pronouns: true,
+  website: true,
+  homeDiveRegion: true,
+  languages: true,
+  primaryDiveTypes: true,
+  experienceLevel: true,
+  yearsDiving: true,
+  certifyingAgency: true,
+  typicalDivingEnvironment: true,
+  lookingFor: true,
+  favoriteDiveLocation: true,
+  showCertificationsOnProfile: true,
+  showGearOnProfile: true,
+} as const;
+
+const USER_PROFILE_WITH_KITS_SELECT = {
+  ...USER_PROFILE_SELECT,
+  profileKits: {
+    select: {
+      kitId: true,
+      kit: {
+        select: {
+          id: true,
+          name: true,
+          kitItems: {
+            select: {
+              gearItem: {
+                select: {
+                  id: true,
+                  type: true,
+                  manufacturer: true,
+                  model: true,
+                  purchaseDate: true,
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+  },
+} as const;
+
 /**
  * GET /api/profile
  * Get the current user's profile
@@ -56,54 +109,7 @@ export async function GET() {
     // Try to find user by ID first
     let user = await prisma.user.findUnique({
       where: { id: userId },
-      select: {
-        id: true,
-        email: true,
-        firstName: true,
-        lastName: true,
-        image: true,
-        avatarUrl: true,
-        birthday: true,
-        location: true,
-        bio: true,
-        pronouns: true,
-        website: true,
-        homeDiveRegion: true,
-        languages: true,
-        primaryDiveTypes: true,
-        experienceLevel: true,
-        yearsDiving: true,
-        certifyingAgency: true,
-        typicalDivingEnvironment: true,
-        lookingFor: true,
-        favoriteDiveLocation: true,
-        showCertificationsOnProfile: true,
-        showGearOnProfile: true,
-        profileKits: {
-          select: {
-            kitId: true,
-            kit: {
-              select: {
-                id: true,
-                name: true,
-                kitItems: {
-                  select: {
-                    gearItem: {
-                      select: {
-                        id: true,
-                        type: true,
-                        manufacturer: true,
-                        model: true,
-                        purchaseDate: true,
-                      },
-                    },
-                  },
-                },
-              },
-            },
-          },
-        },
-      },
+      select: USER_PROFILE_WITH_KITS_SELECT,
     });
 
     // Transform profile kits to a simpler structure if user exists
@@ -149,154 +155,12 @@ export async function GET() {
       }
       user = await prisma.user.findUnique({
         where: { email: userEmail },
-        select: {
-          id: true,
-          email: true,
-          firstName: true,
-          lastName: true,
-          image: true,
-          avatarUrl: true,
-          birthday: true,
-          location: true,
-          bio: true,
-          pronouns: true,
-          website: true,
-          homeDiveRegion: true,
-          languages: true,
-          primaryDiveTypes: true,
-          experienceLevel: true,
-          yearsDiving: true,
-          certifyingAgency: true,
-          typicalDivingEnvironment: true,
-          lookingFor: true,
-          favoriteDiveLocation: true,
-          showCertificationsOnProfile: true,
-          showGearOnProfile: true,
-          profileKits: {
-            select: {
-              kitId: true,
-              kit: {
-                select: {
-                  id: true,
-                  name: true,
-                  kitItems: {
-                    select: {
-                      gearItem: {
-                        select: {
-                          id: true,
-                          type: true,
-                          manufacturer: true,
-                          model: true,
-                          purchaseDate: true,
-                        },
-                      },
-                    },
-                  },
-                },
-              },
-            },
-          },
-        },
-      });
-    }
-
-    // If still not found, recover by creating user record (dev resilience)
-    if (!user && userEmail) {
-      if (process.env.NODE_ENV === "development") {
-        console.log(
-          "[GET /api/profile] User not found, recovering by creating user record"
-        );
-      }
-
-      // Extract firstName/lastName from session if available
-      let recoveryFirstName: string | null = session.user.firstName || null;
-      let recoveryLastName: string | null = session.user.lastName || null;
-
-      // If names missing, try to split session.user.name
-      if (!recoveryFirstName) {
-        const sessionUserUnknown = session.user as unknown;
-        if (
-          sessionUserUnknown &&
-          typeof sessionUserUnknown === "object" &&
-          "name" in sessionUserUnknown &&
-          typeof sessionUserUnknown.name === "string"
-        ) {
-          const nameParts = sessionUserUnknown.name.trim().split(/\s+/);
-          if (nameParts.length > 0) {
-            recoveryFirstName = nameParts[0];
-            recoveryLastName =
-              nameParts.length > 1 ? nameParts.slice(1).join(" ") : null;
-          }
-        }
-      }
-
-      // Create user record with available data
-      user = await prisma.user.create({
-        data: {
-          email: userEmail,
-          firstName: recoveryFirstName,
-          lastName: recoveryLastName,
-          emailVerified: new Date(),
-        },
-        select: {
-          id: true,
-          email: true,
-          firstName: true,
-          lastName: true,
-          image: true,
-          avatarUrl: true,
-          birthday: true,
-          location: true,
-          bio: true,
-          pronouns: true,
-          website: true,
-          homeDiveRegion: true,
-          languages: true,
-          primaryDiveTypes: true,
-          experienceLevel: true,
-          yearsDiving: true,
-          certifyingAgency: true,
-          typicalDivingEnvironment: true,
-          lookingFor: true,
-          favoriteDiveLocation: true,
-          showCertificationsOnProfile: true,
-          showGearOnProfile: true,
-          profileKits: {
-            select: {
-              kitId: true,
-              kit: {
-                select: {
-                  id: true,
-                  name: true,
-                  kitItems: {
-                    select: {
-                      gearItem: {
-                        select: {
-                          id: true,
-                          type: true,
-                          manufacturer: true,
-                          model: true,
-                          purchaseDate: true,
-                        },
-                      },
-                    },
-                  },
-                },
-              },
-            },
-          },
-        },
+        select: USER_PROFILE_WITH_KITS_SELECT,
       });
     }
 
     if (!user) {
-      if (process.env.NODE_ENV === "development") {
-        console.error("[GET /api/profile] Unable to find or create user");
-      }
-      return NextResponse.json(
-        { error: "Unable to load user profile" },
-        { status: 500 }
-      );
+      return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
     if (process.env.NODE_ENV === "development") {
@@ -436,6 +300,31 @@ export async function PATCH(req: NextRequest) {
     const normalizedFavoriteDiveLocation =
       normalizeString(favoriteDiveLocation);
 
+    // Validate JSON array fields
+    const jsonArrayFields = {
+      primaryDiveTypes: normalizedPrimaryDiveTypes,
+      typicalDivingEnvironment: normalizedTypicalDivingEnvironment,
+      lookingFor: normalizedLookingFor,
+    };
+    for (const [field, value] of Object.entries(jsonArrayFields)) {
+      if (value !== null) {
+        try {
+          const parsed = JSON.parse(value);
+          if (!Array.isArray(parsed)) {
+            return NextResponse.json(
+              { error: `${field} must be a JSON array` },
+              { status: 400 }
+            );
+          }
+        } catch {
+          return NextResponse.json(
+            { error: `${field} must be a valid JSON array` },
+            { status: 400 }
+          );
+        }
+      }
+    }
+
     // Validate firstName/lastName max length (if provided)
     if (normalizedFirstName && normalizedFirstName.length > 50) {
       return NextResponse.json(
@@ -566,30 +455,7 @@ export async function PATCH(req: NextRequest) {
           showGearOnProfile: Boolean(showGearOnProfile),
         }),
       },
-      select: {
-        id: true,
-        email: true,
-        firstName: true,
-        lastName: true,
-        image: true,
-        avatarUrl: true,
-        birthday: true,
-        location: true,
-        bio: true,
-        pronouns: true,
-        website: true,
-        homeDiveRegion: true,
-        languages: true,
-        primaryDiveTypes: true,
-        experienceLevel: true,
-        yearsDiving: true,
-        certifyingAgency: true,
-        typicalDivingEnvironment: true,
-        lookingFor: true,
-        favoriteDiveLocation: true,
-        showCertificationsOnProfile: true,
-        showGearOnProfile: true,
-      },
+      select: USER_PROFILE_SELECT,
     });
 
     // Handle profile kit selection if showGearOnProfile is being set or profileKitIds is provided
@@ -650,54 +516,7 @@ export async function PATCH(req: NextRequest) {
     // Fetch updated user with profile kits for response
     const userWithKits = await prisma.user.findUnique({
       where: { id: session.user.id },
-      select: {
-        id: true,
-        email: true,
-        firstName: true,
-        lastName: true,
-        image: true,
-        avatarUrl: true,
-        birthday: true,
-        location: true,
-        bio: true,
-        pronouns: true,
-        website: true,
-        homeDiveRegion: true,
-        languages: true,
-        primaryDiveTypes: true,
-        experienceLevel: true,
-        yearsDiving: true,
-        certifyingAgency: true,
-        typicalDivingEnvironment: true,
-        lookingFor: true,
-        favoriteDiveLocation: true,
-        showCertificationsOnProfile: true,
-        showGearOnProfile: true,
-        profileKits: {
-          select: {
-            kitId: true,
-            kit: {
-              select: {
-                id: true,
-                name: true,
-                kitItems: {
-                  select: {
-                    gearItem: {
-                      select: {
-                        id: true,
-                        type: true,
-                        manufacturer: true,
-                        model: true,
-                        purchaseDate: true,
-                      },
-                    },
-                  },
-                },
-              },
-            },
-          },
-        },
-      },
+      select: USER_PROFILE_WITH_KITS_SELECT,
     });
 
     // Transform profile kits to a simpler structure

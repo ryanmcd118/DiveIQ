@@ -156,16 +156,25 @@ describe("profile API", () => {
       expect(prisma.user.findUnique).toHaveBeenCalledTimes(2);
     });
 
-    it("returns 500 when user not found by any method and no email", async () => {
-      // Session with no email — can't recover
+    it("returns 404 when user not found by ID or email", async () => {
+      vi.mocked(prisma.user.findUnique).mockResolvedValue(null);
+
+      const res = await GET();
+      const data = await res.json();
+
+      expect(res.status).toBe(404);
+      expect(data.error).toBe("User not found");
+    });
+
+    it("returns 404 when user not found and no email in session", async () => {
       mockAuth({ email: undefined });
       vi.mocked(prisma.user.findUnique).mockResolvedValue(null);
 
       const res = await GET();
       const data = await res.json();
 
-      expect(res.status).toBe(500);
-      expect(data.error).toContain("Unable to load");
+      expect(res.status).toBe(404);
+      expect(data.error).toBe("User not found");
     });
 
     it("returns 500 on database error", async () => {
@@ -374,6 +383,32 @@ describe("profile API", () => {
 
         expect(res.status).toBe(400);
         expect(data.error).toContain("birthday");
+      });
+
+      it("returns 400 when primaryDiveTypes is not a valid JSON array", async () => {
+        const res = await PATCH(
+          makePatch({ primaryDiveTypes: "not json at all" })
+        );
+        const data = await res.json();
+
+        expect(res.status).toBe(400);
+        expect(data.error).toContain("primaryDiveTypes");
+        expect(data.error).toContain("JSON array");
+      });
+
+      it("returns 400 when JSON array field is a JSON object, not array", async () => {
+        const res = await PATCH(makePatch({ lookingFor: '{"key": "value"}' }));
+        const data = await res.json();
+
+        expect(res.status).toBe(400);
+        expect(data.error).toContain("lookingFor");
+      });
+
+      it("accepts valid JSON array for primaryDiveTypes", async () => {
+        const res = await PATCH(
+          makePatch({ primaryDiveTypes: '["reef","wreck"]' })
+        );
+        expect(res.status).toBe(200);
       });
 
       it("returns 400 when profileKitIds is not an array", async () => {
