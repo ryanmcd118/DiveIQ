@@ -66,7 +66,7 @@ export default defineConfig({
 
 Note: Coverage thresholds are only enforced when running `vitest run --coverage`. The default `npm run test` (`vitest run`) does NOT enforce thresholds. To run with coverage locally: `npx vitest run --coverage`.
 
-## Current Test Suite: 8 files, 254 tests
+## Current Test Suite: 9 files, 287 tests
 
 ## Test File Organization
 
@@ -83,6 +83,7 @@ src/__tests__/
 ├── openaiService.test.ts                   # 65 tests — deterministic AI service functions
 ├── api-signup.test.ts                      # 17 tests — POST /api/auth/signup
 ├── api-dive-logs.test.ts                   # 29 tests — GET/POST /api/dive-logs (CRUD + gear)
+├── api-dive-plans.test.ts                  # 33 tests — GET/POST/PUT/DELETE /api/dive-plans + preview
 └── api-certifications-definitions.test.ts  # 4 tests  — GET /api/certifications/definitions
 ```
 
