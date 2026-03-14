@@ -42,7 +42,7 @@ export type DivePlanAnalysisRequest = {
   };
 };
 
-function parseTempToFahrenheit(value: string): number | null {
+export function parseTempToFahrenheit(value: string): number | null {
   const numbers = value.match(/(?<!\d)-?\d+(?:\.\d+)?/g);
   if (!numbers || numbers.length === 0) return null;
 
@@ -53,7 +53,7 @@ function parseTempToFahrenheit(value: string): number | null {
   return isCelsius ? (avg * 9) / 5 + 32 : avg;
 }
 
-function computeGearNotes(
+export function computeGearNotes(
   tempF: number | null,
   gearList: string[],
   region: string,
@@ -148,7 +148,7 @@ function computeGearNotes(
   return notes;
 }
 
-function buildSystemPrompt(unitSystem: UnitSystem = "metric"): string {
+export function buildSystemPrompt(unitSystem: UnitSystem = "metric"): string {
   const unitInstructions =
     unitSystem === "imperial"
       ? `
@@ -256,7 +256,7 @@ function buildUpdatedSystemPrompt(unitSystem: UnitSystem = "metric"): string {
 ${basePrompt}`.trim();
 }
 
-function humanReadableDuration(
+export function humanReadableDuration(
   fromDateStr: string | null,
   toDateStr: string
 ): string {
@@ -273,7 +273,7 @@ function humanReadableDuration(
   return `${years} year${years > 1 ? "s" : ""} ago`;
 }
 
-function buildUserPrompt(
+export function buildUserPrompt(
   plan: DivePlanAnalysisRequest,
   isUpdate = false
 ): string {
@@ -376,7 +376,7 @@ ${profileSection ? profileSection.trimStart() : ""}
 `.trim();
 }
 
-function getFallbackBriefing(plan: DivePlanAnalysisRequest): AIBriefing {
+export function getFallbackBriefing(plan: DivePlanAnalysisRequest): AIBriefing {
   const monthName = new Date(plan.date).toLocaleDateString("en-US", {
     month: "long",
   });
@@ -409,7 +409,7 @@ function getFallbackBriefing(plan: DivePlanAnalysisRequest): AIBriefing {
   };
 }
 
-function buildGearList(plan: DivePlanAnalysisRequest): string[] {
+export function buildGearList(plan: DivePlanAnalysisRequest): string[] {
   return (plan.profile?.gear ?? []).map((g) =>
     g.nickname
       ? `${g.type}: ${g.nickname}`

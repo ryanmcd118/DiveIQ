@@ -66,7 +66,7 @@ export default defineConfig({
 
 Note: Coverage thresholds are only enforced when running `vitest run --coverage`. The default `npm run test` (`vitest run`) does NOT enforce thresholds. To run with coverage locally: `npx vitest run --coverage`.
 
-## Current Test Suite: 5 files, 143 tests
+## Current Test Suite: 6 files, 208 tests
 
 ## Test File Organization
 
@@ -80,6 +80,7 @@ src/__tests__/
 ├── auth-extract-names.test.ts              # 10 tests — imports real function from auth.ts
 ├── riskCalculator.test.ts                  # 40 tests — all score functions + interpolateNdl + integration
 ├── parseAIBriefing.test.ts                 # 20 tests — AI briefing JSON parser
+├── openaiService.test.ts                   # 65 tests — deterministic AI service functions
 └── api-certifications-definitions.test.ts  # 4 tests  — GET /api/certifications/definitions
 ```
 
@@ -90,6 +91,8 @@ src/__tests__/
 **riskCalculator.test.ts** (40 tests): resolveHighestCert (cert tier matching), scoreDepthVsCert (depth vs cert limit ratios), scoreEnvironment (keyword detection), scoreExperienceGap (date-based and string-based), scoreDiveCount (count-based and range-based), interpolateNdl (exact boundaries, interpolation, clamping), scoreNdlProximity, and calculateRiskLevel integration scenarios.
 
 **auth-extract-names.test.ts** (10 tests): imports the real `extractNamesFromGoogleProfile` function from `src/features/auth/lib/auth.ts` (no longer duplicated). Tests given_name/family_name extraction, full name splitting, compound names, fallbacks, and edge cases.
+
+**openaiService.test.ts** (65 tests): deterministic functions exported from `src/services/ai/openaiService.ts` — `parseTempToFahrenheit` (Celsius/Fahrenheit parsing, ranges, averages, edge cases), `computeGearNotes` (exposure protection recommendations by temperature threshold, site-specific gear like dive lights and SMBs, gear adequacy comparison against logged gear, cold water regulator warning), `getFallbackBriefing` (shape validation, metric/imperial depth display, site/month inclusion), `humanReadableDuration` (days/weeks/months/years formatting, future dates, null handling), `buildSystemPrompt` (unit system instructions, JSON schema, cert rules), `buildUserPrompt` (plan data inclusion, profile/manual experience sections, gear formatting, update flag), and `buildGearList` (nickname/manufacturer/model/type-only formatting). Does NOT test `generateDivePlanBriefing` or other async functions that call OpenAI.
 
 **parseAIBriefing.test.ts** (20 tests): AI briefing JSON parser — valid complete briefings, missing/empty sections, condition card parsing (badge validation, non-object inputs), old schema detection (conditionsSnapshot/quickLook/sections/whatMattersMost), markdown code fence stripping, error cases (malformed JSON, empty string, empty object). Covers all code paths in the parser including the `.slice(0, 3)` cap on keyConsiderations and non-string-to-string coercion.
 
