@@ -42,6 +42,112 @@ export type DivePlanAnalysisRequest = {
   };
 };
 
+function parseTempToFahrenheit(value: string): number | null {
+  const numbers = value.match(/(?<!\d)-?\d+(?:\.\d+)?/g);
+  if (!numbers || numbers.length === 0) return null;
+
+  const isCelsius = /°?\s*C\b/i.test(value);
+  const parsed = numbers.map(Number);
+  const avg = parsed.reduce((a, b) => a + b, 0) / parsed.length;
+
+  return isCelsius ? (avg * 9) / 5 + 32 : avg;
+}
+
+function computeGearNotes(
+  tempF: number | null,
+  gearList: string[],
+  region: string,
+  siteName: string
+): string[] {
+  if (tempF === null) return [];
+
+  const notes: string[] = [];
+
+  // String 1 — Recommended gear list
+  const items: string[] = [];
+
+  if (tempF >= 80) items.push("rash guard or skin suit");
+  else if (tempF >= 73) items.push("3mm shorty or full wetsuit");
+  else if (tempF >= 68) items.push("3mm full wetsuit");
+  else if (tempF >= 60) items.push("5mm wetsuit");
+  else if (tempF >= 50) items.push("7mm wetsuit");
+  else items.push("drysuit");
+
+  if (tempF < 60) items.push("hood", "gloves");
+  if (tempF < 65) items.push("booties");
+
+  const combined = `${region} ${siteName}`.toLowerCase();
+  if (/cave|cavern|night|wreck/.test(combined)) items.push("dive light");
+  if (/open water|ocean|sea|offshore|boat/.test(combined)) items.push("SMB");
+
+  notes.push(`Recommended gear for this dive: ${items.join(", ")}.`);
+
+  // String 2 — Gear comparison
+  if (gearList.length > 0) {
+    const gearLower = gearList.map((g) => g.toLowerCase()).join(" ");
+    const exposurePatterns =
+      /wetsuit|shorty|drysuit|rashguard|rash guard|skin suit/;
+    const hasExposureGear = exposurePatterns.test(gearLower);
+
+    if (hasExposureGear) {
+      // Check for mismatches
+      const hasDrysuit = /drysuit/.test(gearLower);
+      const has7mm = /7\s*mm/.test(gearLower);
+      const has5mm = /5\s*mm/.test(gearLower);
+      const has3mm = /3\s*mm/.test(gearLower);
+      const hasShorty = /shorty/.test(gearLower);
+      const hasRashguard = /rashguard|rash guard|skin suit/.test(gearLower);
+
+      let adequate = false;
+      let loggedDesc = "";
+
+      if (hasDrysuit) {
+        adequate = true;
+        loggedDesc = "drysuit";
+      } else if (has7mm) {
+        adequate = tempF >= 50;
+        loggedDesc = "7mm wetsuit";
+      } else if (has5mm) {
+        adequate = tempF >= 60;
+        loggedDesc = "5mm wetsuit";
+      } else if (has3mm && !hasShorty) {
+        adequate = tempF >= 68;
+        loggedDesc = "3mm wetsuit";
+      } else if (hasShorty || has3mm) {
+        adequate = tempF >= 73;
+        loggedDesc = hasShorty ? "3mm shorty" : "3mm wetsuit";
+      } else if (hasRashguard) {
+        adequate = tempF >= 80;
+        loggedDesc = "rash guard";
+      }
+
+      if (adequate) {
+        notes.push(
+          "Your logged exposure protection is suitable for the expected water temperature."
+        );
+      } else if (loggedDesc) {
+        const tempDisplay = `${Math.round(tempF)}°F`;
+        notes.push(
+          `Your ${loggedDesc} is not appropriate for ${tempDisplay} water. A ${items[0]} is required.`
+        );
+      }
+    } else {
+      notes.push(
+        `No exposure protection logged — ensure you have appropriate thermal protection for ${Math.round(tempF)}°F water.`
+      );
+    }
+  }
+
+  // String 3 — Cold water regulator warning
+  if (tempF < 50) {
+    notes.push(
+      "Standard regulators risk free-flowing below 50°F due to the venturi effect. An environmentally sealed cold-water regulator is required for this dive."
+    );
+  }
+
+  return notes;
+}
+
 function buildSystemPrompt(unitSystem: UnitSystem = "metric"): string {
   const unitInstructions =
     unitSystem === "imperial"
@@ -308,6 +414,57 @@ function getFallbackBriefing(plan: DivePlanAnalysisRequest): AIBriefing {
   };
 }
 
+function buildGearList(plan: DivePlanAnalysisRequest): string[] {
+  return (plan.profile?.gear ?? []).map((g) =>
+    g.nickname
+      ? `${g.type}: ${g.nickname}`
+      : g.manufacturer || g.model
+        ? `${g.type}: ${[g.manufacturer, g.model].filter(Boolean).join(" ")}`
+        : g.type
+  );
+}
+
+function applyDeterministicGearNotes(
+  briefing: AIBriefing,
+  plan: DivePlanAnalysisRequest
+): void {
+  const tempF = parseTempToFahrenheit(briefing.conditions.waterTemp.value);
+  const gearList = buildGearList(plan);
+  const computed = computeGearNotes(
+    tempF,
+    gearList,
+    plan.region,
+    plan.siteName
+  );
+  if (computed.length > 0) {
+    briefing.gearNotes = computed;
+  }
+}
+
+function bufferAndApplyGearNotes(
+  stream: AsyncIterable<{ choices: { delta: { content?: string | null } }[] }>,
+  plan: DivePlanAnalysisRequest
+): ReadableStream<Uint8Array> {
+  const encoder = new TextEncoder();
+  return new ReadableStream<Uint8Array>({
+    async start(controller) {
+      try {
+        let accumulated = "";
+        for await (const chunk of stream) {
+          const text = chunk.choices[0]?.delta?.content ?? "";
+          if (text) accumulated += text;
+        }
+        const briefing = parseAIBriefing(accumulated);
+        applyDeterministicGearNotes(briefing, plan);
+        controller.enqueue(encoder.encode(JSON.stringify(briefing)));
+        controller.close();
+      } catch (err) {
+        controller.error(err);
+      }
+    },
+  });
+}
+
 /**
  * Generate AI-powered structured dive briefing for a new dive plan
  */
@@ -335,7 +492,9 @@ export async function generateDivePlanBriefing(
       return getFallbackBriefing(plan);
     }
 
-    return parseAIBriefing(content);
+    const briefing = parseAIBriefing(content);
+    applyDeterministicGearNotes(briefing, plan);
+    return briefing;
   } catch (error) {
     console.error("OpenAI API error:", error);
     return getFallbackBriefing(plan);
@@ -369,7 +528,9 @@ export async function generateUpdatedDivePlanBriefing(
       return getFallbackBriefing(plan);
     }
 
-    return parseAIBriefing(content);
+    const briefing = parseAIBriefing(content);
+    applyDeterministicGearNotes(briefing, plan);
+    return briefing;
   } catch (error) {
     console.error("OpenAI API error:", error);
     return getFallbackBriefing(plan);
@@ -378,7 +539,7 @@ export async function generateUpdatedDivePlanBriefing(
 
 /**
  * Stream AI-powered structured dive briefing for a new dive plan.
- * Returns raw token chunks; caller is responsible for accumulating and parsing.
+ * Buffers the full AI response, applies deterministic gear notes, then emits as a single chunk.
  */
 export async function generateDivePlanBriefingStream(
   plan: DivePlanAnalysisRequest
@@ -396,25 +557,12 @@ export async function generateDivePlanBriefingStream(
     stream: true,
   });
 
-  const encoder = new TextEncoder();
-  return new ReadableStream<Uint8Array>({
-    async start(controller) {
-      try {
-        for await (const chunk of stream) {
-          const text = chunk.choices[0]?.delta?.content ?? "";
-          if (text) controller.enqueue(encoder.encode(text));
-        }
-        controller.close();
-      } catch (err) {
-        controller.error(err);
-      }
-    },
-  });
+  return bufferAndApplyGearNotes(stream, plan);
 }
 
 /**
  * Stream AI-powered structured dive briefing for an updated dive plan.
- * Returns raw token chunks; caller is responsible for accumulating and parsing.
+ * Buffers the full AI response, applies deterministic gear notes, then emits as a single chunk.
  */
 export async function generateUpdatedDivePlanBriefingStream(
   plan: DivePlanAnalysisRequest
@@ -432,20 +580,7 @@ export async function generateUpdatedDivePlanBriefingStream(
     stream: true,
   });
 
-  const encoder = new TextEncoder();
-  return new ReadableStream<Uint8Array>({
-    async start(controller) {
-      try {
-        for await (const chunk of stream) {
-          const text = chunk.choices[0]?.delta?.content ?? "";
-          if (text) controller.enqueue(encoder.encode(text));
-        }
-        controller.close();
-      } catch (err) {
-        controller.error(err);
-      }
-    },
-  });
+  return bufferAndApplyGearNotes(stream, plan);
 }
 
 // Legacy functions for backward compatibility
