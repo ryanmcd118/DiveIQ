@@ -207,6 +207,14 @@ export function useLogPageState(initialEntries: DiveLogEntry[] = []) {
       trainingInstructor: str(formData.get("trainingInstructor")) || null,
       trainingSkills: str(formData.get("trainingSkills")) || null,
       notes: str(formData.get("notes")) || null,
+      rating: null,
+      placeId: null,
+      latitude: null,
+      longitude: null,
+      country: null,
+      isPublic: false,
+      source: null,
+      divePlanId: null,
       gearItemIds: selectedGearIds,
     };
 

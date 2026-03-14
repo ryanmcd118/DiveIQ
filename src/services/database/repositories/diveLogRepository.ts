@@ -10,7 +10,7 @@ export const diveLogRepository = {
   /**
    * Create a new dive log entry
    */
-  async create(data: DiveLogInput, userId?: string): Promise<DiveLogEntry> {
+  async create(data: DiveLogInput, userId: string): Promise<DiveLogEntry> {
     return prisma.diveLog.create({
       data: {
         date: data.date,
@@ -47,7 +47,7 @@ export const diveLogRepository = {
         trainingInstructor: data.trainingInstructor ?? null,
         trainingSkills: data.trainingSkills ?? null,
         notes: data.notes ?? null,
-        userId: userId ?? null,
+        userId,
       },
     });
   },

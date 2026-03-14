@@ -15,7 +15,7 @@ export const divePlanRepository = {
   /**
    * Create a new dive plan
    */
-  async create(data: PlanInput, userId?: string): Promise<PastPlan> {
+  async create(data: PlanInput, userId: string): Promise<PastPlan> {
     const result = await prisma.divePlan.create({
       data: {
         date: data.date,
@@ -27,7 +27,7 @@ export const divePlanRepository = {
         riskLevel: data.riskLevel,
         aiAdvice: data.aiAdvice ?? null,
         aiBriefing: data.aiBriefing ?? Prisma.JsonNull,
-        userId: userId ?? null,
+        userId,
       },
     });
     return {

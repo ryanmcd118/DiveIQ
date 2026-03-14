@@ -11,6 +11,12 @@ datasource db {
 enum CertificationAgency {
   PADI
   SSI
+  NAUI
+  SDI_TDI
+  BSAC
+  CMAS
+  GUE
+  RAID
 }
 
 enum CertificationCategory {
@@ -50,7 +56,8 @@ model User {
   unitPreferences         Json?    // Unit preferences: { depth: "ft"|"m", temperature: "f"|"c", pressure: "psi"|"bar", weight: "lb"|"kg" }
   showCertificationsOnProfile Boolean @default(true) // Whether to show certifications on public profile
   showGearOnProfile Boolean @default(true) // Whether to show gear on public profile
-  
+  hasCompletedOnboarding Boolean @default(false)
+
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
   
@@ -80,8 +87,9 @@ model Account {
   session_state     String?
   
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
+
   @@unique([provider, providerAccountId])
+  @@index([userId])
 }
 
 model Session {
@@ -90,6 +98,8 @@ model Session {
   userId       String
   expires      DateTime
   user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
 }
 
 model VerificationToken {
@@ -103,7 +113,7 @@ model VerificationToken {
 // Application models
 model DiveLog {
   id          String   @id @default(cuid())
-  userId      String?  // Optional to allow future guest data migration
+  userId      String
   date        String
   startTime   String?  // Time in (e.g. "09:30")
   endTime     String?  // Time in (e.g. "10:15"), optional
@@ -137,17 +147,29 @@ model DiveLog {
   trainingInstructor  String?
   trainingSkills      String? // JSON array or comma-separated
   notes       String?
+  rating      Int?     // 1-5 star rating
+  placeId     String?  // Google Places ID
+  latitude    Float?
+  longitude   Float?
+  country     String?
+  isPublic    Boolean  @default(false)
+  source      String?  // "manual"|"garmin"|"shearwater"|"subsurface"
+  divePlanId  String?  // FK to originating DivePlan
   createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 
-  user        User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  divePlan    DivePlan? @relation("DiveLogPlan", fields: [divePlanId], references: [id], onDelete: SetNull)
   gearItems   DiveGearItem[]
 
   @@index([userId])
+  @@index([userId, createdAt])
+  @@index([userId, date])
 }
 
 model DivePlan {
   id              String   @id @default(cuid())
-  userId          String?  // Optional to allow future guest data migration
+  userId          String
   date            String
   region          String
   siteName        String
@@ -157,11 +179,21 @@ model DivePlan {
   riskLevel       String   // 'Low' | 'Moderate' | 'High'
   aiAdvice        String?
   aiBriefing      Json?
-  createdAt       DateTime @default(now())
+  placeId         String?   // Google Places ID
+  latitude        Float?
+  longitude       Float?
+  country         String?
+  isPublic        Boolean   @default(false)
+  plannedDate     DateTime? // When the dive is planned to occur
+  shareToken      String?   @unique
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
 
-  user            User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  diveLogs        DiveLog[] @relation("DiveLogPlan")
 
   @@index([userId])
+  @@index([userId, createdAt])
 }
 
 // Gear models
@@ -177,9 +209,14 @@ model GearItem {
   isActive            Boolean   @default(true)
   lastServicedAt      DateTime?
   serviceIntervalMonths Int?
+  condition             String?   // "Excellent"|"Good"|"Fair"|"Poor"|"Needs Service"
+  imageUrl              String?   // Photo of gear item
+  serialNumber          String?
+  purchaseShop          String?   // Dive shop where purchased
+  serviceIntervalDives  Int?      // Service interval by dive count
   createdAt           DateTime  @default(now())
   updatedAt           DateTime  @updatedAt
-  
+
   user                User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   kitItems            GearKitItem[]
   diveGearItems       DiveGearItem[]
