@@ -20,3 +20,9 @@
   font-size: var(--font-size-xs);
   color: var(--color-accent-light);
 }
+
+.warning {
+  font-size: var(--font-size-xs);
+  color: var(--color-warning);
+  margin-top: var(--space-1);
+}

@@ -130,7 +130,7 @@ export function scoreDiveCount(input: RiskInput): number {
 }
 
 // Standard NDL table (depth in feet → NDL in minutes)
-const NDL_TABLE: [number, number][] = [
+export const NDL_TABLE: [number, number][] = [
   [30, 205],
   [40, 140],
   [50, 80],
@@ -144,7 +144,7 @@ const NDL_TABLE: [number, number][] = [
   [130, 10],
 ];
 
-function interpolateNdl(depthFt: number): number {
+export function interpolateNdl(depthFt: number): number {
   if (depthFt <= NDL_TABLE[0][0]) return NDL_TABLE[0][1];
   if (depthFt >= NDL_TABLE[NDL_TABLE.length - 1][0])
     return NDL_TABLE[NDL_TABLE.length - 1][1];

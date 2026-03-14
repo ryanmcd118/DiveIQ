@@ -10,7 +10,11 @@ import {
 } from "react";
 import { PlanData, ProfileContext } from "@/features/dive-plan/types";
 import { useUnitPreferences } from "@/hooks/useUnitPreferences";
-import { getUnitLabel } from "@/lib/units";
+import { getUnitLabel, mToFt, ftToM } from "@/lib/units";
+import {
+  resolveHighestCert,
+  interpolateNdl,
+} from "@/features/dive-plan/services/riskCalculator";
 import { FormUnitToggle } from "@/components/FormUnitToggle";
 import { useCertificationDefinitions } from "../hooks/useCertificationDefinitions";
 import cardStyles from "@/styles/components/Card.module.css";
@@ -59,6 +63,11 @@ export function PlanForm({
   });
   const [todayStr, setTodayStr] = useState<string | null>(null);
   const [dateError, setDateError] = useState<string | null>(null);
+  const [depthError, setDepthError] = useState<string | null>(null);
+  const [bottomTimeError, setBottomTimeError] = useState<string | null>(null);
+  const [bottomTimeWarning, setBottomTimeWarning] = useState<string | null>(
+    null
+  );
   const prevSubmittedPlanRef = useRef<PlanData | null>(submittedPlan);
   const [authedDiveCount, setAuthedDiveCount] = useState("");
   const [authedLastDive, setAuthedLastDive] = useState("");
@@ -102,6 +111,8 @@ export function PlanForm({
   };
 
   const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
+    let hasBlockingError = false;
+
     if (todayStr) {
       const dateInput = e.currentTarget.elements.namedItem(
         "date"
@@ -113,6 +124,82 @@ export function PlanForm({
       }
     }
     setDateError(null);
+
+    // Clear previous validation
+    setDepthError(null);
+    setBottomTimeError(null);
+    setBottomTimeWarning(null);
+
+    const depthInput = parseFloat(maxDepth);
+    const bottomTimeInput = parseFloat(
+      (e.currentTarget.elements.namedItem("bottomTime") as HTMLInputElement)
+        ?.value ?? "0"
+    );
+
+    // Convert UI depth to feet for comparison
+    const depthFt = prefs.depth === "ft" ? depthInput : mToFt(depthInput);
+
+    // --- Resolve cert ---
+    let certNames: string[] = [];
+    if (mode === "authed" && profileContext?.certifications?.length) {
+      certNames = profileContext.certifications.map((c) => c.name);
+    } else if (mode === "public") {
+      const highestCertSelect = e.currentTarget.elements.namedItem(
+        "highestCert"
+      ) as HTMLSelectElement | null;
+      const highestCert = highestCertSelect?.value;
+      if (highestCert) certNames = [highestCert];
+    }
+    const resolved = resolveHighestCert(certNames);
+
+    // --- Unit-aware display helpers ---
+    const isMetric = prefs.depth === "m";
+    const unitLabel = isMetric ? "m" : "ft";
+    const displayDepthVal = isMetric
+      ? Math.round(ftToM(depthFt))
+      : Math.round(depthFt);
+    const displayCertLimit = isMetric
+      ? Math.round(ftToM(resolved.depthLimitFt))
+      : resolved.depthLimitFt;
+    const displayRecLimit = isMetric ? "40m" : "130ft";
+
+    // --- Blocking: depth exceeds cert limit ---
+    if (certNames.length > 0 && depthFt > resolved.depthLimitFt) {
+      e.preventDefault();
+      setDepthError(
+        `Your planned depth of ${displayDepthVal}${unitLabel} exceeds your ${resolved.name} certification limit of ${displayCertLimit}${unitLabel}.`
+      );
+      hasBlockingError = true;
+    }
+
+    // --- Blocking: depth exceeds 130ft with recreational cert ---
+    if (depthFt > 130 && resolved.depthLimitFt <= 130) {
+      e.preventDefault();
+      setDepthError(
+        `Depths beyond ${displayRecLimit} are outside recreational diving limits and require technical certification.`
+      );
+      hasBlockingError = true;
+    }
+
+    // --- Blocking: bottom time < 10 min ---
+    if (bottomTimeInput < 10) {
+      e.preventDefault();
+      setBottomTimeError("Bottom time must be at least 10 minutes.");
+      hasBlockingError = true;
+    }
+
+    if (hasBlockingError) return;
+
+    // --- Non-blocking: NDL proximity warning ---
+    if (depthFt > 0 && bottomTimeInput > 0) {
+      const ndl = interpolateNdl(depthFt);
+      if (bottomTimeInput / ndl >= 0.8) {
+        setBottomTimeWarning(
+          `Your planned bottom time of ${bottomTimeInput}min approaches the no-decompression limit of ${Math.round(ndl)}min at this depth. Dive conservatively.`
+        );
+      }
+    }
+
     onSubmit(e);
   };
 
@@ -273,6 +360,7 @@ export function PlanForm({
               onChange={(e) => setMaxDepth(e.target.value)}
               className={formStyles.input}
             />
+            {depthError && <p className={formStyles.error}>{depthError}</p>}
           </div>
 
           <div className={formStyles.field}>
@@ -292,6 +380,12 @@ export function PlanForm({
               }
               className={formStyles.input}
             />
+            {bottomTimeError && (
+              <p className={formStyles.error}>{bottomTimeError}</p>
+            )}
+            {bottomTimeWarning && (
+              <p className={planFormStyles.warning}>{bottomTimeWarning}</p>
+            )}
           </div>
         </div>
 
