@@ -207,11 +207,23 @@ export function PlannerStub() {
           </div>
         </div>
 
-        {/* Right side: empty panel to maintain layout */}
+        {/* Right side: placeholder panel to maintain layout */}
         <div
           className={styles.plannerResultPanel}
           style={{ minHeight: "300px" }}
-        />
+        >
+          <span
+            style={{
+              margin: "auto",
+              fontSize: "var(--font-size-xs)",
+              color: "var(--color-text-disabled)",
+              opacity: 0.5,
+              userSelect: "none",
+            }}
+          >
+            {"✦ Coming soon — DIV-62"}
+          </span>
+        </div>
       </div>
     </section>
   );
