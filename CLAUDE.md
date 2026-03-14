@@ -40,8 +40,8 @@ Auth check on all routes: `getServerSession(authOptions)` from `src/features/aut
 ## Critical gotchas — do not touch without understanding these
 
 - **sessionVersion**: `User.sessionVersion` increments on password change; checked in every JWT callback. Do not modify auth session logic without fully reading `src/features/auth/lib/auth.ts`.
-- **Nullable userId**: `DiveLog.userId` and `DivePlan.userId` are **intentionally** `String?` — reserved for future guest support. Do not make them non-nullable.
-- **DIV-41 migration pending**: DB is currently SQLite. Do not run `prisma migrate dev` on DIV-42 branch until DIV-41 switches provider to `postgresql`.
+- **Non-nullable userId**: `DiveLog.userId` and `DivePlan.userId` are non-nullable `String` — enforced at the DB level as of DIV-42. Every DiveLog and DivePlan must have an owner.
+- **DIV-41 pending**: DB is currently SQLite. When DIV-41 switches the provider to postgresql, the existing SQLite migration files do not transfer — a fresh prisma migrate baseline will be required against the new DB. Do not run prisma migrate dev assuming migration history carries over.
 - **resolveHighestCert()** lives in `src/features/dive-plan/services/riskCalculator.ts` — imported by `openaiService.ts`. Do not duplicate.
 - **NDL table + interpolateNdl()** exported from `riskCalculator.ts` — used by form validation. Do not duplicate.
 - **Known direct Prisma usage** (do not refactor): `profile/route.ts`, `certifications/route.ts`, auth routes — acceptable exceptions.

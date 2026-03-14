@@ -7,7 +7,7 @@ export type DiveLogEntry = DiveLog & {
 
 export type DiveLogInput = Omit<
   DiveLogEntry,
-  "id" | "createdAt" | "gearItems"
+  "id" | "createdAt" | "updatedAt" | "gearItems"
 > & {
   gearItemIds?: string[];
 };
