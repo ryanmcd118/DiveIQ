@@ -1,6 +1,6 @@
 # Roadmap and Technical Debt
 
-Last updated: 2026-03-14 (DIV-42 data model audit session)
+Last updated: 2026-03-14 (DIV-9 testing sprint complete)
 
 ---
 
@@ -26,11 +26,11 @@ Tickets in the "Pre-Launch" project. Work through in the prioritized order below
 
 ### In Progress
 
-- **DIV-42** — Data model audit (schema gaps, indexes, migrations). **Blocks:** DIV-9, DIV-13, DIV-14, DIV-17.
+- **DIV-10** — Codebase health sprint (informed by DIV-9 findings)
 
 ### Group 1 — Schema foundation
 
-- **DIV-42** — Data model audit _(in progress)_
+- **DIV-42** — Data model audit ✅ **Complete** (migrations 18-21 applied)
 
 ### Group 2 — Production infra (parallel with DIV-42)
 
@@ -40,7 +40,7 @@ Tickets in the "Pre-Launch" project. Work through in the prioritized order below
 
 ### Group 3 — Testing + code health (after DIV-42)
 
-- **DIV-9** — Testing suite baseline coverage
+- **DIV-9** — Testing suite baseline coverage ✅ **Complete** (556 tests, 75.84% coverage)
 - **DIV-10** — Codebase health sprint: error handling, boundary violations, N+1 queries
 - **DIV-11** — Units system deep audit
 
@@ -89,6 +89,42 @@ Features tracked in Linear but deferred until after launch. Reference ticket for
 
 ---
 
+## DIV-9 Testing Sprint — Completed
+
+556 tests added across 22 files. Coverage baseline: 75.84% statements, 86.62% branches, 88.6% functions. Infrastructure: Vitest 3.2.4, @vitest/coverage-v8, global `server-only` stub, reusable Prisma + NextAuth mock helpers.
+
+**Critical security findings (feed into DIV-10):**
+
+- `diveLogRepository` and `divePlanRepository` have optional `userId` on `findMany`, `update`, `delete` — omitting it returns/modifies ALL users' data with no ownership check
+- `findById` on both repositories fetches by `id` only, checks ownership in application code after loading the full record — should use `userId` in WHERE clause like `gearRepository` does
+- Session invalidation after password change has no enforcement mechanism — `proxy.ts` is not wired as middleware, so invalidated tokens continue working until JWT expires
+
+**Auth bugs discovered:**
+
+- `readAvatarUrlFromUnknown(user)` in JWT callback is called on the full user object (always an object, never a string) — always returns `undefined`, so credentials users' avatarUrl is never set on initial sign-in
+- `authorize()` throws errors instead of returning null — works due to NextAuth's error handling, but differs from documented pattern
+
+**API inconsistencies (feed into DIV-10):**
+
+- Create endpoints return 200 (dive-logs, dive-plans, gear) vs 201 (signup, certifications) — inconsistent
+- Signup returns 400 for duplicate email (should be 409 like certifications)
+- Dive-plans POST accepts `cachedBriefing` from client without validation — trust boundary issue
+- Profile GET creates user records on read (dev resilience code, remove for production)
+- User preferences PATCH requires all 4 fields (no partial update), unlike profile PATCH
+- Email not trimmed or lowercased in signup — will cause duplicate issues after PostgreSQL migration (DIV-41)
+- Unit system detection logic duplicated across 3 route files
+
+**Other findings:**
+
+- N+1 query on GET /api/dive-logs (loads gear per entry via Promise.all)
+- `parseDistanceString` regex doesn't match "100ft" (no word boundary between digit and `ft`)
+- GET /api/dive-plans hardcoded to `take: 10` with no pagination
+- Profile route `select` clause duplicated 4 times (should be a shared constant)
+
+All findings tracked in DIV-10.
+
+---
+
 ## Known Technical Debt
 
 ### High priority (address during DIV-10 codebase health sprint)
@@ -129,16 +165,16 @@ Both models store date as `String` (e.g. `"2024-06-15"`) rather than `DateTime`.
 
 ---
 
-## Schema Additions Pending (DIV-42)
+## Schema Additions — DIV-42 Complete
 
-The following fields are approved for addition via DIV-42 migrations. Not yet implemented — pending DIV-41 PostgreSQL migration completion.
+DIV-42 data model audit is complete. All migrations applied (migrations 18-21). The following fields and indexes are now live in the schema:
 
-**DiveLog:** `rating`, `placeId`, `latitude`, `longitude`, `country`, `isPublic`, `divePlanId`, `updatedAt`
-**DivePlan:** `placeId`, `latitude`, `longitude`, `country`, `isPublic`, `updatedAt`
+**DiveLog:** `rating`, `placeId`, `latitude`, `longitude`, `country`, `isPublic`, `divePlanId`, `updatedAt`, `source`
+**DivePlan:** `placeId`, `latitude`, `longitude`, `country`, `isPublic`, `updatedAt`, `plannedDate`, `shareToken`
 **GearItem:** `condition`, `imageUrl`, `serialNumber`, `purchaseShop`, `serviceIntervalDives`
 **User:** `hasCompletedOnboarding`
 **CertificationAgency enum:** NAUI, SDI_TDI, BSAC, CMAS, GUE, RAID
 **Indexes:** composite `[userId, createdAt]` on DiveLog + DivePlan, `[userId, date]` on DiveLog, `[userId]` on Account + Session
 
 **Deferred (add when feature is implemented):**
-`DivePlan.plannedDate`, `DivePlan.shareToken`, `DiveLog.source`, `GearServiceLog` model, `BucketListItem`, `UserBadge`, `ConditionsCache`
+`GearServiceLog` model, `BucketListItem`, `UserBadge`, `ConditionsCache`

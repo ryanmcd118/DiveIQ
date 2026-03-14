@@ -32,7 +32,7 @@ function readAvatarUrlFromUnknown(value: unknown): string | null | undefined {
 }
 
 // Helper function to extract firstName and lastName from Google profile
-function extractNamesFromGoogleProfile(
+export function extractNamesFromGoogleProfile(
   profile: unknown,
   user: unknown
 ): { firstName: string | null; lastName: string | null } {
