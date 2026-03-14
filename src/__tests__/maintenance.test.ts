@@ -3,7 +3,6 @@ import {
   getNextServiceDueAt,
   computeMaintenanceStatus,
   sortGearByMaintenanceDue,
-  type MaintenanceStatus,
 } from "@/features/gear/lib/maintenance";
 
 // DUE_SOON_DAYS = 30 (from gear constants)
