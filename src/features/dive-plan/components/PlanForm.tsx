@@ -16,7 +16,6 @@ import {
   interpolateNdl,
 } from "@/features/dive-plan/services/riskCalculator";
 import { FormUnitToggle } from "@/components/FormUnitToggle";
-import { useCertificationDefinitions } from "../hooks/useCertificationDefinitions";
 import cardStyles from "@/styles/components/Card.module.css";
 import formStyles from "@/styles/components/Form.module.css";
 import buttonStyles from "@/styles/components/Button.module.css";
@@ -52,8 +51,6 @@ export function PlanForm({
   // Use guest mode for public pages, auto/authed for authenticated pages
   const unitMode = mode === "public" ? "guest" : "authed";
   const { prefs } = useUnitPreferences({ mode: unitMode });
-  const { definitions: certDefs, loading: certDefsLoading } =
-    useCertificationDefinitions();
 
   // Controlled state for unit-bearing fields (in UI units)
   // Initialize from submittedPlan if it exists (PlanData.maxDepth is already in UI units)
@@ -326,19 +323,18 @@ export function PlanForm({
                 <select
                   id="highestCert"
                   name="highestCert"
-                  disabled={certDefsLoading}
+                  defaultValue=""
                   className={formStyles.select}
                 >
-                  <option value="">
-                    {certDefsLoading
-                      ? "Loading..."
-                      : "Open Water, Advanced Open Water, Divemaster…"}
+                  <option value="" disabled>
+                    Select...
                   </option>
-                  {certDefs.map((def) => (
-                    <option key={`${def.agency}-${def.slug}`} value={def.name}>
-                      {def.agency} — {def.name}
-                    </option>
-                  ))}
+                  <option value="Open Water Diver">Open Water Diver</option>
+                  <option value="Advanced Open Water Diver">
+                    Advanced Open Water Diver
+                  </option>
+                  <option value="Deep Diver">Deep Diver</option>
+                  <option value="Divemaster">Divemaster</option>
                 </select>
               </div>
             </div>

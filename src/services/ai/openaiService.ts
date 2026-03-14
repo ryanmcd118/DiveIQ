@@ -66,7 +66,7 @@ function computeGearNotes(
   // String 1 — Recommended gear list
   const items: string[] = [];
 
-  if (tempF >= 80) items.push("rash guard or skin suit");
+  if (tempF >= 80) items.push("rash guard or dive skin");
   else if (tempF >= 73) items.push("3mm shorty or full wetsuit");
   else if (tempF >= 68) items.push("3mm full wetsuit");
   else if (tempF >= 60) items.push("5mm wetsuit");
