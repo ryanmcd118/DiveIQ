@@ -1,6 +1,7 @@
 "use client";
 
 import type { AIBriefing, ConditionBadge } from "../types";
+import { resolveHighestCert } from "../services/riskCalculator";
 import styles from "./AIDiveBriefing.module.css";
 
 type AIDiveBriefingProps = {
@@ -17,67 +18,12 @@ type AIDiveBriefingProps = {
 
 // ── Cert card helpers ──────────────────────────────────────────────────────
 
-type CertQualifier = "ow" | "aow" | "deep" | "tech";
-
-function getRequiredCert(depthCm: number): {
-  level: string;
-  qualifier: CertQualifier;
-} {
+function getRequiredCertLevel(depthCm: number): string {
   const depthM = depthCm / 100;
-  if (depthM <= 18) return { level: "Open Water", qualifier: "ow" };
-  if (depthM <= 30) return { level: "Adv. Open Water", qualifier: "aow" };
-  if (depthM <= 40) return { level: "Deep Specialty", qualifier: "deep" };
-  return { level: "Technical", qualifier: "tech" };
-}
-
-function checkQualification(
-  qualifier: CertQualifier,
-  userCerts: string[]
-): boolean {
-  if (qualifier === "tech") return false;
-
-  const lower = userCerts.map((c) => c.toLowerCase());
-
-  const hasDeepOrTech = lower.some(
-    (n) =>
-      n.includes("deep specialty") ||
-      n.includes("technical") ||
-      n.includes("trimix") ||
-      n.includes("cave") ||
-      n.includes("sidemount")
-  );
-  if (hasDeepOrTech) return true;
-
-  const hasAOW = lower.some(
-    (n) =>
-      n.includes("advanced open water") ||
-      n.includes("aow") ||
-      (n.includes("advanced") && n.includes("water"))
-  );
-  if (hasAOW && (qualifier === "ow" || qualifier === "aow")) return true;
-
-  const hasOW = lower.some(
-    (n) => (n.includes("open water") || n === "ow") && !n.includes("advanced")
-  );
-  if (hasOW && qualifier === "ow") return true;
-
-  return false;
-}
-
-function checkQualificationByOverride(
-  qualifier: CertQualifier,
-  override: string
-): boolean | null {
-  if (qualifier === "tech") return false;
-  const lower = override.toLowerCase();
-  const hasDeep = lower.includes("deep");
-  const hasAOW = lower.includes("advanced") || lower.includes("aow");
-  const hasOW = lower.includes("open water") && !lower.includes("advanced");
-  if (hasDeep) return true; // qualifies up to 130ft/40m
-  if (hasAOW && (qualifier === "ow" || qualifier === "aow")) return true;
-  if (hasOW && qualifier === "ow") return true;
-  if (hasAOW || hasOW || hasDeep) return false; // known cert but doesn't qualify
-  return null; // cert string unrecognized
+  if (depthM <= 18) return "Open Water";
+  if (depthM <= 30) return "Adv. Open Water";
+  if (depthM <= 40) return "Deep Specialty";
+  return "Technical";
 }
 
 // ── Condition badge ────────────────────────────────────────────────────────
@@ -217,20 +163,20 @@ export function AIDiveBriefing({
   const showHeader = riskLevel || summary;
 
   // Cert card
-  const certInfo =
-    plannedDepthCm !== undefined ? getRequiredCert(plannedDepthCm) : null;
+  const certLevel =
+    plannedDepthCm !== undefined ? getRequiredCertLevel(plannedDepthCm) : null;
   const qualified: boolean | null = (() => {
-    if (!certInfo) return null;
-    if (userCerts && userCerts.length > 0) {
-      return checkQualification(certInfo.qualifier, userCerts);
-    }
-    if (highestCertOverride) {
-      return checkQualificationByOverride(
-        certInfo.qualifier,
-        highestCertOverride
-      );
-    }
-    return null;
+    if (plannedDepthCm === undefined) return null;
+    const plannedDepthFt = (plannedDepthCm / 100) * 3.28084;
+    const certs =
+      userCerts && userCerts.length > 0
+        ? userCerts
+        : highestCertOverride
+          ? [highestCertOverride]
+          : null;
+    if (!certs) return null;
+    const resolved = resolveHighestCert(certs);
+    return plannedDepthFt <= resolved.depthLimitFt;
   })();
 
   return (
@@ -294,11 +240,9 @@ export function AIDiveBriefing({
         {/* Cert card */}
         <div className={styles.conditionCard}>
           <span className={styles.conditionCardLabel}>Certification</span>
-          {certInfo ? (
+          {certLevel ? (
             <>
-              <span className={styles.conditionCardValue}>
-                {certInfo.level}
-              </span>
+              <span className={styles.conditionCardValue}>{certLevel}</span>
               {qualified === true && (
                 <span className={styles.certQualified}>✓ Qualified</span>
               )}
