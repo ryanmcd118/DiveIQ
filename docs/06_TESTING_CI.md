@@ -66,7 +66,7 @@ export default defineConfig({
 
 Note: Coverage thresholds are only enforced when running `vitest run --coverage`. The default `npm run test` (`vitest run`) does NOT enforce thresholds. To run with coverage locally: `npx vitest run --coverage`.
 
-## Current Test Suite: 4 files, 123 tests
+## Current Test Suite: 5 files, 143 tests
 
 ## Test File Organization
 
@@ -79,6 +79,7 @@ src/__tests__/
 ├── units.test.ts                           # 69 tests — all exported functions from src/lib/units.ts
 ├── auth-extract-names.test.ts              # 10 tests — imports real function from auth.ts
 ├── riskCalculator.test.ts                  # 40 tests — all score functions + interpolateNdl + integration
+├── parseAIBriefing.test.ts                 # 20 tests — AI briefing JSON parser
 └── api-certifications-definitions.test.ts  # 4 tests  — GET /api/certifications/definitions
 ```
 
@@ -89,6 +90,8 @@ src/__tests__/
 **riskCalculator.test.ts** (40 tests): resolveHighestCert (cert tier matching), scoreDepthVsCert (depth vs cert limit ratios), scoreEnvironment (keyword detection), scoreExperienceGap (date-based and string-based), scoreDiveCount (count-based and range-based), interpolateNdl (exact boundaries, interpolation, clamping), scoreNdlProximity, and calculateRiskLevel integration scenarios.
 
 **auth-extract-names.test.ts** (10 tests): imports the real `extractNamesFromGoogleProfile` function from `src/features/auth/lib/auth.ts` (no longer duplicated). Tests given_name/family_name extraction, full name splitting, compound names, fallbacks, and edge cases.
+
+**parseAIBriefing.test.ts** (20 tests): AI briefing JSON parser — valid complete briefings, missing/empty sections, condition card parsing (badge validation, non-object inputs), old schema detection (conditionsSnapshot/quickLook/sections/whatMattersMost), markdown code fence stripping, error cases (malformed JSON, empty string, empty object). Covers all code paths in the parser including the `.slice(0, 3)` cap on keyConsiderations and non-string-to-string coercion.
 
 **api-certifications-definitions.test.ts** (4 tests): GET route with mocked Prisma — response shape, sorting, agency filtering, error handling.
 
