@@ -1,21 +1,11 @@
 "use client";
 
-import { useState, FormEvent, useEffect } from "react";
-import { AIDiveBriefing } from "@/features/dive-plan/components/AIDiveBriefing";
-import type { AIBriefing, RiskLevel } from "@/features/dive-plan/types";
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { useUnitPreferences } from "@/hooks/useUnitPreferences";
-import {
-  preferencesToUnitSystem,
-  depthInputToCm,
-  getUnitLabel,
-} from "@/lib/units";
+import { preferencesToUnitSystem } from "@/lib/units";
 import styles from "./PublicHomePage.module.css";
 import cardStyles from "@/styles/components/Card.module.css";
-
-interface PlanResult {
-  aiBriefing: AIBriefing;
-  riskLevel: RiskLevel;
-}
 
 export function PlannerStub() {
   // Client-mount guard to prevent hydration mismatch
@@ -25,80 +15,26 @@ export function PlannerStub() {
   const { prefs, setPrefs } = useUnitPreferences({ mode: "guest" });
   const unitSystem = preferencesToUnitSystem(prefs);
 
-  const [loading, setLoading] = useState(false);
-  const [result, setResult] = useState<PlanResult | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  const [maxDepth, setMaxDepth] = useState<string>("18");
-  const [prevUnitSystem, setPrevUnitSystem] = useState(unitSystem);
+  const [region, setRegion] = useState("");
+  const [siteName, setSiteName] = useState("");
+
+  const router = useRouter();
 
   // Set mounted flag on client mount
   useEffect(() => {
     setIsMounted(true);
   }, []);
 
-  // Handle unit system change - convert current values when prefs change
-  useEffect(() => {
-    if (prevUnitSystem !== unitSystem && maxDepth) {
-      const numValue = parseFloat(maxDepth);
-      if (!isNaN(numValue)) {
-        const metric =
-          prevUnitSystem === "metric" ? numValue : numValue / 3.28084;
-        const newUI = unitSystem === "metric" ? metric : metric * 3.28084;
-        setMaxDepth(String(Math.round(newUI)));
-      }
-      setPrevUnitSystem(unitSystem);
-    }
-  }, [unitSystem, prevUnitSystem, maxDepth]);
-
-  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    setLoading(true);
-    setError(null);
-    setResult(null);
-
-    const form = e.currentTarget;
-    const formData = new FormData(form);
-
-    // Get the date or use today
-    const dateValue = formData.get("diveDate") as string;
-    const date = dateValue || new Date().toISOString().split("T")[0];
-
-    // Convert UI unit values to canonical (cm) for API
-    const maxDepthUI = formData.get("maxDepth");
-    const maxDepthCm =
-      depthInputToCm(maxDepthUI as string | null, prefs.depth) ?? 18 * 100; // Default to 18m in cm
-
-    const payload = {
-      region: (formData.get("location") as string) || "Quick Plan",
-      siteName: formData.get("location") || "Unspecified",
-      date,
-      maxDepthCm, // Pass canonical value in centimeters
-      bottomTime: Number(formData.get("bottomTime")) || 45,
-      experienceLevel: formData.get("experienceLevel") || "Intermediate",
-      unitPreferences: prefs, // Pass unit preferences to AI
-    };
-
+  const handleClick = () => {
     try {
-      const response = await fetch("/api/dive-plans/preview", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
-
-      if (!response.ok) {
-        throw new Error("Failed to generate plan");
-      }
-
-      const data = await response.json();
-      setResult({
-        aiBriefing: data.aiBriefing,
-        riskLevel: data.riskLevel,
-      });
+      sessionStorage.setItem(
+        "diveiq:plannerTeaser",
+        JSON.stringify({ region, siteName, unitSystem })
+      );
     } catch {
-      setError("Something went wrong. Please try again.");
-    } finally {
-      setLoading(false);
+      // sessionStorage may be unavailable — proceed without persisting
     }
+    router.push("/dive-plans");
   };
 
   return (
@@ -113,7 +49,7 @@ export function PlannerStub() {
       <div className={styles.plannerLayout}>
         {/* Left side: Form */}
         <div className={cardStyles.elevatedForm}>
-          <form onSubmit={handleSubmit} className={styles.plannerForm}>
+          <div className={styles.plannerForm}>
             {/* Unit toggle - only render after mount to prevent hydration mismatch */}
             {isMounted && (
               <div
@@ -154,7 +90,6 @@ export function PlannerStub() {
                     <button
                       type="button"
                       onClick={() => {
-                        // Update preferences via setPrefs which will dispatch event
                         setPrefs({
                           depth: "m",
                           temperature: "c",
@@ -190,7 +125,6 @@ export function PlannerStub() {
                     <button
                       type="button"
                       onClick={() => {
-                        // Update preferences via setPrefs which will dispatch event
                         setPrefs({
                           depth: "ft",
                           temperature: "f",
@@ -229,170 +163,55 @@ export function PlannerStub() {
                 </div>
               </div>
             )}
-            <div className={styles.plannerRow}>
-              <div className={styles.plannerField}>
-                <label htmlFor="maxDepth" className={styles.plannerLabel}>
-                  Max Depth{" "}
-                  {isMounted ? `(${getUnitLabel("depth", prefs)})` : ""}
-                </label>
-                <input
-                  type="number"
-                  id="maxDepth"
-                  name="maxDepth"
-                  min={1}
-                  max={isMounted ? (unitSystem === "metric" ? 60 : 200) : 200}
-                  value={maxDepth}
-                  onChange={(e) => setMaxDepth(e.target.value)}
-                  required
-                  className={styles.plannerInput}
-                />
-              </div>
-
-              <div className={styles.plannerField}>
-                <label htmlFor="bottomTime" className={styles.plannerLabel}>
-                  Bottom Time (min)
-                </label>
-                <input
-                  type="number"
-                  id="bottomTime"
-                  name="bottomTime"
-                  min={1}
-                  max={120}
-                  defaultValue={45}
-                  required
-                  className={styles.plannerInput}
-                />
-              </div>
-            </div>
 
             <div className={styles.plannerField}>
-              <label htmlFor="experienceLevel" className={styles.plannerLabel}>
-                Experience Level
-              </label>
-              <select
-                id="experienceLevel"
-                name="experienceLevel"
-                defaultValue="Intermediate"
-                className={styles.plannerSelect}
-              >
-                <option value="Beginner">Beginner</option>
-                <option value="Intermediate">Intermediate</option>
-                <option value="Advanced">Advanced</option>
-              </select>
-            </div>
-
-            <div className={styles.plannerField}>
-              <label htmlFor="location" className={styles.plannerLabel}>
-                Location
+              <label htmlFor="region" className={styles.plannerLabel}>
+                Region
               </label>
               <input
                 type="text"
-                id="location"
-                name="location"
-                placeholder="e.g., Cozumel, Great Barrier Reef..."
+                id="region"
+                value={region}
+                onChange={(e) => setRegion(e.target.value)}
+                required
+                placeholder="Roatán, Red Sea, local quarry…"
                 className={styles.plannerInput}
               />
             </div>
 
             <div className={styles.plannerField}>
-              <label htmlFor="diveDate" className={styles.plannerLabel}>
-                Dive Date (optional)
+              <label htmlFor="siteName" className={styles.plannerLabel}>
+                Site name
               </label>
               <input
-                type="date"
-                id="diveDate"
-                name="diveDate"
+                type="text"
+                id="siteName"
+                value={siteName}
+                onChange={(e) => setSiteName(e.target.value)}
+                placeholder="Mary's Place, Blue Corner…"
                 className={styles.plannerInput}
               />
             </div>
 
             <div className={styles.plannerSubmit}>
               <button
-                type="submit"
-                disabled={loading}
+                type="button"
+                disabled={!region.trim()}
+                onClick={handleClick}
                 className={styles.plannerButton}
               >
-                {loading ? "Generating..." : "Start Planning →"}
+                Start Planning →
               </button>
               <span className={styles.plannerHint}>No account needed.</span>
             </div>
-          </form>
-        </div>
-
-        {/* Right side: Result Panel (scrollable) */}
-        <div className={styles.plannerResultPanel}>
-          <div className={styles.plannerResultScroll}>
-            {/* Loading state with skeleton */}
-            {loading && (
-              <AIDiveBriefing
-                briefing={null}
-                loading={true}
-                scrollable={true}
-              />
-            )}
-
-            {/* Error state */}
-            {error && !loading && (
-              <div className={styles.plannerResultInner}>
-                <div className={styles.plannerResultError}>
-                  <div className={styles.errorIcon}>!</div>
-                  <p className={styles.errorText}>{error}</p>
-                  <button
-                    type="button"
-                    onClick={() => setError(null)}
-                    className={styles.errorDismiss}
-                  >
-                    Try again
-                  </button>
-                </div>
-              </div>
-            )}
-
-            {/* Result with AI Briefing */}
-            {result && !loading && (
-              <AIDiveBriefing
-                briefing={result.aiBriefing}
-                riskLevel={result.riskLevel}
-                scrollable={true}
-                plannedDepthCm={
-                  depthInputToCm(maxDepth, prefs.depth) ?? undefined
-                }
-              />
-            )}
-
-            {/* Empty state / CTA */}
-            {!result && !loading && !error && (
-              <div className={styles.plannerResultInner}>
-                <div className={styles.plannerCtaPlaceholder}>
-                  <div className={styles.ctaPlaceholderIcon}>
-                    <svg
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="1.5"
-                    >
-                      <path d="M12 2L12 22M2 12L22 12" strokeLinecap="round" />
-                      <circle cx="12" cy="12" r="9" strokeDasharray="4 2" />
-                    </svg>
-                  </div>
-                  <h4 className={styles.ctaPlaceholderTitle}>
-                    Your AI dive briefing will appear here
-                  </h4>
-                  <p className={styles.ctaPlaceholderText}>
-                    Fill in your dive parameters and click{" "}
-                    <strong>&quot;Start Planning&quot;</strong> to get a
-                    personalized dive briefing.
-                  </p>
-                  <ul className={styles.ctaPlaceholderList}>
-                    <li>Location-specific conditions</li>
-                    <li>Seasonal insights</li>
-                    <li>Site hazards & tips</li>
-                  </ul>
-                </div>
-              </div>
-            )}
           </div>
         </div>
+
+        {/* Right side: empty panel to maintain layout */}
+        <div
+          className={styles.plannerResultPanel}
+          style={{ minHeight: "300px" }}
+        />
       </div>
     </section>
   );
