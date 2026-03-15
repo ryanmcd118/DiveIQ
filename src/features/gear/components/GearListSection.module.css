@@ -205,19 +205,19 @@
 
 .statusUnknown {
   background: rgba(148, 163, 184, 0.2);
-  color: #cbd5e1;
+  color: var(--color-text-tertiary);
   border: 1px solid rgba(148, 163, 184, 0.3);
 }
 
 .statusNoSchedule {
   background: rgba(100, 116, 139, 0.2);
-  color: #94a3b8;
+  color: var(--color-text-muted);
   border: 1px solid rgba(100, 116, 139, 0.3);
 }
 
 .statusInactive {
   background: rgba(148, 163, 184, 0.2);
-  color: #cbd5e1;
+  color: var(--color-text-tertiary);
   border: 1px solid rgba(148, 163, 184, 0.3);
 }
 
@@ -375,7 +375,7 @@
   height: 20px;
   line-height: 1;
   background: rgba(6, 182, 212, 0.15);
-  color: #67e8f9;
+  color: var(--color-accent-light);
   border: 1px solid rgba(6, 182, 212, 0.3);
 }
 

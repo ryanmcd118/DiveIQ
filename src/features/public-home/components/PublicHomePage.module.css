@@ -598,7 +598,7 @@
   justify-content: center;
   font-size: 1.5rem;
   font-weight: var(--font-weight-bold);
-  color: #f87171;
+  color: var(--color-danger-hover);
   background: rgba(239, 68, 68, 0.15);
   border: 1px solid rgba(239, 68, 68, 0.3);
   border-radius: 50%;
@@ -667,7 +667,7 @@
 .resultRiskHigh {
   composes: resultRisk;
   background: rgba(239, 68, 68, 0.15);
-  color: #f87171;
+  color: var(--color-danger-hover);
 }
 
 .resultAdvice {
