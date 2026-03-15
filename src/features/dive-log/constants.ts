@@ -2,18 +2,6 @@
  * Constants for dive log form options
  */
 
-export const DIVE_TYPE_TAGS = [
-  "Shore",
-  "Boat",
-  "Drift",
-  "Night",
-  "Wreck",
-  "Reef",
-  "Quarry/Lake",
-  "Training",
-  "Other",
-] as const;
-
 export const CURRENT_OPTIONS = [
   { value: "", label: "—" },
   { value: "None", label: "None" },

@@ -9,7 +9,7 @@ import { DiveLogGrid } from "./DiveLogGrid";
 import { DiveLogDetail } from "./DiveLogDetail";
 import { AddEditDiveSheet } from "./AddEditDiveSheet";
 import buttonStyles from "@/styles/components/Button.module.css";
-import { matchesQuery } from "../utils/searchMatch";
+import { matchesQuery } from "@/lib/search/matchesQuery";
 import styles from "./LogbookLayout.module.css";
 
 interface LogbookLayoutProps {

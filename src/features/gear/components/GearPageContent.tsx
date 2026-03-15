@@ -1,8 +1,10 @@
 "use client";
 
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useRef, useCallback } from "react";
 import type { GearItem } from "@prisma/client";
 import { GearKitWithItems } from "@/services/database/repositories/gearRepository";
+import { useGearPageData } from "../hooks/useGearPageData";
+import { useGearArchive } from "../hooks/useGearArchive";
 import { MaintenanceDueSection } from "./MaintenanceDueSection";
 import { KitsSection } from "./KitsSection";
 import { GearListSection } from "./GearListSection";
@@ -15,10 +17,18 @@ import buttonStyles from "@/styles/components/Button.module.css";
 import styles from "./GearPageContent.module.css";
 
 export function GearPageContent() {
-  const [gearItems, setGearItems] = useState<GearItem[]>([]);
-  const [kits, setKits] = useState<GearKitWithItems[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const {
+    gearItems,
+    setGearItems,
+    kits,
+    setKits,
+    loading,
+    error,
+    loadData,
+    deleteGearOrKit,
+    setDefaultKit,
+  } = useGearPageData();
+
   const [showGearForm, setShowGearForm] = useState(false);
   const [showKitForm, setShowKitForm] = useState(false);
   const [editingGear, setEditingGear] = useState<GearItem | null>(null);
@@ -31,52 +41,26 @@ export function GearPageContent() {
     id: string;
     type: "gear" | "kit";
   } | null>(null);
-  const [archivedGearId, setArchivedGearId] = useState<string | null>(null);
-  void archivedGearId;
-  const [autoExpandArchived, setAutoExpandArchived] = useState(false);
-  const [archiveConfirm, setArchiveConfirm] = useState<{
-    itemId: string;
-    kitIds: string[];
-  } | null>(null);
   const [highlightedGearId, setHighlightedGearId] = useState<string | null>(
     null
   );
   const gearCardRefs = useRef<Map<string, HTMLLIElement>>(new Map());
 
-  const loadData = async (showLoading = true) => {
-    try {
-      if (showLoading) {
-        setLoading(true);
-      }
-      // Always load all gear (active + inactive) so we can split them
-      const [gearRes, kitsRes] = await Promise.all([
-        fetch("/api/gear?includeInactive=true"),
-        fetch("/api/gear-kits"),
-      ]);
-
-      if (!gearRes.ok || !kitsRes.ok) {
-        throw new Error("Failed to load data");
-      }
-
-      const gearData = await gearRes.json();
-      const kitsData = await kitsRes.json();
-
-      setGearItems(gearData.items);
-      setKits(kitsData.kits);
-      setError(null);
-    } catch (err) {
-      console.error(err);
-      setError("Failed to load gear data");
-    } finally {
-      if (showLoading) {
-        setLoading(false);
-      }
-    }
-  };
-
-  useEffect(() => {
-    void loadData();
-  }, []);
+  const {
+    archiveConfirm,
+    setArchiveConfirm,
+    autoExpandArchived,
+    setAutoExpandArchived,
+    handleArchiveGear,
+    confirmArchive,
+  } = useGearArchive({
+    gearItems,
+    setGearItems,
+    kits,
+    setKits,
+    loadData,
+    setToast,
+  });
 
   const handleGearCreated = () => {
     setShowGearForm(false);
@@ -118,232 +102,24 @@ export function GearPageContent() {
     setDeleteConfirm({ id, type: "gear" });
   };
 
+  const handleDeleteKit = (id: string) => {
+    setDeleteConfirm({ id, type: "kit" });
+  };
+
   const confirmDelete = async () => {
     if (!deleteConfirm) return;
 
     try {
-      const endpoint =
-        deleteConfirm.type === "gear" ? "/api/gear" : "/api/gear-kits";
-      const res = await fetch(`${endpoint}?id=${deleteConfirm.id}`, {
-        method: "DELETE",
-      });
-
-      if (!res.ok) {
-        throw new Error("Failed to delete");
-      }
-
+      await deleteGearOrKit(deleteConfirm.id, deleteConfirm.type);
       setDeleteConfirm(null);
       setToast({
         message: deleteConfirm.type === "gear" ? "Gear deleted" : "Kit deleted",
       });
-      void loadData();
     } catch (err) {
       console.error(err);
       setDeleteConfirm(null);
       alert(`Failed to delete ${deleteConfirm.type}`);
     }
-  };
-
-  // Robust kit-membership lookup (NO stale closures)
-  const kitsContainingItem = (itemId: string) =>
-    kits.filter((k) => k.kitItems?.some((ki) => ki.gearItemId === itemId));
-
-  const handleArchiveGear = (itemId: string) => {
-    // Look up the item from current state
-    const item = gearItems.find((g) => g.id === itemId);
-
-    // Hard debug logs
-    console.log(
-      "[toggleArchive] clicked",
-      itemId,
-      "found?",
-      !!item,
-      "isActive?",
-      item?.isActive
-    );
-
-    if (!item) {
-      console.warn("[toggleArchive] item not found in gearItems", itemId);
-      return;
-    }
-
-    // Decide archive vs unarchive based on current state
-    if (item.isActive === true) {
-      // ARCHIVE action
-      const affected = kitsContainingItem(itemId);
-
-      if (affected.length > 0) {
-        // Item is in kits - show confirmation modal
-        setArchiveConfirm({
-          itemId,
-          kitIds: affected.map((k) => k.id),
-        });
-        return;
-      } else {
-        // Item not in kits - archive immediately
-        void performArchive(itemId, []);
-      }
-    } else {
-      // UNARCHIVE action
-      void performUnarchive(itemId);
-    }
-  };
-
-  const performUnarchive = async (itemId: string) => {
-    // Optimistic: setGearItems -> mark isActive true
-    setGearItems((prev) =>
-      prev.map((g) => (g.id === itemId ? { ...g, isActive: true } : g))
-    );
-
-    try {
-      // await API: update gear item isActive true
-      const res = await fetch("/api/gear", {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id: itemId, isActive: true }),
-      });
-
-      if (!res.ok) {
-        throw new Error("Failed to update");
-      }
-
-      setToast({ message: "Gear unarchived" });
-      // loadData(false)
-      await loadData(false);
-    } catch (err) {
-      console.error(err);
-      // Revert optimistic update on error
-      setGearItems((prev) =>
-        prev.map((g) => (g.id === itemId ? { ...g, isActive: false } : g))
-      );
-      alert("Failed to unarchive gear item");
-    }
-  };
-
-  const performArchive = async (itemId: string, kitIds: string[]) => {
-    // (1) Optimistic: setGearItems -> mark isActive false
-    setGearItems((prev) =>
-      prev.map((g) => (g.id === itemId ? { ...g, isActive: false } : g))
-    );
-
-    // (2) Optimistic: setKits -> remove kitItems with that gearItemId for those kitIds
-    if (kitIds.length > 0) {
-      setKits((prev) =>
-        prev.map((k) => {
-          if (!kitIds.includes(k.id)) return k;
-          return {
-            ...k,
-            kitItems: (k.kitItems ?? []).filter(
-              (ki) => ki.gearItemId !== itemId
-            ),
-          };
-        })
-      );
-    }
-
-    // Auto-expand archived section
-    setAutoExpandArchived(true);
-
-    try {
-      // (3) await API: update gear item isActive false
-      const res = await fetch("/api/gear", {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id: itemId, isActive: false }),
-      });
-
-      if (!res.ok) {
-        throw new Error("Failed to archive gear");
-      }
-
-      // (4) await API: for each kitId, persist updated kitItems list
-      if (kitIds.length > 0) {
-        const kitUpdatePromises = kitIds.map(async (kitId) => {
-          const kit = kits.find((k) => k.id === kitId);
-          if (!kit) return;
-
-          const updatedGearIds = (kit.kitItems ?? [])
-            .filter((ki) => ki.gearItemId !== itemId)
-            .map((ki) => ki.gearItemId);
-
-          const updateRes = await fetch("/api/gear-kits", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              action: "updateItems",
-              id: kitId,
-              gearItemIds: updatedGearIds,
-            }),
-          });
-
-          if (!updateRes.ok) {
-            throw new Error(`Failed to remove from kit: ${kit.name}`);
-          }
-        });
-
-        const results = await Promise.allSettled(kitUpdatePromises);
-        const failures = results.filter((r) => r.status === "rejected");
-
-        if (failures.length > 0) {
-          setToast({
-            message: `Gear archived, but couldn't remove from ${failures.length} kit${failures.length > 1 ? "s" : ""}.`,
-          });
-        }
-      }
-
-      // Show success toast
-      setArchivedGearId(itemId);
-      setToast({
-        message: "Gear archived",
-        onUndo: async () => {
-          try {
-            const undoRes = await fetch("/api/gear", {
-              method: "PUT",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ id: itemId, isActive: true }),
-            });
-
-            if (undoRes.ok) {
-              setArchivedGearId(null);
-              setToast(null);
-              // Optimistically revert
-              setGearItems((prev) =>
-                prev.map((g) =>
-                  g.id === itemId ? { ...g, isActive: true } : g
-                )
-              );
-              void loadData(false);
-            }
-          } catch (err) {
-            console.error(err);
-          }
-        },
-      });
-
-      // (5) loadData(false)
-      await loadData(false);
-    } catch (err) {
-      console.error(err);
-      // Revert optimistic updates on error
-      setGearItems((prev) =>
-        prev.map((g) => (g.id === itemId ? { ...g, isActive: true } : g))
-      );
-      if (kitIds.length > 0) {
-        void loadData(false);
-      }
-      alert("Failed to archive gear item");
-    }
-  };
-
-  const confirmArchive = async () => {
-    if (!archiveConfirm) return;
-    const { itemId, kitIds } = archiveConfirm;
-    setArchiveConfirm(null);
-    await performArchive(itemId, kitIds);
-  };
-
-  const handleDeleteKit = (id: string) => {
-    setDeleteConfirm({ id, type: "kit" });
   };
 
   const handleJumpToGear = useCallback((gearId: string) => {
@@ -362,17 +138,7 @@ export function GearPageContent() {
 
   const handleSetDefaultKit = async (id: string) => {
     try {
-      const res = await fetch("/api/gear-kits", {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id, isDefault: true }),
-      });
-
-      if (!res.ok) {
-        throw new Error("Failed to update");
-      }
-
-      void loadData();
+      await setDefaultKit(id);
     } catch (err) {
       console.error(err);
       alert("Failed to set default kit");

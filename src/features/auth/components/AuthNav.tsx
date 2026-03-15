@@ -2,11 +2,11 @@
 
 import { usePathname } from "next/navigation";
 import { useSession } from "next-auth/react";
-import { useAuth } from "../hooks/useAuth";
+import { useAuth } from "@/hooks/useAuth";
 import { useMe } from "../hooks/useMe";
 import Link from "next/link";
 import { Avatar } from "@/components/Avatar/Avatar";
-import { NavbarUnitToggleLocal } from "@/components/NavbarUnitToggleLocal";
+import { NavbarUnitToggle } from "@/components/NavbarUnitToggle";
 import navStyles from "@/styles/components/Navigation.module.css";
 import styles from "./AuthNav.module.css";
 
@@ -52,7 +52,7 @@ export default function AuthNav() {
   // Logged-out users: show unit toggle on /dive-plans page
   return (
     <div className={styles.authSection}>
-      {isDivePlansPage && <NavbarUnitToggleLocal />}
+      {isDivePlansPage && <NavbarUnitToggle />}
       <Link href="/signin" className={styles.authLink}>
         Log in / Sign up
       </Link>

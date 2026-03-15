@@ -23,7 +23,7 @@ const STORAGE_KEY = "diveiq:unitSystem";
 
 export function UnitSystemProvider({ children }: { children: ReactNode }) {
   // Initialize from localStorage if available (client-side only)
-  // On SSR, window is undefined so this returns "metric" for consistency
+  // On SSR, window is undefined so this returns "imperial" for consistency
   const [unitSystem, setUnitSystemState] = useState<UnitSystem>(() => {
     if (typeof window !== "undefined") {
       const stored = localStorage.getItem(STORAGE_KEY);
@@ -31,7 +31,9 @@ export function UnitSystemProvider({ children }: { children: ReactNode }) {
         return stored;
       }
     }
-    return "metric";
+    // Default to imperial to match DEFAULT_UNIT_PREFERENCES (ft/°F/psi/lb).
+    // Once a guest toggles, their choice is persisted to localStorage.
+    return "imperial";
   });
 
   // Persist to localStorage when unitSystem changes

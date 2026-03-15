@@ -123,7 +123,6 @@ const res = await fetch("/api/dive-logs");
 
 - `src/components/Avatar/Avatar.tsx:7` - `Pencil`
 - `src/features/certifications/components/CertificationCard.tsx:8` - `ChevronDown, Star, Edit, Trash2`
-- `src/features/profile/components/ProfilePageContent.new.tsx:6` - `ChevronDown`
 
 **Tree-shaking**: ✅ Should be tree-shakeable (individual icon imports)
 

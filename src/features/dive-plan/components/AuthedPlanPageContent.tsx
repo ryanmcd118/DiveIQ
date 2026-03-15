@@ -8,7 +8,7 @@ import { Toast } from "@/components/Toast";
 import { PlanForm } from "./PlanForm";
 import { ProfileContextCard } from "./ProfileContextCard";
 import { PastPlan } from "@/features/dive-plan/types";
-import { matchesQuery } from "@/features/dive-plan/utils/searchMatch";
+import { matchesQuery } from "@/lib/search/matchesQuery";
 import { useUnitPreferences } from "@/hooks/useUnitPreferences";
 import { displayDepth, depthInputToCm } from "@/lib/units";
 import layoutStyles from "@/styles/components/Layout.module.css";

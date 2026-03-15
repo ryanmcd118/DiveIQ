@@ -105,7 +105,7 @@ interface LogbookFormProps {
 
 - `src/features/dive-log/hooks/useLogPageState.ts`
 - `src/features/dive-plan/hooks/usePlanPageState.ts`
-- `src/features/auth/hooks/useAuth.ts`
+- `src/hooks/useAuth.ts`
 
 ### Route Handlers
 

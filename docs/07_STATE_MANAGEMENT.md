@@ -9,8 +9,8 @@
 **Where it lives**:
 
 - **Server**: `getServerSession(authOptions)` in Server Components (`src/app/(app)/dashboard/page.tsx:14`, `src/app/page.tsx:11`)
-- **Client**: NextAuth `useSession()` hook (`src/features/auth/hooks/useAuth.ts:8`, `src/features/dive-log/hooks/useLogPageState.ts:40`)
-- **Custom hook**: `useAuth()` wraps `useSession()` with sign-in/sign-up/sign-out helpers (`src/features/auth/hooks/useAuth.ts:7-96`)
+- **Client**: NextAuth `useSession()` hook (`src/hooks/useAuth.ts:8`, `src/features/dive-log/hooks/useLogPageState.ts:40`)
+- **Custom hook**: `useAuth()` wraps `useSession()` with sign-in/sign-up/sign-out helpers (`src/hooks/useAuth.ts:7-96`)
 - **User data hook**: `useMe()` fetches fresh user data from `/api/me` (`src/features/auth/hooks/useMe.ts:15-82`)
 
 **Who owns it**:
@@ -21,7 +21,7 @@
 
 **How it changes**:
 
-- User signs in/out via `useAuth().signInUser()` / `signOutUser()` (`src/features/auth/hooks/useAuth.ts:12-86`)
+- User signs in/out via `useAuth().signInUser()` / `signOutUser()` (`src/hooks/useAuth.ts:12-86`)
 - Session updates propagate via NextAuth's React Context
 - `useMe()` refreshes on custom event `diveiq:me-updated` (`src/features/auth/hooks/useMe.ts:61-70`)
 
@@ -34,7 +34,7 @@
 
 **Cited from**:
 
-- `src/features/auth/hooks/useAuth.ts`
+- `src/hooks/useAuth.ts`
 - `src/features/auth/hooks/useMe.ts`
 - `src/app/layout.tsx:23`
 - `src/app/(app)/dashboard/page.tsx:14`
@@ -50,7 +50,7 @@
 - **Global Context**: `UnitSystemContext` for authenticated users (`src/contexts/UnitSystemContext.tsx:18-71`)
 - **localStorage**: Guest users store in `localStorage.getItem("diveiq:unitSystem")` (`src/contexts/UnitSystemContext.tsx:22,29`)
 - **Unified hook**: `useUnitPreferences()` handles both authenticated (DB) and guest (localStorage) modes (`src/hooks/useUnitPreferences.ts:29-160`)
-- **Legacy hook**: `useUnitSystemOrLocal()` switches between context and local state (`src/hooks/useUnitSystemOrLocal.ts:12-61`)
+- **Presentational toggle**: `UnitToggleButtons` renders buttons, receives state via props (`src/components/UnitToggleButtons.tsx`)
 
 **Who owns it**:
 
@@ -60,7 +60,7 @@
 **How it changes**:
 
 - Authenticated: `useUnitPreferences().setPrefs()` → API call → DB update (`src/hooks/useUnitPreferences.ts:114-153`)
-- Guest: localStorage update + custom event `unitSystemChanged` (`src/hooks/useUnitPreferences.ts:141-149`)
+- Guest: `useUnitPreferences()` syncs from `UnitSystemContext` and updates it via `setUnitSystem()`
 - Toggle components call `setUnitSystem()` or `toggleUnitSystem()` (`src/contexts/UnitSystemContext.tsx:44-50`)
 
 **How it persists**:
@@ -167,7 +167,7 @@
 **How it changes**:
 
 - User interactions (clicks, toggles)
-- Custom events for cross-component sync (`sidebarToggle`, `unitSystemChanged`)
+- Custom events for cross-component sync (`sidebarToggle`)
 - URL params for OAuth error messages (derived state, not set in effect)
 
 **How it persists**:
@@ -274,7 +274,7 @@
 1. **User toggles unit**: `NavbarUnitToggle` calls `setUnitSystem()` (`src/contexts/UnitSystemContext.tsx:44-46`)
 2. **Context update**: `UnitSystemContext` state updates, localStorage persisted (`src/contexts/UnitSystemContext.tsx:38-42`)
 3. **All consumers re-render**: Components using `useUnitSystem()` or `useUnitPreferences()` get new value
-4. **Guest mode**: Custom event `unitSystemChanged` dispatched for localStorage-only components (`src/hooks/useUnitPreferences.ts:145-148`)
+4. **Guest mode**: `useUnitPreferences()` watches `UnitSystemContext` and derives preferences — no custom events needed
 
 **State management**:
 
