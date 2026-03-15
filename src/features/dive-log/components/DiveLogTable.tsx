@@ -109,7 +109,7 @@ export function DiveLogTable({
                   {depth.value ? `${depth.value}${depth.unit}` : "—"}
                 </td>
                 <td className={styles.colTime}>
-                  {entry.bottomTime != null ? `${entry.bottomTime}m` : "—"}
+                  {entry.bottomTime != null ? `${entry.bottomTime}min` : "—"}
                 </td>
                 <td className={styles.colTemp}>
                   {waterTemp ? `${waterTemp.value}${waterTemp.unit}` : "—"}
