@@ -231,6 +231,42 @@ describe("computeGearNotes", () => {
       expect(regulatorNote).toBeUndefined();
     });
   });
+
+  describe("metric unit display", () => {
+    it("displays temperatures in °C when unitSystem is metric", () => {
+      const notes = computeGearNotes(
+        55,
+        ["WETSUIT: 3mm shorty"],
+        "Pacific",
+        "Reef",
+        "metric"
+      );
+      expect(notes[1]).toContain("not appropriate");
+      expect(notes[1]).toContain("13°C");
+      expect(notes[1]).not.toContain("°F");
+    });
+
+    it("displays no-exposure warning in °C for metric", () => {
+      const notes = computeGearNotes(
+        70,
+        ["MASK: Scubapro Crystal VU"],
+        "Pacific",
+        "Reef",
+        "metric"
+      );
+      expect(notes[1]).toContain("No exposure protection logged");
+      expect(notes[1]).toContain("21°C");
+      expect(notes[1]).not.toContain("°F");
+    });
+
+    it("displays regulator warning in °C for metric", () => {
+      const notes = computeGearNotes(45, [], "Arctic", "Ice Dive", "metric");
+      const regulatorNote = notes.find((n) => n.includes("regulator"));
+      expect(regulatorNote).toBeDefined();
+      expect(regulatorNote).toContain("10°C");
+      expect(regulatorNote).not.toContain("°F");
+    });
+  });
 });
 
 // ── getFallbackBriefing ─────────────────────────────────────────────────

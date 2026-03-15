@@ -67,7 +67,7 @@ function DiveLogList({
           <div className={listStyles.cellMetrics}>
             <span>{depth.value ? `${depth.value}${depth.unit}` : "—"}</span>
             <span>
-              {entry.bottomTime != null ? `${entry.bottomTime}m` : "—"}
+              {entry.bottomTime != null ? `${entry.bottomTime}min` : "—"}
             </span>
             <span>
               {waterTemp ? `${waterTemp.value}${waterTemp.unit}` : "—"}
@@ -114,7 +114,7 @@ function DiveLogList({
           <div className={listStyles.cellMetrics}>
             <span>{depth.value ? `${depth.value}${depth.unit}` : "—"}</span>
             <span>
-              {entry.bottomTime != null ? `${entry.bottomTime}m` : "—"}
+              {entry.bottomTime != null ? `${entry.bottomTime}min` : "—"}
             </span>
             <span>
               {waterTemp ? `${waterTemp.value}${waterTemp.unit}` : "—"}

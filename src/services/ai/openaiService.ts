@@ -100,9 +100,16 @@ export function computeGearNotes(
   tempF: number | null,
   gearList: string[],
   region: string,
-  siteName: string
+  siteName: string,
+  unitSystem: UnitSystem = "imperial"
 ): string[] {
   if (tempF === null) return [];
+
+  // Format temperature for user-facing display strings
+  const fmtTemp = (f: number) =>
+    unitSystem === "metric"
+      ? `${Math.round(((f - 32) * 5) / 9)}°C`
+      : `${Math.round(f)}°F`;
 
   const notes: string[] = [];
 
@@ -169,14 +176,13 @@ export function computeGearNotes(
           "Your logged exposure protection is suitable for the expected water temperature."
         );
       } else if (loggedDesc) {
-        const tempDisplay = `${Math.round(tempF)}°F`;
         notes.push(
-          `Your ${loggedDesc} is not appropriate for ${tempDisplay} water. A ${items[0]} is required.`
+          `Your ${loggedDesc} is not appropriate for ${fmtTemp(tempF)} water. A ${items[0]} is required.`
         );
       }
     } else {
       notes.push(
-        `No exposure protection logged — ensure you have appropriate thermal protection for ${Math.round(tempF)}°F water.`
+        `No exposure protection logged — ensure you have appropriate thermal protection for ${fmtTemp(tempF)} water.`
       );
     }
   }
@@ -184,7 +190,7 @@ export function computeGearNotes(
   // String 3 — Cold water regulator warning
   if (tempF < 50) {
     notes.push(
-      "Standard regulators risk free-flowing below 50°F due to the venturi effect. An environmentally sealed cold-water regulator is required for this dive."
+      `Standard regulators risk free-flowing below ${fmtTemp(50)} due to the venturi effect. An environmentally sealed cold-water regulator is required for this dive.`
     );
   }
 
@@ -477,7 +483,8 @@ function applyDeterministicGearNotes(
     tempF,
     gearList,
     plan.region,
-    plan.siteName
+    plan.siteName,
+    plan.unitSystem || "metric"
   );
   if (computed.length > 0) {
     briefing.gearNotes = computed;
