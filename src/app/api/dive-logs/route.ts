@@ -5,6 +5,7 @@ import { diveLogRepository } from "@/services/database/repositories/diveLogRepos
 import { diveGearRepository } from "@/services/database/repositories/gearRepository";
 import type { DiveLogInput } from "@/features/dive-log/types";
 import { apiError, apiSuccess, apiCreated, apiOk } from "@/lib/apiResponse";
+import { NotFoundError } from "@/lib/errors";
 
 /**
  * GET /api/dive-logs
@@ -60,6 +61,9 @@ export async function GET(req: NextRequest) {
     return apiSuccess({ entries: entriesWithGear });
   } catch (err) {
     console.error("GET /api/dive-logs error", err);
+    if (err instanceof NotFoundError) {
+      return apiError(err.message, 404);
+    }
     return apiError("Failed to fetch dive logs", 500);
   }
 }
@@ -192,6 +196,9 @@ export async function POST(req: NextRequest) {
     return apiError("Invalid action", 400);
   } catch (err) {
     console.error("POST /api/dive-logs error", err);
+    if (err instanceof NotFoundError) {
+      return apiError(err.message, 404);
+    }
     return apiError("Failed to process dive log request", 500);
   }
 }

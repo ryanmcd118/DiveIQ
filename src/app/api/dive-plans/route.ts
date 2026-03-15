@@ -16,6 +16,7 @@ import {
 import type { UnitPreferences } from "@/lib/units";
 import { cmToMeters, preferencesToUnitSystem } from "@/lib/units";
 import { apiError, apiOk, apiCreated, apiSuccess } from "@/lib/apiResponse";
+import { NotFoundError } from "@/lib/errors";
 
 /**
  * POST /api/dive-plans
@@ -204,6 +205,9 @@ export async function PUT(req: NextRequest) {
     });
   } catch (err) {
     console.error("PUT /api/dive-plans error", err);
+    if (err instanceof NotFoundError) {
+      return apiError(err.message, 404);
+    }
     return apiError("Failed to update plan.", 500);
   }
 }
@@ -257,6 +261,9 @@ export async function DELETE(req: NextRequest) {
     return apiOk();
   } catch (err) {
     console.error("DELETE /api/dive-plans error", err);
+    if (err instanceof NotFoundError) {
+      return apiError(err.message, 404);
+    }
     return apiError("Failed to delete plan", 500);
   }
 }
