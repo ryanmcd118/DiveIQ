@@ -1,8 +1,9 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/features/auth/lib/auth";
 import { gearKitRepository } from "@/services/database/repositories/gearRepository";
 import { NotFoundError } from "@/lib/errors";
+import { apiError, apiSuccess, apiCreated, apiOk } from "@/lib/apiResponse";
 
 /**
  * GET /api/gear-kits
@@ -10,21 +11,18 @@ import { NotFoundError } from "@/lib/errors";
  */
 export async function GET(_req: NextRequest) {
   void _req;
-  const session = await getServerSession(authOptions);
-
-  if (!session?.user) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-
   try {
+    const session = await getServerSession(authOptions);
+
+    if (!session?.user) {
+      return apiError("Unauthorized", 401);
+    }
+
     const kits = await gearKitRepository.findMany(session.user.id);
-    return NextResponse.json({ kits });
+    return apiSuccess({ kits });
   } catch (err) {
     console.error("GET /api/gear-kits error", err);
-    return NextResponse.json(
-      { error: "Failed to fetch gear kits" },
-      { status: 500 }
-    );
+    return apiError("Failed to fetch gear kits", 500);
   }
 }
 
@@ -33,23 +31,20 @@ export async function GET(_req: NextRequest) {
  * Create a new kit or update kit items
  */
 export async function POST(req: NextRequest) {
-  const session = await getServerSession(authOptions);
-
-  if (!session?.user) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-
   try {
+    const session = await getServerSession(authOptions);
+
+    if (!session?.user) {
+      return apiError("Unauthorized", 401);
+    }
+
     const body = await req.json();
     const { action, id, name, isDefault, gearItemIds } = body;
 
     // Create new kit
     if (action === "create") {
       if (!name) {
-        return NextResponse.json(
-          { error: "Missing required field: name" },
-          { status: 400 }
-        );
+        return apiError("Missing required field: name", 400);
       }
 
       const kit = await gearKitRepository.create(
@@ -71,31 +66,25 @@ export async function POST(req: NextRequest) {
         session.user.id
       );
 
-      return NextResponse.json({ kit: kitWithItems }, { status: 201 });
+      return apiCreated({ kit: kitWithItems });
     }
 
     // Update kit items
     if (action === "updateItems") {
       if (!id || !Array.isArray(gearItemIds)) {
-        return NextResponse.json(
-          { error: "Missing id or gearItemIds" },
-          { status: 400 }
-        );
+        return apiError("Missing id or gearItemIds", 400);
       }
 
       await gearKitRepository.setItems(id, gearItemIds, session.user.id);
 
       const kit = await gearKitRepository.findById(id, session.user.id);
-      return NextResponse.json({ kit });
+      return apiSuccess({ kit });
     }
 
-    return NextResponse.json({ error: "Invalid action" }, { status: 400 });
+    return apiError("Invalid action", 400);
   } catch (err) {
     console.error("POST /api/gear-kits error", err);
-    return NextResponse.json(
-      { error: "Failed to process kit request" },
-      { status: 500 }
-    );
+    return apiError("Failed to process kit request", 500);
   }
 }
 
@@ -104,18 +93,18 @@ export async function POST(req: NextRequest) {
  * Update a kit (name, default status)
  */
 export async function PUT(req: NextRequest) {
-  const session = await getServerSession(authOptions);
-
-  if (!session?.user) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-
   try {
+    const session = await getServerSession(authOptions);
+
+    if (!session?.user) {
+      return apiError("Unauthorized", 401);
+    }
+
     const body = await req.json();
     const { id, name, isDefault } = body;
 
     if (!id) {
-      return NextResponse.json({ error: "Missing id" }, { status: 400 });
+      return apiError("Missing id", 400);
     }
 
     const updateData: {
@@ -132,16 +121,13 @@ export async function PUT(req: NextRequest) {
       session.user.id
     );
 
-    return NextResponse.json({ kit: kitWithItems });
+    return apiSuccess({ kit: kitWithItems });
   } catch (err) {
     console.error("PUT /api/gear-kits error", err);
     if (err instanceof NotFoundError) {
-      return NextResponse.json({ error: err.message }, { status: 404 });
+      return apiError(err.message, 404);
     }
-    return NextResponse.json(
-      { error: "Failed to update kit" },
-      { status: 500 }
-    );
+    return apiError("Failed to update kit", 500);
   }
 }
 
@@ -150,31 +136,28 @@ export async function PUT(req: NextRequest) {
  * Delete a kit
  */
 export async function DELETE(req: NextRequest) {
-  const session = await getServerSession(authOptions);
-
-  if (!session?.user) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-
   try {
+    const session = await getServerSession(authOptions);
+
+    if (!session?.user) {
+      return apiError("Unauthorized", 401);
+    }
+
     const { searchParams } = new URL(req.url);
     const id = searchParams.get("id");
 
     if (!id) {
-      return NextResponse.json({ error: "Missing id" }, { status: 400 });
+      return apiError("Missing id", 400);
     }
 
     await gearKitRepository.delete(id, session.user.id);
 
-    return NextResponse.json({ ok: true });
+    return apiOk();
   } catch (err) {
     console.error("DELETE /api/gear-kits error", err);
     if (err instanceof NotFoundError) {
-      return NextResponse.json({ error: err.message }, { status: 404 });
+      return apiError(err.message, 404);
     }
-    return NextResponse.json(
-      { error: "Failed to delete kit" },
-      { status: 500 }
-    );
+    return apiError("Failed to delete kit", 500);
   }
 }

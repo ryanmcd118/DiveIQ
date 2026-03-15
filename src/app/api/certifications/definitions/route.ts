@@ -1,8 +1,9 @@
 export const runtime = "nodejs";
 
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { CertificationAgency } from "@prisma/client";
+import { apiError, apiSuccess } from "@/lib/apiResponse";
 
 /**
  * Type guard to check if a string is a valid CertificationAgency
@@ -21,6 +22,10 @@ export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url);
     const agencyParam = searchParams.get("agency");
+
+    if (agencyParam && !isCertificationAgency(agencyParam)) {
+      return apiError("Invalid agency", 400);
+    }
 
     const where =
       agencyParam && isCertificationAgency(agencyParam)
@@ -49,12 +54,9 @@ export async function GET(req: NextRequest) {
       return a.name.localeCompare(b.name);
     });
 
-    return NextResponse.json({ definitions });
+    return apiSuccess({ definitions });
   } catch (err) {
     console.error("GET /api/certifications/definitions error", err);
-    return NextResponse.json(
-      { error: "Failed to fetch certification definitions" },
-      { status: 500 }
-    );
+    return apiError("Failed to fetch certification definitions", 500);
   }
 }

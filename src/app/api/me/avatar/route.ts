@@ -1,7 +1,8 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/features/auth/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { apiError, apiSuccess } from "@/lib/apiResponse";
 
 /**
  * PATCH /api/me/avatar
@@ -17,7 +18,7 @@ export async function PATCH(req: NextRequest) {
       typeof session.user.id !== "string" ||
       session.user.id.trim() === ""
     ) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return apiError("Unauthorized", 401);
     }
 
     const body = await req.json();
@@ -29,10 +30,7 @@ export async function PATCH(req: NextRequest) {
       avatarUrl !== undefined &&
       typeof avatarUrl !== "string"
     ) {
-      return NextResponse.json(
-        { error: "Invalid avatarUrl format" },
-        { status: 400 }
-      );
+      return apiError("Invalid avatarUrl format", 400);
     }
 
     // Basic validation: if provided, should be a valid URL
@@ -40,10 +38,7 @@ export async function PATCH(req: NextRequest) {
       try {
         new URL(avatarUrl);
       } catch {
-        return NextResponse.json(
-          { error: "Invalid avatar URL format" },
-          { status: 400 }
-        );
+        return apiError("Invalid avatar URL format", 400);
       }
     }
 
@@ -63,20 +58,9 @@ export async function PATCH(req: NextRequest) {
       },
     });
 
-    return NextResponse.json({ user: updatedUser });
+    return apiSuccess({ user: updatedUser });
   } catch (error) {
-    if (process.env.NODE_ENV === "development") {
-      console.error("[PATCH /api/me/avatar] Error:", error);
-      if (error instanceof Error) {
-        console.error("[PATCH /api/me/avatar] Error message:", error.message);
-        console.error("[PATCH /api/me/avatar] Error stack:", error.stack);
-      }
-    } else {
-      console.error("[PATCH /api/me/avatar] Error updating avatar");
-    }
-    return NextResponse.json(
-      { error: "Internal Server Error" },
-      { status: 500 }
-    );
+    console.error("PATCH /api/me/avatar error", error);
+    return apiError("Internal Server Error", 500);
   }
 }

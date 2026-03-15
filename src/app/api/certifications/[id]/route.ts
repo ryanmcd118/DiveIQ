@@ -1,10 +1,11 @@
 export const runtime = "nodejs";
 
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/features/auth/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { updateUserCertificationSchema } from "@/features/certifications/types";
+import { apiError, apiSuccess, apiOk } from "@/lib/apiResponse";
 
 /**
  * PATCH /api/certifications/:id
@@ -16,13 +17,13 @@ export async function PATCH(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> | { id: string } }
 ) {
-  const session = await getServerSession(authOptions);
-
-  if (!session?.user) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-
   try {
+    const session = await getServerSession(authOptions);
+
+    if (!session?.user) {
+      return apiError("Unauthorized", 401);
+    }
+
     const body = await req.json();
     const resolvedParams = await Promise.resolve(params);
     const certId = resolvedParams.id;
@@ -30,10 +31,7 @@ export async function PATCH(
     // Validate input
     const validationResult = updateUserCertificationSchema.safeParse(body);
     if (!validationResult.success) {
-      return NextResponse.json(
-        { error: "Invalid input", details: validationResult.error.issues },
-        { status: 400 }
-      );
+      return apiError("Invalid input", 400);
     }
 
     const data = validationResult.data;
@@ -44,17 +42,11 @@ export async function PATCH(
     });
 
     if (!existing) {
-      return NextResponse.json(
-        { error: "Certification not found" },
-        { status: 404 }
-      );
+      return apiError("Certification not found", 404);
     }
 
     if (existing.userId !== session.user.id) {
-      return NextResponse.json(
-        { error: "Certification not found" },
-        { status: 404 }
-      );
+      return apiError("Certification not found", 404);
     }
 
     // Optional: If setting isFeatured=true, check if we should enforce max 3 featured
@@ -69,12 +61,9 @@ export async function PATCH(
           id: { not: params.id }, // Exclude current cert
         },
       });
-      
+
       if (featuredCount >= 3) {
-        return NextResponse.json(
-          { error: "Maximum of 3 featured certifications allowed" },
-          { status: 400 }
-        );
+        return apiError("Maximum of 3 featured certifications allowed", 400);
       }
     }
     */
@@ -132,22 +121,16 @@ export async function PATCH(
       },
     });
 
-    return NextResponse.json({ certification: updated });
+    return apiSuccess({ certification: updated });
   } catch (err) {
     console.error("PATCH /api/certifications/[id] error", err);
     if (
       err instanceof Error &&
       err.message.includes("Record to update not found")
     ) {
-      return NextResponse.json(
-        { error: "Certification not found" },
-        { status: 404 }
-      );
+      return apiError("Certification not found", 404);
     }
-    return NextResponse.json(
-      { error: "Failed to update certification" },
-      { status: 500 }
-    );
+    return apiError("Failed to update certification", 500);
   }
 }
 
@@ -161,13 +144,13 @@ export async function DELETE(
   _req: NextRequest,
   { params }: { params: Promise<{ id: string }> | { id: string } }
 ) {
-  const session = await getServerSession(authOptions);
-
-  if (!session?.user) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-
   try {
+    const session = await getServerSession(authOptions);
+
+    if (!session?.user) {
+      return apiError("Unauthorized", 401);
+    }
+
     const resolvedParams = await Promise.resolve(params);
     const certId = resolvedParams.id;
 
@@ -177,17 +160,11 @@ export async function DELETE(
     });
 
     if (!existing) {
-      return NextResponse.json(
-        { error: "Certification not found" },
-        { status: 404 }
-      );
+      return apiError("Certification not found", 404);
     }
 
     if (existing.userId !== session.user.id) {
-      return NextResponse.json(
-        { error: "Certification not found" },
-        { status: 404 }
-      );
+      return apiError("Certification not found", 404);
     }
 
     // Delete the certification
@@ -195,21 +172,15 @@ export async function DELETE(
       where: { id: certId },
     });
 
-    return NextResponse.json({ ok: true });
+    return apiOk();
   } catch (err) {
     console.error("DELETE /api/certifications/[id] error", err);
     if (
       err instanceof Error &&
       err.message.includes("Record to delete does not exist")
     ) {
-      return NextResponse.json(
-        { error: "Certification not found" },
-        { status: 404 }
-      );
+      return apiError("Certification not found", 404);
     }
-    return NextResponse.json(
-      { error: "Failed to delete certification" },
-      { status: 500 }
-    );
+    return apiError("Failed to delete certification", 500);
   }
 }

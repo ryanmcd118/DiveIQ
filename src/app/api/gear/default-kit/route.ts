@@ -1,7 +1,8 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/features/auth/lib/auth";
 import { gearKitRepository } from "@/services/database/repositories/gearRepository";
+import { apiError, apiSuccess } from "@/lib/apiResponse";
 
 /**
  * GET /api/gear/default-kit
@@ -9,20 +10,17 @@ import { gearKitRepository } from "@/services/database/repositories/gearReposito
  */
 export async function GET(_req: NextRequest) {
   void _req;
-  const session = await getServerSession(authOptions);
-
-  if (!session?.user) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-
   try {
+    const session = await getServerSession(authOptions);
+
+    if (!session?.user) {
+      return apiError("Unauthorized", 401);
+    }
+
     const defaultKit = await gearKitRepository.findDefault(session.user.id);
-    return NextResponse.json({ kit: defaultKit });
+    return apiSuccess({ kit: defaultKit });
   } catch (err) {
     console.error("GET /api/gear/default-kit error", err);
-    return NextResponse.json(
-      { error: "Failed to fetch default kit" },
-      { status: 500 }
-    );
+    return apiError("Failed to fetch default kit", 500);
   }
 }

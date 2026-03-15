@@ -1,8 +1,9 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/features/auth/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { normalizeProfileUpdate } from "@/features/profile/utils/normalizeProfile";
+import { apiError, apiSuccess } from "@/lib/apiResponse";
 
 const USER_PROFILE_SELECT = {
   id: true,
@@ -82,7 +83,7 @@ export async function GET() {
       if (process.env.NODE_ENV === "development") {
         console.error("[GET /api/profile] No session or user");
       }
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return apiError("Unauthorized", 401);
     }
 
     // Check for user.id - this is critical
@@ -97,7 +98,7 @@ export async function GET() {
           session.user.id
         );
       }
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return apiError("Unauthorized", 401);
     }
 
     const userId = session.user.id;
@@ -161,7 +162,7 @@ export async function GET() {
     }
 
     if (!user) {
-      return NextResponse.json({ error: "User not found" }, { status: 404 });
+      return apiError("User not found", 404);
     }
 
     if (process.env.NODE_ENV === "development") {
@@ -173,22 +174,10 @@ export async function GET() {
       });
     }
 
-    return NextResponse.json({ user });
+    return apiSuccess({ user });
   } catch (error) {
-    // Always log the full error in development
-    if (process.env.NODE_ENV === "development") {
-      console.error("[GET /api/profile] Error:", error);
-      if (error instanceof Error) {
-        console.error("[GET /api/profile] Error message:", error.message);
-        console.error("[GET /api/profile] Error stack:", error.stack);
-      }
-    } else {
-      console.error("[GET /api/profile] Error fetching profile");
-    }
-    return NextResponse.json(
-      { error: "Internal Server Error" },
-      { status: 500 }
-    );
+    console.error("GET /api/profile error", error);
+    return apiError("Internal Server Error", 500);
   }
 }
 
@@ -207,7 +196,7 @@ export async function PATCH(req: NextRequest) {
       typeof session.user.id !== "string" ||
       session.user.id.trim() === ""
     ) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return apiError("Unauthorized", 401);
     }
 
     const body = await req.json();
@@ -215,10 +204,7 @@ export async function PATCH(req: NextRequest) {
       normalizeProfileUpdate(body);
 
     if (validationError) {
-      return NextResponse.json(
-        { error: validationError.error },
-        { status: validationError.status }
-      );
+      return apiError(validationError.error, validationError.status);
     }
 
     // Update user profile with select that includes kits
@@ -253,13 +239,13 @@ export async function PATCH(req: NextRequest) {
 
           const validKitIds = userKits.map((kit) => kit.id);
           const invalidKitIds = profileKitIds.filter(
-            (id) => !validKitIds.includes(id)
+            (id: string) => !validKitIds.includes(id)
           );
 
           if (invalidKitIds.length > 0) {
-            return NextResponse.json(
-              { error: `Invalid kit IDs: ${invalidKitIds.join(", ")}` },
-              { status: 400 }
+            return apiError(
+              `Invalid kit IDs: ${invalidKitIds.join(", ")}`,
+              400
             );
           }
         }
@@ -271,7 +257,7 @@ export async function PATCH(req: NextRequest) {
 
         if (profileKitIds.length > 0) {
           await prisma.userProfileKit.createMany({
-            data: profileKitIds.map((kitId) => ({
+            data: profileKitIds.map((kitId: string) => ({
               userId: session.user.id,
               kitId,
             })),
@@ -309,21 +295,9 @@ export async function PATCH(req: NextRequest) {
         }
       : updatedUser;
 
-    return NextResponse.json({ user: userResponse });
+    return apiSuccess({ user: userResponse });
   } catch (error) {
-    // Outer catch for all other errors
-    if (process.env.NODE_ENV === "development") {
-      console.error("[PATCH /api/profile] Error:", error);
-      if (error instanceof Error) {
-        console.error("[PATCH /api/profile] Error message:", error.message);
-        console.error("[PATCH /api/profile] Error stack:", error.stack);
-      }
-    } else {
-      console.error("[PATCH /api/profile] Error updating profile");
-    }
-    return NextResponse.json(
-      { error: "Internal Server Error" },
-      { status: 500 }
-    );
+    console.error("PATCH /api/profile error", error);
+    return apiError("Internal Server Error", 500);
   }
 }
