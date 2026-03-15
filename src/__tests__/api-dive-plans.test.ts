@@ -590,6 +590,41 @@ describe("dive plans API", () => {
       );
     });
 
+    it("passes overridden profile totalDives and lastDiveDate to AI service", async () => {
+      const mockStream = new ReadableStream({
+        start(controller) {
+          controller.enqueue(new TextEncoder().encode("{}"));
+          controller.close();
+        },
+      });
+      vi.mocked(generateDivePlanBriefingStream).mockResolvedValue(mockStream);
+
+      await PreviewPOST(
+        makePreviewPost({
+          ...validPlanBody,
+          profile: {
+            totalDives: 200,
+            lastDiveDate: "2026-06-01",
+            experienceLevel: "Advanced",
+            yearsDiving: 5,
+            homeDiveRegion: "Caribbean",
+            primaryDiveTypes: [],
+            certifications: [],
+            gear: [],
+          },
+        })
+      );
+
+      expect(generateDivePlanBriefingStream).toHaveBeenCalledWith(
+        expect.objectContaining({
+          profile: expect.objectContaining({
+            totalDives: 200,
+            lastDiveDate: "2026-06-01",
+          }),
+        })
+      );
+    });
+
     it("returns 500 when streaming service throws", async () => {
       vi.mocked(generateDivePlanBriefingStream).mockRejectedValue(
         new Error("OpenAI timeout")

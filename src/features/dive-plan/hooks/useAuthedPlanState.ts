@@ -195,6 +195,8 @@ export function useAuthedPlanState() {
       const dateValue = formData.get("date");
       const bottomTimeValue = formData.get("bottomTime");
       const experienceLevelValue = formData.get("experienceLevel");
+      const diveCountValue = formData.get("diveCountRange");
+      const lastDiveValue = formData.get("lastDiveRecency");
 
       const values = {
         region: typeof regionValue === "string" ? regionValue : "",
@@ -213,6 +215,22 @@ export function useAuthedPlanState() {
       setSubmittedPlan(values);
       setDraftPlan(values);
 
+      // Merge form-edited experience overrides into the profile so the server
+      // receives the user's manually entered values, not stale DB data.
+      const effectiveProfile = profileContext
+        ? {
+            ...profileContext,
+            totalDives:
+              typeof diveCountValue === "string" && diveCountValue
+                ? parseInt(diveCountValue, 10)
+                : profileContext.totalDives,
+            lastDiveDate:
+              typeof lastDiveValue === "string" && lastDiveValue
+                ? lastDiveValue
+                : profileContext.lastDiveDate,
+          }
+        : profileContext;
+
       try {
         const res = await fetch("/api/dive-plans", {
           method: "PUT",
@@ -222,7 +240,7 @@ export function useAuthedPlanState() {
             ...values,
             maxDepthCm,
             unitPreferences: prefs,
-            profile: profileContext ?? undefined,
+            profile: effectiveProfile ?? undefined,
           }),
         });
 
