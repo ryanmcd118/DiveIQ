@@ -1,9 +1,11 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/features/auth/lib/auth";
 import { diveLogRepository } from "@/services/database/repositories/diveLogRepository";
 import { diveGearRepository } from "@/services/database/repositories/gearRepository";
 import type { DiveLogInput } from "@/features/dive-log/types";
+import { apiError, apiSuccess, apiCreated, apiOk } from "@/lib/apiResponse";
+import { NotFoundError } from "@/lib/errors";
 
 /**
  * GET /api/dive-logs
@@ -12,16 +14,16 @@ import type { DiveLogInput } from "@/features/dive-log/types";
  * - Without id: get all log entries (newest first)
  */
 export async function GET(req: NextRequest) {
-  const session = await getServerSession(authOptions);
-
-  if (!session?.user) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-
-  const { searchParams } = new URL(req.url);
-  const id = searchParams.get("id");
-
   try {
+    const session = await getServerSession(authOptions);
+
+    if (!session?.user) {
+      return apiError("Unauthorized", 401);
+    }
+
+    const { searchParams } = new URL(req.url);
+    const id = searchParams.get("id");
+
     if (id) {
       const entry = await diveLogRepository.findById(id, session.user.id);
       if (entry) {
@@ -29,12 +31,12 @@ export async function GET(req: NextRequest) {
           entry.id,
           session.user.id
         );
-        return NextResponse.json({
+        return apiSuccess({
           entry,
           gearItems: gearItems.map((dgi) => dgi.gearItem),
         });
       }
-      return NextResponse.json({ entry: null });
+      return apiSuccess({ entry: null });
     }
 
     const entries = await diveLogRepository.findMany({
@@ -56,13 +58,13 @@ export async function GET(req: NextRequest) {
       })
     );
 
-    return NextResponse.json({ entries: entriesWithGear });
+    return apiSuccess({ entries: entriesWithGear });
   } catch (err) {
     console.error("GET /api/dive-logs error", err);
-    return NextResponse.json(
-      { error: "Failed to fetch dive logs" },
-      { status: 500 }
-    );
+    if (err instanceof NotFoundError) {
+      return apiError(err.message, 404);
+    }
+    return apiError("Failed to fetch dive logs", 500);
   }
 }
 
@@ -79,13 +81,13 @@ export async function GET(req: NextRequest) {
  * }
  */
 export async function POST(req: NextRequest) {
-  const session = await getServerSession(authOptions);
-
-  if (!session?.user) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-
   try {
+    const session = await getServerSession(authOptions);
+
+    if (!session?.user) {
+      return apiError("Unauthorized", 401);
+    }
+
     const body = await req.json();
     const { action, id, payload } = body as {
       action: "create" | "update" | "delete";
@@ -96,10 +98,7 @@ export async function POST(req: NextRequest) {
     // CREATE
     if (action === "create") {
       if (!payload) {
-        return NextResponse.json(
-          { error: "Missing payload for create" },
-          { status: 400 }
-        );
+        return apiError("Missing payload for create", 400);
       }
 
       const { gearItemIds, ...diveLogData } = payload as DiveLogInput & {
@@ -133,22 +132,16 @@ export async function POST(req: NextRequest) {
         session.user.id
       );
 
-      return NextResponse.json(
-        {
-          entry: created,
-          gearItems: gearItems.map((dgi) => dgi.gearItem),
-        },
-        { status: 201 }
-      );
+      return apiCreated({
+        entry: created,
+        gearItems: gearItems.map((dgi) => dgi.gearItem),
+      });
     }
 
     // UPDATE
     if (action === "update") {
       if (!id || !payload) {
-        return NextResponse.json(
-          { error: "Missing id or payload for update" },
-          { status: 400 }
-        );
+        return apiError("Missing id or payload for update", 400);
       }
 
       const { gearItemIds, ...diveLogData } = payload as DiveLogInput & {
@@ -181,7 +174,7 @@ export async function POST(req: NextRequest) {
         session.user.id
       );
 
-      return NextResponse.json({
+      return apiSuccess({
         entry: updated,
         gearItems: gearItems.map((dgi) => dgi.gearItem),
       });
@@ -190,25 +183,22 @@ export async function POST(req: NextRequest) {
     // DELETE
     if (action === "delete") {
       if (!id) {
-        return NextResponse.json(
-          { error: "Missing id for delete" },
-          { status: 400 }
-        );
+        return apiError("Missing id for delete", 400);
       }
 
       await diveLogRepository.delete(id, session.user.id);
 
       await diveLogRepository.recomputeDiveNumbersForUser(session.user.id);
-      return NextResponse.json({ ok: true });
+      return apiOk();
     }
 
     // Unknown action
-    return NextResponse.json({ error: "Invalid action" }, { status: 400 });
+    return apiError("Invalid action", 400);
   } catch (err) {
     console.error("POST /api/dive-logs error", err);
-    return NextResponse.json(
-      { error: "Failed to process dive log request" },
-      { status: 500 }
-    );
+    if (err instanceof NotFoundError) {
+      return apiError(err.message, 404);
+    }
+    return apiError("Failed to process dive log request", 500);
   }
 }

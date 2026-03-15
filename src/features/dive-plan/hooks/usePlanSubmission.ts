@@ -113,10 +113,14 @@ export function usePlanSubmission() {
       const decoder = new TextDecoder();
       let accumulated = "";
 
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-        accumulated += decoder.decode(value, { stream: true });
+      try {
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          accumulated += decoder.decode(value, { stream: true });
+        }
+      } finally {
+        reader.releaseLock();
       }
 
       const briefing = parseAIBriefing(accumulated);

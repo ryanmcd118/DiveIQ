@@ -1,10 +1,16 @@
 export const runtime = "nodejs";
 
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/features/auth/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { createUserCertificationSchema } from "@/features/certifications/types";
+import {
+  apiError,
+  apiValidationError,
+  apiSuccess,
+  apiCreated,
+} from "@/lib/apiResponse";
 
 /**
  * GET /api/certifications
@@ -13,13 +19,13 @@ import { createUserCertificationSchema } from "@/features/certifications/types";
  */
 export async function GET(_req: NextRequest) {
   void _req;
-  const session = await getServerSession(authOptions);
-
-  if (!session?.user) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-
   try {
+    const session = await getServerSession(authOptions);
+
+    if (!session?.user) {
+      return apiError("Unauthorized", 401);
+    }
+
     const certifications = await prisma.userCertification.findMany({
       where: {
         userId: session.user.id,
@@ -44,13 +50,10 @@ export async function GET(_req: NextRequest) {
       ],
     });
 
-    return NextResponse.json({ certifications });
+    return apiSuccess({ certifications });
   } catch (err) {
     console.error("GET /api/certifications error", err);
-    return NextResponse.json(
-      { error: "Failed to fetch certifications" },
-      { status: 500 }
-    );
+    return apiError("Failed to fetch certifications", 500);
   }
 }
 
@@ -60,22 +63,19 @@ export async function GET(_req: NextRequest) {
  * Requires authentication
  */
 export async function POST(req: NextRequest) {
-  const session = await getServerSession(authOptions);
-
-  if (!session?.user) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-
   try {
+    const session = await getServerSession(authOptions);
+
+    if (!session?.user) {
+      return apiError("Unauthorized", 401);
+    }
+
     const body = await req.json();
 
     // Validate input
     const validationResult = createUserCertificationSchema.safeParse(body);
     if (!validationResult.success) {
-      return NextResponse.json(
-        { error: "Invalid input", details: validationResult.error.issues },
-        { status: 400 }
-      );
+      return apiValidationError("Invalid input", validationResult.error.issues);
     }
 
     const data = validationResult.data;
@@ -86,10 +86,7 @@ export async function POST(req: NextRequest) {
     });
 
     if (!definition) {
-      return NextResponse.json(
-        { error: "Certification definition not found" },
-        { status: 404 }
-      );
+      return apiError("Certification definition not found", 404);
     }
 
     // Check for duplicates
@@ -121,12 +118,9 @@ export async function POST(req: NextRequest) {
     });
 
     if (isDuplicate) {
-      return NextResponse.json(
-        {
-          error:
-            "Duplicate certification: same definition, earned date, and cert number",
-        },
-        { status: 409 }
+      return apiError(
+        "Duplicate certification: same definition, earned date, and cert number",
+        409
       );
     }
 
@@ -158,18 +152,12 @@ export async function POST(req: NextRequest) {
       },
     });
 
-    return NextResponse.json({ certification }, { status: 201 });
+    return apiCreated({ certification });
   } catch (err) {
     console.error("POST /api/certifications error", err);
     if (err instanceof Error && err.message.includes("Unique constraint")) {
-      return NextResponse.json(
-        { error: "Duplicate certification" },
-        { status: 409 }
-      );
+      return apiError("Duplicate certification", 409);
     }
-    return NextResponse.json(
-      { error: "Failed to create certification" },
-      { status: 500 }
-    );
+    return apiError("Failed to create certification", 500);
   }
 }

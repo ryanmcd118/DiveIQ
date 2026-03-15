@@ -15,7 +15,10 @@ export function useDivePlanProfileContext() {
         return res.json();
       })
       .then((data: ProfileContext) => setProfileContext(data))
-      .catch(() => setProfileError("Failed to load profile context."))
+      .catch((err) => {
+        console.error("GET /api/dive-plans/profile-context error", err);
+        setProfileError("Failed to load profile context.");
+      })
       .finally(() => setProfileLoading(false));
   }, []);
 

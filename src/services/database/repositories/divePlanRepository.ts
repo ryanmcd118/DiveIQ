@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+import { NotFoundError } from "@/lib/errors";
 import type {
   PlanInput,
   PastPlan,
@@ -80,7 +81,7 @@ export const divePlanRepository = {
       where: { id, userId },
     });
     if (!existing) {
-      throw new Error("Dive plan not found or unauthorized");
+      throw new NotFoundError("Dive plan not found or unauthorized");
     }
     const result = await prisma.divePlan.update({
       where: { id },
@@ -111,7 +112,7 @@ export const divePlanRepository = {
       where: { id, userId },
     });
     if (!existing) {
-      throw new Error("Dive plan not found or unauthorized");
+      throw new NotFoundError("Dive plan not found or unauthorized");
     }
     await prisma.divePlan.delete({
       where: { id },

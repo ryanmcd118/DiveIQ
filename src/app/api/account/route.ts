@@ -1,7 +1,8 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/features/auth/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { apiOk, apiError } from "@/lib/apiResponse";
 
 /**
  * DELETE /api/account
@@ -10,15 +11,14 @@ import { prisma } from "@/lib/prisma";
  */
 export async function DELETE(_req: NextRequest) {
   void _req;
-  const session = await getServerSession(authOptions);
-
-  if (!session?.user?.id) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-
-  const userId = session.user.id;
-
   try {
+    const session = await getServerSession(authOptions);
+
+    if (!session?.user?.id) {
+      return apiError("Unauthorized", 401);
+    }
+
+    const userId = session.user.id;
     // Cascade deletion is done manually in sequence despite schema-level
     // onDelete: Cascade — defensive measure for edge cases during the
     // SQLite → PostgreSQL migration (DIV-41). Reassess after DIV-41.
@@ -90,12 +90,9 @@ export async function DELETE(_req: NextRequest) {
       });
     });
 
-    return NextResponse.json({ success: true });
+    return apiOk();
   } catch (err) {
-    console.error("Error deleting account:", err);
-    return NextResponse.json(
-      { error: "Failed to delete account" },
-      { status: 500 }
-    );
+    console.error("DELETE /api/account error", err);
+    return apiError("Failed to delete account", 500);
   }
 }

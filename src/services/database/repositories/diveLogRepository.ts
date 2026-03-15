@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+import { NotFoundError } from "@/lib/errors";
 import type { DiveLogInput, DiveLogEntry } from "@/features/dive-log/types";
 import type { Prisma } from "@prisma/client";
 
@@ -91,7 +92,7 @@ export const diveLogRepository = {
       where: { id, userId },
     });
     if (!existing) {
-      throw new Error("Dive log not found or unauthorized");
+      throw new NotFoundError("Dive log not found or unauthorized");
     }
     return prisma.diveLog.update({
       where: { id },
@@ -142,7 +143,7 @@ export const diveLogRepository = {
       where: { id, userId },
     });
     if (!existing) {
-      throw new Error("Dive log not found or unauthorized");
+      throw new NotFoundError("Dive log not found or unauthorized");
     }
     await prisma.diveLog.delete({
       where: { id },

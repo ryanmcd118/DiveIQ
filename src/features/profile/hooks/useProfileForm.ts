@@ -201,9 +201,13 @@ export function useProfileForm() {
       if (response.ok) {
         const data = await response.json();
         setKits(data.kits || []);
+      } else {
+        console.error("GET /api/gear-kits error", response.status);
+        setError("Failed to load gear kits");
       }
     } catch (err) {
       console.error("Failed to fetch kits:", err);
+      setError("Failed to load gear kits");
     } finally {
       setKitsLoading(false);
     }

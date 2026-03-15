@@ -1,21 +1,22 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/features/auth/lib/auth";
 import { gearRepository } from "@/services/database/repositories/gearRepository";
 import { NotFoundError } from "@/lib/errors";
+import { apiError, apiSuccess, apiCreated, apiOk } from "@/lib/apiResponse";
 
 /**
  * GET /api/gear
  * Get all gear items for the authenticated user
  */
 export async function GET(req: NextRequest) {
-  const session = await getServerSession(authOptions);
-
-  if (!session?.user) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-
   try {
+    const session = await getServerSession(authOptions);
+
+    if (!session?.user) {
+      return apiError("Unauthorized", 401);
+    }
+
     const { searchParams } = new URL(req.url);
     const includeInactive = searchParams.get("includeInactive") === "true";
     const type = searchParams.get("type") || undefined;
@@ -25,13 +26,10 @@ export async function GET(req: NextRequest) {
       type,
     });
 
-    return NextResponse.json({ items });
+    return apiSuccess({ items });
   } catch (err) {
     console.error("GET /api/gear error", err);
-    return NextResponse.json(
-      { error: "Failed to fetch gear items" },
-      { status: 500 }
-    );
+    return apiError("Failed to fetch gear items", 500);
   }
 }
 
@@ -40,13 +38,13 @@ export async function GET(req: NextRequest) {
  * Create a new gear item
  */
 export async function POST(req: NextRequest) {
-  const session = await getServerSession(authOptions);
-
-  if (!session?.user) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-
   try {
+    const session = await getServerSession(authOptions);
+
+    if (!session?.user) {
+      return apiError("Unauthorized", 401);
+    }
+
     const body = await req.json();
     const {
       type,
@@ -61,9 +59,9 @@ export async function POST(req: NextRequest) {
     } = body;
 
     if (!type || !manufacturer || !model) {
-      return NextResponse.json(
-        { error: "Missing required fields: type, manufacturer, model" },
-        { status: 400 }
+      return apiError(
+        "Missing required fields: type, manufacturer, model",
+        400
       );
     }
 
@@ -86,13 +84,10 @@ export async function POST(req: NextRequest) {
       session.user.id
     );
 
-    return NextResponse.json({ item }, { status: 201 });
+    return apiCreated({ item });
   } catch (err) {
     console.error("POST /api/gear error", err);
-    return NextResponse.json(
-      { error: "Failed to create gear item" },
-      { status: 500 }
-    );
+    return apiError("Failed to create gear item", 500);
   }
 }
 
@@ -101,13 +96,13 @@ export async function POST(req: NextRequest) {
  * Update a gear item
  */
 export async function PUT(req: NextRequest) {
-  const session = await getServerSession(authOptions);
-
-  if (!session?.user) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-
   try {
+    const session = await getServerSession(authOptions);
+
+    if (!session?.user) {
+      return apiError("Unauthorized", 401);
+    }
+
     const body = await req.json();
     const {
       id,
@@ -123,7 +118,7 @@ export async function PUT(req: NextRequest) {
     } = body;
 
     if (!id) {
-      return NextResponse.json({ error: "Missing id" }, { status: 400 });
+      return apiError("Missing id", 400);
     }
 
     const updateData: {
@@ -157,16 +152,13 @@ export async function PUT(req: NextRequest) {
 
     const item = await gearRepository.update(id, updateData, session.user.id);
 
-    return NextResponse.json({ item });
+    return apiSuccess({ item });
   } catch (err) {
     console.error("PUT /api/gear error", err);
     if (err instanceof NotFoundError) {
-      return NextResponse.json({ error: err.message }, { status: 404 });
+      return apiError(err.message, 404);
     }
-    return NextResponse.json(
-      { error: "Failed to update gear item" },
-      { status: 500 }
-    );
+    return apiError("Failed to update gear item", 500);
   }
 }
 
@@ -175,31 +167,28 @@ export async function PUT(req: NextRequest) {
  * Delete a gear item
  */
 export async function DELETE(req: NextRequest) {
-  const session = await getServerSession(authOptions);
-
-  if (!session?.user) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-
   try {
+    const session = await getServerSession(authOptions);
+
+    if (!session?.user) {
+      return apiError("Unauthorized", 401);
+    }
+
     const { searchParams } = new URL(req.url);
     const id = searchParams.get("id");
 
     if (!id) {
-      return NextResponse.json({ error: "Missing id" }, { status: 400 });
+      return apiError("Missing id", 400);
     }
 
     await gearRepository.delete(id, session.user.id);
 
-    return NextResponse.json({ ok: true });
+    return apiOk();
   } catch (err) {
     console.error("DELETE /api/gear error", err);
     if (err instanceof NotFoundError) {
-      return NextResponse.json({ error: err.message }, { status: 404 });
+      return apiError(err.message, 404);
     }
-    return NextResponse.json(
-      { error: "Failed to delete gear item" },
-      { status: 500 }
-    );
+    return apiError("Failed to delete gear item", 500);
   }
 }

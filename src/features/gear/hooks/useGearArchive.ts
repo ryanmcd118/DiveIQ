@@ -62,7 +62,7 @@ export function useGearArchive({
         setGearItems((prev) =>
           prev.map((g) => (g.id === itemId ? { ...g, isActive: false } : g))
         );
-        alert("Failed to unarchive gear item");
+        setToast({ message: "Failed to unarchive gear item" });
       }
     },
     [setGearItems, loadData, setToast]
@@ -165,6 +165,7 @@ export function useGearArchive({
               }
             } catch (err) {
               console.error(err);
+              setToast({ message: "Failed to undo archive" });
             }
           },
         });
@@ -180,7 +181,7 @@ export function useGearArchive({
         if (kitIds.length > 0) {
           void loadData(false);
         }
-        alert("Failed to archive gear item");
+        setToast({ message: "Failed to archive gear item" });
       }
     },
     [setGearItems, setKits, kits, loadData, setToast]

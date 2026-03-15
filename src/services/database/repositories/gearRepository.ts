@@ -443,7 +443,7 @@ export const diveGearRepository = {
     });
 
     if (!dive) {
-      throw new Error("Dive not found");
+      throw new NotFoundError("Dive not found");
     }
 
     return prisma.diveGearItem.findMany({
@@ -468,7 +468,7 @@ export const diveGearRepository = {
     });
 
     if (!dive) {
-      throw new Error("Dive not found");
+      throw new NotFoundError("Dive not found");
     }
 
     await prisma.$transaction(async (tx) => {

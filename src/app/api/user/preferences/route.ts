@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/features/auth/lib/auth";
 import { prisma } from "@/lib/prisma";
@@ -7,6 +7,7 @@ import {
   unitPreferencesSchema,
   type UnitPreferences,
 } from "@/lib/units";
+import { apiError, apiValidationError, apiSuccess } from "@/lib/apiResponse";
 
 /**
  * GET /api/user/preferences
@@ -23,7 +24,7 @@ export async function GET(_req: NextRequest) {
       typeof session.user.id !== "string" ||
       session.user.id.trim() === ""
     ) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return apiError("Unauthorized", 401);
     }
 
     // Fetch user with unit preferences
@@ -35,7 +36,7 @@ export async function GET(_req: NextRequest) {
     });
 
     if (!user) {
-      return NextResponse.json({ error: "User not found" }, { status: 404 });
+      return apiError("User not found", 404);
     }
 
     // Merge with defaults if preferences are not set
@@ -46,17 +47,10 @@ export async function GET(_req: NextRequest) {
         }
       : DEFAULT_UNIT_PREFERENCES;
 
-    return NextResponse.json({ preferences });
+    return apiSuccess({ preferences });
   } catch (error) {
-    if (process.env.NODE_ENV === "development") {
-      console.error("[GET /api/user/preferences] Error:", error);
-    } else {
-      console.error("[GET /api/user/preferences] Error fetching preferences");
-    }
-    return NextResponse.json(
-      { error: "Internal Server Error" },
-      { status: 500 }
-    );
+    console.error("GET /api/user/preferences error", error);
+    return apiError("Internal Server Error", 500);
   }
 }
 
@@ -74,7 +68,7 @@ export async function PATCH(req: NextRequest) {
       typeof session.user.id !== "string" ||
       session.user.id.trim() === ""
     ) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return apiError("Unauthorized", 401);
     }
 
     const body = await req.json();
@@ -82,12 +76,9 @@ export async function PATCH(req: NextRequest) {
     // Validate the preferences
     const validationResult = unitPreferencesSchema.safeParse(body);
     if (!validationResult.success) {
-      return NextResponse.json(
-        {
-          error: "Invalid preferences",
-          details: validationResult.error.issues,
-        },
-        { status: 400 }
+      return apiValidationError(
+        "Invalid preferences",
+        validationResult.error.issues
       );
     }
 
@@ -101,16 +92,9 @@ export async function PATCH(req: NextRequest) {
       },
     });
 
-    return NextResponse.json({ preferences });
+    return apiSuccess({ preferences });
   } catch (error) {
-    if (process.env.NODE_ENV === "development") {
-      console.error("[PATCH /api/user/preferences] Error:", error);
-    } else {
-      console.error("[PATCH /api/user/preferences] Error updating preferences");
-    }
-    return NextResponse.json(
-      { error: "Internal Server Error" },
-      { status: 500 }
-    );
+    console.error("PATCH /api/user/preferences error", error);
+    return apiError("Internal Server Error", 500);
   }
 }

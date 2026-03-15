@@ -325,7 +325,10 @@ export function useDiveFormState({
     fetch("/api/gear-kits")
       .then((r) => (r.ok ? r.json() : { kits: [] }))
       .then((data) => setGearKits(data.kits || []))
-      .catch(() => setGearKits([]));
+      .catch((err) => {
+        console.error("Failed to fetch gear kits", err);
+        setGearKits([]);
+      });
   }, []);
 
   const validateDate = (value: string) => {

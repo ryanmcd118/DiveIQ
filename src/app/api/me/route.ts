@@ -1,7 +1,8 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/features/auth/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { apiError, apiSuccess } from "@/lib/apiResponse";
 
 /**
  * GET /api/me
@@ -18,7 +19,7 @@ export async function GET(_req: NextRequest) {
       typeof session.user.id !== "string" ||
       session.user.id.trim() === ""
     ) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return apiError("Unauthorized", 401);
     }
 
     // Fetch fresh user data from database
@@ -41,14 +42,14 @@ export async function GET(_req: NextRequest) {
     });
 
     if (!user) {
-      return NextResponse.json({ error: "User not found" }, { status: 404 });
+      return apiError("User not found", 404);
     }
 
     // Check sign-in methods
     const hasPassword = !!user.password;
     const hasGoogle = user.accounts.some((acc) => acc.provider === "google");
 
-    return NextResponse.json({
+    return apiSuccess({
       id: user.id,
       email: user.email,
       firstName: user.firstName,
@@ -59,17 +60,7 @@ export async function GET(_req: NextRequest) {
       hasGoogle,
     });
   } catch (error) {
-    if (process.env.NODE_ENV === "development") {
-      console.error("[GET /api/me] Error:", error);
-      if (error instanceof Error) {
-        console.error("[GET /api/me] Error message:", error.message);
-      }
-    } else {
-      console.error("[GET /api/me] Error fetching user data");
-    }
-    return NextResponse.json(
-      { error: "Internal Server Error" },
-      { status: 500 }
-    );
+    console.error("GET /api/me error", error);
+    return apiError("Internal Server Error", 500);
   }
 }

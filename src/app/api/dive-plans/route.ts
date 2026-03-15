@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/features/auth/lib/auth";
 import {
@@ -15,6 +15,8 @@ import {
 } from "@/features/dive-plan/types";
 import type { UnitPreferences } from "@/lib/units";
 import { cmToMeters, preferencesToUnitSystem } from "@/lib/units";
+import { apiError, apiOk, apiCreated, apiSuccess } from "@/lib/apiResponse";
+import { NotFoundError } from "@/lib/errors";
 
 /**
  * POST /api/dive-plans
@@ -22,16 +24,12 @@ import { cmToMeters, preferencesToUnitSystem } from "@/lib/units";
  * Requires authentication to save the plan
  */
 export async function POST(req: NextRequest) {
-  const session = await getServerSession(authOptions);
-
-  if (!session?.user) {
-    return NextResponse.json(
-      { error: "Unauthorized - please sign in to save dive plans" },
-      { status: 401 }
-    );
-  }
-
   try {
+    const session = await getServerSession(authOptions);
+
+    if (!session?.user) {
+      return apiError("Unauthorized - please sign in to save dive plans", 401);
+    }
     const body = (await req.json()) as {
       region: string;
       siteName: string;
@@ -46,10 +44,7 @@ export async function POST(req: NextRequest) {
 
     const parsed = divePlanInputSchema.safeParse(body);
     if (!parsed.success) {
-      return NextResponse.json(
-        { error: "Validation failed", details: parsed.error.flatten() },
-        { status: 400 }
-      );
+      return apiError("Validation failed", 400);
     }
 
     // Convert to meters for risk calculation
@@ -107,20 +102,14 @@ export async function POST(req: NextRequest) {
       session.user.id
     );
 
-    return NextResponse.json(
-      {
-        aiAdvice,
-        aiBriefing,
-        plan: savedPlan,
-      },
-      { status: 201 }
-    );
+    return apiCreated({
+      aiAdvice,
+      aiBriefing,
+      plan: savedPlan,
+    });
   } catch (err) {
-    console.error("Error in POST /api/dive-plans:", err);
-    return NextResponse.json(
-      { error: "Failed to generate plan advice." },
-      { status: 500 }
-    );
+    console.error("POST /api/dive-plans error", err);
+    return apiError("Failed to generate plan advice.", 500);
   }
 }
 
@@ -130,13 +119,13 @@ export async function POST(req: NextRequest) {
  * Requires authentication
  */
 export async function PUT(req: NextRequest) {
-  const session = await getServerSession(authOptions);
-
-  if (!session?.user) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-
   try {
+    const session = await getServerSession(authOptions);
+
+    if (!session?.user) {
+      return apiError("Unauthorized", 401);
+    }
+
     const body = (await req.json()) as {
       id: string;
       region: string;
@@ -151,18 +140,12 @@ export async function PUT(req: NextRequest) {
     };
 
     if (!body.id) {
-      return NextResponse.json(
-        { error: "Missing plan id for update." },
-        { status: 400 }
-      );
+      return apiError("Missing plan id for update.", 400);
     }
 
     const parsed = divePlanInputSchema.safeParse(body);
     if (!parsed.success) {
-      return NextResponse.json(
-        { error: "Validation failed", details: parsed.error.flatten() },
-        { status: 400 }
-      );
+      return apiError("Validation failed", 400);
     }
 
     // Convert to meters for risk calculation
@@ -215,20 +198,17 @@ export async function PUT(req: NextRequest) {
       session.user.id
     );
 
-    return NextResponse.json(
-      {
-        aiAdvice,
-        aiBriefing,
-        plan: updatedPlan,
-      },
-      { status: 200 }
-    );
+    return apiSuccess({
+      aiAdvice,
+      aiBriefing,
+      plan: updatedPlan,
+    });
   } catch (err) {
-    console.error("Error in PUT /api/dive-plans:", err);
-    return NextResponse.json(
-      { error: "Failed to update plan." },
-      { status: 500 }
-    );
+    console.error("PUT /api/dive-plans error", err);
+    if (err instanceof NotFoundError) {
+      return apiError(err.message, 404);
+    }
+    return apiError("Failed to update plan.", 500);
   }
 }
 
@@ -237,26 +217,23 @@ export async function PUT(req: NextRequest) {
  * Retrieve dive plans for the authenticated user (most recent first)
  */
 export async function GET() {
-  const session = await getServerSession(authOptions);
-
-  if (!session?.user) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-
   try {
+    const session = await getServerSession(authOptions);
+
+    if (!session?.user) {
+      return apiError("Unauthorized", 401);
+    }
+
     const plans = await divePlanRepository.findMany({
       orderBy: "createdAt",
       take: 100,
       userId: session.user.id,
     });
 
-    return NextResponse.json({ plans });
+    return apiSuccess({ plans });
   } catch (err) {
-    console.error("Error in GET /api/dive-plans:", err);
-    return NextResponse.json(
-      { error: "Failed to fetch plans." },
-      { status: 500 }
-    );
+    console.error("GET /api/dive-plans error", err);
+    return apiError("Failed to fetch plans.", 500);
   }
 }
 
@@ -266,27 +243,27 @@ export async function GET() {
  * Requires authentication
  */
 export async function DELETE(req: NextRequest) {
-  const session = await getServerSession(authOptions);
-
-  if (!session?.user) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-
   try {
+    const session = await getServerSession(authOptions);
+
+    if (!session?.user) {
+      return apiError("Unauthorized", 401);
+    }
+
     const id = req.nextUrl.searchParams.get("id");
 
     if (!id) {
-      return NextResponse.json({ error: "Missing plan id" }, { status: 400 });
+      return apiError("Missing plan id", 400);
     }
 
     await divePlanRepository.delete(id, session.user.id);
 
-    return NextResponse.json({ success: true });
+    return apiOk();
   } catch (err) {
-    console.error("Error deleting dive plan:", err);
-    return NextResponse.json(
-      { error: "Failed to delete plan" },
-      { status: 500 }
-    );
+    console.error("DELETE /api/dive-plans error", err);
+    if (err instanceof NotFoundError) {
+      return apiError(err.message, 404);
+    }
+    return apiError("Failed to delete plan", 500);
   }
 }
