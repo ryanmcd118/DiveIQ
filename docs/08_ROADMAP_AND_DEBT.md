@@ -183,8 +183,8 @@ Test count: 549 → 588 tests (23 test files). Eight commits across 8 implementa
 - `src/features/app/components/AppShell.tsx` — full authenticated sidebar layout
   Same name, completely different purpose. Rename auth version to `AuthShell.tsx` or consolidate routing into Next.js layout files.
 
-**Duplicate unit toggle components**
-`NavbarUnitToggle.tsx` (uses global context) and `NavbarUnitToggleLocal.tsx` (uses localStorage + custom events) share nearly identical JSX. Extract shared buttons to `UnitToggleButtons.tsx`.
+**~~Duplicate unit toggle components~~ (RESOLVED — batch 6b)**
+Consolidated: `UnitToggleButtons.tsx` presentational component, `NavbarUnitToggleLocal` deleted, custom `unitSystemChanged` event eliminated. All toggles now use `UnitSystemContext`.
 
 ### Low priority
 

@@ -3,15 +3,13 @@
 import { useState, useEffect, useCallback } from "react";
 import { useSession } from "next-auth/react";
 import { useMe } from "@/features/auth/hooks/useMe";
+import { useUnitSystem } from "@/contexts/UnitSystemContext";
 import {
   DEFAULT_UNIT_PREFERENCES,
   unitSystemToPreferences,
   preferencesToUnitSystem,
   type UnitPreferences,
-  type UnitSystem,
 } from "@/lib/units";
-
-const STORAGE_KEY = "diveiq:unitSystem";
 
 type UnitPreferencesMode = "auto" | "guest" | "authed";
 
@@ -22,7 +20,7 @@ interface UseUnitPreferencesOptions {
 /**
  * Hook that provides unified unit preferences for both authenticated and guest users
  * - Authenticated: loads from API, persists to DB
- * - Guest: loads from localStorage, persists to localStorage
+ * - Guest: syncs from UnitSystemContext (which persists to localStorage)
  *
  * @param options.mode - 'auto' (default): detect from session, 'guest': force guest mode, 'authed': force authenticated mode
  */
@@ -30,6 +28,8 @@ export function useUnitPreferences(options?: UseUnitPreferencesOptions) {
   const mode = options?.mode ?? "auto";
   const { status } = useSession();
   const { isLoading: meLoading } = useMe();
+  const { unitSystem: contextUnitSystem, setUnitSystem: setContextUnitSystem } =
+    useUnitSystem();
 
   // Determine if we should use authenticated mode
   const isAuthenticated =
@@ -74,41 +74,13 @@ export function useUnitPreferences(options?: UseUnitPreferencesOptions) {
     void loadPreferences();
   }, [isAuthenticated, meLoading, mode]);
 
-  // Load preferences for guest users from localStorage
+  // Sync preferences from UnitSystemContext for guest users
   useEffect(() => {
     if (!isGuestMode) return;
 
-    const loadGuestPreferences = () => {
-      if (typeof window === "undefined") return;
-
-      const stored = localStorage.getItem(STORAGE_KEY);
-      if (stored === "metric" || stored === "imperial") {
-        setPreferencesState(unitSystemToPreferences(stored));
-      } else {
-        setPreferencesState(DEFAULT_UNIT_PREFERENCES);
-      }
-      setIsLoading(false);
-    };
-
-    loadGuestPreferences();
-
-    // Listen to custom events from guest toggles
-    const handleUnitSystemChange = (event: CustomEvent<UnitSystem>) => {
-      setPreferencesState(unitSystemToPreferences(event.detail));
-    };
-
-    window.addEventListener(
-      "unitSystemChanged",
-      handleUnitSystemChange as EventListener
-    );
-
-    return () => {
-      window.removeEventListener(
-        "unitSystemChanged",
-        handleUnitSystemChange as EventListener
-      );
-    };
-  }, [isGuestMode]);
+    setPreferencesState(unitSystemToPreferences(contextUnitSystem));
+    setIsLoading(false);
+  }, [isGuestMode, contextUnitSystem]);
 
   // Update preferences (different behavior for authenticated vs guest)
   const setPrefs = useCallback(
@@ -138,18 +110,11 @@ export function useUnitPreferences(options?: UseUnitPreferencesOptions) {
           setPreferencesState(preferences);
         }
       } else if (isGuestMode) {
-        // Persist to localStorage and dispatch event for guest users
-        if (typeof window !== "undefined") {
-          const unitSystem = preferencesToUnitSystem(newPrefs);
-          localStorage.setItem(STORAGE_KEY, unitSystem);
-          const event = new CustomEvent("unitSystemChanged", {
-            detail: unitSystem,
-          });
-          window.dispatchEvent(event);
-        }
+        // Update UnitSystemContext — it persists to localStorage automatically
+        setContextUnitSystem(preferencesToUnitSystem(newPrefs));
       }
     },
-    [preferences, isAuthenticated, isGuestMode]
+    [preferences, isAuthenticated, isGuestMode, setContextUnitSystem]
   );
 
   return {

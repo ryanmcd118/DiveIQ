@@ -1,64 +1,14 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import type { UnitSystem } from "@/lib/units";
-import styles from "./UnitToggle.module.css";
+import { useUnitSystem } from "@/contexts/UnitSystemContext";
+import { UnitToggleButtons } from "./UnitToggleButtons";
 
 /**
- * Form-level unit toggle for logged-out users
- * Uses local state and dispatches events for useUnitSystemOrLocal hook
- * Positioned at the top of forms (not in navbar)
+ * Form-level unit toggle positioned at the top of forms.
+ * Uses the global UnitSystemContext — works for both authenticated and guest users.
  */
 export function FormUnitToggle() {
-  // Initialize from localStorage if available (client-side only)
-  // On SSR, window is undefined so this returns "metric" for consistency
-  const [unitSystem, setUnitSystem] = useState<UnitSystem>(() => {
-    if (typeof window !== "undefined") {
-      const stored = localStorage.getItem("diveiq:unitSystem");
-      if (stored === "metric" || stored === "imperial") {
-        return stored;
-      }
-    }
-    return "metric";
-  });
-
-  // Persist to localStorage when unitSystem changes (only after mount)
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      localStorage.setItem("diveiq:unitSystem", unitSystem);
-      // Dispatch event so useUnitSystemOrLocal can react to changes
-      const event = new CustomEvent("unitSystemChanged", {
-        detail: unitSystem,
-      });
-      window.dispatchEvent(event);
-    }
-  }, [unitSystem]);
-
-  // Render toggle with active state based on unitSystem
-  const renderToggle = () => {
-    return (
-      <div className={styles.toggle} role="group" aria-label="Unit system">
-        <button
-          type="button"
-          className={`${styles.segment} ${unitSystem === "metric" ? styles.active : ""}`}
-          onClick={() => setUnitSystem("metric")}
-          aria-pressed={unitSystem === "metric"}
-          aria-label="Metric units"
-        >
-          Metric
-        </button>
-        <button
-          type="button"
-          className={`${styles.segment} ${unitSystem === "imperial" ? styles.active : ""}`}
-          onClick={() => setUnitSystem("imperial")}
-          aria-pressed={unitSystem === "imperial"}
-          aria-label="Imperial units"
-        >
-          Imperial
-        </button>
-      </div>
-    );
-  };
+  const { unitSystem, setUnitSystem } = useUnitSystem();
 
   return (
     <div
@@ -84,7 +34,7 @@ export function FormUnitToggle() {
         >
           Units
         </span>
-        {renderToggle()}
+        <UnitToggleButtons unitSystem={unitSystem} onChange={setUnitSystem} />
       </div>
     </div>
   );

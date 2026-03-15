@@ -155,8 +155,9 @@ Reusable UI components used across features:
 - `Avatar/` - Avatar display + upload modal (`Avatar.tsx`, `AvatarUploadModal.tsx`)
 - `Toast.tsx` - Toast notifications
 - `ConfirmModal.tsx` - Confirmation dialogs
-- `UnitToggle.tsx`, `NavbarUnitToggle.tsx` - Unit system toggles
-- `FormUnitToggle.tsx` - Form-level unit toggle
+- `UnitToggleButtons.tsx` - Pure presentational unit toggle buttons (no state/context)
+- `NavbarUnitToggle.tsx` - Navbar unit toggle (uses `UnitToggleButtons` + `useUnitSystem` context)
+- `FormUnitToggle.tsx` - Form-level unit toggle (uses `UnitToggleButtons` + `useUnitSystem` context)
 - `UploadThingProvider.tsx` - File upload provider wrapper
 
 **Convention**: Shared components should not import from features. Features import from components.
@@ -412,9 +413,7 @@ const [error, setError] = useState<string | null>(null);
 
 - Most features follow `components/` pattern
 - `app/` feature contains shell components (Sidebar, TopBar) - could be considered shared
-- Some shared components (`UnitToggle`, `NavbarUnitToggle`, `NavbarUnitToggleLocal`) have similar names - potential confusion
-
-**Recommendation**: Audit shared vs feature component boundaries, consider consolidating unit toggle components.
+- Unit toggle components consolidated (batch 6b): `UnitToggleButtons` (presentational), `NavbarUnitToggle` and `FormUnitToggle` (both use `UnitSystemContext`)
 
 ### State Management Complexity
 

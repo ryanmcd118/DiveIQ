@@ -224,12 +224,12 @@ diveiq/
 │   │   ├── Avatar/              # Avatar component + upload modal
 │   │   ├── Toast/               # Toast notification
 │   │   ├── ConfirmModal/        # Confirmation dialog
-│   │   └── UnitToggle/          # Unit system toggle
+│   │   ├── UnitToggleButtons/    # Presentational unit toggle buttons
+│   │   └── NavbarUnitToggle/    # Navbar unit toggle (context-based)
 │   ├── contexts/                # React contexts
 │   │   └── UnitSystemContext.tsx # Unit preferences context
 │   ├── hooks/                   # Shared custom hooks
-│   │   ├── useUnitPreferences.ts
-│   │   └── useUnitSystemOrLocal.ts
+│   │   └── useUnitPreferences.ts
 │   ├── lib/                     # Utility libraries
 │   │   ├── prisma.ts            # Prisma client singleton
 │   │   ├── units.ts             # Unit conversion utilities

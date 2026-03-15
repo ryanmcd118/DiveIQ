@@ -8,6 +8,7 @@ import {
   PlanData,
 } from "@/features/dive-plan/types";
 import { depthInputToCm } from "@/lib/units";
+import { useUnitSystem } from "@/contexts/UnitSystemContext";
 import { usePlanSubmission } from "./usePlanSubmission";
 
 async function waitForSession(
@@ -28,6 +29,7 @@ async function waitForSession(
 }
 
 export function usePublicPlanState() {
+  const { setUnitSystem: setContextUnitSystem } = useUnitSystem();
   const submission = usePlanSubmission();
   const {
     prefs,
@@ -80,11 +82,8 @@ export function usePublicPlanState() {
       // so the right panel stays in placeholder mode until an actual submission.
       setTimeout(() => submission.setSubmittedPlan(null), 0);
 
-      if (unitSystem) {
-        localStorage.setItem("diveiq:unitSystem", unitSystem);
-        window.dispatchEvent(
-          new CustomEvent("unitSystemChanged", { detail: unitSystem })
-        );
+      if (unitSystem === "metric" || unitSystem === "imperial") {
+        setContextUnitSystem(unitSystem);
       }
     } catch {
       // sessionStorage or JSON.parse may fail — ignore
