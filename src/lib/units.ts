@@ -1,3 +1,5 @@
+import { z } from "zod";
+
 /**
  * Per-measurement unit types
  */
@@ -15,6 +17,16 @@ export interface UnitPreferences {
   pressure: PressureUnit;
   weight: WeightUnit;
 }
+
+/**
+ * Zod validation schema for unit preferences
+ */
+export const unitPreferencesSchema = z.object({
+  depth: z.enum(["ft", "m"]),
+  temperature: z.enum(["f", "c"]),
+  pressure: z.enum(["psi", "bar"]),
+  weight: z.enum(["lb", "kg"]),
+});
 
 /**
  * Default unit preferences (imperial-ish)

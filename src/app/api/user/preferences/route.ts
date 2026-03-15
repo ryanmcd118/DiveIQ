@@ -2,18 +2,11 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/features/auth/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { z } from "zod";
-import { DEFAULT_UNIT_PREFERENCES, type UnitPreferences } from "@/lib/units";
-
-/**
- * Validation schema for unit preferences
- */
-const unitPreferencesSchema = z.object({
-  depth: z.enum(["ft", "m"]),
-  temperature: z.enum(["f", "c"]),
-  pressure: z.enum(["psi", "bar"]),
-  weight: z.enum(["lb", "kg"]),
-});
+import {
+  DEFAULT_UNIT_PREFERENCES,
+  unitPreferencesSchema,
+  type UnitPreferences,
+} from "@/lib/units";
 
 /**
  * GET /api/user/preferences

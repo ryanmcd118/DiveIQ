@@ -8,19 +8,13 @@ import {
 } from "@/services/ai/openaiService";
 import { calculateRiskLevel } from "@/features/dive-plan/services/riskCalculator";
 import { divePlanRepository } from "@/services/database/repositories/divePlanRepository";
-import type { AIBriefing, PlanInput } from "@/features/dive-plan/types";
+import {
+  divePlanInputSchema,
+  type AIBriefing,
+  type PlanInput,
+} from "@/features/dive-plan/types";
 import type { UnitPreferences } from "@/lib/units";
 import { cmToMeters, preferencesToUnitSystem } from "@/lib/units";
-import { z } from "zod";
-
-const divePlanInputSchema = z.object({
-  region: z.string().min(1),
-  siteName: z.string().min(1),
-  date: z.string().min(1),
-  maxDepthCm: z.number().int().positive(),
-  bottomTime: z.number().int().positive(),
-  experienceLevel: z.string().min(1),
-});
 
 /**
  * POST /api/dive-plans

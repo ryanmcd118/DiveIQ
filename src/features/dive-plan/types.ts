@@ -1,6 +1,9 @@
 // Dive Plan Types
 
-export type ExperienceLevel = "Beginner" | "Intermediate" | "Advanced";
+import { z } from "zod";
+import type { ExperienceLevel } from "@/types";
+
+export type { ExperienceLevel } from "@/types";
 export type RiskLevel = "Low" | "Moderate" | "High" | "Extreme";
 
 export type PlanData = {
@@ -93,3 +96,13 @@ export type ProfileContext = {
     nickname: string | null;
   }[];
 };
+
+// Zod validation schema for dive plan API input
+export const divePlanInputSchema = z.object({
+  region: z.string().min(1),
+  siteName: z.string().min(1),
+  date: z.string().min(1),
+  maxDepthCm: z.number().int().positive(),
+  bottomTime: z.number().int().positive(),
+  experienceLevel: z.string().min(1),
+});

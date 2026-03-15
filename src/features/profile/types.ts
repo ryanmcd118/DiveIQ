@@ -1,6 +1,6 @@
 // Profile field types
 
-export type ExperienceLevel = "Beginner" | "Intermediate" | "Advanced";
+export type { ExperienceLevel } from "@/types";
 
 // Common dive types
 export const DIVE_TYPES = [
