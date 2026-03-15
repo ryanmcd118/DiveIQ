@@ -87,7 +87,7 @@ describe("account API", () => {
       const data = await res.json();
 
       expect(res.status).toBe(200);
-      expect(data.success).toBe(true);
+      expect(data.ok).toBe(true);
     });
 
     it("calls $transaction for cascade deletion", async () => {
@@ -258,7 +258,7 @@ describe("account API", () => {
       const data = await res.json();
 
       expect(res.status).toBe(200);
-      expect(data.success).toBe(true);
+      expect(data.ok).toBe(true);
     });
 
     it("calls bcrypt.hash for new password", async () => {

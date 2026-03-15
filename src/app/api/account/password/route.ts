@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { getServerSession } from "next-auth";
 import { getToken } from "next-auth/jwt";
 import { encode } from "next-auth/jwt";
@@ -6,6 +6,7 @@ import { authOptions } from "@/features/auth/lib/auth";
 import { prisma } from "@/lib/prisma";
 import bcrypt from "bcryptjs";
 import type { Prisma } from "@prisma/client";
+import { apiOk, apiError } from "@/lib/apiResponse";
 
 /**
  * PUT /api/account/password
@@ -13,30 +14,23 @@ import type { Prisma } from "@prisma/client";
  * Requires authentication and credentials account (password must exist)
  */
 export async function PUT(req: NextRequest) {
-  const session = await getServerSession(authOptions);
-
-  if (!session?.user?.id) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-
-  const userId = session.user.id;
-
   try {
+    const session = await getServerSession(authOptions);
+
+    if (!session?.user?.id) {
+      return apiError("Unauthorized", 401);
+    }
+
+    const userId = session.user.id;
     const body = await req.json();
     const { currentPassword, newPassword } = body;
 
     if (!currentPassword || !newPassword) {
-      return NextResponse.json(
-        { error: "Current password and new password are required" },
-        { status: 400 }
-      );
+      return apiError("Current password and new password are required", 400);
     }
 
     if (newPassword.length < 8) {
-      return NextResponse.json(
-        { error: "New password must be at least 8 characters" },
-        { status: 400 }
-      );
+      return apiError("New password must be at least 8 characters", 400);
     }
 
     // Fetch user with password to verify they have a credentials account
@@ -49,17 +43,14 @@ export async function PUT(req: NextRequest) {
     });
 
     if (!user) {
-      return NextResponse.json({ error: "User not found" }, { status: 404 });
+      return apiError("User not found", 404);
     }
 
     // Check if user has a password (credentials account)
     if (!user.password) {
-      return NextResponse.json(
-        {
-          error:
-            "This account does not have a password. You signed in with Google.",
-        },
-        { status: 400 }
+      return apiError(
+        "This account does not have a password. You signed in with Google.",
+        400
       );
     }
 
@@ -73,18 +64,15 @@ export async function PUT(req: NextRequest) {
     );
 
     if (!isCurrentPasswordValid) {
-      return NextResponse.json(
-        { error: "Current password is incorrect" },
-        { status: 400 }
-      );
+      return apiError("Current password is incorrect", 400);
     }
 
     // Check if new password is different from current
     const isSamePassword = await bcrypt.compare(newPassword, user.password);
     if (isSamePassword) {
-      return NextResponse.json(
-        { error: "New password must be different from current password" },
-        { status: 400 }
+      return apiError(
+        "New password must be different from current password",
+        400
       );
     }
 
@@ -98,10 +86,7 @@ export async function PUT(req: NextRequest) {
     });
 
     if (!currentToken || !currentToken.id) {
-      return NextResponse.json(
-        { error: "Session token not found" },
-        { status: 401 }
-      );
+      return apiError("Session token not found", 401);
     }
 
     // Update password and increment sessionVersion in a transaction
@@ -141,7 +126,7 @@ export async function PUT(req: NextRequest) {
       : "next-auth.session-token";
 
     // Create response with success
-    const response = NextResponse.json({ success: true });
+    const response = apiOk();
 
     // Set the new JWT cookie with updated sessionVersion
     // This keeps the current session alive while invalidating all others
@@ -155,10 +140,7 @@ export async function PUT(req: NextRequest) {
 
     return response;
   } catch (err) {
-    console.error("Error changing password:", err);
-    return NextResponse.json(
-      { error: "Failed to change password" },
-      { status: 500 }
-    );
+    console.error("PUT /api/account/password error", err);
+    return apiError("Failed to change password", 500);
   }
 }
