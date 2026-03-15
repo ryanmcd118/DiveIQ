@@ -90,6 +90,22 @@ export function usePlanSubmission() {
     setSubmittedPlan(values);
     setDraftPlan(values);
 
+    // Merge form-edited experience overrides into the profile so the server
+    // receives the user's manually entered values, not stale DB data.
+    const effectiveProfile = profile
+      ? {
+          ...profile,
+          totalDives:
+            typeof diveCountRangeValue === "string" && diveCountRangeValue
+              ? parseInt(diveCountRangeValue, 10)
+              : profile.totalDives,
+          lastDiveDate:
+            typeof lastDiveRecencyValue === "string" && lastDiveRecencyValue
+              ? lastDiveRecencyValue
+              : profile.lastDiveDate,
+        }
+      : profile;
+
     try {
       const res = await fetch("/api/dive-plans/preview", {
         method: "POST",
@@ -98,7 +114,7 @@ export function usePlanSubmission() {
           ...values,
           maxDepthCm,
           unitPreferences: prefs,
-          profile,
+          profile: effectiveProfile,
           manualExperience,
         }),
       });
