@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, FormEvent } from "react";
-import { useAuth } from "../hooks/useAuth";
+import { useAuth } from "@/hooks/useAuth";
 import Link from "next/link";
 import GoogleOAuthButton from "./GoogleOAuthButton";
 import formStyles from "@/styles/components/Form.module.css";

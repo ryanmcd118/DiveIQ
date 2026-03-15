@@ -9,8 +9,8 @@
 **Where it lives**:
 
 - **Server**: `getServerSession(authOptions)` in Server Components (`src/app/(app)/dashboard/page.tsx:14`, `src/app/page.tsx:11`)
-- **Client**: NextAuth `useSession()` hook (`src/features/auth/hooks/useAuth.ts:8`, `src/features/dive-log/hooks/useLogPageState.ts:40`)
-- **Custom hook**: `useAuth()` wraps `useSession()` with sign-in/sign-up/sign-out helpers (`src/features/auth/hooks/useAuth.ts:7-96`)
+- **Client**: NextAuth `useSession()` hook (`src/hooks/useAuth.ts:8`, `src/features/dive-log/hooks/useLogPageState.ts:40`)
+- **Custom hook**: `useAuth()` wraps `useSession()` with sign-in/sign-up/sign-out helpers (`src/hooks/useAuth.ts:7-96`)
 - **User data hook**: `useMe()` fetches fresh user data from `/api/me` (`src/features/auth/hooks/useMe.ts:15-82`)
 
 **Who owns it**:
@@ -21,7 +21,7 @@
 
 **How it changes**:
 
-- User signs in/out via `useAuth().signInUser()` / `signOutUser()` (`src/features/auth/hooks/useAuth.ts:12-86`)
+- User signs in/out via `useAuth().signInUser()` / `signOutUser()` (`src/hooks/useAuth.ts:12-86`)
 - Session updates propagate via NextAuth's React Context
 - `useMe()` refreshes on custom event `diveiq:me-updated` (`src/features/auth/hooks/useMe.ts:61-70`)
 
@@ -34,7 +34,7 @@
 
 **Cited from**:
 
-- `src/features/auth/hooks/useAuth.ts`
+- `src/hooks/useAuth.ts`
 - `src/features/auth/hooks/useMe.ts`
 - `src/app/layout.tsx:23`
 - `src/app/(app)/dashboard/page.tsx:14`

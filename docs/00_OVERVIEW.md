@@ -208,8 +208,8 @@ diveiq/
 │   │   └── page.tsx             # Home page
 │   ├── features/                # Feature modules (feature-based architecture)
 │   │   ├── auth/                # Authentication feature
-│   │   │   ├── components/      # Auth UI components
-│   │   │   ├── hooks/           # useAuth, useMe hooks
+│   │   │   ├── components/      # Auth UI components (SignInForm, SignUpForm, etc.)
+│   │   │   ├── hooks/           # useMe hook (useAuth promoted to src/hooks/)
 │   │   │   └── lib/             # auth.ts (NextAuth config)
 │   │   ├── dive-log/            # Dive logging feature
 │   │   ├── dive-plan/           # Dive planning feature (AI integration)
@@ -221,14 +221,17 @@ diveiq/
 │   │   ├── app/                 # App shell components (Sidebar, TopBar)
 │   │   └── public-home/         # Public landing page components
 │   ├── components/              # Shared/reusable UI components
+│   │   ├── AuthModal/           # Auth modal (sign-in/sign-up prompt)
 │   │   ├── Avatar/              # Avatar component + upload modal
 │   │   ├── Toast/               # Toast notification
 │   │   ├── ConfirmModal/        # Confirmation dialog
-│   │   ├── UnitToggleButtons/    # Presentational unit toggle buttons
-│   │   └── NavbarUnitToggle/    # Navbar unit toggle (context-based)
+│   │   ├── UnitToggleButtons/   # Presentational unit toggle buttons
+│   │   ├── NavbarUnitToggle/    # Navbar unit toggle (context-based)
+│   │   └── FormUnitToggle/      # Form-level unit toggle (context-based)
 │   ├── contexts/                # React contexts
 │   │   └── UnitSystemContext.tsx # Unit preferences context
 │   ├── hooks/                   # Shared custom hooks
+│   │   ├── useAuth.ts           # Auth hook (session, sign-in/up/out)
 │   │   └── useUnitPreferences.ts
 │   ├── lib/                     # Utility libraries
 │   │   ├── prisma.ts            # Prisma client singleton
@@ -237,9 +240,8 @@ diveiq/
 │   │   └── diveMath.ts          # Dive calculations
 │   ├── services/                # Service layer
 │   │   ├── ai/                  # OpenAI service
-│   │   ├── database/            # Repository pattern
-│   │   │   └── repositories/    # Data access layer
-│   │   └── weather/             # Weather service (UNVERIFIED - check usage)
+│   │   └── database/            # Repository pattern
+│   │       └── repositories/    # Data access layer
 │   └── styles/                  # CSS Modules and design system
 │       ├── design-system/       # Design tokens
 │       └── components/          # Shared component styles
@@ -274,8 +276,8 @@ Hypothesized flows with primary file citations:
 
 ### Authentication Flows
 
-- **Sign up**: `src/app/(auth)/signup/page.tsx` → `src/features/auth/components/SignUpForm.tsx` → `src/features/auth/hooks/useAuth.ts:36-82` → `src/app/api/auth/signup/route.ts`
-- **Sign in (credentials)**: `src/app/(auth)/signin/page.tsx` → `src/features/auth/components/SignInForm.tsx` → `src/features/auth/hooks/useAuth.ts:12-34` → `src/features/auth/lib/auth.ts` (NextAuth credentials provider)
+- **Sign up**: `src/app/(auth)/signup/page.tsx` → `src/features/auth/components/SignUpForm.tsx` → `src/hooks/useAuth.ts:36-82` → `src/app/api/auth/signup/route.ts`
+- **Sign in (credentials)**: `src/app/(auth)/signin/page.tsx` → `src/features/auth/components/SignInForm.tsx` → `src/hooks/useAuth.ts:12-34` → `src/features/auth/lib/auth.ts` (NextAuth credentials provider)
 - **Sign in (Google OAuth)**: `src/features/auth/components/GoogleOAuthButton.tsx` → `src/features/auth/lib/auth.ts` (Google provider)
 
 ### Dive Planning Flows

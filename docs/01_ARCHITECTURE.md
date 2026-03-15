@@ -171,7 +171,7 @@ See `docs/00_OVERVIEW.md` for detailed folder map. Key principles:
 
 - **Feature-based**: Each feature in `src/features/{name}/` with components, hooks, types
 - **Co-location**: Component styles (`.module.css`) next to components
-- **Shared code**: Reusable pieces in `src/components/`, `src/lib/`, `src/hooks/`
+- **Shared code**: Reusable pieces in `src/components/`, `src/lib/`, `src/hooks/` (includes `useAuth.ts`, `useUnitPreferences.ts`)
 - **API routes**: RESTful endpoints in `src/app/api/{resource}/route.ts`
 
 ## Feature-Based Architecture
@@ -182,6 +182,7 @@ Features are self-contained modules in `src/features/{feature-name}/`:
 - **hooks/** - Custom React hooks for feature logic
 - **types.ts** - TypeScript types for the feature
 - **services/** (optional) - Feature-specific business logic (e.g., `dive-plan/services/riskCalculator.ts`)
+- **utils/** (optional) - Pure utility/helper functions (e.g., `profile/utils/profileUtils.ts`, `dive-log/utils/timeUtils.ts`)
 
 Features should not import from other features. Shared code belongs in `src/components/`, `src/lib/`, etc.
 
@@ -240,7 +241,7 @@ No external state management library (Redux, Zustand, etc.) - uses React built-i
   - `utilities.css` - Utility classes
 - **Shared Component Styles**: `src/styles/components/` (Button, Card, Form, etc.)
 - **Co-location**: Component styles live next to components (`ComponentName.module.css`)
-- **Tailwind CSS**: Available but primarily using CSS Modules (UNVERIFIED - check actual usage)
+- **No Tailwind CSS**: This project uses CSS Modules exclusively
 
 ---
 

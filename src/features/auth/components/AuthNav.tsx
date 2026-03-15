@@ -2,7 +2,7 @@
 
 import { usePathname } from "next/navigation";
 import { useSession } from "next-auth/react";
-import { useAuth } from "../hooks/useAuth";
+import { useAuth } from "@/hooks/useAuth";
 import { useMe } from "../hooks/useMe";
 import Link from "next/link";
 import { Avatar } from "@/components/Avatar/Avatar";

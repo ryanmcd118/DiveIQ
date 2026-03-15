@@ -122,7 +122,7 @@ export default function SessionProvider({ children }: SessionProviderProps) {
 
 ### Client-Side Auth Hooks
 
-**`useAuth()` hook** (`src/features/auth/hooks/useAuth.ts`):
+**`useAuth()` hook** (`src/hooks/useAuth.ts`):
 
 - Wraps `useSession()` from next-auth/react
 - Provides: `user`, `isAuthenticated`, `isLoading`, `signInUser()`, `signUpUser()`, `signOutUser()`
@@ -152,6 +152,7 @@ Server Components use `getServerSession(authOptions)`:
 
 Reusable UI components used across features:
 
+- `AuthModal/` - Auth modal for sign-in/sign-up prompts (promoted from auth feature in DIV-65)
 - `Avatar/` - Avatar display + upload modal (`Avatar.tsx`, `AvatarUploadModal.tsx`)
 - `Toast.tsx` - Toast notifications
 - `ConfirmModal.tsx` - Confirmation dialogs
@@ -166,12 +167,18 @@ Reusable UI components used across features:
 
 Feature-specific components organized by feature:
 
-- `auth/components/` - SignInForm, SignUpForm, AuthModal, GoogleOAuthButton, etc.
-- `dive-log/components/` - LogbookForm, AddEditDiveSheet, DiveLogList, DiveLogGrid, LogbookLayout, LogPageContent, GearSelection
+- `auth/components/` - SignInForm, SignUpForm, GoogleOAuthButton, etc. (AuthModal promoted to `src/components/AuthModal/`)
+- `dive-log/components/` - LogbookForm, BasicDiveSection, AdvancedDiveSection, AddEditDiveSheet, DiveLogList, DiveLogGrid, LogbookLayout, LogPageContent, GearSelection
+  - `dive-log/hooks/` - useDiveFormState, useLogPageState
+  - `dive-log/utils/` - timeUtils (time conversion/normalization)
   - `LogbookLayout` - Master-detail layout with browse pane (grid/list views), detail pane, search, and sort controls (date, site name, region)
   - `DiveLogList` - List view has two modes. **Expanded (full-width, detail closed)**: table-like single-row layout with a subtle header row; columns Site, Buddy, Notes, Date, Depth, Time, Temp, Vis (plus actions). CSS Grid with explicit columns keeps all rows aligned; Notes column uses ellipsis and never overflows. **Condensed (detail pane open)**: 2×2 grid per dive (date | metrics, site | notes); buddy/region hidden. Styles in `List.module.css`.
 - `dive-plan/components/` - PlanForm, PlanPageContent, AIDiveBriefing, SaveDivePlanButton
-- `gear/components/` - GearPageContent, GearFormModal, KitFormModal, etc.
+- `gear/components/` - GearPageContent, GearFormModal, GearItemCard, KitFormModal, GearListSection, KitsSection, etc.
+  - `gear/hooks/` - useGearPageData, useGearArchive
+- `profile/components/` - ProfilePageContent, ProfileViewSection, ProfileEditForm, etc.
+  - `profile/hooks/` - useProfileForm
+  - `profile/utils/` - profileUtils, parseJsonArray
 - `dashboard/components/` - DashboardPageContent, StatsGrid, CertificationsCard, etc.
 - `app/components/` - AppShell, Sidebar, TopBar (app-level shell components)
 
@@ -399,21 +406,14 @@ const [error, setError] = useState<string | null>(null);
 
 ## Known Frontend Tech Debt
 
-### Over-Componentization Risks
-
-**Potential risk: ProfilePageContent duplication**
-
-- `src/features/profile/components/ProfilePageContent.tsx` (current)
-- `src/features/profile/components/ProfilePageContent.new.tsx` (939 lines - refactoring in progress?)
-- **Recommendation**: Complete migration and remove old file to avoid confusion
-
 ### Component Organization Notes
 
 **Mixed patterns in component organization**:
 
 - Most features follow `components/` pattern
 - `app/` feature contains shell components (Sidebar, TopBar) - could be considered shared
-- Unit toggle components consolidated (batch 6b): `UnitToggleButtons` (presentational), `NavbarUnitToggle` and `FormUnitToggle` (both use `UnitSystemContext`)
+- Unit toggle components consolidated (DIV-65 batch 6b): `UnitToggleButtons` (presentational), `NavbarUnitToggle` and `FormUnitToggle` (both use `UnitSystemContext`)
+- Auth hooks and components promoted to shared locations (DIV-65 batch 6a): `useAuth` → `src/hooks/`, `AuthModal` → `src/components/AuthModal/`
 
 ### State Management Complexity
 
