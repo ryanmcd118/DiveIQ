@@ -7,7 +7,6 @@ import { Avatar } from "@/components/Avatar/Avatar";
 import cardStyles from "@/styles/components/Card.module.css";
 import formStyles from "@/styles/components/Form.module.css";
 import buttonStyles from "@/styles/components/Button.module.css";
-import settingsStyles from "@/features/settings/components/SettingsPageContent.module.css";
 import styles from "./ProfilePageContent.module.css";
 import { parseJsonArray, stringifyJsonArray } from "../utils/parseJsonArray";
 import {
@@ -1087,25 +1086,23 @@ export function ProfilePageContent() {
 
                 {/* Section: Profile Visibility */}
                 <div className={`${cardStyles.card} ${styles.section}`}>
-                  <div className={settingsStyles.sectionHeader}>
-                    <h3 className={settingsStyles.sectionTitle}>
-                      Profile visibility
-                    </h3>
-                    <p className={settingsStyles.sectionDescription}>
+                  <div className={styles.sectionHeader}>
+                    <h3 className={styles.sectionTitle}>Profile visibility</h3>
+                    <p className={styles.sectionDescription}>
                       Choose what&apos;s shown on your public profile.
                     </p>
                   </div>
 
-                  <div className={settingsStyles.settingsList}>
+                  <div className={styles.settingsList}>
                     {/* Certifications Toggle */}
-                    <div className={settingsStyles.settingRow}>
-                      <div className={settingsStyles.settingLabel}>
+                    <div className={styles.settingRow}>
+                      <div className={styles.settingLabel}>
                         <label htmlFor="profile-visibility-certs">
                           Show certifications on profile
                         </label>
                       </div>
-                      <div className={settingsStyles.settingControl}>
-                        <label className={settingsStyles.toggle}>
+                      <div className={styles.settingControl}>
+                        <label className={styles.toggle}>
                           <input
                             id="profile-visibility-certs"
                             type="checkbox"
@@ -1117,27 +1114,27 @@ export function ProfilePageContent() {
                               )
                             }
                           />
-                          <span className={settingsStyles.toggleSlider}></span>
+                          <span className={styles.toggleSlider}></span>
                         </label>
                       </div>
                     </div>
                     <div
                       style={{ marginTop: "var(--space-1)", marginLeft: "0" }}
                     >
-                      <p className={settingsStyles.helperText}>
+                      <p className={styles.helperText}>
                         Displays your certifications section on your profile.
                       </p>
                     </div>
 
                     {/* Gear Toggle */}
-                    <div className={settingsStyles.settingRow}>
-                      <div className={settingsStyles.settingLabel}>
+                    <div className={styles.settingRow}>
+                      <div className={styles.settingLabel}>
                         <label htmlFor="profile-visibility-gear">
                           Show gear on profile
                         </label>
                       </div>
-                      <div className={settingsStyles.settingControl}>
-                        <label className={settingsStyles.toggle}>
+                      <div className={styles.settingControl}>
+                        <label className={styles.toggle}>
                           <input
                             id="profile-visibility-gear"
                             type="checkbox"
@@ -1149,14 +1146,14 @@ export function ProfilePageContent() {
                               )
                             }
                           />
-                          <span className={settingsStyles.toggleSlider}></span>
+                          <span className={styles.toggleSlider}></span>
                         </label>
                       </div>
                     </div>
                     <div
                       style={{ marginTop: "var(--space-1)", marginLeft: "0" }}
                     >
-                      <p className={settingsStyles.helperText}>
+                      <p className={styles.helperText}>
                         Displays your gear section on your profile.
                       </p>
                     </div>
@@ -1178,11 +1175,9 @@ export function ProfilePageContent() {
                         </h4>
 
                         {kitsLoading ? (
-                          <p className={settingsStyles.helperText}>
-                            Loading kits...
-                          </p>
+                          <p className={styles.helperText}>Loading kits...</p>
                         ) : kits.length === 0 ? (
-                          <p className={settingsStyles.helperText}>
+                          <p className={styles.helperText}>
                             <Link
                               href="/gear"
                               style={{
