@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
-import { useAuth } from "@/features/auth/hooks/useAuth";
+import { useAuth } from "@/hooks/useAuth";
 import { useMe } from "@/features/auth/hooks/useMe";
 import { Avatar } from "@/components/Avatar/Avatar";
 import styles from "./TopBar.module.css";

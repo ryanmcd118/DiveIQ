@@ -1,6 +1,6 @@
 "use client";
 
-import { useAuth } from "@/features/auth/hooks/useAuth";
+import { useAuth } from "@/hooks/useAuth";
 import styles from "./DashboardHeader.module.css";
 
 interface DashboardHeaderProps {

@@ -7,7 +7,7 @@ import { AIDiveBriefing } from "./AIDiveBriefing";
 import { PlanForm } from "./PlanForm";
 import { PlanLoadingScreen } from "./PlanLoadingScreen";
 import { SaveDivePlanButton } from "./SaveDivePlanButton";
-import { AuthModal } from "@/features/auth/components/AuthModal";
+import { AuthModal } from "@/components/AuthModal/AuthModal";
 import layoutStyles from "@/styles/components/Layout.module.css";
 import gridStyles from "@/styles/components/PageGrid.module.css";
 import backgroundStyles from "@/styles/components/Background.module.css";

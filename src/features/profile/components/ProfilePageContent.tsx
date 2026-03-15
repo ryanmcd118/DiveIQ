@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo, useRef } from "react";
 import Link from "next/link";
-import { useAuth } from "@/features/auth/hooks/useAuth";
+import { useAuth } from "@/hooks/useAuth";
 import { Avatar } from "@/components/Avatar/Avatar";
 import cardStyles from "@/styles/components/Card.module.css";
 import formStyles from "@/styles/components/Form.module.css";
