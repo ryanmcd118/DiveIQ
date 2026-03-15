@@ -124,101 +124,151 @@ src/app/api/
 
 ## Error Handling Conventions
 
-### Error Response Pattern
+### API Error Response Shape
 
-**Standard shape**:
+All error responses use a standard envelope:
 
-```typescript
-NextResponse.json(
-  { error: "Human-readable error message" },
-  { status: 400 | 401 | 404 | 409 | 500 }
-);
+```json
+{ "error": "Human-readable error message" }
 ```
 
-**Status codes used**:
+For Zod validation failures, an optional `details` array is included:
 
-- `400` - Bad request (validation errors, missing fields)
-- `401` - Unauthorized (no session or invalid session)
-- `404` - Not found (resource doesn't exist)
-- `409` - Conflict (duplicate resources, e.g., certifications)
-- `500` - Internal server error (catch-all for exceptions)
+```json
+{
+  "error": "Validation failed",
+  "details": [{ "path": ["field"], "message": "..." }]
+}
+```
 
-### Error Handling Pattern
+**Success responses** for mutations that return no data use:
 
-**Standard try/catch structure**:
+```json
+{ "ok": true }
+```
+
+GET responses and mutations that return data use the data directly (e.g., `{ entry: {...} }`, `{ plans: [...] }`).
+
+### HTTP Status Codes
+
+| Status | Meaning           | When to use                                                        |
+| ------ | ----------------- | ------------------------------------------------------------------ |
+| 200    | Success           | Default for GET responses and updates returning data               |
+| 201    | Created           | POST that creates a new resource                                   |
+| 400    | Bad request       | Validation failure, missing fields, bad input                      |
+| 401    | Not authenticated | No valid session (getServerSession returns null)                   |
+| 404    | Not found         | Resource does not exist **or** is not owned by the requesting user |
+| 409    | Conflict          | Duplicate resource (e.g., duplicate certification)                 |
+| 500    | Server error      | Unexpected/unhandled exceptions                                    |
+
+**403 is not used.** 404 covers both not-found and ownership checks — this avoids revealing resource existence to non-owners (resource-hiding pattern).
+
+**422 is not used.** 400 covers all validation errors.
+
+### apiResponse Helpers (`src/lib/apiResponse.ts`)
+
+All route handlers use these helpers instead of raw `NextResponse.json()`:
+
+| Helper                                  | Returns                       | When to use                                           |
+| --------------------------------------- | ----------------------------- | ----------------------------------------------------- |
+| `apiError(message, status)`             | `{ error }` with status       | Standard error response                               |
+| `apiValidationError(message, details?)` | `{ error, details }` with 400 | Zod validation failures                               |
+| `apiOk()`                               | `{ ok: true }` with 200       | Mutation success (delete, update with no body needed) |
+| `apiCreated(data)`                      | `data` with 201               | POST that creates a resource                          |
+| `apiSuccess(data, status?)`             | `data` with 200               | GET responses and other success with data             |
+
+### Typed Error Classes (`src/lib/errors.ts`)
+
+Repositories throw typed errors instead of generic `Error`:
+
+| Class               | Maps to | Thrown when                                        |
+| ------------------- | ------- | -------------------------------------------------- |
+| `NotFoundError`     | 404     | Resource not found or not owned by requesting user |
+| `ValidationError`   | 400     | Invalid input detected in service/repository layer |
+| `UnauthorizedError` | 401     | Authorization failure below route level            |
+| `ConflictError`     | 409     | Duplicate resource or state conflict               |
+
+Route handlers use `instanceof` checks in catch blocks to map errors to the correct HTTP status:
 
 ```typescript
-// src/app/api/dive-logs/route.ts:14-67
+} catch (err) {
+  console.error("DELETE /api/dive-plans error", err);
+  if (err instanceof NotFoundError) {
+    return apiError(err.message, 404);
+  }
+  return apiError("Failed to delete plan", 500);
+}
+```
+
+### Logging Convention
+
+All errors in catch blocks are logged with the HTTP method, route path, and error object:
+
+```
+console.error("METHOD /api/path error", err)
+```
+
+Examples:
+
+- `console.error("GET /api/dive-logs error", err)`
+- `console.error("POST /api/dive-plans error", err)`
+- `console.error("DELETE /api/gear-kits error", err)`
+
+Auth early-returns (401) are **not** logged — only unexpected errors in catch blocks.
+
+### try/catch Requirement
+
+Every route handler uses a single top-level `try/catch` wrapping all async work, including `getServerSession`:
+
+```typescript
 export async function GET(req: NextRequest) {
-  const session = await getServerSession(authOptions);
-  if (!session?.user) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-
   try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user) {
+      return apiError("Unauthorized", 401);
+    }
     // ... business logic ...
-    return NextResponse.json({ entries });
+    return apiSuccess({ data });
   } catch (err) {
-    console.error("GET /api/dive-logs error", err);
-    return NextResponse.json(
-      { error: "Failed to fetch dive logs" },
-      { status: 500 }
-    );
+    console.error("GET /api/resource error", err);
+    if (err instanceof NotFoundError) {
+      return apiError(err.message, 404);
+    }
+    return apiError("Failed to fetch resource", 500);
   }
 }
 ```
 
-**Error logging**:
+No per-await micro try/catch unless a narrower fallback is intentional (e.g., OpenAI calls that fall back to a static briefing).
 
-- All errors logged with `console.error()` (route name + error)
-- Development-only detailed logs in some routes (e.g., `src/app/api/profile/route.ts:16-24`)
+### React Error Boundaries
 
-### Error Response Variations
+Next.js `error.tsx` convention provides layered error boundaries:
 
-**With validation details** (Zod routes):
+| File                                | Scope                   | Catches                                     |
+| ----------------------------------- | ----------------------- | ------------------------------------------- |
+| `src/app/global-error.tsx`          | Root layout             | Catastrophic failures (root layout crashes) |
+| `src/app/(app)/error.tsx`           | Authenticated app shell | Errors in any authenticated page            |
+| `src/app/(app)/dive-logs/error.tsx` | Dive logs feature       | Errors in dive log pages                    |
+| `src/app/(app)/plan/error.tsx`      | Dive plan feature       | Errors in plan pages                        |
+| `src/app/(app)/gear/error.tsx`      | Gear feature            | Errors in gear pages                        |
+| `src/app/(app)/profile/error.tsx`   | Profile feature         | Errors in profile pages                     |
 
-```typescript
-// src/app/api/certifications/route.ts:74-78
-if (!validationResult.success) {
-  return NextResponse.json(
-    { error: "Invalid input", details: validationResult.error.issues },
-    { status: 400 }
-  );
-}
-```
+All error boundaries render a "Something went wrong" message with a retry button. No stack traces are shown in production.
 
-**With specific error messages**:
+### External Service Error Handling
 
-```typescript
-// src/app/api/auth/signup/route.ts:14-18
-if (!email || !password || !trimmedFirstName || !trimmedLastName) {
-  return NextResponse.json(
-    { error: "First and last name are required." },
-    { status: 400 }
-  );
-}
-```
+**OpenAI** (`src/services/ai/openaiService.ts`):
 
-**Generic errors** (most routes):
+- All `openai.chat.completions.create()` calls are wrapped in `withRetry()` — max 2 retries with exponential backoff (500ms, 1s) for transient failures (HTTP 429, 502, 503, network errors)
+- Non-streaming calls (`generateDivePlanBriefing`, `generateUpdatedDivePlanBriefing`): retry, then fall back to `getFallbackBriefing()` on persistent failure
+- Streaming calls (`generateDivePlanBriefingStream`, `generateUpdatedDivePlanBriefingStream`): retry the API call; mid-stream failures are logged server-side and the client receives an error via stream close (`controller.error()`)
+- Client detects stream failure when `reader.read()` throws, caught in `usePlanSubmission`
 
-```typescript
-// src/app/api/dive-plans/route.ts:94-99
-catch (err) {
-  console.error("Error in POST /api/dive-plans:", err);
-  return NextResponse.json(
-    { error: "Failed to generate plan advice." },
-    { status: 500 }
-  );
-}
-```
+**UploadThing** (avatar uploads):
 
-### Error Handling Issues
-
-**Generic error messages**: Most catch blocks return generic messages, hiding actual errors from clients. This is good for security but makes debugging harder.
-
-**No error tracking**: Errors only logged to console, no external error tracking service (Sentry, etc.)
-
-**Inconsistent error detail**: Some routes return validation details, others don't.
+- No server-side retry — the client handles errors via the upload modal UI
+- Upload errors are surfaced directly to the user in the component
 
 ## Business Logic Organization
 
@@ -233,21 +283,17 @@ catch (err) {
 **Repository interface**:
 
 ```typescript
-// src/services/database/repositories/diveLogRepository.ts:9-28
+// src/services/database/repositories/diveLogRepository.ts
 export const diveLogRepository = {
-  async create(data: DiveLogInput, userId?: string): Promise<DiveLogEntry> {
-    return prisma.diveLog.create({ data: { ...data, userId } });
-  },
-  async findById(id: string, userId?: string): Promise<DiveLogEntry | null> {
-    // Authorization check included
-    if (userId && entry && entry.userId !== userId) return null;
-    return entry;
-  },
+  async create(data: DiveLogInput, userId: string): Promise<DiveLogEntry> { ... },
+  async findById(id: string, userId: string): Promise<DiveLogEntry | null> { ... },
+  async update(id: string, data: DiveLogInput, userId: string): Promise<DiveLogEntry> { ... },
+  async delete(id: string, userId: string): Promise<void> { ... },
   // ...
 };
 ```
 
-**Authorization in repositories**: Repositories check `userId` ownership on read/update/delete operations.
+**Authorization in repositories**: `userId` is required (non-optional) on all operations. Repositories use `findFirst({ where: { id, userId } })` to enforce ownership — if the record doesn't exist or belongs to another user, `update`/`delete` throw `NotFoundError`; `findById` returns `null`.
 
 **For detailed database schema and query patterns, see `docs/05_DATABASE.md`.**
 
@@ -316,10 +362,9 @@ if (!session?.user) {
 **Basic check** (most routes):
 
 ```typescript
-// src/app/api/dive-logs/route.ts:15-19
 const session = await getServerSession(authOptions);
 if (!session?.user) {
-  return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  return apiError("Unauthorized", 401);
 }
 ```
 
@@ -347,18 +392,15 @@ if (
 **Two-layer authorization**:
 
 1. **Route level**: Session check (above)
-2. **Repository level**: User ownership check
+2. **Repository level**: User ownership check via `findFirst({ where: { id, userId } })`
    ```typescript
-   // src/services/database/repositories/diveLogRepository.ts:70-75
-   if (userId) {
-     const existing = await prisma.diveLog.findUnique({ where: { id } });
-     if (!existing || existing.userId !== userId) {
-       throw new Error("Dive log not found or unauthorized");
-     }
+   const existing = await prisma.diveLog.findFirst({ where: { id, userId } });
+   if (!existing) {
+     throw new NotFoundError("Dive log not found or unauthorized");
    }
    ```
 
-**This is defensive** but creates duplication - routes pass `session.user.id`, repositories check again.
+**This is defensive** but ensures resources cannot be accessed cross-user even if a route handler bug skips the session check.
 
 ## Core Backend Flows
 
@@ -481,7 +523,7 @@ In the refactored logbook, initial dive list and statistics are fetched in the S
    - Create new token: `encode()` with updated `sessionVersion` (line 122-132)
    - Set cookie: `response.cookies.set()` (line 145-151)
 
-5. **Response**: `NextResponse.json({ success: true })` (line 141)
+5. **Response**: `apiOk()` — returns `{ ok: true }` (line 141)
 
 **Data flow**: Client → Route Handler → Prisma (fetch user) → bcrypt (verify) → Prisma Transaction (update + sessionVersion) → JWT encode → Set cookie → Response
 
@@ -546,15 +588,15 @@ In the refactored logbook, initial dive list and statistics are fetched in the S
 
 **Location**: `src/app/api/profile/route.ts`, `src/app/api/certifications/route.ts`
 
-### 6. Error Message Inconsistency
+### 6. Error Message Inconsistency (partially addressed)
 
 **Issue**: Some routes return detailed validation errors, others return generic messages
 
-- Zod routes return `details` field
-- Manual validation routes return generic messages
-- Catch blocks return generic messages (hides actual errors)
+- Zod routes use `apiValidationError()` with `details` array
+- Manual validation routes return generic messages via `apiError()`
+- Catch blocks return generic messages (intentional — hides internals from clients)
 
-**Impact**: Inconsistent client experience, harder debugging
+**Status**: Error response shape is now standardized (`{ error }` envelope, `apiResponse` helpers). Validation detail coverage remains inconsistent — only Zod routes include `details`.
 
 **Location**: All route handlers
 
