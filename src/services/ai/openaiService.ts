@@ -10,6 +10,36 @@ const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
+function isTransient(err: unknown): boolean {
+  if (err instanceof OpenAI.APIError) {
+    return [429, 502, 503].includes(err.status);
+  }
+  if (err instanceof Error) {
+    return /ECONNRESET|ETIMEDOUT|fetch failed|socket hang up/.test(err.message);
+  }
+  return false;
+}
+
+function sleep(ms: number): Promise<void> {
+  return new Promise((r) => setTimeout(r, ms));
+}
+
+async function withRetry<T>(fn: () => Promise<T>, maxRetries = 2): Promise<T> {
+  for (let attempt = 0; ; attempt++) {
+    try {
+      return await fn();
+    } catch (err) {
+      if (attempt >= maxRetries || !isTransient(err)) throw err;
+      const delayMs = 500 * 2 ** attempt;
+      console.warn(
+        `OpenAI transient error (attempt ${attempt + 1}), retrying in ${delayMs}ms`,
+        err
+      );
+      await sleep(delayMs);
+    }
+  }
+}
+
 export type DivePlanAnalysisRequest = {
   region: string;
   siteName: string;
@@ -472,6 +502,7 @@ function bufferAndApplyGearNotes(
         controller.enqueue(encoder.encode(JSON.stringify(briefing)));
         controller.close();
       } catch (err) {
+        console.error("OpenAI stream processing error", err);
         controller.error(err);
       }
     },
@@ -488,16 +519,18 @@ export async function generateDivePlanBriefing(
   const systemPrompt = buildSystemPrompt(unitSystem);
 
   try {
-    const completion = await openai.chat.completions.create({
-      model: "gpt-4o-mini",
-      messages: [
-        { role: "system", content: systemPrompt },
-        { role: "user", content: buildUserPrompt(plan) },
-      ],
-      temperature: 0.6,
-      max_tokens: 1000,
-      response_format: { type: "json_object" },
-    });
+    const completion = await withRetry(() =>
+      openai.chat.completions.create({
+        model: "gpt-4o-mini",
+        messages: [
+          { role: "system", content: systemPrompt },
+          { role: "user", content: buildUserPrompt(plan) },
+        ],
+        temperature: 0.6,
+        max_tokens: 1000,
+        response_format: { type: "json_object" },
+      })
+    );
 
     const content = completion.choices[0]?.message?.content;
     if (!content) {
@@ -524,16 +557,18 @@ export async function generateUpdatedDivePlanBriefing(
   const systemPrompt = buildUpdatedSystemPrompt(unitSystem);
 
   try {
-    const completion = await openai.chat.completions.create({
-      model: "gpt-4o-mini",
-      messages: [
-        { role: "system", content: systemPrompt },
-        { role: "user", content: buildUserPrompt(plan, true) },
-      ],
-      temperature: 0.6,
-      max_tokens: 1000,
-      response_format: { type: "json_object" },
-    });
+    const completion = await withRetry(() =>
+      openai.chat.completions.create({
+        model: "gpt-4o-mini",
+        messages: [
+          { role: "system", content: systemPrompt },
+          { role: "user", content: buildUserPrompt(plan, true) },
+        ],
+        temperature: 0.6,
+        max_tokens: 1000,
+        response_format: { type: "json_object" },
+      })
+    );
 
     const content = completion.choices[0]?.message?.content;
     if (!content) {
@@ -558,17 +593,19 @@ export async function generateDivePlanBriefingStream(
   plan: DivePlanAnalysisRequest
 ): Promise<ReadableStream<Uint8Array>> {
   const unitSystem = plan.unitSystem || "metric";
-  const stream = await openai.chat.completions.create({
-    model: "gpt-4o-mini",
-    messages: [
-      { role: "system", content: buildSystemPrompt(unitSystem) },
-      { role: "user", content: buildUserPrompt(plan) },
-    ],
-    temperature: 0.6,
-    max_tokens: 1000,
-    response_format: { type: "json_object" },
-    stream: true,
-  });
+  const stream = await withRetry(() =>
+    openai.chat.completions.create({
+      model: "gpt-4o-mini",
+      messages: [
+        { role: "system", content: buildSystemPrompt(unitSystem) },
+        { role: "user", content: buildUserPrompt(plan) },
+      ],
+      temperature: 0.6,
+      max_tokens: 1000,
+      response_format: { type: "json_object" },
+      stream: true,
+    })
+  );
 
   return bufferAndApplyGearNotes(stream, plan);
 }
@@ -581,17 +618,19 @@ export async function generateUpdatedDivePlanBriefingStream(
   plan: DivePlanAnalysisRequest
 ): Promise<ReadableStream<Uint8Array>> {
   const unitSystem = plan.unitSystem || "metric";
-  const stream = await openai.chat.completions.create({
-    model: "gpt-4o-mini",
-    messages: [
-      { role: "system", content: buildUpdatedSystemPrompt(unitSystem) },
-      { role: "user", content: buildUserPrompt(plan, true) },
-    ],
-    temperature: 0.6,
-    max_tokens: 1000,
-    response_format: { type: "json_object" },
-    stream: true,
-  });
+  const stream = await withRetry(() =>
+    openai.chat.completions.create({
+      model: "gpt-4o-mini",
+      messages: [
+        { role: "system", content: buildUpdatedSystemPrompt(unitSystem) },
+        { role: "user", content: buildUserPrompt(plan, true) },
+      ],
+      temperature: 0.6,
+      max_tokens: 1000,
+      response_format: { type: "json_object" },
+      stream: true,
+    })
+  );
 
   return bufferAndApplyGearNotes(stream, plan);
 }
