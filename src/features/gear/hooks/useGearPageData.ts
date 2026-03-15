@@ -46,34 +46,62 @@ export function useGearPageData() {
   }, [loadData]);
 
   const deleteGearOrKit = useCallback(
-    async (id: string, type: "gear" | "kit") => {
-      const endpoint = type === "gear" ? "/api/gear" : "/api/gear-kits";
-      const res = await fetch(`${endpoint}?id=${id}`, {
-        method: "DELETE",
-      });
+    async (
+      id: string,
+      type: "gear" | "kit"
+    ): Promise<{ ok: true } | { ok: false; error: string }> => {
+      try {
+        const endpoint = type === "gear" ? "/api/gear" : "/api/gear-kits";
+        const res = await fetch(`${endpoint}?id=${id}`, {
+          method: "DELETE",
+        });
 
-      if (!res.ok) {
-        throw new Error(`Failed to delete ${type}`);
+        if (!res.ok) {
+          const data = await res.json().catch(() => ({}));
+          return {
+            ok: false,
+            error: data.error || `Failed to delete ${type}`,
+          };
+        }
+
+        void loadData();
+        return { ok: true };
+      } catch (err) {
+        console.error(
+          `DELETE /api/${type === "gear" ? "gear" : "gear-kits"} error`,
+          err
+        );
+        return { ok: false, error: `Failed to delete ${type}` };
       }
-
-      void loadData();
     },
     [loadData]
   );
 
   const setDefaultKit = useCallback(
-    async (id: string) => {
-      const res = await fetch("/api/gear-kits", {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id, isDefault: true }),
-      });
+    async (
+      id: string
+    ): Promise<{ ok: true } | { ok: false; error: string }> => {
+      try {
+        const res = await fetch("/api/gear-kits", {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ id, isDefault: true }),
+        });
 
-      if (!res.ok) {
-        throw new Error("Failed to set default kit");
+        if (!res.ok) {
+          const data = await res.json().catch(() => ({}));
+          return {
+            ok: false,
+            error: data.error || "Failed to set default kit",
+          };
+        }
+
+        void loadData();
+        return { ok: true };
+      } catch (err) {
+        console.error("PUT /api/gear-kits error", err);
+        return { ok: false, error: "Failed to set default kit" };
       }
-
-      void loadData();
     },
     [loadData]
   );

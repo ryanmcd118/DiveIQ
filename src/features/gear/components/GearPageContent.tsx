@@ -108,17 +108,14 @@ export function GearPageContent() {
 
   const confirmDelete = async () => {
     if (!deleteConfirm) return;
+    const { id, type } = deleteConfirm;
+    setDeleteConfirm(null);
 
-    try {
-      await deleteGearOrKit(deleteConfirm.id, deleteConfirm.type);
-      setDeleteConfirm(null);
-      setToast({
-        message: deleteConfirm.type === "gear" ? "Gear deleted" : "Kit deleted",
-      });
-    } catch (err) {
-      console.error(err);
-      setDeleteConfirm(null);
-      alert(`Failed to delete ${deleteConfirm.type}`);
+    const result = await deleteGearOrKit(id, type);
+    if (result.ok) {
+      setToast({ message: type === "gear" ? "Gear deleted" : "Kit deleted" });
+    } else {
+      setToast({ message: result.error });
     }
   };
 
@@ -137,11 +134,9 @@ export function GearPageContent() {
   }, []);
 
   const handleSetDefaultKit = async (id: string) => {
-    try {
-      await setDefaultKit(id);
-    } catch (err) {
-      console.error(err);
-      alert("Failed to set default kit");
+    const result = await setDefaultKit(id);
+    if (!result.ok) {
+      setToast({ message: result.error });
     }
   };
 
