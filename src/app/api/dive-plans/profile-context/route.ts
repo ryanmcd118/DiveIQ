@@ -1,9 +1,9 @@
-import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/features/auth/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { diveLogRepository } from "@/services/database/repositories/diveLogRepository";
 import { gearRepository } from "@/services/database/repositories/gearRepository";
+import { apiError, apiSuccess } from "@/lib/apiResponse";
 
 /**
  * GET /api/dive-plans/profile-context
@@ -11,15 +11,14 @@ import { gearRepository } from "@/services/database/repositories/gearRepository"
  * Requires authentication
  */
 export async function GET() {
-  const session = await getServerSession(authOptions);
-
-  if (!session?.user) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-
-  const userId = session.user.id;
-
   try {
+    const session = await getServerSession(authOptions);
+
+    if (!session?.user) {
+      return apiError("Unauthorized", 401);
+    }
+
+    const userId = session.user.id;
     const [stats, lastDiveRecord, certs, gear, user] = await Promise.all([
       diveLogRepository.getStatistics(userId),
       prisma.diveLog.findFirst({
@@ -63,7 +62,7 @@ export async function GET() {
       primaryDiveTypes = [];
     }
 
-    return NextResponse.json({
+    return apiSuccess({
       totalDives: stats.totalDives,
       lastDiveDate: lastDiveRecord?.date ?? null,
       experienceLevel: user?.experienceLevel ?? null,
@@ -87,9 +86,6 @@ export async function GET() {
     });
   } catch (err) {
     console.error("GET /api/dive-plans/profile-context error", err);
-    return NextResponse.json(
-      { error: "Failed to load profile context." },
-      { status: 500 }
-    );
+    return apiError("Failed to load profile context.", 500);
   }
 }

@@ -1,4 +1,5 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
+import { apiError } from "@/lib/apiResponse";
 import {
   generateDivePlanBriefingStream,
   type DivePlanAnalysisRequest,
@@ -65,10 +66,7 @@ export async function POST(req: NextRequest) {
       },
     });
   } catch (err) {
-    console.error("Error in POST /api/dive-plans/preview:", err);
-    return NextResponse.json(
-      { error: "Failed to generate plan advice." },
-      { status: 500 }
-    );
+    console.error("POST /api/dive-plans/preview error", err);
+    return apiError("Failed to generate plan advice.", 500);
   }
 }
